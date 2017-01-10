@@ -1,7 +1,11 @@
 import globus_auth
+from pickle import load
+from sys import exit
+
+default_filename = "oqmd_all_v2.pickle"
 
 verbose = True
-ingest_limit = 1000
+ingest_limit = 1
 datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
 dc_namespace = "http://dublincore.org/documents/dcmi-terms"
 
@@ -10,6 +14,8 @@ dc_namespace = "http://dublincore.org/documents/dcmi-terms"
 #With full=false, the returned entry can be added to a gmeta list, but cannot be ingested directly
 #With full=true, the returned entry is ready for ingestion, but not inclusion in a gmeta list
 def format_single_gmeta(data_dict, full=False):
+	if not data_dict.get("context", None):
+		data_dict["context"] = {}
 	if not data_dict.get("context", {}).get("datacite", None):
 		data_dict["context"]["datacite"] = datacite_namespace
 	if not data_dict.get("context", {}).get("dc", None):
@@ -19,7 +25,7 @@ def format_single_gmeta(data_dict, full=False):
 	if not data_dict.get("globus_id", None):
 		data_dict["globus_id"] = ""
 	if data_dict.get("data_context", None):
-		for elem in data_dict.get("data", []):
+		for elem in data_dict.get("data", {}).keys():
 			elem = data_dict["data_context"] + elem
 	gmeta = {
 		"@datatype":"GMetaEntry",
@@ -27,7 +33,7 @@ def format_single_gmeta(data_dict, full=False):
 		"subject":data_dict["globus_subject"],
 		"visible_to":["public"],
 		"id":data_dict["globus_id"],
-		"content":data_dict.get("data", None)
+		"content":data_dict.get("data", {})
 		}
 	gmeta["content"]["@context"] = data_dict["context"]
 
@@ -62,7 +68,7 @@ def format_multi_gmeta(data_list, globus_source=""):
 		}
 	return gmeta
 
-#
+#Takes a pickled list of dicts and ingests into Globus Search
 def ingest_pickle(pickle_filename):
 	#Authentication
 	if verbose:
@@ -70,8 +76,19 @@ def ingest_pickle(pickle_filename):
 	client = globus_auth.login("https://datasearch.api.demo.globus.org/")
 	#Record preparation
 	if verbose:
+		print "Opening pickle"
+	try:
+		pickle_file = open(pickle_filename)
+	except IOError as e:
+		print "Cannot open file '" + pickle_filename + "': " + e.strerror
+		exit(-1)
+	list_of_data = load(pickle_file)
+	pickle_file.close()
+	if verbose:
 		print "Processing pickle"
-	list_of_data = pickle_to_dict_list(pickle_filename)
+	if type(list_of_data) is not list:
+		print "Error: Cannot process " + str(type(list_of_data)) + ". Must be list."
+		exit(-1)
 	if len(list_of_data) == 0:
 		print "Error: No data found"
 		exit(-1)
@@ -80,7 +97,7 @@ def ingest_pickle(pickle_filename):
 		client.ingest(single_ingestable)
 		if verbose:
 			print "Ingested one record"
-	elif len(list_of_data > 1:
+	elif len(list_of_data) > 1:
 		list_ingestable = []
 		count = 0
 		for record in list_of_data:
@@ -96,6 +113,7 @@ def ingest_pickle(pickle_filename):
 	if verbose:
 		print "Success"
 
-
-
+if __name__ == "__main__":
+	print "Using data from " + default_filename + ":\n"
+	ingest_pickle(default_filename)
 
