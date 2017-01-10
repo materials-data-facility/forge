@@ -2,6 +2,8 @@ import globus_auth
 from pickle import load
 from sys import exit
 
+max_ingests_at_once = 5000
+
 #datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
 #dc_namespace = "http://dublincore.org/documents/dcmi-terms"
 
@@ -106,8 +108,20 @@ def ingest_pickle(pickle_filename, ingest_limit=0, verbose=True):
 			count += 1
 			if ingest_limit != 0 and count >= ingest_limit:
 				break
-		multi_ingestable = format_multi_gmeta(list_ingestable)
-		client.ingest(multi_ingestable)
+		if verbose:
+			print "Size: " + str(len(list_ingestable))
+		# list // max + 1 = number of iterations to ingest all data
+		# But if list % max == 0, adding one gives one too many iterations
+		range_val = len(list_ingestable) // max_ingests_at_once
+		if len(list_ingestable) % max_ingests_at_once != 0:
+			range_val += 1
+		for i in range(range_val):
+			multi_ingestable = format_multi_gmeta(list_ingestable[
+				i * max_ingests_at_once : (i + 1) * max_ingests_at_once
+				])
+			client.ingest(multi_ingestable)
+			if verbose:
+				print "Ingested round " + str(i+1)
 		if verbose:
 			print "Ingested " + str(count) + " records"
 	if verbose:
@@ -115,7 +129,8 @@ def ingest_pickle(pickle_filename, ingest_limit=0, verbose=True):
 
 if __name__ == "__main__":
 	default_filename = "oqmd_all_v2.pickle"
-	default_ingest_limit = 1000
+#	default_filename = "janaf_data.pickle"
+	default_ingest_limit = 0
 	print "Using " + str(default_ingest_limit) + " records from " + default_filename + ":\n"
 	ingest_pickle(default_filename, ingest_limit=default_ingest_limit)
 
