@@ -2,6 +2,12 @@ import globus_auth
 from pickle import load
 from sys import exit
 
+max_ingests_at_once = 5000
+max_ingests_total = 5
+#Pick exactly one to uncomment
+data_file = "oqmd_json.pickle"
+#data_file = "janaf_json.pickle"
+
 #datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
 #dc_namespace = "http://dublincore.org/documents/dcmi-terms"
 
@@ -69,7 +75,12 @@ def format_multi_gmeta(data_list):
 	return gmeta
 
 #Takes a pickled list of dicts and ingests into Globus Search
-def ingest_pickle(pickle_filename, ingest_limit=0, verbose=True):
+#Arguments:
+#	pickle_filename: Name of pickle file containing json blob from converter
+#	max_ingest_size: Maximum size of a single ingestion (-1 is unlimited)
+#	ingest_limit: Maximum number of records to ingest overall (-1 is unlimited)
+#	verbose: Show status messages?
+def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose=False):
 	#Authentication
 	if verbose:
 		print "Authenticating"
@@ -104,18 +115,36 @@ def ingest_pickle(pickle_filename, ingest_limit=0, verbose=True):
 			single_ingestable = format_single_gmeta(record, full=False)
 			list_ingestable.append(single_ingestable)
 			count += 1
-			if ingest_limit != 0 and count >= ingest_limit:
+			if ingest_limit > 0 and count >= ingest_limit:
 				break
-		multi_ingestable = format_multi_gmeta(list_ingestable)
-		client.ingest(multi_ingestable)
+		if verbose:
+			print "Size: " + str(len(list_ingestable))
+		if max_ingest_size > 0:
+			# list // max + 1 = number of iterations to ingest all data
+			# But if list % max == 0, adding one gives one too many iterations
+			num_rounds = len(list_ingestable) // max_ingest_size
+			if len(list_ingestable) % max_ingest_size != 0:
+				num_rounds += 1
+			for i in range(num_rounds):
+				multi_ingestable = format_multi_gmeta(list_ingestable[
+					i * max_ingest_size : (i + 1) * max_ingest_size
+					])
+				client.ingest(multi_ingestable)
+				if verbose:
+					print "Ingested round " + str(i+1)
+		else:
+			multi_ingestable = format_multi_gmeta(list_ingestable)
+			client.ingest(multi_ingestable)
 		if verbose:
 			print "Ingested " + str(count) + " records"
 	if verbose:
 		print "Success"
 
 if __name__ == "__main__":
-	default_filename = "oqmd_all_v2.pickle"
-	default_ingest_limit = 1000
-	print "Using " + str(default_ingest_limit) + " records from " + default_filename + ":\n"
-	ingest_pickle(default_filename, ingest_limit=default_ingest_limit)
+	filename = data_file
+	ingest_limit = max_ingests_total
+	max_ingest_size=max_ingests_at_once
+	print "Using " + str(ingest_limit) + " records from " + filename + ":\n"
+	ingest_pickle(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True)
+
 

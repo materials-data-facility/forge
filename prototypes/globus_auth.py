@@ -4,7 +4,7 @@ import json
 import globus_sdk
 
 #from globus_datasearch_client.client import DataSearchClient
-from client import DataSearchClient
+from globus_client import DataSearchClient
 
 def prompt(s):
     print(s + ': ')
