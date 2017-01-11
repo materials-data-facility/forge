@@ -47,9 +47,10 @@ def printDataset(entries, filename):
 	fp.close()
 	print str(count) + " records saved."
 
-e = Formation.objects.filter(fit = "standard")
-
-printDataset(e, "oqmd_all_v2.pickle")
+if __name__ == "__main__":
+	filename = "oqmd_json.pickle"
+	e = Formation.objects.filter(fit = "standard")
+	printDataset(e, filename)
 
 #everything = Entry.objects.all()
 

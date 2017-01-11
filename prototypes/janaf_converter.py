@@ -97,7 +97,7 @@ def parse_janaf_file(filename):
 if __name__ == "__main__":
 	data = []
 	data_dir = "srd13_janaf"
-	out_filename = "janaf_data.pickle"
+	out_filename = "janaf_json.pickle"
 	count = 0
 	full_count = 0
 	for f in os.listdir(data_dir):
