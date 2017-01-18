@@ -63,13 +63,13 @@ def parse_janaf_file(filename):
         dG = [ x / n_atoms for x in dG ]
 
         # Prepare output
-	output = {}
+        output = {}
         output['janaf:file'] = filename
         output['comp:comp'] = data['identifiers']['chemical formula']
         output['janaf:state'] = data['identifiers']['state']
         output['janaf:cas'] = data['identifiers']['cas registry number']
- 	
- 	output['janaf:T'] = T
+
+        output['janaf:T'] = T
         output['janaf:dH'] = dH
         output['janaf:dG'] = dG
         output['janaf:dS'] = [ (h - g) / t if t > 0 else 0 for h,g,t in zip(dH,dG,T)]
@@ -78,7 +78,7 @@ def parse_janaf_file(filename):
 #	output["testing"] = "janaftest4"
 #	output["janaf:comp"] = "1234"
 
-	meta_out = {
+        meta_out = {
 		"globus_subject" : "http://kinetics.nist.gov/janaf/" + output["comp:comp"] + "_" + output["janaf:state"],
 		"globus_id" : "janaf",
 		"globus_source" : "NIST-JANAF",
@@ -89,7 +89,7 @@ def parse_janaf_file(filename):
 			},
 		"data" : output
 		}
-	meta_out["data"]["dc:title"] = "JANAF - " + output["comp:comp"] + " - " + output["janaf:state"]
+        meta_out["data"]["dc:title"] = "JANAF - " + output["comp:comp"] + " - " + output["janaf:state"]
 
         return meta_out
 
@@ -112,7 +112,15 @@ if __name__ == "__main__":
 	dump(data, out_file)
 	out_file.close()
 	print str(count) + "/" + str(full_count) + " converted."
-
-
-
+	'''
+	import json
+	print "Dumping to JSON"
+	print "Dumping all"
+	with open("janaf_all.json", 'w') as fj1:
+		json.dump(data, fj1)
+	print "Done\nDumping 1k"
+	with open("janaf_1k.json", 'w') as fj2:
+		json.dump(data, fj2)
+	print "Done"
+	'''
 

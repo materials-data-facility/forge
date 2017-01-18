@@ -5,7 +5,7 @@ def printDataset(entries, filename):
 	print "Printing to: " + filename
 	print "\tNumber of entries: %d"%(entries.count())
 #	print >>fp, "id comp energy_pa volume_pa magmom_pa bandgap delta_e stability"
-	values = entries.values_list("id", "composition__formula", "calculation__energy_pa", "calculation__output__volume_pa", "calculation__magmom_pa", "calculation__band_gap", "delta_e", "stability")
+	values = entries.values_list("entry__id", "composition__formula", "calculation__energy_pa", "calculation__output__volume_pa", "calculation__magmom_pa", "calculation__band_gap", "delta_e", "stability")
 	count = 0
 	out_list = list()
 
@@ -26,10 +26,11 @@ def printDataset(entries, filename):
 #				output += "," + str(x)
 #			print >>fp, output
 
-#			output["testing"] = "example_1000_ingest"
+#			output["testing"] = "oqmd_id_test"
 
 			meta_out = {
-				"globus_subject" : "http://oqmd.org/materials/composition/" + output["comp:comp"],
+				#"globus_subject" : "http://oqmd.org/materials/composition/" + output["comp:comp"],
+				"globus_subject" : "http://oqmd.org/materials/entry/" + output["oqmd:id"],
 				"globus_id" : "oqmd",
 				"globus_source" : "Open Quantum Materials Database",
 				"context" : {
@@ -46,6 +47,18 @@ def printDataset(entries, filename):
 	dump(out_list, fp)
 	fp.close()
 	print str(count) + " records saved."
+	
+	'''
+	import json
+	print "Dumping to JSON"
+	print "Dumping all"
+	with open("oqmd_all.json", 'w') as oq1:
+		json.dump(out_list, oq1)
+	print "Done\nDumping 10k"
+	with open("oqmd_10k.json", 'w') as oq2:
+		json.dump(out_list[:10000], oq2)
+	print "Done"
+	'''
 
 if __name__ == "__main__":
 	filename = "oqmd_json.pickle"

@@ -2,11 +2,17 @@ import globus_auth
 from pickle import load
 from sys import exit
 
-max_ingests_at_once = 5000
-max_ingests_total = 5
+#-1 for unlimited
+max_ingests_at_once = 50
+max_ingests_total = -1
 #Pick exactly one to uncomment
-data_file = "oqmd_json.pickle"
+#data_file = "oqmd_json.pickle"
 #data_file = "janaf_json.pickle"
+#data_file = "danemorgan_json.pickle"
+#data_file = "danemorgan_json_FIX.pickle"
+#data_file = "khazana_json.pickle"
+
+DELETE_DATA = False
 
 #datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
 #dc_namespace = "http://dublincore.org/documents/dcmi-terms"
@@ -16,9 +22,7 @@ data_file = "oqmd_json.pickle"
 #With full=false, the returned entry can be added to a gmeta list, but cannot be ingested directly
 #With full=true, the returned entry is ready for ingestion, but not inclusion in a gmeta list
 def format_single_gmeta(data_dict, full=False):
-	if not data_dict.get("data", None):
-		print "Error: No data in entry"
-		return None
+
 	if not data_dict.get("context", None):
 		data_dict["context"] = {}
 #	if not data_dict.get("context", {}).get("datacite", None):
@@ -41,7 +45,7 @@ def format_single_gmeta(data_dict, full=False):
 		"visible_to":["public"],
 		"id":data_dict["globus_id"],
 		"source_id":data_dict["globus_source"],
-		"content":data_dict["data"]
+		"content":data_dict.get("data", {})
 		}
 	gmeta["content"]["@context"] = data_dict["context"]
 
@@ -80,7 +84,16 @@ def format_multi_gmeta(data_list):
 #	max_ingest_size: Maximum size of a single ingestion (-1 is unlimited)
 #	ingest_limit: Maximum number of records to ingest overall (-1 is unlimited)
 #	verbose: Show status messages?
-def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose=False):
+#	delete_not_ingest: Caution! If True, will overwrite existing data instead of ingesting new data. Default False.
+def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
+	if delete_not_ingest:
+		confirm = raw_input("Delete entries y/n: ")
+		if confirm.lower() not in ['y', 'yes']:
+			print "Cancelling..."
+			return None
+		else:
+			if verbose:
+				print "Deleting entries"
 	#Authentication
 	if verbose:
 		print "Authenticating"
@@ -104,7 +117,10 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 		print "Error: No data found"
 		exit(-1)
 	elif len(list_of_data) == 1:
-		single_ingestable = format_single_gmeta(list_of_data[0], full=True)
+		if delete_not_ingest:
+			single_ingestable = format_single_gmeta(None, full=True)
+		else:
+			single_ingestable = format_single_gmeta(list_of_data[0], full=True)
 		client.ingest(single_ingestable)
 		if verbose:
 			print "Ingested one record"
@@ -112,7 +128,10 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 		list_ingestable = []
 		count = 0
 		for record in list_of_data:
-			single_ingestable = format_single_gmeta(record, full=False)
+			if delete_not_ingest:
+				single_ingestable = format_single_gmeta(None, full=False)
+			else:
+				single_ingestable = format_single_gmeta(record, full=False)
 			list_ingestable.append(single_ingestable)
 			count += 1
 			if ingest_limit > 0 and count >= ingest_limit:
@@ -131,7 +150,7 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 					])
 				client.ingest(multi_ingestable)
 				if verbose:
-					print "Ingested round " + str(i+1)
+					print "Ingested batch " + str(i+1)
 		else:
 			multi_ingestable = format_multi_gmeta(list_ingestable)
 			client.ingest(multi_ingestable)
@@ -143,8 +162,8 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 if __name__ == "__main__":
 	filename = data_file
 	ingest_limit = max_ingests_total
-	max_ingest_size=max_ingests_at_once
-	print "Using " + str(ingest_limit) + " records from " + filename + ":\n"
-	ingest_pickle(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True)
+	max_ingest_size = max_ingests_at_once
+	print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":\n"
+	ingest_pickle(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
 
 
