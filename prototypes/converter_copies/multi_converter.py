@@ -3,9 +3,20 @@ from pickle import dump
 from tqdm import tqdm
 from ase.io import read
 import re
+import json
+
+#Pick one or more datasets to process
+datasets_to_process = []
+#datasets_to_process.append("danemorgan")
+#datasets_to_process.append("khazana_polymer")
+#datasets_to_process.append("khazana_vasp")
+
+#Export data to a JSON feedstock file?
+feedstock = False
+
 
 #Currently-supported formats are listed below.
-#	VASP ('vasp'): Processed as directory.
+#	VASP ('vasp'): Processed as directory containing OUTCAR file.
 #	.CIF ('cif'): Processed as individual files.
 supported_formats = ['vasp', 'cif']
 
@@ -141,7 +152,7 @@ def read_vasp(filename='CONTCAR'):
     return atoms
 
 
-def read_vasp_out(data_path=None, index=-1, force_consistent=False):
+def read_vasp_out(filename=None, index=-1, force_consistent=False):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -151,10 +162,10 @@ def read_vasp_out(data_path=None, index=-1, force_consistent=False):
     from ase.calculators.singlepoint import SinglePointCalculator
     from ase import Atoms, Atom
 
-    if not data_path:
-    	data_path = os.getcwd()
+    if not filename:
+    	filename = os.path.join(os.getcwd(), 'OUTCAR')
 
-    filename = os.path.join(data_path, 'OUTCAR')
+    data_path = os.path.dirname(filename)
 
     try:  # try to read constraints, first from CONTCAR, then from POSCAR
         constr = read_vasp(os.path.join(data_path, 'CONTCAR')).constraints
@@ -333,21 +344,22 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 		else:
 			r = read_vasp_out(file_path)
 	elif data_format == 'cif':
-		if not file_name:
-			print "Error: file_name required for 'cif' format."
-			return None
-		full_path = os.path.join(file_path, file_name)
+		#if not file_name:
+		#	print "Error: file_name required for 'cif' format."
+		#	return None
+		#full_path = os.path.join(file_path, file_name)
 		if error_log:
 			try:
 				#r = read_cif(file_path)
-				r = read(full_path)
+				r = read(file_path)
 			except Exception as err:
 				error_log.write("ERROR: '" + str(err) + "' with the following CIF file:\n")
-				error_log.write(full_path + "\n\n")
+				error_log.write(file_path + "\n\n")
+				#error_log.write(full_path + "\n\n")
 				return None
 		else:
 			#r = read_cif(file_path)
-			r = read(full_path)
+			r = read(file_path)
 
 				
 	total_count = 0
@@ -395,12 +407,23 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 			none_count += 1
 
 	#Guide problem children to make better choices
-	#Because numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need it in that form
+	#Because numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
 	for key in ase_dict.keys():
 		if 'numpy' in str(type(ase_dict[key])).lower():
 			ase_dict[key] = ase_dict[key].tolist()
-		elif 'fixatoms' in str(type(ase_dict[key])).lower():
-			ase_dict[key] = ase_dict[key].get_indices().tolist()
+		#elif 'fixatoms' in str(type(ase_dict[key])).lower():
+		#	ase_dict[key] = ase_dict[key].get_indices().tolist()
+		elif type(ase_dict[key]) is list:
+			new_list = []
+			for elem in ase_dict[key]:
+				#if 'numpy' in str(type(elem)).lower():
+				#	new_elem = elem.tolist()
+				if 'fixatoms' in str(elem).lower():
+					new_elem = elem.get_indices().tolist()
+				else:
+					new_elem = elem
+				new_list.append(new_elem)
+			ase_dict[key] = new_list
 
 	#Print results
 	if verbose:
@@ -424,7 +447,8 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 #root specifies the path to the first dir to start with. Default is current working directory.
 #file_match is a string containing the file name to search for. Default is None, which matches all files.
 #keep_dir_name_depth is how many layers of dir, counting from the base file up, contain data to save. -1 saves everything in the path. Default is 0, which disables saving anything.
-def find_files(root=None, file_pattern=None, keep_dir_name_depth=0):
+#max_files is the maximum number of results to return. Default -1, which returns all results.
+def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1):
 	if not root:
 		root = os.getcwd()
 	dir_list = []
@@ -437,28 +461,33 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0):
 				while head:
 					head, tail = os.path.split(head)
 					dir_names.append(tail)	
-
-				dir_names = dir_names[:keep_dir_name_depth]
+				if keep_dir_name_depth >= 0:
+					dir_names = dir_names[:keep_dir_name_depth]
 				dir_names.reverse() #append leaves path elements in reverse order (/usr/xyz/stuff/ -> [stuff, xyz, usr]), should make right
 				#Find and save extension
 				name_and_ext = one_file.rsplit('.', 1)
-				if name_and_ext[0]: #OSX file '.DS_Store' splits in just the right way to break things without a check
-					name_and_ext.append("") #If no extension, still need [1] to be valid
+				if name_and_ext[0]: #Hidden files on *nix cause issues ('.name') and are probably not part of data, so ignore them
 					dir_data = {
 						"path" : path,
 						"dirs" : dir_names,
-						"filename" : name_and_ext[0],
-						"extension" : name_and_ext[1]
+						"filename" : name_and_ext[0]
 						}
+					try:
+						dir_data["extension"] = '.' + name_and_ext[1]
+					except IndexError:
+						dir_data["extension"] = ''
 					dir_list.append(dir_data)
-	return dir_list
+	if max_files >= 0:
+		return dir_list[:max_files]
+	else:
+		return dir_list
 
 
 #Essentially a main for this script, calls the other functions and ties everything together
 #Returns a list of dicts ready for ingestion, and optionally (see below) writes that list out to a file
 #arg_dict accepts:
-#*	metadata: a dict of desired metadata (e.g. globus_source, context, etc.), NOT including globus_subject. This is *REQUIRED*.
-#	uri: the prefix for globus_subject (ex. if uri="http://globus.org/" then a file found in the directory "data/123/" would have globus_subject="http://globus.org/data/123/") Default is empty string.
+#	metadata: a dict of desired metadata (e.g. globus_source, context, etc.), NOT including globus_subject. Default nothing.
+#	uri: the prefix for globus_subject (ex. if uri="http://globus.org/" and uri_adds (see below) is [dir] then a file found in the directory "data/123/" would have globus_subject="http://globus.org/data/123/") Default is empty string.
 #	keep_dir_name_depth: how many layers of directory, counting up from the base file, should be saved and added to the URI. -1 saves the entire path. The default (which is lossy but private) is 0.
 #
 #	root: The directory containing all directories containing processable files. Default is current directory.
@@ -469,19 +498,19 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0):
 #
 #	data_exception_log: File to log exceptions caught when processing the data. If a filename is listed here, such exceptions will be logged but otherwise ignored. Default None, which causes exceptions to terminate the program.i
 #
-#	use_dir_in_uri: If True, appends the directory data to the base URI to get the complete URI. If False, uses the filename (without extension) instead. Default True.
+#	uri_adds: A list of things to add to the end of 'uri' for each record. Options are 'dir' for the directory structure, 'filename' for the name of the file, and 'ext' for the file extension. 
+#		Choose any combination, including none (empty list). The URI will be appended with the directories, filename, and extension, if selected, in that order. The order of uri_adds does not matter. Default 'filename'.
+#	max_records: Maximum number of records to return (actual return value may be less due to failed files). Default -1, which returns all (valid) records.
 #
 def process_data(arg_dict):
 	root = arg_dict.get("root", os.getcwd())
 	keep_dir_name_depth = arg_dict.get("keep_dir_name_depth", 0)
 	verbose  = arg_dict.get("verbose", False)
 	file_pattern = arg_dict.get("file_pattern", None)
-	uri_dir = arg_dict.get("use_dir_in_uri", True)
+	uri_adds = arg_dict.get("uri_adds", ['filename'])
+	max_records = arg_dict.get("max_records", -1)
 	if arg_dict.get("file_format", "NONE") not in supported_formats:
 		print "Error: file_format '" + arg_dict.get("file_format", "NONE") + "' is not supported."
-		return None
-	if not arg_dict.get("metadata", None):
-		print "Error: metadata is required."
 		return None
 
 	if arg_dict.get("data_exception_log", None):
@@ -490,7 +519,7 @@ def process_data(arg_dict):
 		err_log = None
 	if verbose:
 		print "Finding files"
-	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth)
+	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth, max_files=max_records)
 	if verbose:
 		print "Converting file data to JSON"
 	all_data_list = []
@@ -500,18 +529,22 @@ def process_data(arg_dict):
 		all_count += 1
 		formatted_data = {}
 		uri = arg_dict.get("uri", "")
-		file_data = convert_to_json(file_path=dir_data["path"], file_name=dir_data["filename"]+'.'+dir_data["extension"], data_format=arg_dict["file_format"], error_log=err_log)
+		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
+		file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], error_log=err_log)
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]
+			file_data["ext"] = dir_data["extension"]
 
-			if uri_dir:
+			if 'dir' in uri_adds:
 				for dir_name in file_data["dirs"]:
 					uri = os.path.join(uri, dir_name)
-			elif not uri_dir:
-				uri = uri + file_data["filename"]
+			if 'filename' in uri_adds:
+				uri = os.path.join(uri, file_data["filename"])
+			if 'ext' in uri_adds:
+				uri += file_data["ext"]
 			formatted_data["globus_subject"] = uri
-			for key, value in arg_dict["metadata"].iteritems():
+			for key, value in arg_dict.get("metadata", {}).iteritems():
 				formatted_data[key] = value
 			
 			formatted_data["data"] = file_data
@@ -536,65 +569,106 @@ def process_data(arg_dict):
 
 
 if __name__ == "__main__":
-	print "BEGIN"
-	dane_args = {
-		"metadata" : {
-			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
-			"globus_id" : "ddmorgan@wisc.edu cmgtam@globusid.org",
-			"context" : {
-				"dc" : "http://dublincore.org/documents/dcmi-terms"
-				}
-			},
-		"uri" : "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/",
-		"keep_dir_name_depth" : 2,
-		"root" : "dane_morgan" + os.sep + "data",
-		"file_pattern" : "^OUTCAR$",
-		"file_format" : "vasp",
-		"verbose" : True,
-		"output_file" : "dane_morgan" + os.sep + "danemorgan_json.pickle",
-		"data_exception_log" : "dane_morgan" + os.sep + "dane_errors.txt",
-		"use_dir_in_uri" : True
-		}
-	khazana_args = {
-		"metadata" : {
-			"globus_source" : "",
-			"globus_id" : "khazana",
-			"context" : {
-				"dc" : "http://dublincore.org/documents/dcmi-terms"
-				}
-			},
-		"uri" : "http://khazana.uconn.edu/module_search/material_detail.php?id=",
-		"keep_dir_name_depth" : 0,
-		"root" : "khazana" + os.sep + "polymer_scientific_data_confirmed",
-		"file_pattern" : None,
-		"file_format" : "cif",
-		"verbose" : True,
-		"output_file" : "khazana" + os.sep + "khazana_json.pickle",
-		"data_exception_log" : "khazana" + os.sep + "khazana_errors.txt",
-		"use_dir_in_uri" : False
-		}
-#	print "DANE PROCESSING"
-#	dane = process_data(dane_args)
-	print "KHAZANA PROCESSING"
-	khaz = process_data(khazana_args)
+	print "\nBEGIN"
 	
-	'''
-	import json
-	print "Creating JSON files"
-	print "Dane Morgan All"
-	with open("danemorgan_all.json", 'w') as fd1:
-		json.dump(dane, fd1)
-	print "Done\nDane Morgan 100"
-	with open("danemorgan_100.json", 'w') as fd2:
-		json.dump(dane[:100], fd2)
-	print "Done\nKhazana All"
-	with open("khazana_all.json", 'w') as fk1:
-		json.dump(khaz, fk1)
-	print "Done\nKhazana 100"
-	with open("khazana_100.json", 'w') as fk2:
-		json.dump(khaz[:100], fk2)
-	print "Done"
-	'''
+	#Dane Morgan
+	if "danemorgan" in datasets_to_process:
+		dane_args = {
+			"metadata" : {
+				"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
+				"globus_id" : "ddmorgan@wisc.edu cmgtam@globusid.org",
+				"context" : {
+					"dc" : "http://dublincore.org/documents/dcmi-terms"
+					}
+				},
+			"uri" : "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/",
+			"keep_dir_name_depth" : 2,
+			"root" : "dane_morgan" + os.sep + "data",
+			"file_pattern" : "^OUTCAR$",
+			"file_format" : "vasp",
+			"verbose" : True,
+			"output_file" : "dane_morgan" + os.sep + "danemorgan_json.pickle",
+			"data_exception_log" : "dane_morgan" + os.sep + "dane_errors.txt",
+			"uri_adds" : ["dir"],
+			"max_records" : -1
+			}
+		print "DANE PROCESSING"
+		dane = process_data(dane_args)
+		if feedstock:
+			print "Creating JSON files"
+			print "Dane Morgan All"
+			with open("dane_morgan/danemorgan_all.json", 'w') as fd1:
+				json.dump(dane, fd1)
+			print "Done\nDane Morgan 100"
+			with open("dane_morgan/danemorgan_100.json", 'w') as fd2:
+				json.dump(dane[:100], fd2)
+			print "Done\n"
 
+	#Khazana Polymer
+	if "khazana_polymer" in datasets_to_process:
+		khazana_polymer_args = {
+			"metadata" : {
+				"globus_source" : "",
+				"globus_id" : "khazana",
+				"context" : {
+					"dc" : "http://dublincore.org/documents/dcmi-terms"
+					}
+				},
+			"uri" : "http://khazana.uconn.edu/module_search/material_detail.php?id=",
+			"keep_dir_name_depth" : 0,
+			"root" : "khazana" + os.sep + "polymer_scientific_data_confirmed",
+			"file_pattern" : None,
+			"file_format" : "cif",
+			"verbose" : True,
+			"output_file" : "khazana" + os.sep + "khazana_polymer_json.pickle",		
+			"data_exception_log" : "khazana" + os.sep + "khazana_polymer_errors.txt",
+			"uri_adds" : ["filename"],
+			"max_records" : -1
+			}
+		print "KHAZANA POLYMER PROCESSING"
+		khaz_p = process_data(khazana_polymer_args)
+		if feedstock:
+			print "Creating JSON files"
+			print "Khazana Polymer All"
+			with open("khazana/khazana_polymer_all.json", 'w') as fk1:
+				json.dump(khaz_p, fk1)
+			print "Done\nKhazana Polymer 100"
+			with open("khazana/khazana_polymer_100.json", 'w') as fk2:
+				json.dump(khaz_p[:100], fk2)
+			print "Done\n"
+
+	#Khazana VASP
+	if "khazana_vasp" in datasets_to_process:
+		khazana_vasp_args = {
+			"metadata" : {
+				"globus_source" : "",
+				"globus_id" : "khazana",
+				"context" : {
+					"dc" : "http://dublincore.org/documents/dcmi-terms"
+					}
+				},
+			"uri" : "http://khazana.uconn.edu",
+			"keep_dir_name_depth" : 0,
+			"root" : "khazana" + os.sep + "OUTCARS",
+			"file_pattern" : "^OUTCAR",
+			"file_format" : "vasp",
+			"verbose" : True,
+			"output_file" : "khazana" + os.sep + "khazana_vasp_json.pickle",		
+			"data_exception_log" : "khazana" + os.sep + "khazana_vasp_errors.txt",
+			"uri_adds" : ["filename"],
+			"max_records" : -1
+			}
+		print "KHAZANA VASP PROCESSING"
+		khaz_v = process_data(khazana_vasp_args)
+		if feedstock:
+			print "Creating JSON files"
+			print "Khazana VASP All"
+			with open("khazana/khazana_vasp_all.json", 'w') as fk1:
+				json.dump(khaz_v, fk1)
+			print "Done\nKhazana VASP 3"
+			with open("khazana/khazana_vasp_3.json", 'w') as fk2:
+				json.dump(khaz_v[:3], fk2)
+			print "Done\n"
+	
 	print "END"
 

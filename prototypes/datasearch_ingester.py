@@ -5,13 +5,23 @@ from sys import exit
 #-1 for unlimited
 max_ingests_at_once = 50
 max_ingests_total = -1
-#Pick exactly one to uncomment
-#data_file = "oqmd_json.pickle"
-#data_file = "janaf_json.pickle"
-#data_file = "danemorgan_json.pickle"
-#data_file = "danemorgan_json_FIX.pickle"
-#data_file = "khazana_json.pickle"
 
+all_data_files = {
+	"oqmd" : "oqmd_json.pickle",
+	"janaf" : "janaf_json.pickle",
+	"danemorgan" : "danemorgan_json.pickle",
+	"khazana_polymer" : "khazana_polymer_json.pickle",
+	"khazana_vasp" : "khazana_vasp_json.pickle"
+	}
+#Pick one or more data files to ingest
+data_file_to_use = []
+#data_file_to_use.append("oqmd")
+#data_file_to_use.append("janaf")
+#data_file_to_use.append("danemorgan")
+#data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("khazana_vasp")
+
+#This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 DELETE_DATA = False
 
 #datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
@@ -118,7 +128,9 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 		exit(-1)
 	elif len(list_of_data) == 1:
 		if delete_not_ingest:
-			single_ingestable = format_single_gmeta(None, full=True)
+			delete_data = list_of_data[0]
+			delete_data.pop("data", None)
+			single_ingestable = format_single_gmeta(delete_data, full=True)
 		else:
 			single_ingestable = format_single_gmeta(list_of_data[0], full=True)
 		client.ingest(single_ingestable)
@@ -129,7 +141,9 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 		count = 0
 		for record in list_of_data:
 			if delete_not_ingest:
-				single_ingestable = format_single_gmeta(None, full=False)
+				delete_data = record
+				delete_data.pop("data", None)
+				single_ingestable = format_single_gmeta(delete_data, full=False)
 			else:
 				single_ingestable = format_single_gmeta(record, full=False)
 			list_ingestable.append(single_ingestable)
@@ -160,10 +174,14 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 		print "Success"
 
 if __name__ == "__main__":
-	filename = data_file
-	ingest_limit = max_ingests_total
-	max_ingest_size = max_ingests_at_once
-	print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":\n"
-	ingest_pickle(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
+	print "Ingest start"
+	for key in data_file_to_use:
+		filename = all_data_files[key]
+		ingest_limit = max_ingests_total
+		max_ingest_size = max_ingests_at_once
+		print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":\n"
+		ingest_pickle(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
+		print "Finished ingesting from " + filename
+	print "Ingest complete"
 
 
