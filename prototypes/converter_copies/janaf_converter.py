@@ -64,20 +64,20 @@ def parse_janaf_file(filename):
 
         # Prepare output
         output = {}
-        output['janaf:file'] = filename
-        output['comp:comp'] = data['identifiers']['chemical formula']
-        output['janaf:state'] = data['identifiers']['state']
-        output['janaf:cas'] = data['identifiers']['cas registry number']
+        output['file'] = filename
+        output['comp'] = data['identifiers']['chemical formula']
+        output['state'] = data['identifiers']['state']
+        output['cas'] = data['identifiers']['cas registry number']
 
-        output['janaf:T'] = T
-        output['janaf:dH'] = dH
-        output['janaf:dG'] = dG
-        output['janaf:dS'] = [ (h - g) / t if t > 0 else 0 for h,g,t in zip(dH,dG,T)]
-        output['janaf:Cp'] = Cp
+        output['T'] = T
+        output['dH'] = dH
+        output['dG'] = dG
+        output['dS'] = [ (h - g) / t if t > 0 else 0 for h,g,t in zip(dH,dG,T)]
+        output['Cp'] = Cp
 	
 #	output["testing"] = "janaftest4"
 #	output["janaf:comp"] = "1234"
-
+	'''
         meta_out = {
 		"globus_subject" : "http://kinetics.nist.gov/janaf/" + output["comp:comp"] + "_" + output["janaf:state"],
 		"globus_id" : "janaf",
@@ -92,7 +92,9 @@ def parse_janaf_file(filename):
         meta_out["data"]["dc:title"] = "JANAF - " + output["comp:comp"] + " - " + output["janaf:state"]
 
         return meta_out
-
+	'''
+	output["uri"] = "http://kinetics.nist.gov/janaf/" + output["comp"] + "_" + output["state"]
+	return output
 
 if __name__ == "__main__":
 	data = []

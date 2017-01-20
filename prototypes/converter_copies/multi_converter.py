@@ -9,7 +9,7 @@ import json
 datasets_to_process = []
 #datasets_to_process.append("danemorgan")
 #datasets_to_process.append("khazana_polymer")
-#datasets_to_process.append("khazana_vasp")
+datasets_to_process.append("khazana_vasp")
 
 #Export data to a JSON feedstock file?
 feedstock = False
@@ -543,11 +543,12 @@ def process_data(arg_dict):
 				uri = os.path.join(uri, file_data["filename"])
 			if 'ext' in uri_adds:
 				uri += file_data["ext"]
-			formatted_data["globus_subject"] = uri
-			for key, value in arg_dict.get("metadata", {}).iteritems():
-				formatted_data[key] = value
+#			formatted_data["uri"] = uri
+#			for key, value in arg_dict.get("metadata", {}).iteritems():
+#				formatted_data[key] = value
 			
-			formatted_data["data"] = file_data
+			formatted_data = file_data
+			formatted_data["uri"] = uri
 			all_data_list.append(formatted_data)
 			good_count += 1
 	
@@ -574,13 +575,13 @@ if __name__ == "__main__":
 	#Dane Morgan
 	if "danemorgan" in datasets_to_process:
 		dane_args = {
-			"metadata" : {
-				"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
-				"globus_id" : "ddmorgan@wisc.edu cmgtam@globusid.org",
-				"context" : {
-					"dc" : "http://dublincore.org/documents/dcmi-terms"
-					}
-				},
+#			"metadata" : {
+#				"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
+#				"globus_id" : "ddmorgan@wisc.edu cmgtam@globusid.org",
+#				"context" : {
+#					"dc" : "http://dublincore.org/documents/dcmi-terms"
+#					}
+#				},
 			"uri" : "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/",
 			"keep_dir_name_depth" : 2,
 			"root" : "dane_morgan" + os.sep + "data",
@@ -607,13 +608,13 @@ if __name__ == "__main__":
 	#Khazana Polymer
 	if "khazana_polymer" in datasets_to_process:
 		khazana_polymer_args = {
-			"metadata" : {
-				"globus_source" : "",
-				"globus_id" : "khazana",
-				"context" : {
-					"dc" : "http://dublincore.org/documents/dcmi-terms"
-					}
-				},
+#			"metadata" : {
+#				"globus_source" : "",
+#				"globus_id" : "khazana",
+#				"context" : {
+#					"dc" : "http://dublincore.org/documents/dcmi-terms"
+#					}
+#				},
 			"uri" : "http://khazana.uconn.edu/module_search/material_detail.php?id=",
 			"keep_dir_name_depth" : 0,
 			"root" : "khazana" + os.sep + "polymer_scientific_data_confirmed",
@@ -640,13 +641,13 @@ if __name__ == "__main__":
 	#Khazana VASP
 	if "khazana_vasp" in datasets_to_process:
 		khazana_vasp_args = {
-			"metadata" : {
-				"globus_source" : "",
-				"globus_id" : "khazana",
-				"context" : {
-					"dc" : "http://dublincore.org/documents/dcmi-terms"
-					}
-				},
+#			"metadata" : {
+#				"globus_source" : "",
+#				"globus_id" : "khazana",
+#				"context" : {
+#					"dc" : "http://dublincore.org/documents/dcmi-terms"
+#					}
+#				},
 			"uri" : "http://khazana.uconn.edu",
 			"keep_dir_name_depth" : 0,
 			"root" : "khazana" + os.sep + "OUTCARS",

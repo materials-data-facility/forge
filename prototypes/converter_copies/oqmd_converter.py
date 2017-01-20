@@ -12,14 +12,14 @@ def printDataset(entries, filename):
 	for e in values:
 		output = dict()
 		if e and e[0] and e[1]:
-			output["oqmd:id"] = str(e[0])
-			output["comp:comp"] = e[1].replace(" ", "")
-			output["oqmd:energy_pa"] = e[2]
-			output["oqmd:volume_pa"] = e[3]
-			output["oqmd:magmom_pa"] = e[4]
-			output["oqmd:bandgap"] = e[5]
-			output["oqmd:delta_e"] = e[6]
-			output["oqmd:stability"] = e[7]
+			output["oqmd_id"] = str(e[0])
+			output["comp"] = e[1].replace(" ", "")
+			output["energy_pa"] = e[2]
+			output["volume_pa"] = e[3]
+			output["magmom_pa"] = e[4]
+			output["bandgap"] = e[5]
+			output["delta_e"] = e[6]
+			output["stability"] = e[7]
 #			output = str(e[0]) + ","
 #			output += e[1].replace(" ", "")
 #			for x in e[2:]:
@@ -27,7 +27,7 @@ def printDataset(entries, filename):
 #			print >>fp, output
 
 #			output["testing"] = "oqmd_id_test"
-
+			'''
 			meta_out = {
 				#"globus_subject" : "http://oqmd.org/materials/composition/" + output["comp:comp"],
 				"globus_subject" : "http://oqmd.org/materials/entry/" + output["oqmd:id"],
@@ -41,7 +41,9 @@ def printDataset(entries, filename):
 				"data" : output
 				}
 			meta_out["data"]["dc:title"] = "OQMD - " + output["comp:comp"]
-			out_list.append(meta_out)
+			'''
+			output["uri"] = "http://oqmd.org/materials/entry/" + output["oqmd_id"]
+			out_list.append(output)
 			count+=1
 	fp = open(filename, 'w')
 	dump(out_list, fp)
