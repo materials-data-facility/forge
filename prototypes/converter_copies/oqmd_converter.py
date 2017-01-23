@@ -1,5 +1,6 @@
 from qmpy import *
-from pickle import dump
+#from pickle import dump
+from json import dump
 
 def printDataset(entries, filename):
 	print "Printing to: " + filename
@@ -56,14 +57,15 @@ def printDataset(entries, filename):
 	print "Dumping all"
 	with open("oqmd_all.json", 'w') as oq1:
 		json.dump(out_list, oq1)
-	print "Done\nDumping 10k"
-	with open("oqmd_10k.json", 'w') as oq2:
+	'''
+	print "Dumping 10,000"
+	with open("oqmd_10000.json", 'w') as oq2:
 		json.dump(out_list[:10000], oq2)
 	print "Done"
-	'''
+	
 
 if __name__ == "__main__":
-	filename = "oqmd_json.pickle"
+	filename = "oqmd_all.json"
 	e = Formation.objects.filter(fit = "standard")
 	printDataset(e, filename)
 

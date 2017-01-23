@@ -1,22 +1,23 @@
 import globus_auth
-from pickle import load
+#from pickle import load
 from sys import exit
+from json import load
 
 #-1 for unlimited
 max_ingests_at_once = 50
 max_ingests_total = -1
 
 all_data_files = {
-	"oqmd" : "oqmd_json.pickle",
-	"janaf" : "janaf_json.pickle",
-	"danemorgan" : "danemorgan_json.pickle",
-	"khazana_polymer" : "khazana_polymer_json.pickle",
-	"khazana_vasp" : "khazana_vasp_json.pickle"
+	"oqmd" : "oqmd_all.json",
+	"janaf" : "janaf_all.json",
+	"danemorgan" : "danemorgan_all.json",
+	"khazana_polymer" : "khazana_polymer_all.json",
+	"khazana_vasp" : "khazana_vasp_all.json"
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
 #data_file_to_use.append("oqmd")
-#data_file_to_use.append("janaf")
+data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
 #data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
@@ -88,14 +89,14 @@ def format_multi_gmeta(data_list):
 		}
 	return gmeta
 
-#Takes a pickled list of dicts and ingests into Globus Search
+#Takes a JSON list of dicts and ingests into Globus Search
 #Arguments:
-#	pickle_filename: Name of pickle file containing json blob from converter
+#	json_filename: Name of json file containing json from converter
 #	max_ingest_size: Maximum size of a single ingestion (-1 is unlimited)
 #	ingest_limit: Maximum number of records to ingest overall (-1 is unlimited)
 #	verbose: Show status messages?
 #	delete_not_ingest: Caution! If True, will overwrite existing data instead of ingesting new data. Default False.
-def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
+def ingest_refined_feedstock(json_filename, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
 	if delete_not_ingest:
 		confirm = raw_input("Delete entries y/n: ")
 		if confirm.lower() not in ['y', 'yes']:
@@ -110,16 +111,16 @@ def ingest_pickle(pickle_filename, max_ingest_size=-1,  ingest_limit=-1, verbose
 	client = globus_auth.login("https://datasearch.api.demo.globus.org/")
 	#Record preparation
 	if verbose:
-		print "Opening pickle"
+		print "Opening json"
 	try:
-		pickle_file = open(pickle_filename)
+		json_file = open(json_filename)
 	except IOError as e:
-		print "Cannot open file '" + pickle_filename + "': " + e.strerror
+		print "Cannot open file '" + json_filename + "': " + e.strerror
 		exit(-1)
-	list_of_data = load(pickle_file)
-	pickle_file.close()
+	list_of_data = load(json_file)
+	json_file.close()
 	if verbose:
-		print "Processing pickle"
+		print "Processing json"
 	if type(list_of_data) is not list:
 		print "Error: Cannot process " + str(type(list_of_data)) + ". Must be list."
 		exit(-1)
@@ -180,7 +181,7 @@ if __name__ == "__main__":
 		ingest_limit = max_ingests_total
 		max_ingest_size = max_ingests_at_once
 		print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":\n"
-		ingest_pickle(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
+		ingest_refined_feedstock(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
 		print "Finished ingesting from " + filename
 	print "Ingest complete"
 

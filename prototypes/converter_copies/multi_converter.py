@@ -1,9 +1,9 @@
 import os
-from pickle import dump
+#from pickle import dump
 from tqdm import tqdm
 from ase.io import read
 import re
-import json
+from json import dump
 
 #Pick one or more datasets to process
 datasets_to_process = []
@@ -11,13 +11,16 @@ datasets_to_process = []
 #datasets_to_process.append("khazana_polymer")
 datasets_to_process.append("khazana_vasp")
 
-#Export data to a JSON feedstock file?
-feedstock = False
+#Export a smaller feedstock file for testing?
+#If False, will still write full feedstock file
+feedsack = False
+#These are the sizes of the small feedstock
+dane_feedsack = 100
+khaz_p_feedsack = 100
+khaz_v_feedsack = 3
 
 
 #Currently-supported formats are listed below.
-#	VASP ('vasp'): Processed as directory containing OUTCAR file.
-#	.CIF ('cif'): Processed as individual files.
 supported_formats = ['vasp', 'cif']
 
 def read_vasp(filename='CONTCAR'):
@@ -530,7 +533,7 @@ def process_data(arg_dict):
 		formatted_data = {}
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
-		file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], error_log=err_log)
+		file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=verbose)
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]
@@ -588,22 +591,28 @@ if __name__ == "__main__":
 			"file_pattern" : "^OUTCAR$",
 			"file_format" : "vasp",
 			"verbose" : True,
-			"output_file" : "dane_morgan" + os.sep + "danemorgan_json.pickle",
+			"output_file" : "dane_morgan" + os.sep + "danemorgan_all.json",
 			"data_exception_log" : "dane_morgan" + os.sep + "dane_errors.txt",
 			"uri_adds" : ["dir"],
 			"max_records" : -1
 			}
-		print "DANE PROCESSING"
+		if dane_args["verbose"]:
+			print "DANE PROCESSING"
 		dane = process_data(dane_args)
-		if feedstock:
+		if feedsack:
+			'''
 			print "Creating JSON files"
 			print "Dane Morgan All"
 			with open("dane_morgan/danemorgan_all.json", 'w') as fd1:
 				json.dump(dane, fd1)
-			print "Done\nDane Morgan 100"
-			with open("dane_morgan/danemorgan_100.json", 'w') as fd2:
-				json.dump(dane[:100], fd2)
-			print "Done\n"
+			'''
+			if dane_args["verbose"]:
+				print "Making Dane Morgan feedsack (" + str(dane_feedsack) + ")"
+			with open("dane_morgan/danemorgan_" + str(dane_feedsack) + ".json", 'w') as fd2:
+				dump(dane[:dane_feedsack], fd2)
+			if dane_args["verbose"]:
+				print "Done\n"
+
 
 	#Khazana Polymer
 	if "khazana_polymer" in datasets_to_process:
@@ -626,17 +635,22 @@ if __name__ == "__main__":
 			"uri_adds" : ["filename"],
 			"max_records" : -1
 			}
-		print "KHAZANA POLYMER PROCESSING"
+		if khazana_polymer_args["verbose"]:
+			print "KHAZANA POLYMER PROCESSING"
 		khaz_p = process_data(khazana_polymer_args)
-		if feedstock:
+		if feedsack:
+			'''
 			print "Creating JSON files"
 			print "Khazana Polymer All"
 			with open("khazana/khazana_polymer_all.json", 'w') as fk1:
 				json.dump(khaz_p, fk1)
-			print "Done\nKhazana Polymer 100"
-			with open("khazana/khazana_polymer_100.json", 'w') as fk2:
-				json.dump(khaz_p[:100], fk2)
-			print "Done\n"
+			'''
+			if khazana_polymer_args["verbose"]:
+				print "Making Khazana Polymer feedsack (" + str(khaz_p_feedsack) + ")"
+			with open("khazana/khazana_polymer_" + str(khaz_p_feedsack) + ".json", 'w') as fk2:
+				json.dump(khaz_p[:khaz_p_feedsack], fk2)
+			if khazana_polymer_args["verbose"]:
+				print "Done\n"
 
 	#Khazana VASP
 	if "khazana_vasp" in datasets_to_process:
@@ -659,17 +673,22 @@ if __name__ == "__main__":
 			"uri_adds" : ["filename"],
 			"max_records" : -1
 			}
-		print "KHAZANA VASP PROCESSING"
+		if khazana_vasp_args["verbose"]:
+			print "KHAZANA VASP PROCESSING"
 		khaz_v = process_data(khazana_vasp_args)
-		if feedstock:
+		if feedsack:
+			'''
 			print "Creating JSON files"
 			print "Khazana VASP All"
 			with open("khazana/khazana_vasp_all.json", 'w') as fk1:
 				json.dump(khaz_v, fk1)
-			print "Done\nKhazana VASP 3"
-			with open("khazana/khazana_vasp_3.json", 'w') as fk2:
-				json.dump(khaz_v[:3], fk2)
-			print "Done\n"
+			'''
+			if khazana_vasp_args["verbose"]:
+				print "Making Khazana VASP feedsack (" + str(khaz_v_feedsack) + ")"
+			with open("khazana/khazana_vasp_" + str(khaz_v_feedsack) + ".json", 'w') as fk2:
+				json.dump(khaz_v[:khaz_v_feedsack], fk2)
+			if khazana_vasp_args["verbose"]:
+				print "Done\n"
 	
 	print "END"
 

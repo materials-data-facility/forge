@@ -1,9 +1,10 @@
-import json
+#import json
 from qmpy import parse_comp
 import os
 import shutil
 from numpy import sum
-from pickle import dump
+#from pickle import dump
+from json import dump, load
 
 def parse_janaf_file(filename):
         '''
@@ -23,7 +24,7 @@ def parse_janaf_file(filename):
 
         # Parse file
         try:
-                data = json.load(open(filename, 'r'))
+                data = load(open(filename, 'r'))
         except:
                 return None
 
@@ -99,7 +100,7 @@ def parse_janaf_file(filename):
 if __name__ == "__main__":
 	data = []
 	data_dir = "srd13_janaf"
-	out_filename = "janaf_json.pickle"
+	out_filename = "janaf_all.json"
 	count = 0
 	full_count = 0
 	for f in os.listdir(data_dir):
@@ -120,9 +121,10 @@ if __name__ == "__main__":
 	print "Dumping all"
 	with open("janaf_all.json", 'w') as fj1:
 		json.dump(data, fj1)
-	print "Done\nDumping 1k"
-	with open("janaf_1k.json", 'w') as fj2:
-		json.dump(data, fj2)
-	print "Done"
 	'''
+	print "Dumping 1000"
+	with open("janaf_1000.json", 'w') as fj2:
+		dump(data, fj2)
+	print "Done"
+	
 
