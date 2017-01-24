@@ -60,7 +60,7 @@ def printDataset(entries, filename):
 	'''
 	print "Dumping 10,000"
 	with open("oqmd_10000.json", 'w') as oq2:
-		json.dump(out_list[:10000], oq2)
+		dump(out_list[:10000], oq2)
 	print "Done"
 	
 

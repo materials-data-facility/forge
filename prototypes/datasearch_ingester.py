@@ -7,19 +7,33 @@ from json import load
 max_ingests_at_once = 50
 max_ingests_total = -1
 
+#Note: All destinations listed here must have:
+# 1. Variable $NAME_client initialized at the start of ingest_refined_feedstock
+# 2. Function $NAME_ingest that accepts two arguments - the ingestable data, and $NAME_client
+#	The data must be filtered appropriately
+#	The ingestable data must be ingested
+#	$NAME_client can be anything and/or the function can disregard it, but it must be accepted
+all_destinations = {"globus_search", "data_pub_service", "db_test"}
+
+ingest_to = set()
+#Pick one or more destinations
+ingest_to.add("globus_search")
+#ingest_to.add("data_pub_service")
+#ingest_to.add("db_test")
+
 all_data_files = {
-	"oqmd" : "oqmd_all.json",
-	"janaf" : "janaf_all.json",
-	"danemorgan" : "danemorgan_all.json",
-	"khazana_polymer" : "khazana_polymer_all.json",
-	"khazana_vasp" : "khazana_vasp_all.json"
+	"oqmd" : "oqmd_refined.json",
+	"janaf" : "janaf_refined.json",
+	"danemorgan" : "danemorgan_refined.json",
+	"khazana_polymer" : "khazana_polymer_refined.json",
+	"khazana_vasp" : "khazana_vasp_refined.json"
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-#data_file_to_use.append("oqmd")
+data_file_to_use.append("oqmd")
 data_file_to_use.append("janaf")
-#data_file_to_use.append("danemorgan")
-#data_file_to_use.append("khazana_polymer")
+data_file_to_use.append("danemorgan")
+data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
@@ -89,14 +103,120 @@ def format_multi_gmeta(data_list):
 		}
 	return gmeta
 
-#Takes a JSON list of dicts and ingests into Globus Search
+#Ingests data into Globus Search
+#Filters:
+#	No data nested more than N layers (N = 2)
+#	No lists with more than M elements (M = 5)
+#	No multi-dimensional lists
+#	No empty data structures
+def globus_search_ingest(ingestable, client):
+	MAX_LIST = 5
+	#print "Test database ingest:"
+	filtered_list = []
+	data_list = ingestable["ingest_data"]["gmeta"]
+	#All the data must be JSON serializable, and therefore must be a list, dict, or actual data (not in a container)
+	for entry in data_list:
+
+		filtered_content = {}
+		for key, value in entry["content"].iteritems(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
+			if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
+				filtered_content[key] = value
+			
+			if type(value) is dict:
+				first_level_dict = {}
+				for key2, value2 in value.iteritems(): #Second layer. **Assigning first_level_dict[key2] = value2
+					if not hasattr(value2, "__iter__") and value2: #Data, and not nothing
+						first_level_dict[key2] = value2
+	
+				if first_level_dict: #If data exists here
+					filtered_content[key] = first_level_dict
+			
+			elif type(value) is list and len(value) <= MAX_LIST:
+				first_level_list = []
+				for elem in value:
+					if not hasattr(elem, "__iter__") and elem: #Data, not nothing
+						first_level_list.append(elem)
+				if first_level_list: #If data found
+					filtered_content[key] = first_level_list
+		if filtered_content: #If there's nothing left after filtering, should not ingest
+			entry["content"] = filtered_content
+			filtered_list.append(entry)
+	ingestable["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
+	#Actual ingestion
+	client.ingest(ingestable)
+
+
+def data_pub_service_ingest(ingestable, client):
+	print "This would be an ingestion to the DPS"
+	#client.ingest(ingestable)
+
+
+######################################
+#Test ingester. Not to be used for actual ingesting.
+def db_test_ingest(ingestable, client):
+	from copy import deepcopy
+	from json import dumps
+	test_i = deepcopy(ingestable)
+	MAX_LIST = 5
+	#print "Test database ingest:"
+	filtered_list = []
+	data_list = ingestable["ingest_data"]["gmeta"]
+	#All the data must be JSON serializable, and therefore must be a list, dict, or actual data (not in a container)
+	for entry in data_list:
+
+		filtered_content = {}
+		for key, value in entry["content"].iteritems(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
+			if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
+				filtered_content[key] = value
+			
+			if type(value) is dict:
+				first_level_dict = {}
+				for key2, value2 in value.iteritems(): #Second layer. **Assigning first_level_dict[key2] = value2
+					if not hasattr(value2, "__iter__") and value2: #Data, and not nothing
+						first_level_dict[key2] = value2
+	
+				if first_level_dict: #If data exists here
+					filtered_content[key] = first_level_dict
+			
+			elif type(value) is list and len(value) <= MAX_LIST:
+				first_level_list = []
+				for elem in value:
+					if not hasattr(elem, "__iter__") and elem: #Data, not nothing
+						first_level_list.append(elem)
+				if first_level_list: #If data found
+					filtered_content[key] = first_level_list
+		if filtered_content: #If there's nothing left after filtering, should not ingest
+			entry["content"] = filtered_content
+			filtered_list.append(entry)
+	ingestable["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
+
+	print "BEFORE:"
+	print test_i["ingest_data"]["gmeta"][2]["content"]
+	print "\nAFTER:"
+	print ingestable["ingest_data"]["gmeta"][2]["content"]
+
+			
+
+
+#Takes a JSON list of dicts and ingests them into specified destinations
 #Arguments:
 #	json_filename: Name of json file containing json from converter
-#	max_ingest_size: Maximum size of a single ingestion (-1 is unlimited)
-#	ingest_limit: Maximum number of records to ingest overall (-1 is unlimited)
-#	verbose: Show status messages?
+#	destinations: Set of locations to ingest to. The list of available destinations is in the global variable "all_destinations". Should never have repeated elements, or ingests may be duplicated.
+#	max_ingest_size: Maximum size of a single ingestion. Default -1 (unlimited)
+#	ingest_limit: Maximum number of records to ingest overall. Default -1 (unlimited)
+#	verbose: Show status messages? Default False.
 #	delete_not_ingest: Caution! If True, will overwrite existing data instead of ingesting new data. Default False.
-def ingest_refined_feedstock(json_filename, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
+def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
+	if type(destinations) is not set:
+		destinations = set(destinations)
+	if not destinations.issubset(all_destinations):
+		print "Error: Unknown destinations given\nValid destinations are: " + str(all_destinations) + "\nThe provided destinations were: " + str(destinations)
+	if "globus_search" in destinations:
+		globus_search_client = globus_auth.login("https://datasearch.api.demo.globus.org/")
+	if "data_pub_service" in destinations:
+		data_pub_service_client = "Need client here" #TODO: DPS client
+	if "db_test" in destinations:
+		db_test_client = "Test Client"
 	if delete_not_ingest:
 		confirm = raw_input("Delete entries y/n: ")
 		if confirm.lower() not in ['y', 'yes']:
@@ -105,10 +225,6 @@ def ingest_refined_feedstock(json_filename, max_ingest_size=-1,  ingest_limit=-1
 		else:
 			if verbose:
 				print "Deleting entries"
-	#Authentication
-	if verbose:
-		print "Authenticating"
-	client = globus_auth.login("https://datasearch.api.demo.globus.org/")
 	#Record preparation
 	if verbose:
 		print "Opening json"
@@ -127,6 +243,8 @@ def ingest_refined_feedstock(json_filename, max_ingest_size=-1,  ingest_limit=-1
 	if len(list_of_data) == 0:
 		print "Error: No data found"
 		exit(-1)
+		'''
+	#Honestly not really useful
 	elif len(list_of_data) == 1:
 		if delete_not_ingest:
 			delete_data = list_of_data[0]
@@ -134,10 +252,12 @@ def ingest_refined_feedstock(json_filename, max_ingest_size=-1,  ingest_limit=-1
 			single_ingestable = format_single_gmeta(delete_data, full=True)
 		else:
 			single_ingestable = format_single_gmeta(list_of_data[0], full=True)
-		client.ingest(single_ingestable)
+		for dest in destinations:
+			eval(dest + "_ingest(single_ingestable, " + dest + "_client)")
 		if verbose:
 			print "Ingested one record"
-	elif len(list_of_data) > 1:
+		'''
+	elif len(list_of_data) >= 1:
 		list_ingestable = []
 		count = 0
 		for record in list_of_data:
@@ -163,12 +283,14 @@ def ingest_refined_feedstock(json_filename, max_ingest_size=-1,  ingest_limit=-1
 				multi_ingestable = format_multi_gmeta(list_ingestable[
 					i * max_ingest_size : (i + 1) * max_ingest_size
 					])
-				client.ingest(multi_ingestable)
+				for dest in destinations:
+					eval(dest + "_ingest(multi_ingestable, " + dest + "_client)")
 				if verbose:
 					print "Ingested batch " + str(i+1)
 		else:
 			multi_ingestable = format_multi_gmeta(list_ingestable)
-			client.ingest(multi_ingestable)
+			for dest in destinations:
+				eval(dest + "_ingest(multi_ingestable, " + dest + "_client)")
 		if verbose:
 			print "Ingested " + str(count) + " records"
 	if verbose:
@@ -181,7 +303,7 @@ if __name__ == "__main__":
 		ingest_limit = max_ingests_total
 		max_ingest_size = max_ingests_at_once
 		print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":\n"
-		ingest_refined_feedstock(filename, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
+		ingest_refined_feedstock(filename, ingest_to, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
 		print "Finished ingesting from " + filename
 	print "Ingest complete"
 

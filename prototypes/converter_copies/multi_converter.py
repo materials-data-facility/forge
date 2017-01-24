@@ -7,13 +7,13 @@ from json import dump
 
 #Pick one or more datasets to process
 datasets_to_process = []
-#datasets_to_process.append("danemorgan")
-#datasets_to_process.append("khazana_polymer")
+datasets_to_process.append("danemorgan")
+datasets_to_process.append("khazana_polymer")
 datasets_to_process.append("khazana_vasp")
 
 #Export a smaller feedstock file for testing?
 #If False, will still write full feedstock file
-feedsack = False
+feedsack = True
 #These are the sizes of the small feedstock
 dane_feedsack = 100
 khaz_p_feedsack = 100
@@ -451,11 +451,11 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 #file_match is a string containing the file name to search for. Default is None, which matches all files.
 #keep_dir_name_depth is how many layers of dir, counting from the base file up, contain data to save. -1 saves everything in the path. Default is 0, which disables saving anything.
 #max_files is the maximum number of results to return. Default -1, which returns all results.
-def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1):
+def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1, verbose=False):
 	if not root:
 		root = os.getcwd()
 	dir_list = []
-	for path, dirs, files in tqdm(os.walk(root), desc="Finding files:"):
+	for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
 		for one_file in files:
 			if not file_pattern or re.match(file_pattern, one_file): #Only care about dirs with desired data
 				dir_names = []
@@ -499,7 +499,7 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #	verbose: Bool to show system messages. Default is False (messages off).
 #	output_file: The file to output the final list to. If this is not set, the output will not be written to file.
 #
-#	data_exception_log: File to log exceptions caught when processing the data. If a filename is listed here, such exceptions will be logged but otherwise ignored. Default None, which causes exceptions to terminate the program.i
+#	data_exception_log: File to log exceptions caught when processing the data. If a filename is listed here, such exceptions will be logged but otherwise ignored. Default None, which causes exceptions to terminate the program.
 #
 #	uri_adds: A list of things to add to the end of 'uri' for each record. Options are 'dir' for the directory structure, 'filename' for the name of the file, and 'ext' for the file extension. 
 #		Choose any combination, including none (empty list). The URI will be appended with the directories, filename, and extension, if selected, in that order. The order of uri_adds does not matter. Default 'filename'.
@@ -522,18 +522,18 @@ def process_data(arg_dict):
 		err_log = None
 	if verbose:
 		print "Finding files"
-	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth, max_files=max_records)
+	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth, max_files=max_records, verbose=verbose)
 	if verbose:
 		print "Converting file data to JSON"
 	all_data_list = []
 	good_count = 0
 	all_count = 0
-	for dir_data in tqdm(dir_list, desc="Processing data files:"):
+	for dir_data in tqdm(dir_list, desc="Processing data files", disable= not verbose):
 		all_count += 1
 		formatted_data = {}
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
-		file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=verbose)
+		file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]
@@ -630,7 +630,7 @@ if __name__ == "__main__":
 			"file_pattern" : None,
 			"file_format" : "cif",
 			"verbose" : True,
-			"output_file" : "khazana" + os.sep + "khazana_polymer_json.pickle",		
+			"output_file" : "khazana" + os.sep + "khazana_polymer_all.json",
 			"data_exception_log" : "khazana" + os.sep + "khazana_polymer_errors.txt",
 			"uri_adds" : ["filename"],
 			"max_records" : -1
@@ -648,7 +648,7 @@ if __name__ == "__main__":
 			if khazana_polymer_args["verbose"]:
 				print "Making Khazana Polymer feedsack (" + str(khaz_p_feedsack) + ")"
 			with open("khazana/khazana_polymer_" + str(khaz_p_feedsack) + ".json", 'w') as fk2:
-				json.dump(khaz_p[:khaz_p_feedsack], fk2)
+				dump(khaz_p[:khaz_p_feedsack], fk2)
 			if khazana_polymer_args["verbose"]:
 				print "Done\n"
 
@@ -668,7 +668,7 @@ if __name__ == "__main__":
 			"file_pattern" : "^OUTCAR",
 			"file_format" : "vasp",
 			"verbose" : True,
-			"output_file" : "khazana" + os.sep + "khazana_vasp_json.pickle",		
+			"output_file" : "khazana" + os.sep + "khazana_vasp_all.json",		
 			"data_exception_log" : "khazana" + os.sep + "khazana_vasp_errors.txt",
 			"uri_adds" : ["filename"],
 			"max_records" : -1
@@ -686,7 +686,7 @@ if __name__ == "__main__":
 			if khazana_vasp_args["verbose"]:
 				print "Making Khazana VASP feedsack (" + str(khaz_v_feedsack) + ")"
 			with open("khazana/khazana_vasp_" + str(khaz_v_feedsack) + ".json", 'w') as fk2:
-				json.dump(khaz_v[:khaz_v_feedsack], fk2)
+				dump(khaz_v[:khaz_v_feedsack], fk2)
 			if khazana_vasp_args["verbose"]:
 				print "Done\n"
 	
