@@ -5,11 +5,13 @@ from copy import deepcopy
 
 #Pick one or more to refine
 to_refine = []
-to_refine.append("janaf")
-to_refine.append("khazana_polymer")
-to_refine.append("khazana_vasp")
-to_refine.append("danemorgan")
-to_refine.append("oqmd")
+#to_refine.append("janaf")
+#to_refine.append("khazana_polymer")
+#to_refine.append("khazana_vasp")
+#to_refine.append("danemorgan")
+#to_refine.append("oqmd")
+#to_refine.append("cod")
+to_refine.append("sluschi")
 
 
 #Formats a record into the appropriate schema
@@ -27,7 +29,7 @@ def schema_format(raw_record):
 #	dynamic_metadata: Dict containing metadata that needs to be computed. Values in the dict should be commands to be used in "eval()", where "data" is the name of the feedstock record (for example, {"title" : "'Big DB - ' + data['composition']" ). Default nothing.
 def refine_feedstock(raw_file, refined_file=None, static_metadata={}, dynamic_metadata={}, verbose=False):
 	if verbose:
-		print "Loading raw feedstock"
+		print "Loading raw feedstock from " + raw_file
 	with open(raw_file, 'r') as raw:
 		raw_stock = load(raw)
 	if verbose:
@@ -70,6 +72,7 @@ def refine_feedstock(raw_file, refined_file=None, static_metadata={}, dynamic_me
 if __name__ == "__main__":
 	raw_dir = "raw_feedstock/"
 	ref_dir = "refined_feedstock/"
+	verbose = True
 
 	if "janaf" in to_refine:
 		janaf_static = {
@@ -83,7 +86,7 @@ if __name__ == "__main__":
 		janaf_dynamic = {
 			"globus_subject" : "data['uri']"
 			}
-		refine_feedstock(raw_dir+"janaf_all.json", ref_dir+"janaf_refined.json", janaf_static, janaf_dynamic, True)
+		refine_feedstock(raw_dir+"janaf_all.json", ref_dir+"janaf_refined.json", janaf_static, janaf_dynamic, verbose)
 
 	if "khazana_polymer" in to_refine:
 		khaz_poly_static = {
@@ -92,7 +95,7 @@ if __name__ == "__main__":
 		khaz_poly_dynamic = {
 			"globus_subject" : "data['uri']"
 			}
-		refine_feedstock(raw_dir+"khazana_polymer_all.json", ref_dir+"khazana_polymer_refined.json", khaz_poly_static, khaz_poly_dynamic, True)
+		refine_feedstock(raw_dir+"khazana_polymer_all.json", ref_dir+"khazana_polymer_refined.json", khaz_poly_static, khaz_poly_dynamic, verbose)
 
 	if "khazana_vasp" in to_refine:
 		khaz_vasp_static = {
@@ -101,7 +104,7 @@ if __name__ == "__main__":
 		khaz_vasp_dynamic = {
 			"globus_subject" : "data['uri']"
 			}
-		refine_feedstock(raw_dir+"khazana_vasp_all.json", ref_dir+"khazana_vasp_refined.json", khaz_vasp_static, khaz_vasp_dynamic, True)
+		refine_feedstock(raw_dir+"khazana_vasp_all.json", ref_dir+"khazana_vasp_refined.json", khaz_vasp_static, khaz_vasp_dynamic, verbose)
 
 	if "danemorgan" in to_refine:
 		danemorgan_static = {
@@ -110,7 +113,7 @@ if __name__ == "__main__":
 		danemorgan_dynamic = {
 			"globus_subject" : "data['uri']"
 			}
-		refine_feedstock(raw_dir+"danemorgan_all.json", ref_dir+"danemorgan_refined.json", danemorgan_static, danemorgan_dynamic, True)
+		refine_feedstock(raw_dir+"danemorgan_all.json", ref_dir+"danemorgan_refined.json", danemorgan_static, danemorgan_dynamic, verbose)
 
 	if "oqmd" in to_refine:
 		oqmd_static = {
@@ -121,8 +124,28 @@ if __name__ == "__main__":
 				}
 			}
 		oqmd_dynamic = {
-			"globus_subject" : "'http://oqmd.org/materials/entry/' + data['oqmd_id']",
+			"globus_subject" : "data['uri']",
 			"dc:title" : "'OQMD - ' + data['comp']"
 			}
+		refine_feedstock(raw_dir+"oqmd_all.json", ref_dir+"oqmd_refined.json", oqmd_static, oqmd_dynamic, verbose)
+
+	if "cod" in to_refine:
+		cod_static = {
+			"globus_source" : "Crystallography Open Database"
+			}
+		cod_dynamic = {
+			"globus_subject" : "data['uri']"
+			}
+		refine_feedstock(raw_dir+"cod_all.json", ref_dir+"cod_refined.json", cod_static, cod_dynamic, verbose)
+
+	if "sluschi" in to_refine:
+		sluschi_static = {
+			"globus_source" : "Sluschi"
+			}
+		sluschi_dynamic = {
+			"globus_subject" : "data['uri']"
+			}
+		refine_feedstock(raw_dir+"sluschi_all.json", ref_dir+"sluschi_refined.json", sluschi_static, sluschi_dynamic, verbose)
+
 
 

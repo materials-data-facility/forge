@@ -4,12 +4,18 @@ from tqdm import tqdm
 from ase.io import read
 import re
 from json import dump
+import tarfile
+import zipfile
+import gzip
+import warnings
 
 #Pick one or more datasets to process
 datasets_to_process = []
-datasets_to_process.append("danemorgan")
-datasets_to_process.append("khazana_polymer")
-datasets_to_process.append("khazana_vasp")
+#datasets_to_process.append("danemorgan")
+#datasets_to_process.append("khazana_polymer")
+#datasets_to_process.append("khazana_vasp")
+#datasets_to_process.append("cod")
+datasets_to_process.append("sluschi")
 
 #Export a smaller feedstock file for testing?
 #If False, will still write full feedstock file
@@ -18,7 +24,8 @@ feedsack = True
 dane_feedsack = 100
 khaz_p_feedsack = 100
 khaz_v_feedsack = 3
-
+cod_feedsack = 100
+sluschi_feedsack = 100
 
 #Currently-supported formats are listed below.
 supported_formats = ['vasp', 'cif']
@@ -451,13 +458,38 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 #file_match is a string containing the file name to search for. Default is None, which matches all files.
 #keep_dir_name_depth is how many layers of dir, counting from the base file up, contain data to save. -1 saves everything in the path. Default is 0, which disables saving anything.
 #max_files is the maximum number of results to return. Default -1, which returns all results.
-def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1, verbose=False):
+#uncompress_archives, if True, will uncompress archives found before checking against the file_pattern. This is *SLOW*, and does not guarantee archives that expand into directories will be searched. Default False, which leaves archives alone.
+def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1, uncompress_archives=False, verbose=False):
 	if not root:
 		root = os.getcwd()
 	dir_list = []
 	for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
-		for one_file in files:
-			if not file_pattern or re.match(file_pattern, one_file): #Only care about dirs with desired data
+
+		if uncompress_archives:
+			for single_file in files:
+				abs_path = os.path.join(path, single_file)
+				if tarfile.is_tarfile(abs_path):
+					tar = tarfile.open(abs_path)
+					tar.extractall()
+					tar.close()
+				elif zipfile.is_zipfile(abs_path):
+					z = zipfile.open(abs_path)
+					z.extractall()
+					z.close()
+				else:
+					try:
+						with gzip.open(abs_path) as gz:
+							file_data = gz.read()
+							with open(abs_path.rsplit('.', 1)[0], 'w') as newfile: #Opens the absolute path, including filename, for writing, but does not include the extension (should be .gz or similar)
+								newfile.write(file_data)
+					except IOError: #This will occur at gz.read() if the file is not a gzip. After it has been opened. I don't know why it doesn't have any format check before this.
+						pass
+			all_files = os.listdir(path)
+		else:
+			all_files = files
+
+		for one_file in all_files:
+			if not file_pattern or re.search(file_pattern, one_file): #Only care about dirs with desired data
 				dir_names = []
 				head, tail = os.path.split(path)
 				dir_names.append(tail)
@@ -501,9 +533,10 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #
 #	data_exception_log: File to log exceptions caught when processing the data. If a filename is listed here, such exceptions will be logged but otherwise ignored. Default None, which causes exceptions to terminate the program.
 #
-#	uri_adds: A list of things to add to the end of 'uri' for each record. Options are 'dir' for the directory structure, 'filename' for the name of the file, and 'ext' for the file extension. 
-#		Choose any combination, including none (empty list). The URI will be appended with the directories, filename, and extension, if selected, in that order. The order of uri_adds does not matter. Default 'filename'.
+#	uri_adds: A list of things to add to the end of 'uri' for each record. Options are 'dir' for the directory structure, 'filename' for the name of the file, and 'ext' for the file extension. Other elements in the list will be added as string literals.
+#		Choose any combination, including none (empty list). The URI will be appended with the values specified in the order they are specified. Default 'filename'.
 #	max_records: Maximum number of records to return (actual return value may be less due to failed files). Default -1, which returns all (valid) records.
+#	archived: Bool, if some desirable files are in archives and should be extracted. This slows down file discovery.
 #
 def process_data(arg_dict):
 	root = arg_dict.get("root", os.getcwd())
@@ -512,6 +545,7 @@ def process_data(arg_dict):
 	file_pattern = arg_dict.get("file_pattern", None)
 	uri_adds = arg_dict.get("uri_adds", ['filename'])
 	max_records = arg_dict.get("max_records", -1)
+	archived = arg_dict.get("archived", False)
 	if arg_dict.get("file_format", "NONE") not in supported_formats:
 		print "Error: file_format '" + arg_dict.get("file_format", "NONE") + "' is not supported."
 		return None
@@ -522,7 +556,7 @@ def process_data(arg_dict):
 		err_log = None
 	if verbose:
 		print "Finding files"
-	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth, max_files=max_records, verbose=verbose)
+	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth, max_files=max_records, uncompress_archives=archived, verbose=verbose)
 	if verbose:
 		print "Converting file data to JSON"
 	all_data_list = []
@@ -533,19 +567,25 @@ def process_data(arg_dict):
 		formatted_data = {}
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
-		file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
+		with warnings.catch_warnings():
+			warnings.simplefilter("ignore")
+			file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]
 			file_data["ext"] = dir_data["extension"]
 
-			if 'dir' in uri_adds:
-				for dir_name in file_data["dirs"]:
-					uri = os.path.join(uri, dir_name)
-			if 'filename' in uri_adds:
-				uri = os.path.join(uri, file_data["filename"])
-			if 'ext' in uri_adds:
-				uri += file_data["ext"]
+			for addition in uri_adds:
+				if addition == 'dir':
+					for dir_name in file_data["dirs"]:
+						uri = os.path.join(uri, dir_name)
+				elif addition == 'filename':
+					uri = os.path.join(uri, file_data["filename"])
+				elif addition == 'ext':
+					uri += file_data["ext"]
+				else:
+					uri += addition
+
 #			formatted_data["uri"] = uri
 #			for key, value in arg_dict.get("metadata", {}).iteritems():
 #				formatted_data[key] = value
@@ -594,7 +634,8 @@ if __name__ == "__main__":
 			"output_file" : "dane_morgan" + os.sep + "danemorgan_all.json",
 			"data_exception_log" : "dane_morgan" + os.sep + "dane_errors.txt",
 			"uri_adds" : ["dir"],
-			"max_records" : -1
+			"max_records" : -1,
+			"archived" : False
 			}
 		if dane_args["verbose"]:
 			print "DANE PROCESSING"
@@ -633,7 +674,8 @@ if __name__ == "__main__":
 			"output_file" : "khazana" + os.sep + "khazana_polymer_all.json",
 			"data_exception_log" : "khazana" + os.sep + "khazana_polymer_errors.txt",
 			"uri_adds" : ["filename"],
-			"max_records" : -1
+			"max_records" : -1,
+			"archived" : False
 			}
 		if khazana_polymer_args["verbose"]:
 			print "KHAZANA POLYMER PROCESSING"
@@ -671,7 +713,8 @@ if __name__ == "__main__":
 			"output_file" : "khazana" + os.sep + "khazana_vasp_all.json",		
 			"data_exception_log" : "khazana" + os.sep + "khazana_vasp_errors.txt",
 			"uri_adds" : ["filename"],
-			"max_records" : -1
+			"max_records" : -1,
+			"archived" : False
 			}
 		if khazana_vasp_args["verbose"]:
 			print "KHAZANA VASP PROCESSING"
@@ -689,6 +732,59 @@ if __name__ == "__main__":
 				dump(khaz_v[:khaz_v_feedsack], fk2)
 			if khazana_vasp_args["verbose"]:
 				print "Done\n"
+
+	#Crystallography Open Database
+	if "cod" in datasets_to_process:
+		cod_args = {
+			"uri" : "http://www.crystallography.net/cod",
+			"keep_dir_name_depth" : 0,
+			"root" : "cod/open-cod",
+			"file_pattern" : "\.cif$",
+			"file_format" : "cif",
+			"verbose" : True,
+			"output_file" : "cod/cod_all.json",
+			"data_exception_log" : "cod/cod_errors.txt",
+			"uri_adds" : ["filename", ".html"],
+			"max_records" : -1,
+			"archived" : False
+			}
+		if cod_args["verbose"]:
+			print "COD PROCESSING"
+		cod = process_data(cod_args)
+		if feedsack:
+			if cod_args["verbose"]:
+				print "Making COD feedsack (" + str(cod_feedsack) + ")"
+			with open("cod/cod_" + str(cod_feedsack) + ".json", 'w') as fc:
+				dump(cod[:cod_feedsack], fc)
+			if cod_args["verbose"]:
+				print "Done\n"
+
+	#Sluschi
+	if "sluschi" in datasets_to_process:
+		sluschi_args = {
+			"uri" : "globus:mostly_melted_snow",
+			"keep_dir_name_depth" : -1,
+			"root" : "sluschi/sluschi",
+			"file_pattern" : "^OUTCAR$",
+			"file_format" : "vasp",
+			"verbose" : True,
+			"output_file" : "sluschi/sluschi_all.json",
+			"data_exception_log" : "sluschi/sluschi_errors.txt",
+			"uri_adds" : ["dir"],
+			"max_records" : -1,
+			"archived" : True
+			}
+		if sluschi_args["verbose"]:
+			print "SLUSCHI PROCESSING"
+		sluschi = process_data(sluschi_args)
+		if feedsack:
+			if sluschi_args["verbose"]:
+				print "Making sluschi feedsack (" + str(sluschi_feedsack) + ")"
+			with open("sluschi/sluschi_" + str(sluschi_feedsack) + ".json", 'w') as fc:
+				dump(sluschi[:sluschi_feedsack], fc)
+			if sluschi_args["verbose"]:
+				print "Done\n"
+
 	
 	print "END"
 

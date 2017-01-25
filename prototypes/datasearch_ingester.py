@@ -2,18 +2,23 @@ import globus_auth
 #from pickle import load
 from sys import exit
 from json import load
+from tqdm import tqdm
 
 #-1 for unlimited
-max_ingests_at_once = 50
+#max_ingests_at_once = 50 #Now per file
 max_ingests_total = -1
 
 #Note: All destinations listed here must have:
-# 1. Variable $NAME_client initialized at the start of ingest_refined_feedstock
-# 2. Function $NAME_ingest that accepts two arguments - the ingestable data, and $NAME_client
-#	The data must be filtered appropriately
-#	The ingestable data must be ingested
-#	$NAME_client can be anything and/or the function can disregard it, but it must be accepted
-all_destinations = {"globus_search", "data_pub_service", "db_test"}
+# 1. Dict $NAME_args initialized with all arguments (besides the ingest data) at the start of ingest_refined_feedstock
+# 2. Function $NAME_ingest that accepts one argument - a dict containing other arguments.
+#	The standard arguments given to the function are:
+#		ingestable: The ingestable data. This is ALWAYS in the arg dict.
+#		client: The client initialized as $NAME_client
+#		verbose: Should the function print status output?
+#	In the function:
+#		The data must be filtered appropriately
+#		The ingestable data must be ingested
+all_destinations = {"globus_search", "data_pub_service"}
 
 ingest_to = set()
 #Pick one or more destinations
@@ -22,19 +27,51 @@ ingest_to.add("globus_search")
 #ingest_to.add("db_test")
 
 all_data_files = {
-	"oqmd" : "oqmd_refined.json",
-	"janaf" : "janaf_refined.json",
-	"danemorgan" : "danemorgan_refined.json",
-	"khazana_polymer" : "khazana_polymer_refined.json",
-	"khazana_vasp" : "khazana_vasp_refined.json"
+	"oqmd" : {
+		"file" : "oqmd_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 5000
+		},
+	"janaf" : {
+		"file" : "janaf_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 500
+		},
+	"danemorgan" : {
+		"file" : "danemorgan_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 500
+		},
+	"khazana_polymer" : {
+		"file" : "khazana_polymer_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100
+		},
+	"khazana_vasp" : {
+		"file" : "khazana_vasp_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 1
+		},
+	"cod" : {
+		"file" : "cod_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 5000
+		},
+	"sluschi" : {
+		"file" : "sluschi_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100
+		}
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-data_file_to_use.append("oqmd")
-data_file_to_use.append("janaf")
-data_file_to_use.append("danemorgan")
-data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("oqmd")
+#data_file_to_use.append("janaf")
+#data_file_to_use.append("danemorgan")
+#data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
+#data_file_to_use.append("cod")
+data_file_to_use.append("sluschi")
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 DELETE_DATA = False
@@ -109,13 +146,13 @@ def format_multi_gmeta(data_list):
 #	No lists with more than M elements (M = 5)
 #	No multi-dimensional lists
 #	No empty data structures
-def globus_search_ingest(ingestable, client):
+def globus_search_ingest(args):
 	MAX_LIST = 5
 	#print "Test database ingest:"
 	filtered_list = []
-	data_list = ingestable["ingest_data"]["gmeta"]
+	data_list = args["ingestable"]["ingest_data"]["gmeta"]
 	#All the data must be JSON serializable, and therefore must be a list, dict, or actual data (not in a container)
-	for entry in data_list:
+	for entry in tqdm(data_list, desc="\tFiltering batch", disable= True): #not args["verbose"]): #Current datasets filter too fast for a progress bar to be useful
 
 		filtered_content = {}
 		for key, value in entry["content"].iteritems(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
@@ -141,16 +178,15 @@ def globus_search_ingest(ingestable, client):
 		if filtered_content: #If there's nothing left after filtering, should not ingest
 			entry["content"] = filtered_content
 			filtered_list.append(entry)
-	ingestable["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
+	args["ingestable"]["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
 	#Actual ingestion
-	client.ingest(ingestable)
+	args["client"].ingest(args["ingestable"])
 
 
-def data_pub_service_ingest(ingestable, client):
+def data_pub_service_ingest(args):
 	print "This would be an ingestion to the DPS"
-	#client.ingest(ingestable)
 
-
+'''
 ######################################
 #Test ingester. Not to be used for actual ingesting.
 def db_test_ingest(ingestable, client):
@@ -194,7 +230,7 @@ def db_test_ingest(ingestable, client):
 	print test_i["ingest_data"]["gmeta"][2]["content"]
 	print "\nAFTER:"
 	print ingestable["ingest_data"]["gmeta"][2]["content"]
-
+'''
 			
 
 
@@ -211,12 +247,15 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 		destinations = set(destinations)
 	if not destinations.issubset(all_destinations):
 		print "Error: Unknown destinations given\nValid destinations are: " + str(all_destinations) + "\nThe provided destinations were: " + str(destinations)
+	for dest in destinations:
+		exec(dest + "_args = {}")
+		exec(dest + "_args['verbose'] = verbose")
 	if "globus_search" in destinations:
-		globus_search_client = globus_auth.login("https://datasearch.api.demo.globus.org/")
+		globus_search_args["client"] =  globus_auth.login("https://datasearch.api.demo.globus.org/")
 	if "data_pub_service" in destinations:
-		data_pub_service_client = "Need client here" #TODO: DPS client
-	if "db_test" in destinations:
-		db_test_client = "Test Client"
+		data_pub_service_args["client"] = "Need client here" #TODO: DPS client
+#	if "db_test" in destinations:
+#		db_test_client = "Test Client"
 	if delete_not_ingest:
 		confirm = raw_input("Delete entries y/n: ")
 		if confirm.lower() not in ['y', 'yes']:
@@ -260,7 +299,7 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 	elif len(list_of_data) >= 1:
 		list_ingestable = []
 		count = 0
-		for record in list_of_data:
+		for record in tqdm(list_of_data, desc="Preparing records", disable= not verbose):
 			if delete_not_ingest:
 				delete_data = record
 				delete_data.pop("data", None)
@@ -279,18 +318,20 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 			num_rounds = len(list_ingestable) // max_ingest_size
 			if len(list_ingestable) % max_ingest_size != 0:
 				num_rounds += 1
-			for i in range(num_rounds):
+			for i in tqdm(range(num_rounds), desc="Ingesting data in batches of " + str(max_ingest_size), disable= not verbose):
 				multi_ingestable = format_multi_gmeta(list_ingestable[
 					i * max_ingest_size : (i + 1) * max_ingest_size
 					])
 				for dest in destinations:
-					eval(dest + "_ingest(multi_ingestable, " + dest + "_client)")
-				if verbose:
-					print "Ingested batch " + str(i+1)
+					exec(dest + "_args['ingestable'] = multi_ingestable")
+					exec(dest + "_ingest(" + dest + "_args)")
+#				if verbose:
+#					print "Ingested batch " + str(i+1)
 		else:
 			multi_ingestable = format_multi_gmeta(list_ingestable)
 			for dest in destinations:
-				eval(dest + "_ingest(multi_ingestable, " + dest + "_client)")
+				exec(dest + "_args['ingestable'] = multi_ingestable")
+				exec(dest + "_ingest(" + dest + "_args)")
 		if verbose:
 			print "Ingested " + str(count) + " records"
 	if verbose:
@@ -299,12 +340,12 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 if __name__ == "__main__":
 	print "Ingest start"
 	for key in data_file_to_use:
-		filename = all_data_files[key]
-		ingest_limit = max_ingests_total
-		max_ingest_size = max_ingests_at_once
-		print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":\n"
+		filename = all_data_files[key]["file"]
+		ingest_limit = all_data_files[key]["record_limit"]
+		max_ingest_size = all_data_files[key]["batch_size"]
+		print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":"
 		ingest_refined_feedstock(filename, ingest_to, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
-		print "Finished ingesting from " + filename
+		print "Finished ingesting from " + filename + "\n"
 	print "Ingest complete"
 
 
