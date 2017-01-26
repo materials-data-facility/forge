@@ -1,64 +1,70 @@
+'''
+Ingester
+'''
 import globus_auth
 #from pickle import load
 from sys import exit
 from json import load
 from tqdm import tqdm
+from pymongo import MongoClient
+
+import paths #Contains relative path to data info
 
 #-1 for unlimited
 #max_ingests_at_once = 50 #Now per file
 max_ingests_total = -1
 
 #Note: All destinations listed here must have:
-# 1. Dict $NAME_args initialized with all arguments (besides the ingest data) at the start of ingest_refined_feedstock
+# 1. Dict $NAME_args initialized with all arguments (besides the ingest data, at minimum includes $NAME_client) at the start of ingest_refined_feedstock
 # 2. Function $NAME_ingest that accepts one argument - a dict containing other arguments.
-#	The standard arguments given to the function are:
-#		ingestable: The ingestable data. This is ALWAYS in the arg dict.
-#		client: The client initialized as $NAME_client
-#		verbose: Should the function print status output?
+#	Arguments given to the function include (more can be added per destination):
+#		ingestable: The ingestable data.
+#		client: Whatever $NAME_client was initialized to.
+#		(Optional) verbose: Should the function print status output?
 #	In the function:
 #		The data must be filtered appropriately
 #		The ingestable data must be ingested
-all_destinations = {"globus_search", "data_pub_service"}
+all_destinations = {"globus_search", "data_pub_service", "local_mongodb"}
 
 ingest_to = set()
 #Pick one or more destinations
-ingest_to.add("globus_search")
+#ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
-#ingest_to.add("db_test")
+ingest_to.add("local_mongodb")
 
 all_data_files = {
 	"oqmd" : {
-		"file" : "oqmd_refined.json",
+		"file" : paths.ref_feed +  "oqmd_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 5000
 		},
 	"janaf" : {
-		"file" : "janaf_refined.json",
+		"file" : paths.ref_feed + "janaf_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 500
 		},
 	"danemorgan" : {
-		"file" : "danemorgan_refined.json",
+		"file" : paths.ref_feed + "danemorgan_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 500
 		},
 	"khazana_polymer" : {
-		"file" : "khazana_polymer_refined.json",
+		"file" : paths.ref_feed + "khazana_polymer_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100
 		},
 	"khazana_vasp" : {
-		"file" : "khazana_vasp_refined.json",
+		"file" : paths.ref_feed +"khazana_vasp_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 1
 		},
 	"cod" : {
-		"file" : "cod_refined.json",
+		"file" : paths.ref_feed + "cod_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 5000
 		},
 	"sluschi" : {
-		"file" : "sluschi_refined.json",
+		"file" : paths.ref_feed + "sluschi_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100
 		}
@@ -66,12 +72,12 @@ all_data_files = {
 #Pick one or more data files to ingest
 data_file_to_use = []
 #data_file_to_use.append("oqmd")
-#data_file_to_use.append("janaf")
+data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
 #data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-data_file_to_use.append("sluschi")
+#data_file_to_use.append("sluschi")
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 DELETE_DATA = False
@@ -180,11 +186,22 @@ def globus_search_ingest(args):
 			filtered_list.append(entry)
 	args["ingestable"]["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
 	#Actual ingestion
+#	print str(args["client"].ingest(args["ingestable"]))
 	args["client"].ingest(args["ingestable"])
 
 
 def data_pub_service_ingest(args):
 	print "This would be an ingestion to the DPS"
+
+
+#Ingest to local mongodb instance
+def local_mongodb_ingest(args):
+	db = args["client"]["feedstock"]
+	data_list = args["ingestable"]["ingest_data"]["gmeta"]
+
+	exec("db." + data_list[0]["source_name"].lower() + ".insert_many(data_list)")
+
+
 
 '''
 ######################################
@@ -254,8 +271,8 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 		globus_search_args["client"] =  globus_auth.login("https://datasearch.api.demo.globus.org/")
 	if "data_pub_service" in destinations:
 		data_pub_service_args["client"] = "Need client here" #TODO: DPS client
-#	if "db_test" in destinations:
-#		db_test_client = "Test Client"
+	if "local_mongodb" in destinations:
+		local_mongodb_args["client"] = MongoClient()
 	if delete_not_ingest:
 		confirm = raw_input("Delete entries y/n: ")
 		if confirm.lower() not in ['y', 'yes']:

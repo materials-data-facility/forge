@@ -1,3 +1,6 @@
+'''
+Converter (multiple sources)
+'''
 import os
 #from pickle import dump
 from tqdm import tqdm
@@ -9,13 +12,15 @@ import zipfile
 import gzip
 import warnings
 
+import paths #Contains variables for relative paths to data
+
 #Pick one or more datasets to process
 datasets_to_process = []
 #datasets_to_process.append("danemorgan")
-#datasets_to_process.append("khazana_polymer")
-#datasets_to_process.append("khazana_vasp")
+datasets_to_process.append("khazana_polymer")
+datasets_to_process.append("khazana_vasp")
 #datasets_to_process.append("cod")
-datasets_to_process.append("sluschi")
+#datasets_to_process.append("sluschi")
 
 #Export a smaller feedstock file for testing?
 #If False, will still write full feedstock file
@@ -162,7 +167,8 @@ def read_vasp(filename='CONTCAR'):
     return atoms
 
 
-def read_vasp_out(filename=None, index=-1, force_consistent=False):
+def read_vasp_out(filename=None, index=slice(0), force_consistent=False):
+    ###OLD INDEX DEFAULT: -1
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -295,7 +301,7 @@ def read_vasp_out(filename=None, index=-1, force_consistent=False):
 #	error_log: A file object (not file name) to log exceptions during processing instead of terminating the program. Default None, which suppresses logging and throws exceptions.
 #	verbose: Print status messages? Default False.
 def convert_to_json(file_path=None, file_name=None, data_format="", output_file=None, error_log=None, verbose=False):
-	ase_dict = {
+	ase_template = {
 #		"constraints" : None,
 		"all_distances" : None,
 		"angular_momentum" : None,
@@ -343,7 +349,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 	elif data_format == 'vasp':
 		if error_log:
 			try:
-				r = read_vasp_out(file_path)
+				rset = read_vasp_out(file_path)
 			except Exception as err:
 				error_log.write("ERROR: '" + str(err) + "' with the following VASP file:\n")
 				error_log.write(file_path + "\n\n")
@@ -352,7 +358,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 				#	err_file.write(outcar_path)
 				return None
 		else:
-			r = read_vasp_out(file_path)
+			rset = read_vasp_out(file_path)
 	elif data_format == 'cif':
 		#if not file_name:
 		#	print "Error: file_name required for 'cif' format."
@@ -361,7 +367,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 		if error_log:
 			try:
 				#r = read_cif(file_path)
-				r = read(file_path)
+				rset = [read(file_path)]
 			except Exception as err:
 				error_log.write("ERROR: '" + str(err) + "' with the following CIF file:\n")
 				error_log.write(file_path + "\n\n")
@@ -369,71 +375,70 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 				return None
 		else:
 			#r = read_cif(file_path)
-			r = read(file_path)
+			rset = [read(file_path)]
 
-				
-	total_count = 0
-	failure_count = 0
-	success_count = 0
-	none_count = 0
-	for key in ase_dict.keys():
+	ase_list = []
+	for result in rset:
+		ase_dict = ase_template.copy()
+		total_count = 0
+		failure_count = 0
+		success_count = 0
+		none_count = 0
+		for key in ase_dict.keys():
+			total_count += 1
+			try:
+				ase_dict[key] = eval("result.get_" + key + "()")
+				success_count += 1
+			except: #(NotImplementedError, AttributeError): More exception types here than can reasonably be found, just catching everything
+				failure_count +=1
+				ase_dict[key] = None
+		#Populate other fields
+		
+		total_count += 1
+		ase_dict["constraints"] = result.constraints #Should always exist, even if empty
+		success_count += 1
+		
 		total_count += 1
 		try:
-			ase_dict[key] = eval("r.get_" + key + "()")
+			ase_dict["forces_raw"] = result.get_forces(apply_constraint=False)
 			success_count += 1
-		except: #(NotImplementedError, AttributeError): More exception types here than can reasonably be found, just catching everything
-			failure_count +=1
-			ase_dict[key] = None
-	#Populate other fields
-	
-	total_count += 1
-	ase_dict["constraints"] = r.constraints #Should always exist, even if empty
-	success_count += 1
-	
-	total_count += 1
-	try:
-		ase_dict["forces_raw"] = r.get_forces(apply_constraint=False)
-		success_count += 1
-	except:
-		failure_count += 1
-		ase_dict["forces_raw"] = None
-	
-	total_count += 1
-	try:
-		ase_dict["potential_energy_raw"] = r.get_potential_energy(apply_constraints=False)
-		success_count += 1
-	except:
-		failure_count += 1
-		ase_dict["potential_energy_raw"] = None
+		except:
+			failure_count += 1
+			ase_dict["forces_raw"] = None
+		
+		total_count += 1
+		try:
+			ase_dict["potential_energy_raw"] = result.get_potential_energy(apply_constraints=False)
+			success_count += 1
+		except:
+			failure_count += 1
+			ase_dict["potential_energy_raw"] = None
 
-#################################################
-#	ase_dict["TESTING"] = "dane_morgan_test2"
+		#Remove None results
+		for key, value in ase_dict.items():
+			if value is None:
+				ase_dict.pop(key)
+				none_count += 1
 
-
-	#Remove None results
-	for key, value in ase_dict.items():
-		if value is None:
-			ase_dict.pop(key)
-			none_count += 1
-
-	#Guide problem children to make better choices
-	#Because numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
-	for key in ase_dict.keys():
-		if 'numpy' in str(type(ase_dict[key])).lower():
-			ase_dict[key] = ase_dict[key].tolist()
-		#elif 'fixatoms' in str(type(ase_dict[key])).lower():
-		#	ase_dict[key] = ase_dict[key].get_indices().tolist()
-		elif type(ase_dict[key]) is list:
-			new_list = []
-			for elem in ase_dict[key]:
-				#if 'numpy' in str(type(elem)).lower():
-				#	new_elem = elem.tolist()
-				if 'fixatoms' in str(elem).lower():
-					new_elem = elem.get_indices().tolist()
-				else:
-					new_elem = elem
-				new_list.append(new_elem)
-			ase_dict[key] = new_list
+		#Guide problem children to make better choices
+		#Because numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
+		for key in ase_dict.keys():
+			if 'numpy' in str(type(ase_dict[key])).lower():
+				ase_dict[key] = ase_dict[key].tolist()
+			#elif 'fixatoms' in str(type(ase_dict[key])).lower():
+			#	ase_dict[key] = ase_dict[key].get_indices().tolist()
+			elif type(ase_dict[key]) is list:
+				new_list = []
+				for elem in ase_dict[key]:
+					#if 'numpy' in str(type(elem)).lower():
+					#	new_elem = elem.tolist()
+					if 'fixatoms' in str(elem).lower():
+						new_elem = elem.get_indices().tolist()
+					else:
+						new_elem = elem
+					new_list.append(new_elem)
+				ase_dict[key] = new_list
+		ase_list.append(ase_dict)
 
 	#Print results
 	if verbose:
@@ -450,7 +455,10 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 		if verbose:
 			print str(len(ase_dict)) + " valid items saved."
 
-	return ase_dict
+	if data_format == "vasp":
+		return {"frames" : ase_list}
+	elif data_format == "cif":
+		return ase_list[0]
 
 
 #Finds all directories containing a specified type of file and returns list of dicts with path to files and data gleaned from folder names
@@ -627,12 +635,12 @@ if __name__ == "__main__":
 #				},
 			"uri" : "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/",
 			"keep_dir_name_depth" : 2,
-			"root" : "dane_morgan" + os.sep + "data",
+			"root" : paths.datasets + "dane_morgan/data",
 			"file_pattern" : "^OUTCAR$",
 			"file_format" : "vasp",
 			"verbose" : True,
-			"output_file" : "dane_morgan" + os.sep + "danemorgan_all.json",
-			"data_exception_log" : "dane_morgan" + os.sep + "dane_errors.txt",
+			"output_file" : paths.raw_feed + "danemorgan_all.json",
+			"data_exception_log" : paths.datasets + "dane_morgan/dane_errors.txt",
 			"uri_adds" : ["dir"],
 			"max_records" : -1,
 			"archived" : False
@@ -649,7 +657,7 @@ if __name__ == "__main__":
 			'''
 			if dane_args["verbose"]:
 				print "Making Dane Morgan feedsack (" + str(dane_feedsack) + ")"
-			with open("dane_morgan/danemorgan_" + str(dane_feedsack) + ".json", 'w') as fd2:
+			with open(paths.sack_feed + "danemorgan_" + str(dane_feedsack) + ".json", 'w') as fd2:
 				dump(dane[:dane_feedsack], fd2)
 			if dane_args["verbose"]:
 				print "Done\n"
@@ -667,12 +675,12 @@ if __name__ == "__main__":
 #				},
 			"uri" : "http://khazana.uconn.edu/module_search/material_detail.php?id=",
 			"keep_dir_name_depth" : 0,
-			"root" : "khazana" + os.sep + "polymer_scientific_data_confirmed",
+			"root" : paths.datasets + "khazana/polymer_scientific_data_confirmed",
 			"file_pattern" : None,
 			"file_format" : "cif",
 			"verbose" : True,
-			"output_file" : "khazana" + os.sep + "khazana_polymer_all.json",
-			"data_exception_log" : "khazana" + os.sep + "khazana_polymer_errors.txt",
+			"output_file" : paths.raw_feed + "khazana_polymer_all.json",
+			"data_exception_log" : paths.datasets + "khazana/khazana_polymer_errors.txt",
 			"uri_adds" : ["filename"],
 			"max_records" : -1,
 			"archived" : False
@@ -689,7 +697,7 @@ if __name__ == "__main__":
 			'''
 			if khazana_polymer_args["verbose"]:
 				print "Making Khazana Polymer feedsack (" + str(khaz_p_feedsack) + ")"
-			with open("khazana/khazana_polymer_" + str(khaz_p_feedsack) + ".json", 'w') as fk2:
+			with open(paths.sack_feed + "khazana_polymer_" + str(khaz_p_feedsack) + ".json", 'w') as fk2:
 				dump(khaz_p[:khaz_p_feedsack], fk2)
 			if khazana_polymer_args["verbose"]:
 				print "Done\n"
@@ -706,12 +714,12 @@ if __name__ == "__main__":
 #				},
 			"uri" : "http://khazana.uconn.edu",
 			"keep_dir_name_depth" : 0,
-			"root" : "khazana" + os.sep + "OUTCARS",
+			"root" : paths.datasets + "khazana/OUTCARS",
 			"file_pattern" : "^OUTCAR",
 			"file_format" : "vasp",
 			"verbose" : True,
-			"output_file" : "khazana" + os.sep + "khazana_vasp_all.json",		
-			"data_exception_log" : "khazana" + os.sep + "khazana_vasp_errors.txt",
+			"output_file" : paths.raw_feed + "khazana_vasp_all.json",		
+			"data_exception_log" : paths.datasets + "khazana/khazana_vasp_errors.txt",
 			"uri_adds" : ["filename"],
 			"max_records" : -1,
 			"archived" : False
@@ -728,7 +736,7 @@ if __name__ == "__main__":
 			'''
 			if khazana_vasp_args["verbose"]:
 				print "Making Khazana VASP feedsack (" + str(khaz_v_feedsack) + ")"
-			with open("khazana/khazana_vasp_" + str(khaz_v_feedsack) + ".json", 'w') as fk2:
+			with open(paths.sack_feed + "khazana_vasp_" + str(khaz_v_feedsack) + ".json", 'w') as fk2:
 				dump(khaz_v[:khaz_v_feedsack], fk2)
 			if khazana_vasp_args["verbose"]:
 				print "Done\n"
@@ -738,12 +746,12 @@ if __name__ == "__main__":
 		cod_args = {
 			"uri" : "http://www.crystallography.net/cod",
 			"keep_dir_name_depth" : 0,
-			"root" : "cod/open-cod",
+			"root" : paths.datasets + "cod/open-cod",
 			"file_pattern" : "\.cif$",
 			"file_format" : "cif",
 			"verbose" : True,
-			"output_file" : "cod/cod_all.json",
-			"data_exception_log" : "cod/cod_errors.txt",
+			"output_file" : paths.raw_feed + "cod_all.json",
+			"data_exception_log" : paths.datasets + "cod/cod_errors.txt",
 			"uri_adds" : ["filename", ".html"],
 			"max_records" : -1,
 			"archived" : False
@@ -754,7 +762,7 @@ if __name__ == "__main__":
 		if feedsack:
 			if cod_args["verbose"]:
 				print "Making COD feedsack (" + str(cod_feedsack) + ")"
-			with open("cod/cod_" + str(cod_feedsack) + ".json", 'w') as fc:
+			with open(paths.sack_feed + "cod_" + str(cod_feedsack) + ".json", 'w') as fc:
 				dump(cod[:cod_feedsack], fc)
 			if cod_args["verbose"]:
 				print "Done\n"
@@ -764,15 +772,15 @@ if __name__ == "__main__":
 		sluschi_args = {
 			"uri" : "globus:mostly_melted_snow",
 			"keep_dir_name_depth" : -1,
-			"root" : "sluschi/sluschi",
+			"root" : paths.datasets + "sluschi/sluschi",
 			"file_pattern" : "^OUTCAR$",
 			"file_format" : "vasp",
 			"verbose" : True,
-			"output_file" : "sluschi/sluschi_all.json",
-			"data_exception_log" : "sluschi/sluschi_errors.txt",
+			"output_file" : paths.raw_feed + "sluschi_all.json",
+			"data_exception_log" : paths.datasets + "sluschi/sluschi_errors.txt",
 			"uri_adds" : ["dir"],
 			"max_records" : -1,
-			"archived" : True
+			"archived" : False #True #Should be True for first run, afterwards extracted data should be fine
 			}
 		if sluschi_args["verbose"]:
 			print "SLUSCHI PROCESSING"
@@ -780,7 +788,7 @@ if __name__ == "__main__":
 		if feedsack:
 			if sluschi_args["verbose"]:
 				print "Making sluschi feedsack (" + str(sluschi_feedsack) + ")"
-			with open("sluschi/sluschi_" + str(sluschi_feedsack) + ".json", 'w') as fc:
+			with open(paths.sack_feed + "sluschi_" + str(sluschi_feedsack) + ".json", 'w') as fc:
 				dump(sluschi[:sluschi_feedsack], fc)
 			if sluschi_args["verbose"]:
 				print "Done\n"

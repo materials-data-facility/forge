@@ -1,3 +1,6 @@
+'''
+Formatter
+'''
 from json import load, dump
 from sys import exit
 from tqdm import tqdm
@@ -5,11 +8,12 @@ from copy import deepcopy
 
 #Pick one or more to refine
 to_refine = []
-#to_refine.append("janaf")
-#to_refine.append("khazana_polymer")
-#to_refine.append("khazana_vasp")
-#to_refine.append("danemorgan")
-#to_refine.append("oqmd")
+
+to_refine.append("janaf")
+to_refine.append("khazana_polymer")
+to_refine.append("khazana_vasp")
+to_refine.append("danemorgan")
+to_refine.append("oqmd")
 #to_refine.append("cod")
 to_refine.append("sluschi")
 
@@ -65,7 +69,7 @@ def refine_feedstock(raw_file, refined_file=None, static_metadata={}, dynamic_me
 		if verbose:
 			print "Dumping complete"
 	if verbose:
-		print "Format of feedstock from " + raw_file + " complete"
+		print "Format of feedstock complete\n"
 
 
 
@@ -73,9 +77,12 @@ if __name__ == "__main__":
 	raw_dir = "raw_feedstock/"
 	ref_dir = "refined_feedstock/"
 	verbose = True
+	if verbose:
+		print "BEGIN"
 
 	if "janaf" in to_refine:
 		janaf_static = {
+			"source_name" : "janaf",
 			"globus_id" : "janaf",
 			"globus_source" : "NIST-JANAF",
 			"context" : {
@@ -90,7 +97,8 @@ if __name__ == "__main__":
 
 	if "khazana_polymer" in to_refine:
 		khaz_poly_static = {
-			"globus_source" : "Khazana"
+			"source_name" : "khazana_polymer",
+			"globus_source" : "Khazana (Polymer)"
 			}
 		khaz_poly_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -99,7 +107,8 @@ if __name__ == "__main__":
 
 	if "khazana_vasp" in to_refine:
 		khaz_vasp_static = {
-			"globus_source" : "Khazana"
+			"source_name" : "khazana_dft",
+			"globus_source" : "Khazana (DFT)"
 			}
 		khaz_vasp_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -108,6 +117,7 @@ if __name__ == "__main__":
 
 	if "danemorgan" in to_refine:
 		danemorgan_static = {
+			"source_name" : "ab_initio_solute_database",
 			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database"
 			}
 		danemorgan_dynamic = {
@@ -117,6 +127,7 @@ if __name__ == "__main__":
 
 	if "oqmd" in to_refine:
 		oqmd_static = {
+			"source_name" : "oqmd",
 			"globus_source" : "Open Quantum Materials Database",
 			"context" : {
 				"oqmd" : "http://www.oqmd.org/",
@@ -131,6 +142,7 @@ if __name__ == "__main__":
 
 	if "cod" in to_refine:
 		cod_static = {
+			"source_name" : "cod",
 			"globus_source" : "Crystallography Open Database"
 			}
 		cod_dynamic = {
@@ -140,6 +152,7 @@ if __name__ == "__main__":
 
 	if "sluschi" in to_refine:
 		sluschi_static = {
+			"source_name" : "sluschi",
 			"globus_source" : "Sluschi"
 			}
 		sluschi_dynamic = {
@@ -147,5 +160,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"sluschi_all.json", ref_dir+"sluschi_refined.json", sluschi_static, sluschi_dynamic, verbose)
 
+	if verbose:
+		print "END"
 
 

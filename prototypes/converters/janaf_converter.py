@@ -1,3 +1,6 @@
+'''
+Converter (janaf)
+'''
 #import json
 from qmpy import parse_comp
 import os
@@ -5,6 +8,8 @@ import shutil
 from numpy import sum
 #from pickle import dump
 from json import dump, load
+
+import paths #Has globals for paths to data
 
 def parse_janaf_file(filename):
         '''
@@ -99,8 +104,8 @@ def parse_janaf_file(filename):
 
 if __name__ == "__main__":
 	data = []
-	data_dir = "srd13_janaf"
-	out_filename = "janaf_all.json"
+	data_dir = paths.datasets + "janaf/srd13_janaf"
+	out_filename = paths.raw_feed + "janaf_all.json"
 	count = 0
 	full_count = 0
 	for f in os.listdir(data_dir):
@@ -123,7 +128,7 @@ if __name__ == "__main__":
 		json.dump(data, fj1)
 	'''
 	print "Dumping 1000"
-	with open("janaf_1000.json", 'w') as fj2:
+	with open(paths.sack_feed + "janaf_1000.json", 'w') as fj2:
 		dump(data, fj2)
 	print "Done"
 	

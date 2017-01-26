@@ -1,6 +1,11 @@
+'''
+Converter (oqmd)
+'''
 from qmpy import *
 #from pickle import dump
 from json import dump
+
+import paths #Contains relative paths to data
 
 def printDataset(entries, filename):
 	print "Printing to: " + filename
@@ -59,13 +64,13 @@ def printDataset(entries, filename):
 		json.dump(out_list, oq1)
 	'''
 	print "Dumping 10,000"
-	with open("oqmd_10000.json", 'w') as oq2:
+	with open(paths.sack_feed + "oqmd_10000.json", 'w') as oq2:
 		dump(out_list[:10000], oq2)
 	print "Done"
 	
 
 if __name__ == "__main__":
-	filename = "oqmd_all.json"
+	filename = paths.raw_feed + "oqmd_all.json"
 	e = Formation.objects.filter(fit = "standard")
 	printDataset(e, filename)
 
