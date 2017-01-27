@@ -7,7 +7,7 @@ import os
 import shutil
 from numpy import sum
 #from pickle import dump
-from json import dump, load
+from ujson import dump, load
 
 import paths #Has globals for paths to data
 

@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 from ase.io import read
 import re
-from json import dump
+from ujson import dump
 import tarfile
 import zipfile
 import gzip
@@ -112,7 +112,7 @@ def read_vasp(filename='CONTCAR'):
             try:
                 for atype in atomtypes[:numsyms]:
                     if atype not in chemical_symbols:
-                        raise KeyError
+                        raise KeyError()
             except KeyError:
                 atomtypes = atomtypes_outpot(f.name, numsyms)
 
@@ -344,7 +344,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 		file_path = os.getcwd()
 	data_format = data_format.lower().strip('.')
 	if data_format not in supported_formats:
-		print "Error: Invalid data format '" + data_format + "'."
+		print("Error: Invalid data format '" + data_format + "'.")
 		return None
 	elif data_format == 'vasp':
 		if error_log:
@@ -415,10 +415,14 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 			ase_dict["potential_energy_raw"] = None
 
 		#Remove None results
+		none_keys = []
 		for key, value in ase_dict.items():
 			if value is None:
-				ase_dict.pop(key)
+				#ase_dict.pop(key)
+				none_keys.append(key)
 				none_count += 1
+		for key in none_keys:
+			ase_dict.pop(key)
 
 		#Guide problem children to make better choices
 		#Because numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
@@ -442,18 +446,18 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 
 	#Print results
 	if verbose:
-		print "Processed " + str(total_count) + " items."
-		print "There were " + str(success_count) + " successes and " + str(failure_count) + " failures."
-		print "No data existed for " + str(none_count - failure_count) + " items." #none_count includes items that are None because they failed, don't want to report failures twice
+		print("Processed " + str(total_count) + " items.")
+		print("There were " + str(success_count) + " successes and " + str(failure_count) + " failures.")
+		print("No data existed for " + str(none_count - failure_count) + " items.") #none_count includes items that are None because they failed, don't want to report failures twice
 	
 	if output_file:
 		with open(output_file, 'w') as out_file:
-			dump(ase_dict, out_file)
+			dumps(ase_dict, out_file)
 		if verbose:
-			print str(len(ase_dict)) + " valid items written to '" + output_file + "'."
+			print(str(len(ase_dict)) + " valid items written to '" + output_file + "'.")
 	else:
 		if verbose:
-			print str(len(ase_dict)) + " valid items saved."
+			print(str(len(ase_dict)) + " valid items saved.")
 
 	if data_format == "vasp":
 		return {"frames" : ase_list}
@@ -544,7 +548,9 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #	uri_adds: A list of things to add to the end of 'uri' for each record. Options are 'dir' for the directory structure, 'filename' for the name of the file, and 'ext' for the file extension. Other elements in the list will be added as string literals.
 #		Choose any combination, including none (empty list). The URI will be appended with the values specified in the order they are specified. Default 'filename'.
 #	max_records: Maximum number of records to return (actual return value may be less due to failed files). Default -1, which returns all (valid) records.
-#	archived: Bool, if some desirable files are in archives and should be extracted. This slows down file discovery.
+#	archived: Bool, if some desirable files are in archives and should be extracted. This slows down file discovery. Can be turned off after first run, because the archived files will already be extracted. Default False.
+#	feedsack_size: Number of records to save in the "feedsack," the smaller feedstock file for testing. Any int <= 0 disables feedsacks. Default -1.
+#	feedsack_file: Filename for feedsack output. Ignored if feedsack_size <= 0. Default "feedsack_$SIZE.json" in local directory.
 #
 def process_data(arg_dict):
 	root = arg_dict.get("root", os.getcwd())
@@ -554,29 +560,36 @@ def process_data(arg_dict):
 	uri_adds = arg_dict.get("uri_adds", ['filename'])
 	max_records = arg_dict.get("max_records", -1)
 	archived = arg_dict.get("archived", False)
+	feedsack_size = arg_dict.get("feedsack_size", -1)
+	feedsack_file = arg_dict.get("feedsack_file", "feedsack_" + str(feedsack_size) + ".json") if feedsack_size > 0 else None
 	if arg_dict.get("file_format", "NONE") not in supported_formats:
-		print "Error: file_format '" + arg_dict.get("file_format", "NONE") + "' is not supported."
+		print("Error: file_format '" + arg_dict.get("file_format", "NONE") + "' is not supported.")
 		return None
 
 	if arg_dict.get("data_exception_log", None):
 		err_log = open(arg_dict["data_exception_log"], 'w')
 	else:
 		err_log = None
-	if verbose:
-		print "Finding files"
+	output_file = arg_dict.get("output_file", None)
+#	if verbose:
+#		print("Finding files")
 	dir_list = find_files(root=root, file_pattern=file_pattern, keep_dir_name_depth=keep_dir_name_depth, max_files=max_records, uncompress_archives=archived, verbose=verbose)
 	if verbose:
-		print "Converting file data to JSON"
-	all_data_list = []
+		print("Converting file data to JSON")
+#	all_data_list = []
 	good_count = 0
 	all_count = 0
+	if output_file:
+		out_open = open(output_file, 'w')
+	if feedsack_size > 0:
+		feed_out = open(feedsack_file, 'w')
 	for dir_data in tqdm(dir_list, desc="Processing data files", disable= not verbose):
 		all_count += 1
 		formatted_data = {}
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
 		with warnings.catch_warnings():
-			warnings.simplefilter("ignore")
+			warnings.simplefilter("ignore") #Either it fails (and is logged in convert_to_json) or it's fine.
 			file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
@@ -600,28 +613,39 @@ def process_data(arg_dict):
 			
 			formatted_data = file_data
 			formatted_data["uri"] = uri
-			all_data_list.append(formatted_data)
+	#		all_data_list.append(formatted_data)
+			dump(formatted_data, out_open)
+			out_open.write("\n")
+			if good_count < feedsack_size:
+				dump(formatted_data, feed_out)
+				feed_out.write("\n")
 			good_count += 1
-	
+	if feedsack_size > 0:
+		feed_out.close()
+		print("Feedsack written to", feedsack_file)
+	if output_file:
+		out_open.close()
+		if verbose:
+			print("Data written to", output_file)
 	if err_log:
 		err_log.close()
 	if verbose:
-		print str(good_count) + "/" + str(all_count) + " data files successfully processed"
+		print(str(good_count) + "/" + str(all_count) + " data files successfully processed")
 
-	if arg_dict.get("output_file", None):
-		if verbose:
-			print "Writing output to " + arg_dict["output_file"]
-		with open(arg_dict["output_file"], 'w') as out_file:
-			dump(all_data_list, out_file)
-		if verbose:
-			print "Data written"
+#	if arg_dict.get("output_file", None):
+#		if verbose:
+#			print "Writing output to " + arg_dict["output_file"]
+#		with open(arg_dict["output_file"], 'w') as out_file:
+#			dump(all_data_list, out_file)
+#		if verbose:
+#			print "Data written"
 	if verbose:
-		print "Processing complete"
-	return all_data_list
+		print("Processing complete")
+	return True #all_data_list
 
 
 if __name__ == "__main__":
-	print "\nBEGIN"
+	print("\nBEGIN")
 	
 	#Dane Morgan
 	if "danemorgan" in datasets_to_process:
@@ -643,24 +667,30 @@ if __name__ == "__main__":
 			"data_exception_log" : paths.datasets + "dane_morgan/dane_errors.txt",
 			"uri_adds" : ["dir"],
 			"max_records" : -1,
-			"archived" : False
+			"archived" : False,
+			"feedsack_size" : dane_feedsack if feedsack else -1,
+			"feedsack_file" : paths.sack_feed + "danemorgan_" + str(dane_feedsack) + ".json"
 			}
 		if dane_args["verbose"]:
-			print "DANE PROCESSING"
+			print("DANE PROCESSING")
 		dane = process_data(dane_args)
+		if dane_args["verbose"]:
+			print("DONE\n")
+		'''
 		if feedsack:
-			'''
+			
 			print "Creating JSON files"
 			print "Dane Morgan All"
 			with open("dane_morgan/danemorgan_all.json", 'w') as fd1:
 				json.dump(dane, fd1)
-			'''
+			
 			if dane_args["verbose"]:
 				print "Making Dane Morgan feedsack (" + str(dane_feedsack) + ")"
 			with open(paths.sack_feed + "danemorgan_" + str(dane_feedsack) + ".json", 'w') as fd2:
 				dump(dane[:dane_feedsack], fd2)
 			if dane_args["verbose"]:
 				print "Done\n"
+		'''
 
 
 	#Khazana Polymer
@@ -683,24 +713,30 @@ if __name__ == "__main__":
 			"data_exception_log" : paths.datasets + "khazana/khazana_polymer_errors.txt",
 			"uri_adds" : ["filename"],
 			"max_records" : -1,
-			"archived" : False
+			"archived" : False,
+			"feedsack_size" : khaz_p_feedsack if feedsack else -1,
+			"feedsack_file" : paths.sack_feed + "khazana_polymer_" + str(khaz_p_feedsack) + ".json"
 			}
 		if khazana_polymer_args["verbose"]:
-			print "KHAZANA POLYMER PROCESSING"
+			print("KHAZANA POLYMER PROCESSING")
 		khaz_p = process_data(khazana_polymer_args)
+		if khazana_polymer_args["verbose"]:
+			print("DONE\n")
+		'''
 		if feedsack:
-			'''
+		
 			print "Creating JSON files"
 			print "Khazana Polymer All"
 			with open("khazana/khazana_polymer_all.json", 'w') as fk1:
 				json.dump(khaz_p, fk1)
-			'''
+			
 			if khazana_polymer_args["verbose"]:
 				print "Making Khazana Polymer feedsack (" + str(khaz_p_feedsack) + ")"
 			with open(paths.sack_feed + "khazana_polymer_" + str(khaz_p_feedsack) + ".json", 'w') as fk2:
 				dump(khaz_p[:khaz_p_feedsack], fk2)
 			if khazana_polymer_args["verbose"]:
 				print "Done\n"
+		'''
 
 	#Khazana VASP
 	if "khazana_vasp" in datasets_to_process:
@@ -722,24 +758,30 @@ if __name__ == "__main__":
 			"data_exception_log" : paths.datasets + "khazana/khazana_vasp_errors.txt",
 			"uri_adds" : ["filename"],
 			"max_records" : -1,
-			"archived" : False
+			"archived" : False,
+			"feedsack_size" : khaz_v_feedsack if feedsack else -1,
+			"feedsack_file" : paths.sack_feed + "khazana_vasp_" + str(khaz_v_feedsack) + ".json",
 			}
 		if khazana_vasp_args["verbose"]:
-			print "KHAZANA VASP PROCESSING"
+			print("KHAZANA VASP PROCESSING")
 		khaz_v = process_data(khazana_vasp_args)
+		if khazana_vasp_args["verbose"]:
+			print("DONE\n")
+		'''
 		if feedsack:
-			'''
+			
 			print "Creating JSON files"
 			print "Khazana VASP All"
 			with open("khazana/khazana_vasp_all.json", 'w') as fk1:
 				json.dump(khaz_v, fk1)
-			'''
+			
 			if khazana_vasp_args["verbose"]:
 				print "Making Khazana VASP feedsack (" + str(khaz_v_feedsack) + ")"
 			with open(paths.sack_feed + "khazana_vasp_" + str(khaz_v_feedsack) + ".json", 'w') as fk2:
 				dump(khaz_v[:khaz_v_feedsack], fk2)
 			if khazana_vasp_args["verbose"]:
 				print "Done\n"
+		'''
 
 	#Crystallography Open Database
 	if "cod" in datasets_to_process:
@@ -754,11 +796,16 @@ if __name__ == "__main__":
 			"data_exception_log" : paths.datasets + "cod/cod_errors.txt",
 			"uri_adds" : ["filename", ".html"],
 			"max_records" : -1,
-			"archived" : False
+			"archived" : False,
+			"feedsack_size" : cod_feedsack if feedsack else -1,
+			"feedsack_file" : paths.sack_feed + "cod_" + str(cod_feedsack) + ".json"
 			}
 		if cod_args["verbose"]:
-			print "COD PROCESSING"
+			print("COD PROCESSING")
 		cod = process_data(cod_args)
+		if cod_args["verbose"]:
+			print("DONE\n")
+		'''
 		if feedsack:
 			if cod_args["verbose"]:
 				print "Making COD feedsack (" + str(cod_feedsack) + ")"
@@ -766,6 +813,7 @@ if __name__ == "__main__":
 				dump(cod[:cod_feedsack], fc)
 			if cod_args["verbose"]:
 				print "Done\n"
+		'''
 
 	#Sluschi
 	if "sluschi" in datasets_to_process:
@@ -780,11 +828,16 @@ if __name__ == "__main__":
 			"data_exception_log" : paths.datasets + "sluschi/sluschi_errors.txt",
 			"uri_adds" : ["dir"],
 			"max_records" : -1,
-			"archived" : False #True #Should be True for first run, afterwards extracted data should be fine
+			"archived" : False, #Should be True for first run, afterwards extracted data should be fine
+			"feedsack_size" : sluschi_feedsack if feedsack else -1,
+			"feedsack_file" : paths.sack_feed + "sluschi_" + str(sluschi_feedsack) + ".json"
 			}
 		if sluschi_args["verbose"]:
-			print "SLUSCHI PROCESSING"
+			print("SLUSCHI PROCESSING")
 		sluschi = process_data(sluschi_args)
+		if sluschi_args["verbose"]:
+			print("DONE\n")
+		'''
 		if feedsack:
 			if sluschi_args["verbose"]:
 				print "Making sluschi feedsack (" + str(sluschi_feedsack) + ")"
@@ -792,7 +845,8 @@ if __name__ == "__main__":
 				dump(sluschi[:sluschi_feedsack], fc)
 			if sluschi_args["verbose"]:
 				print "Done\n"
+		'''
 
 	
-	print "END"
+	print("END")
 

@@ -1,12 +1,12 @@
 '''
 Ingester
 '''
-import globus_auth
+#import globus_auth
 #from pickle import load
 from sys import exit
-from json import load
+from ujson import loads, dumps
 from tqdm import tqdm
-from pymongo import MongoClient
+#from pymongo import MongoClient
 
 import paths #Contains relative path to data info
 
@@ -15,15 +15,16 @@ import paths #Contains relative path to data info
 max_ingests_total = -1
 
 #Note: All destinations listed here must have:
-# 1. Dict $NAME_args initialized with all arguments (besides the ingest data, at minimum includes $NAME_client) at the start of ingest_refined_feedstock
-# 2. Function $NAME_ingest that accepts one argument - a dict containing other arguments.
+# 1. Function $NAME_client() that requires no arguments and returns whatever should be given to the ingest function as "client".
+# 2. Function $NAME_ingest() that accepts one argument - a dict containing other arguments, including whatever $NAME_client() returned.
 #	Arguments given to the function include (more can be added per destination):
 #		ingestable: The ingestable data.
-#		client: Whatever $NAME_client was initialized to.
-#		(Optional) verbose: Should the function print status output?
+#		client: Whatever $NAME_client() returned.
+#		verbose: Should the function print status output?
 #	In the function:
 #		The data must be filtered appropriately
 #		The ingestable data must be ingested
+#		Any arguments besides ingestable can be ignored if necessary
 all_destinations = {"globus_search", "data_pub_service", "local_mongodb"}
 
 ingest_to = set()
@@ -72,10 +73,10 @@ all_data_files = {
 #Pick one or more data files to ingest
 data_file_to_use = []
 #data_file_to_use.append("oqmd")
-data_file_to_use.append("janaf")
+#data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
-#data_file_to_use.append("khazana_polymer")
-#data_file_to_use.append("khazana_vasp")
+data_file_to_use.append("khazana_polymer")
+data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
 
@@ -146,6 +147,11 @@ def format_multi_gmeta(data_list):
 		}
 	return gmeta
 
+#Globus Search client
+def globus_search_client():
+	import globus_auth
+	return globus_auth.login("https://datasearch.api.demo.globus.org/")
+
 #Ingests data into Globus Search
 #Filters:
 #	No data nested more than N layers (N = 2)
@@ -161,14 +167,16 @@ def globus_search_ingest(args):
 	for entry in tqdm(data_list, desc="\tFiltering batch", disable= True): #not args["verbose"]): #Current datasets filter too fast for a progress bar to be useful
 
 		filtered_content = {}
-		for key, value in entry["content"].iteritems(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
-			if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
+		for key, value in entry["content"].items(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
+			#if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
+			if value and type(value) is not dict and type(value) is not list: #JSON only supports list, dict, and things we consider data, so this checks if value is (not None) data
 				filtered_content[key] = value
 			
-			if type(value) is dict:
+			elif type(value) is dict:
 				first_level_dict = {}
-				for key2, value2 in value.iteritems(): #Second layer. **Assigning first_level_dict[key2] = value2
-					if not hasattr(value2, "__iter__") and value2: #Data, and not nothing
+				for key2, value2 in value.items(): #Second layer. **Assigning first_level_dict[key2] = value2
+					#if not hasattr(value2, "__iter__") and value2: #Data, and not nothing
+					if value2 and type(value2) is not dict and type(value2) is not list:
 						first_level_dict[key2] = value2
 	
 				if first_level_dict: #If data exists here
@@ -177,7 +185,8 @@ def globus_search_ingest(args):
 			elif type(value) is list and len(value) <= MAX_LIST:
 				first_level_list = []
 				for elem in value:
-					if not hasattr(elem, "__iter__") and elem: #Data, not nothing
+					#if not hasattr(elem, "__iter__") and elem: #Data, not nothing
+					if elem and type(elem) is not dict and type(elem) is not list:
 						first_level_list.append(elem)
 				if first_level_list: #If data found
 					filtered_content[key] = first_level_list
@@ -190,17 +199,70 @@ def globus_search_ingest(args):
 	args["client"].ingest(args["ingestable"])
 
 
-def data_pub_service_ingest(args):
-	print "This would be an ingestion to the DPS"
+def data_pub_service_client():
+	return "TODO: DPS client"
 
+def data_pub_service_ingest(args):
+	print("This would be an ingestion to the DPS")
+
+
+#Client for local mongodb
+def local_mongodb_client():
+	from pymongo import MongoClient
+	from gridfs import GridFS
+	db = MongoClient()["mdf"]
+	fs = GridFS(db)
+	clients = {
+		"db" : db,
+		"fs" : fs
+		}
+	return clients
 
 #Ingest to local mongodb instance
 def local_mongodb_ingest(args):
-	db = args["client"]["feedstock"]
+	MAX_LIST = 5
+	db = args["client"]["db"]
+#	col = db["feedstock"]
+	fs = args["client"]["fs"]
 	data_list = args["ingestable"]["ingest_data"]["gmeta"]
+#	exec("db." + data_list[0]["source_name"].lower() + ".insert_many(data_list)")
+#	db.col.insert_many(data_list)
+	filtered_list = []
+#	total_count = 0
+	for entry in tqdm(data_list, desc="\tFiltering batch", disable= True): #not args["verbose"]): #Current datasets filter too fast for a progress bar to be useful
 
-	exec("db." + data_list[0]["source_name"].lower() + ".insert_many(data_list)")
+#		total_count += 1
+#		print(entry)
+		grid_fs_id = fs.put(dumps(entry), encoding="utf-8")
 
+		filtered_content = {"grid_fs_id" : grid_fs_id}
+		for key, value in entry["content"].items(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
+			#if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
+			if value and type(value) is not dict and type(value) is not list: #JSON only supports list, dict, and things we consider data, so this checks if value is (not None) data
+				filtered_content[key] = value
+			
+			elif type(value) is dict:
+				first_level_dict = {}
+				for key2, value2 in value.items(): #Second layer. **Assigning first_level_dict[key2] = value2
+					#if not hasattr(value2, "__iter__") and value2: #Data, and not nothing
+					if value2 and type(value2) is not dict and type(value2) is not list:
+						first_level_dict[key2] = value2
+	
+				if first_level_dict: #If data exists here
+					filtered_content[key] = first_level_dict
+			
+			elif type(value) is list and len(value) <= MAX_LIST:
+				first_level_list = []
+				for elem in value:
+					#if not hasattr(elem, "__iter__") and elem: #Data, not nothing
+					if elem and type(elem) is not dict and type(elem) is not list:
+						first_level_list.append(elem)
+				if first_level_list: #If data found
+					filtered_content[key] = first_level_list
+		entry["content"] = filtered_content
+		filtered_list.append(entry)
+#	print("Total:", total_count, "\nList:", len(filtered_list))
+	db.feedstock.insert_many(filtered_list)
 
 
 '''
@@ -263,42 +325,49 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 	if type(destinations) is not set:
 		destinations = set(destinations)
 	if not destinations.issubset(all_destinations):
-		print "Error: Unknown destinations given\nValid destinations are: " + str(all_destinations) + "\nThe provided destinations were: " + str(destinations)
+		print("Error: Unknown destinations given\nValid destinations are: " + str(all_destinations) + "\nThe provided destinations were: " + str(destinations))
+	dest_args = {}
 	for dest in destinations:
-		exec(dest + "_args = {}")
-		exec(dest + "_args['verbose'] = verbose")
+		#exec(dest + "_args = {}")
+		#exec(dest + "_args['verbose'] = verbose")
+		dest_args[dest] = {
+			"client" : eval(dest + "_client()"),
+			"verbose" : verbose
+			}
+	'''
 	if "globus_search" in destinations:
 		globus_search_args["client"] =  globus_auth.login("https://datasearch.api.demo.globus.org/")
 	if "data_pub_service" in destinations:
 		data_pub_service_args["client"] = "Need client here" #TODO: DPS client
 	if "local_mongodb" in destinations:
 		local_mongodb_args["client"] = MongoClient()
+	'''
 	if delete_not_ingest:
-		confirm = raw_input("Delete entries y/n: ")
+		confirm = input("Delete entries y/n: ")
 		if confirm.lower() not in ['y', 'yes']:
-			print "Cancelling..."
+			print("Cancelling...")
 			return None
 		else:
 			if verbose:
-				print "Deleting entries"
+				print("Deleting entries")
 	#Record preparation
+#	if verbose:
+#		print "Opening json"
+#	try:
+#		json_file = open(json_filename)
+#	except IOError as e:
+#		print "Cannot open file '" + json_filename + "': " + e.strerror
+#		exit(-1)
+#	list_of_data = load(json_file)
+#	json_file.close()
 	if verbose:
-		print "Opening json"
-	try:
-		json_file = open(json_filename)
-	except IOError as e:
-		print "Cannot open file '" + json_filename + "': " + e.strerror
-		exit(-1)
-	list_of_data = load(json_file)
-	json_file.close()
-	if verbose:
-		print "Processing json"
-	if type(list_of_data) is not list:
-		print "Error: Cannot process " + str(type(list_of_data)) + ". Must be list."
-		exit(-1)
-	if len(list_of_data) == 0:
-		print "Error: No data found"
-		exit(-1)
+		print("Processing json")
+#	if type(list_of_data) is not list:
+#		print "Error: Cannot process " + str(type(list_of_data)) + ". Must be list."
+#		exit(-1)
+#	if len(list_of_data) == 0:
+#		print "Error: No data found"
+#		exit(-1)
 		'''
 	#Honestly not really useful
 	elif len(list_of_data) == 1:
@@ -313,22 +382,36 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 		if verbose:
 			print "Ingested one record"
 		'''
-	elif len(list_of_data) >= 1:
-		list_ingestable = []
-		count = 0
-		for record in tqdm(list_of_data, desc="Preparing records", disable= not verbose):
-			if delete_not_ingest:
-				delete_data = record
-				delete_data.pop("data", None)
-				single_ingestable = format_single_gmeta(delete_data, full=False)
-			else:
-				single_ingestable = format_single_gmeta(record, full=False)
-			list_ingestable.append(single_ingestable)
-			count += 1
-			if ingest_limit > 0 and count >= ingest_limit:
+	#elif len(list_of_data) >= 1:
+	list_ingestable = []
+	total_count = 0
+	num_batches = 0
+	ingest_file = open(json_filename)
+	for in_record in tqdm(ingest_file, desc="Preparing records", disable= not verbose):
+		record = loads(in_record)
+#		for record in tqdm(list_of_data, desc="Preparing records", disable= not verbose):
+		if delete_not_ingest:
+			delete_data = record
+			delete_data.pop("data", None)
+			single_ingestable = format_single_gmeta(delete_data, full=False)
+		else:
+			single_ingestable = format_single_gmeta(record, full=False)
+		list_ingestable.append(single_ingestable)
+		total_count += 1
+
+		if (len(list_ingestable) >= max_ingest_size) or (ingest_limit > 0 and total_count >= ingest_limit and len(list_ingestable) > 0): #If batch is full, OR if total ingest limit is reached, need to ingest batch
+			multi_ingestable = format_multi_gmeta(list_ingestable)
+			for dest in destinations:
+				dest_args[dest]["ingestable"] = multi_ingestable
+				exec(dest + "_ingest(dest_args[dest])")
+			num_batches += 1
+			list_ingestable.clear()
+			if ingest_limit > 0 and total_count >= ingest_limit: #Additionally, if ingest limit is reached, after ingesting the last batch, stop ingesting
 				break
+
+		'''
 		if verbose:
-			print "Size: " + str(len(list_ingestable))
+			print("Size: " + str(len(list_ingestable)))
 		if max_ingest_size > 0:
 			# list // max + 1 = number of iterations to ingest all data
 			# But if list % max == 0, adding one gives one too many iterations
@@ -349,20 +432,21 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 			for dest in destinations:
 				exec(dest + "_args['ingestable'] = multi_ingestable")
 				exec(dest + "_ingest(" + dest + "_args)")
-		if verbose:
-			print "Ingested " + str(count) + " records"
+		'''
 	if verbose:
-		print "Success"
+		print("Ingested " + str(total_count) + " records")
+#	if verbose:
+#		print("Success")
 
 if __name__ == "__main__":
-	print "Ingest start"
+	print("Ingest start")
 	for key in data_file_to_use:
 		filename = all_data_files[key]["file"]
 		ingest_limit = all_data_files[key]["record_limit"]
 		max_ingest_size = all_data_files[key]["batch_size"]
-		print "Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":"
+		print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
 		ingest_refined_feedstock(filename, ingest_to, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
-		print "Finished ingesting from " + filename + "\n"
-	print "Ingest complete"
+		print("Finished ingesting from " + filename + "\n")
+	print("Ingest complete")
 
 
