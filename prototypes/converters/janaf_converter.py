@@ -83,7 +83,7 @@ def parse_janaf_file(filename):
 	
 #	output["testing"] = "janaftest4"
 #	output["janaf:comp"] = "1234"
-	'''
+        '''
         meta_out = {
 		"globus_subject" : "http://kinetics.nist.gov/janaf/" + output["comp:comp"] + "_" + output["janaf:state"],
 		"globus_id" : "janaf",
@@ -98,9 +98,14 @@ def parse_janaf_file(filename):
         meta_out["data"]["dc:title"] = "JANAF - " + output["comp:comp"] + " - " + output["janaf:state"]
 
         return meta_out
-	'''
+        '''
 	output["uri"] = "http://kinetics.nist.gov/janaf/" + output["comp"] + "_" + output["state"]
-	return output
+
+	out_str = str(output)
+	out_str = out_str.replace('nan', '"nan"')
+	san_output = eval(out_str)
+
+	return san_output
 
 if __name__ == "__main__":
 	data = []
