@@ -93,6 +93,7 @@ if __name__ == "__main__":
 
 	#########################
 #	refine_feedstock("../datasets/10.5061_dryad.dd56c/classical_interatomic_potentials.json", "../datasets/10.5061_dryad.dd56c/refined_cip.json", verbose=True)
+	refine_feedstock(raw_dir + "cip_all.json", ref_dir + "cip_refined.json", verbose = True)
 
 
 	if "janaf" in to_refine:

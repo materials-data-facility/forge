@@ -75,8 +75,8 @@ data_file_to_use = []
 #data_file_to_use.append("oqmd")
 #data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
-data_file_to_use.append("khazana_polymer")
-data_file_to_use.append("khazana_vasp")
+#data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
 
@@ -440,6 +440,10 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 
 if __name__ == "__main__":
 	print("Ingest start")
+
+###############################
+	ingest_refined_feedstock(paths.ref_feed + "cip_refined.json", ["data_pub_service"], verbose=True)
+
 	for key in data_file_to_use:
 		filename = all_data_files[key]["file"]
 		ingest_limit = all_data_files[key]["record_limit"]

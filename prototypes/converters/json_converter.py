@@ -3,10 +3,11 @@ from json import load, loads, dump
 
 import paths
 
-input_file = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
-output_file = paths.raw_feed + "cip_all.json"
-feedsack_size = 10
-feedsack_file = paths.sack_feed + "cip_10.json"
+
+datasets = []
+datasets.append("cip")
+#datasets.append("ido") #Broken for now
+
 
 #Generator to run through a JSON record and yield the data
 #Data is defined as the first layer that isn't a list
@@ -64,7 +65,21 @@ def convert_json_to_json(in_name, out_name, feed_size=0, feed_name=None, verbose
 			print("Error: No data recovered from file")
 
 if __name__ == "__main__":
-	convert_json_to_json(input_file, output_file, feedsack_size, feedsack_file, True)
+	verbose = True
+	if "cip" in datasets:
+		cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
+		cip_out = paths.raw_feed + "cip_all.json"
+		cip_sack_size = 10
+		cip_feed = paths.sack_feed + "cip_10.json"
+		convert_json_to_json(cip_in, cip_out, cip_sack_size, cip_feed, verbose)
+
+	if "ido" in datasets:
+		ido_in = paths.datasets + "10.5061_dryad.ph81h/inorganic_dielectric_optical.json"
+		ido_out = paths.raw_feed + "ido_all.json"
+		ido_sack_size = 10
+		ido_feed = paths.sack_feed + "ido_10.json"
+		convert_json_to_json(ido_in, ido_out, ido_sack_size, ido_feed, verbose)
+	
 
 
 
