@@ -6,3 +6,4 @@
 prototypes/feedstock/*
 !prototypes/feedstock/feedstock_formatter.py
 prototypes/datasets/*
+prototypes/datasets

@@ -1,7 +1,7 @@
 '''
 Formatter
 '''
-from ujson import load, dump, loads
+from json import load, dump, loads
 #import ujson as json
 from sys import exit
 from tqdm import tqdm
@@ -11,8 +11,8 @@ from copy import deepcopy
 to_refine = []
 
 #to_refine.append("janaf")
-to_refine.append("khazana_polymer")
-to_refine.append("khazana_vasp")
+#to_refine.append("khazana_polymer")
+#to_refine.append("khazana_vasp")
 #to_refine.append("danemorgan")
 #to_refine.append("oqmd")
 #to_refine.append("cod")
@@ -90,6 +90,10 @@ if __name__ == "__main__":
 	verbose = True
 	if verbose:
 		print("BEGIN")
+
+	#########################
+#	refine_feedstock("../datasets/10.5061_dryad.dd56c/classical_interatomic_potentials.json", "../datasets/10.5061_dryad.dd56c/refined_cip.json", verbose=True)
+
 
 	if "janaf" in to_refine:
 		janaf_static = {

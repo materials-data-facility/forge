@@ -4,7 +4,7 @@ Ingester
 #import globus_auth
 #from pickle import load
 from sys import exit
-from ujson import loads, dumps
+from json import loads, dumps
 from tqdm import tqdm
 #from pymongo import MongoClient
 

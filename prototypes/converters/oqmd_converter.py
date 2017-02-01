@@ -3,7 +3,7 @@ Converter (oqmd)
 '''
 from qmpy import *
 #from pickle import dump
-from ujson import dump
+from json import dump
 
 import paths #Contains relative paths to data
 

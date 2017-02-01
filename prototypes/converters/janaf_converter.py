@@ -1,13 +1,12 @@
 '''
 Converter (janaf)
 '''
-#import json
 from qmpy import parse_comp
 import os
 import shutil
 from numpy import sum
 #from pickle import dump
-from ujson import dump, load
+from json import dump, load
 
 import paths #Has globals for paths to data
 
@@ -101,11 +100,11 @@ def parse_janaf_file(filename):
         '''
 	output["uri"] = "http://kinetics.nist.gov/janaf/" + output["comp"] + "_" + output["state"]
 
-	out_str = str(output)
-	out_str = out_str.replace('nan', '"nan"')
-	san_output = eval(out_str)
+#	out_str = str(output)
+#	out_str = out_str.replace('nan', '"nan"')
+#	san_output = eval(out_str)
 
-	return san_output
+	return output
 
 if __name__ == "__main__":
 	data = []

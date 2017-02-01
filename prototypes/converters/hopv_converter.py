@@ -1,4 +1,4 @@
-from ujson import dump
+from json import dump
 from tqdm import tqdm
 
 import paths
@@ -10,6 +10,7 @@ feedsack_file = paths.sack_feed + "hopv_" + str(feedsack_size) + ".json"
 
 
 #Takes float or nan and returns correct value for JSON serialization - float version if not nan, string "nan" otherwise
+#Currently unused, as only the package 'ujson' requires it, and this script uses 'json'
 def float_nan(value):
 	return float(value) if float(value) == float(value) else "nan" #nan != nan
 
@@ -40,14 +41,14 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, v
 					"construction" : exp_data[2],
 					"architecture" : exp_data[3],
 					"complement" : exp_data[4],
-					"homo" : float_nan(exp_data[5]),
-					"lumo" : float_nan(exp_data[6]),
-					"electrochemical_gap" : float_nan(exp_data[7]),
-					"optical_gap" : float_nan(exp_data[8]),
-					"pce" : float_nan(exp_data[9]),
-					"voc" : float_nan(exp_data[10]),
-					"jsc" : float_nan(exp_data[11]),
-					"fill_factor" : float_nan(exp_data[12])
+					"homo" : float(exp_data[5]),
+					"lumo" : float(exp_data[6]),
+					"electrochemical_gap" : float(exp_data[7]),
+					"optical_gap" : float(exp_data[8]),
+					"pce" : float(exp_data[9]),
+					"voc" : float(exp_data[10]),
+					"jsc" : float(exp_data[11]),
+					"fill_factor" : float(exp_data[12])
 					}
 				molecule["pruned_smiles"] = in_file.readline().strip()
 				molecule["num_conformers"] = int(in_file.readline().strip())
@@ -63,9 +64,9 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, v
 						atom_data = in_file.readline().strip().split(' ')
 						atom = {
 							"element" : atom_data[0],
-							"x_coordinate" : float_nan(atom_data[1]),
-							"y_coordinate" : float_nan(atom_data[2]),
-							"z_coordinate" : float_nan(atom_data[3])
+							"x_coordinate" : float(atom_data[1]),
+							"y_coordinate" : float(atom_data[2]),
+							"z_coordinate" : float(atom_data[3])
 							}
 						list_atoms.append(atom)
 					conformer["atoms"] = list_atoms
@@ -75,12 +76,12 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, v
 						calc_data = in_file.readline().strip().split(",")
 						calculated = {
 							"set_description" : calc_data[0],
-							"homo" : float_nan(calc_data[1]),
-							"lumo" : float_nan(calc_data[2]),
-							"gap" : float_nan(calc_data[3]),
-							"scharber_pce" : float_nan(calc_data[4]),
-							"scharber_voc" : float_nan(calc_data[5]),
-							"scharber_jsc" : float_nan(calc_data[6])
+							"homo" : float(calc_data[1]),
+							"lumo" : float(calc_data[2]),
+							"gap" : float(calc_data[3]),
+							"scharber_pce" : float(calc_data[4]),
+							"scharber_voc" : float(calc_data[5]),
+							"scharber_jsc" : float(calc_data[6])
 							}
 						list_calc.append(calculated)
 					conformer["calculated_data"] = list_calc
@@ -88,11 +89,13 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, v
 				molecule["conformers"] = list_conformers
 				try:
 					dump(molecule, out_file)
+					out_file.write("\n")
 				except:
 					print("Error on:\n", molecule)
-					return
+					#return
 				if sack_filename and count < sack_size:
 					dump(molecule, sack_file)
+					sack_file.write("\n")
 				count += 1
 				smiles = in_file.readline() #Next molecule
 				if not smiles: #Blank line is EOF

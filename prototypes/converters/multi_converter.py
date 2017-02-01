@@ -6,7 +6,7 @@ import os
 from tqdm import tqdm
 from ase.io import read
 import re
-from ujson import dump
+from json import dump
 import tarfile
 import zipfile
 import gzip
@@ -16,9 +16,9 @@ import paths #Contains variables for relative paths to data
 
 #Pick one or more datasets to process
 datasets_to_process = []
-#datasets_to_process.append("danemorgan")
-datasets_to_process.append("khazana_polymer")
-datasets_to_process.append("khazana_vasp")
+datasets_to_process.append("danemorgan")
+#datasets_to_process.append("khazana_polymer")
+#datasets_to_process.append("khazana_vasp")
 #datasets_to_process.append("cod")
 #datasets_to_process.append("sluschi")
 
@@ -414,21 +414,18 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 			failure_count += 1
 			ase_dict["potential_energy_raw"] = None
 
-		#Remove None results
+		#Remove None results, and fix other objects
+		#numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
 		none_keys = []
-		for key, value in ase_dict.items():
-			if value is None:
-				#ase_dict.pop(key)
-				none_keys.append(key)
-				none_count += 1
-		for key in none_keys:
-			ase_dict.pop(key)
-
-		#Guide problem children to make better choices
-		#Because numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
 		for key in ase_dict.keys():
 			if 'numpy' in str(type(ase_dict[key])).lower():
 				ase_dict[key] = ase_dict[key].tolist()
+			if ase_dict[key] is None:
+				none_keys.append(key)
+				none_count += 1
+#			elif ase_dict[key] != ase_dict[key]:
+#				none_keys.append(key)
+#				none_count += 1
 			#elif 'fixatoms' in str(type(ase_dict[key])).lower():
 			#	ase_dict[key] = ase_dict[key].get_indices().tolist()
 			elif type(ase_dict[key]) is list:
@@ -438,10 +435,44 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 					#	new_elem = elem.tolist()
 					if 'fixatoms' in str(elem).lower():
 						new_elem = elem.get_indices().tolist()
+#					elif elem != elem:
+#						new_elem = None
 					else:
 						new_elem = elem
-					new_list.append(new_elem)
-				ase_dict[key] = new_list
+					if new_elem:
+						new_list.append(new_elem)
+				if new_list:
+					ase_dict[key] = new_list
+				else:
+					none_keys.append(key)
+		'''
+		#Remove None results
+		none_keys = []
+		for key, value in ase_dict.items():
+			if value is None:
+				#ase_dict.pop(key)
+				none_keys.append(key)
+				none_count += 1
+			elif value != value:
+				none_keys.append(key)
+				none_count += 1
+			elif type(value) is list:
+				
+			
+			elif type(value) is list and value.all() != value.all(): #NaN
+				none_keys.append(key)
+			elif type(value) is dict and value.values().all() != value.values().all(): #NaN
+				none_keys.append(key)
+			else:
+				try:
+					if value != value:
+						none_keys.append(key)
+				except ValueError: #Swallow issues with direct comparison
+					pass
+		'''
+		for key in none_keys:
+			ase_dict.pop(key)
+		
 		ase_list.append(ase_dict)
 
 	#Print results
