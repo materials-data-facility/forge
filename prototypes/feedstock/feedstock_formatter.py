@@ -10,13 +10,15 @@ from copy import deepcopy
 #Pick one or more to refine
 to_refine = []
 
-#to_refine.append("janaf")
-#to_refine.append("khazana_polymer")
-#to_refine.append("khazana_vasp")
-#to_refine.append("danemorgan")
-#to_refine.append("oqmd")
+to_refine.append("janaf")
+to_refine.append("khazana_polymer")
+to_refine.append("khazana_vasp")
+to_refine.append("danemorgan")
+to_refine.append("oqmd")
 #to_refine.append("cod")
-#to_refine.append("sluschi")
+to_refine.append("sluschi")
+to_refine.append("hopv")
+to_refine.append("cip")
 
 
 #Formats a record into the appropriate schema
@@ -175,6 +177,24 @@ if __name__ == "__main__":
 			"globus_subject" : "data['uri']"
 			}
 		refine_feedstock(raw_dir+"sluschi_all.json", ref_dir+"sluschi_refined.json", sluschi_static, sluschi_dynamic, verbose)
+	
+	if "hopv" in to_refine:
+		hopv_static = {
+			"__source_name" : "hopv",
+			"globus_source" : "Harvard Open Photovoltaic Database"
+			}
+		hopv_dynamic = {
+		}
+		refine_feedstock(raw_dir+"hopv_all.json", ref_dir+"hopv_refined.json", hopv_static, hopv_dynamic, verbose)
+
+	if "cip" in to_refine:
+		cip_static = {
+			"__source_name" : "cip",
+			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface"
+			}
+		cip_dynamic = {
+		}
+		refine_feedstock(raw_dir+"cip_all.json", ref_dir+"cip_refined.json", cip_static, cip_dynamic, verbose)
 
 	if verbose:
 		print("END")

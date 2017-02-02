@@ -16,10 +16,10 @@ import paths #Contains variables for relative paths to data
 
 #Pick one or more datasets to process
 datasets_to_process = []
-datasets_to_process.append("danemorgan")
+#datasets_to_process.append("danemorgan")
 #datasets_to_process.append("khazana_polymer")
 #datasets_to_process.append("khazana_vasp")
-#datasets_to_process.append("cod")
+datasets_to_process.append("cod")
 #datasets_to_process.append("sluschi")
 
 #Export a smaller feedstock file for testing?
@@ -833,7 +833,12 @@ if __name__ == "__main__":
 			}
 		if cod_args["verbose"]:
 			print("COD PROCESSING")
-		cod = process_data(cod_args)
+		for i in range(9):
+			j = i + 1
+			cod_args["root"] = paths.datasets + "cod/open-cod/cif/" + j
+			cod = process_data(cod_args)
+			if cod_args["verbose"]:
+				print("Processed directory", j)
 		if cod_args["verbose"]:
 			print("DONE\n")
 		'''

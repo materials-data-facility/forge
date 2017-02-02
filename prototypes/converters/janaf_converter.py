@@ -112,17 +112,19 @@ if __name__ == "__main__":
 	out_filename = paths.raw_feed + "janaf_all.json"
 	count = 0
 	full_count = 0
-	for f in os.listdir(data_dir):
-		entry = parse_janaf_file(os.path.join(data_dir, f))
-		full_count +=1
-		if entry is not None:
-			data.append(entry)
-			count +=1
+	with open(out_filename, 'w') as out_file:
+		for f in os.listdir(data_dir):
+			entry = parse_janaf_file(os.path.join(data_dir, f))
+			full_count +=1
+			if entry is not None:
+				dump(entry, out_file)
+#				data.append(entry)
+				count +=1
 #	print json.dumps(data[0], sort_keys=True, indent=4, separators=(',', ': '))
-	out_file = open(out_filename, 'w')
+#	out_file = open(out_filename, 'w')
 #	print >>out_file, data
-	dump(data, out_file)
-	out_file.close()
+#	dump(data, out_file)
+#	out_file.close()
 	print str(count) + "/" + str(full_count) + " converted."
 	'''
 	import json
