@@ -118,6 +118,7 @@ if __name__ == "__main__":
 			full_count +=1
 			if entry is not None:
 				dump(entry, out_file)
+				out_file.write('\n')
 #				data.append(entry)
 				count +=1
 #	print json.dumps(data[0], sort_keys=True, indent=4, separators=(',', ': '))

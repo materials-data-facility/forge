@@ -71,15 +71,15 @@ if __name__ == "__main__":
 		cip_out = paths.raw_feed + "cip_all.json"
 		cip_sack_size = 10
 		cip_feed = paths.sack_feed + "cip_10.json"
-		convert_json_to_json(cip_in, cip_out, cip_sack_size, cip_feed, verbose)
+		convert_json_to_json(cip_in, cip_out, cip_sack_size, cip_feed, verbose=verbose)
 
 	if "ido" in datasets:
 		ido_in = paths.datasets + "10.5061_dryad.ph81h/inorganic_dielectric_optical.json"
 		ido_out = paths.raw_feed + "ido_all.json"
 		ido_sack_size = 10
 		ido_feed = paths.sack_feed + "ido_10.json"
-		convert_json_to_json(ido_in, ido_out, ido_sack_size, ido_feed, verbose)
-	
+		convert_json_to_json(ido_in, ido_out, ido_sack_size, ido_feed, verbose=verbose)
+		
 
 
 

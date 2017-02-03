@@ -12,6 +12,7 @@ import zipfile
 import gzip
 import warnings
 
+from utils import find_files
 import paths #Contains variables for relative paths to data
 
 #Pick one or more datasets to process
@@ -495,7 +496,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 	elif data_format == "cif":
 		return ase_list[0]
 
-
+'''#Moved to utils
 #Finds all directories containing a specified type of file and returns list of dicts with path to files and data gleaned from folder names
 #root specifies the path to the first dir to start with. Default is current working directory.
 #file_match is a string containing the file name to search for. Default is None, which matches all files.
@@ -559,7 +560,7 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 		return dir_list[:max_files]
 	else:
 		return dir_list
-
+'''
 
 #Essentially a main for this script, calls the other functions and ties everything together
 #Returns a list of dicts ready for ingestion, and optionally (see below) writes that list out to a file
