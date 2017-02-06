@@ -10,15 +10,16 @@ from copy import deepcopy
 #Pick one or more to refine
 to_refine = []
 
-to_refine.append("janaf")
-to_refine.append("khazana_polymer")
+#to_refine.append("janaf")
+#to_refine.append("khazana_polymer")
 to_refine.append("khazana_vasp")
-to_refine.append("danemorgan")
-to_refine.append("oqmd")
+#to_refine.append("danemorgan")
+#to_refine.append("oqmd")
 #to_refine.append("cod")
-to_refine.append("sluschi")
-to_refine.append("hopv")
-to_refine.append("cip")
+#to_refine.append("sluschi")
+#to_refine.append("hopv")
+#to_refine.append("cip")
+#to_refine.append("nanomine")
 
 
 #Formats a record into the appropriate schema
@@ -95,7 +96,7 @@ if __name__ == "__main__":
 
 	#########################
 #	refine_feedstock("../datasets/10.5061_dryad.dd56c/classical_interatomic_potentials.json", "../datasets/10.5061_dryad.dd56c/refined_cip.json", verbose=True)
-	refine_feedstock(raw_dir + "cip_all.json", ref_dir + "cip_refined.json", verbose = True)
+#	refine_feedstock(raw_dir + "cip_all.json", ref_dir + "cip_refined.json", verbose = True)
 
 
 	if "janaf" in to_refine:
@@ -106,7 +107,8 @@ if __name__ == "__main__":
 			"context" : {
 				"janaf" : "http://kinetics.nist.gov/janaf/",
 				"dc" : "http://dublincore.org/documents/dcmi-terms"
-				}
+				},
+			"acl" : ["public"]
 			}
 		janaf_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -116,7 +118,8 @@ if __name__ == "__main__":
 	if "khazana_polymer" in to_refine:
 		khaz_poly_static = {
 			"__source_name" : "khazana_polymer",
-			"globus_source" : "Khazana (Polymer)"
+			"globus_source" : "Khazana (Polymer)",
+			"acl" : ["public"]
 			}
 		khaz_poly_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -126,7 +129,8 @@ if __name__ == "__main__":
 	if "khazana_vasp" in to_refine:
 		khaz_vasp_static = {
 			"__source_name" : "khazana_dft",
-			"globus_source" : "Khazana (DFT)"
+			"globus_source" : "Khazana (DFT)",
+			"acl" : ["public"]
 			}
 		khaz_vasp_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -136,7 +140,8 @@ if __name__ == "__main__":
 	if "danemorgan" in to_refine:
 		danemorgan_static = {
 			"__source_name" : "ab_initio_solute_database",
-			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database"
+			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
+			"acl" : ["public"]
 			}
 		danemorgan_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -150,7 +155,8 @@ if __name__ == "__main__":
 			"context" : {
 				"oqmd" : "http://www.oqmd.org/",
 				"dc" : "http://dublincore.org/documents/dcmi-terms"
-				}
+				},
+			"acl" : ["public"]
 			}
 		oqmd_dynamic = {
 			"globus_subject" : "data['uri']",
@@ -161,7 +167,8 @@ if __name__ == "__main__":
 	if "cod" in to_refine:
 		cod_static = {
 			"__source_name" : "cod",
-			"globus_source" : "Crystallography Open Database"
+			"globus_source" : "Crystallography Open Database",
+			"acl" : ["public"]
 			}
 		cod_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -171,7 +178,8 @@ if __name__ == "__main__":
 	if "sluschi" in to_refine:
 		sluschi_static = {
 			"__source_name" : "sluschi",
-			"globus_source" : "Sluschi"
+			"globus_source" : "Sluschi",
+			"acl" : ["public"]
 			}
 		sluschi_dynamic = {
 			"globus_subject" : "data['uri']"
@@ -181,7 +189,8 @@ if __name__ == "__main__":
 	if "hopv" in to_refine:
 		hopv_static = {
 			"__source_name" : "hopv",
-			"globus_source" : "Harvard Open Photovoltaic Database"
+			"globus_source" : "Harvard Open Photovoltaic Database",
+			"acl" : ["public"]
 			}
 		hopv_dynamic = {
 		}
@@ -190,11 +199,22 @@ if __name__ == "__main__":
 	if "cip" in to_refine:
 		cip_static = {
 			"__source_name" : "cip",
-			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface"
+			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
+			"acl" : ["public"]
 			}
 		cip_dynamic = {
-		}
+			}
 		refine_feedstock(raw_dir+"cip_all.json", ref_dir+"cip_refined.json", cip_static, cip_dynamic, verbose)
+	
+	if "nanomine" in to_refine:
+		nanomine_static = {
+			"__source_name" : "nanomine",
+			"globus_source" : "Nanomine",
+			"acl" : ["c8745ef4-d274-11e5-bee8-3b6845397ac9", "117e8833-68f5-4cb2-afb3-05b25db69be1"] #blaiszik, jgaff
+			}
+		nanomine_dynamic = {
+			}
+		refine_feedstock(raw_dir+"nanomine_all.json", ref_dir+"nanomine_refined.json", nanomine_static, nanomine_dynamic, verbose)
 
 	if verbose:
 		print("END")

@@ -1,4 +1,5 @@
 import os
+import re
 from tqdm import tqdm
 #Finds all directories containing a specified type of file and returns list of dicts with path to files and data gleaned from folder names
 #root specifies the path to the first dir to start with. Default is current working directory.

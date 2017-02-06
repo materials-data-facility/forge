@@ -5,7 +5,7 @@ import os
 #from pickle import dump
 from tqdm import tqdm
 from ase.io import read
-import re
+#import re
 from json import dump
 import tarfile
 import zipfile
@@ -19,8 +19,8 @@ import paths #Contains variables for relative paths to data
 datasets_to_process = []
 #datasets_to_process.append("danemorgan")
 #datasets_to_process.append("khazana_polymer")
-#datasets_to_process.append("khazana_vasp")
-datasets_to_process.append("cod")
+datasets_to_process.append("khazana_vasp")
+#datasets_to_process.append("cod")
 #datasets_to_process.append("sluschi")
 
 #Export a smaller feedstock file for testing?
@@ -617,6 +617,7 @@ def process_data(arg_dict):
 		feed_out = open(feedsack_file, 'w')
 	for dir_data in tqdm(dir_list, desc="Processing data files", disable= not verbose):
 		all_count += 1
+#		print(dir_data, "#count:", all_count)
 		formatted_data = {}
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
@@ -788,7 +789,7 @@ if __name__ == "__main__":
 			"verbose" : True,
 			"output_file" : paths.raw_feed + "khazana_vasp_all.json",		
 			"data_exception_log" : paths.datasets + "khazana/khazana_vasp_errors.txt",
-			"uri_adds" : ["filename"],
+			"uri_adds" : ["filename", "ext"],
 			"max_records" : -1,
 			"archived" : False,
 			"feedsack_size" : khaz_v_feedsack if feedsack else -1,
@@ -820,12 +821,12 @@ if __name__ == "__main__":
 		cod_args = {
 			"uri" : "http://www.crystallography.net/cod",
 			"keep_dir_name_depth" : 0,
-			"root" : paths.datasets + "cod/open-cod",
+			#"root" : paths.datasets + "cod/open-cod",
 			"file_pattern" : "\.cif$",
 			"file_format" : "cif",
 			"verbose" : True,
-			"output_file" : paths.raw_feed + "cod_all.json",
-			"data_exception_log" : paths.datasets + "cod/cod_errors.txt",
+			#"output_file" : paths.raw_feed + "cod_all.json",
+			#"data_exception_log" : paths.datasets + "cod/cod_errors.txt",
 			"uri_adds" : ["filename", ".html"],
 			"max_records" : -1,
 			"archived" : False,
@@ -836,10 +837,13 @@ if __name__ == "__main__":
 			print("COD PROCESSING")
 		for i in range(9):
 			j = i + 1
-			cod_args["root"] = paths.datasets + "cod/open-cod/cif/" + j
+			cod_args["root"] = paths.datasets + "cod/open-cod/cif/" + str(j)
+			cod_args["output_file"] = paths.raw_feed + "cod_" + str(j) + "_all.json"
+			if i > 0:
+				cod_args["feedsack_size"] = -1 #No multiple feedsacks
 			cod = process_data(cod_args)
 			if cod_args["verbose"]:
-				print("Processed directory", j)
+				print("Processed directory", j, '\n')
 		if cod_args["verbose"]:
 			print("DONE\n")
 		'''

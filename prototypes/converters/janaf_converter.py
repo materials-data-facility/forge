@@ -110,9 +110,12 @@ if __name__ == "__main__":
 	data = []
 	data_dir = paths.datasets + "janaf/srd13_janaf"
 	out_filename = paths.raw_feed + "janaf_all.json"
+	feedstock = True
 	count = 0
 	full_count = 0
 	with open(out_filename, 'w') as out_file:
+		if feedstock:
+			feed_file = open(paths.sack_feed + "janaf_1000.json", 'w')
 		for f in os.listdir(data_dir):
 			entry = parse_janaf_file(os.path.join(data_dir, f))
 			full_count +=1
@@ -120,6 +123,9 @@ if __name__ == "__main__":
 				dump(entry, out_file)
 				out_file.write('\n')
 #				data.append(entry)
+				if feedstock and count < 1000:
+					dump(entry, feed_file)
+					feed_file.write('\n')
 				count +=1
 #	print json.dumps(data[0], sort_keys=True, indent=4, separators=(',', ': '))
 #	out_file = open(out_filename, 'w')
@@ -133,10 +139,11 @@ if __name__ == "__main__":
 	print "Dumping all"
 	with open("janaf_all.json", 'w') as fj1:
 		json.dump(data, fj1)
-	'''
+	
 	print "Dumping 1000"
 	with open(paths.sack_feed + "janaf_1000.json", 'w') as fj2:
 		dump(data, fj2)
+	'''
 	print "Done"
 	
 

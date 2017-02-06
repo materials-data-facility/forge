@@ -68,6 +68,21 @@ all_data_files = {
 		"file" : paths.ref_feed + "sluschi_refined.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100
+		},
+	"hopv" : {
+		"file" : paths.ref_feed + "hopv_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100
+		},
+	"cip" : {
+		"file" : paths.ref_feed + "cip_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100
+		},
+	"nanomine" : {
+		"file" : paths.ref_feed + "nanomine_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100
 		}
 	}
 #Pick one or more data files to ingest
@@ -76,9 +91,13 @@ data_file_to_use = []
 #data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
 #data_file_to_use.append("khazana_polymer")
-#data_file_to_use.append("khazana_vasp")
+data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
+#data_file_to_use.append("hopv")
+#data_file_to_use.append("cip")
+#data_file_to_use.append("nanomine")
+
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 DELETE_DATA = False
@@ -104,6 +123,8 @@ def format_single_gmeta(data_dict, full=False):
 		data_dict["globus_id"] = ""
 	if not data_dict.get("globus_source", None):
 		data_dict["globus_source"] = ""
+	if not data_dict.get("acl", None):
+		data_dict["acl"] = ["public"]
 #	if data_dict.get("data_context", None):
 #		for elem in data_dict.get("data", {}).keys():
 #			elem = data_dict["data_context"] + ":" + elem
@@ -111,7 +132,7 @@ def format_single_gmeta(data_dict, full=False):
 		"@datatype":"GMetaEntry",
 		"@version":"2016-11-09",
 		"subject":data_dict["globus_subject"],
-		"visible_to":["public"],
+		"visible_to":data_dict["acl"],
 		"id":data_dict["globus_id"],
 		"source_id":data_dict["globus_source"],
 		"content":data_dict.get("data", {})
@@ -158,6 +179,7 @@ def globus_search_client():
 #	No lists with more than M elements (M = 5)
 #	No multi-dimensional lists
 #	No empty data structures
+#	No nested booleans
 def globus_search_ingest(args):
 	MAX_LIST = 5
 	#print "Test database ingest:"
@@ -176,7 +198,7 @@ def globus_search_ingest(args):
 				first_level_dict = {}
 				for key2, value2 in value.items(): #Second layer. **Assigning first_level_dict[key2] = value2
 					#if not hasattr(value2, "__iter__") and value2: #Data, and not nothing
-					if value2 and type(value2) is not dict and type(value2) is not list:
+					if value2 and type(value2) is not dict and type(value2) is not list and type(value2) is not bool:
 						first_level_dict[key2] = value2
 	
 				if first_level_dict: #If data exists here
@@ -186,7 +208,7 @@ def globus_search_ingest(args):
 				first_level_list = []
 				for elem in value:
 					#if not hasattr(elem, "__iter__") and elem: #Data, not nothing
-					if elem and type(elem) is not dict and type(elem) is not list:
+					if elem and type(elem) is not dict and type(elem) is not list and type(value2) is not bool:
 						first_level_list.append(elem)
 				if first_level_list: #If data found
 					filtered_content[key] = first_level_list
@@ -386,8 +408,10 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 	list_ingestable = []
 	total_count = 0
 	num_batches = 0
-	ingest_file = open(json_filename)
-	for in_record in tqdm(ingest_file, desc="Preparing records", disable= not verbose):
+	ingest_file = open(json_filename, 'r')
+	if verbose:
+		print("Processing records from", json_filename)
+	for in_record in tqdm(ingest_file, desc="Ingesting records", disable= not verbose):
 		record = loads(in_record)
 #		for record in tqdm(list_of_data, desc="Preparing records", disable= not verbose):
 		if delete_not_ingest:
@@ -408,6 +432,14 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 			list_ingestable.clear()
 			if ingest_limit > 0 and total_count >= ingest_limit: #Additionally, if ingest limit is reached, after ingesting the last batch, stop ingesting
 				break
+
+	if list_ingestable: #If data remains uningested (incomplete batch when EOF)
+		multi_ingestable = format_multi_gmeta(list_ingestable)
+		for dest in destinations:
+			dest_args[dest]["ingestable"] = multi_ingestable
+			exec(dest + "_ingest(dest_args[dest])")
+			num_batches += 1
+
 
 		'''
 		if verbose:
@@ -434,7 +466,7 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 				exec(dest + "_ingest(" + dest + "_args)")
 		'''
 	if verbose:
-		print("Ingested " + str(total_count) + " records")
+		print("Ingested " + str(total_count) + " records in " + str(num_batches) + " batches")
 #	if verbose:
 #		print("Success")
 
@@ -442,7 +474,7 @@ if __name__ == "__main__":
 	print("Ingest start")
 
 ###############################
-	ingest_refined_feedstock(paths.ref_feed + "cip_refined.json", ["data_pub_service"], verbose=True)
+#	ingest_refined_feedstock(paths.ref_feed + "cip_refined.json", ["data_pub_service"], verbose=True)
 
 	for key in data_file_to_use:
 		filename = all_data_files[key]["file"]
