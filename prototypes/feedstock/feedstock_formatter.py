@@ -12,14 +12,14 @@ to_refine = []
 
 #to_refine.append("janaf")
 #to_refine.append("khazana_polymer")
-to_refine.append("khazana_vasp")
+#to_refine.append("khazana_vasp")
 #to_refine.append("danemorgan")
 #to_refine.append("oqmd")
 #to_refine.append("cod")
 #to_refine.append("sluschi")
 #to_refine.append("hopv")
 #to_refine.append("cip")
-#to_refine.append("nanomine")
+to_refine.append("nanomine")
 
 
 #Formats a record into the appropriate schema
@@ -213,6 +213,7 @@ if __name__ == "__main__":
 			"acl" : ["c8745ef4-d274-11e5-bee8-3b6845397ac9", "117e8833-68f5-4cb2-afb3-05b25db69be1"] #blaiszik, jgaff
 			}
 		nanomine_dynamic = {
+			"globus_subject" : "data['uri']"
 			}
 		refine_feedstock(raw_dir+"nanomine_all.json", ref_dir+"nanomine_refined.json", nanomine_static, nanomine_dynamic, verbose)
 

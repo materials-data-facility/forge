@@ -72,6 +72,7 @@ def convert_nanomine(dir_path, out_file, sack_size=0, sack_file=None, verbose=Fa
 			if type(converted) is list:
 #				count = 0
 				for record in converted:
+					record["uri"] = in_file_data["filename"]
 					dump(record, output_f)
 					output_f.write('\n')
 					if count < sack_size:
@@ -79,6 +80,7 @@ def convert_nanomine(dir_path, out_file, sack_size=0, sack_file=None, verbose=Fa
 						sack.write('\n')
 					count += 1
 			else:
+				converted['uri'] = in_file_data["filename"]
 				dump(converted, output_f)
 				output_f.write('\n')
 				if count < sack_size:

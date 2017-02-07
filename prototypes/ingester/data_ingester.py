@@ -29,9 +29,9 @@ all_destinations = {"globus_search", "data_pub_service", "local_mongodb"}
 
 ingest_to = set()
 #Pick one or more destinations
-#ingest_to.add("globus_search")
+ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
-ingest_to.add("local_mongodb")
+#ingest_to.add("local_mongodb")
 
 all_data_files = {
 	"oqmd" : {
@@ -87,19 +87,20 @@ all_data_files = {
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-#data_file_to_use.append("oqmd")
-#data_file_to_use.append("janaf")
-#data_file_to_use.append("danemorgan")
-#data_file_to_use.append("khazana_polymer")
+data_file_to_use.append("oqmd")
+data_file_to_use.append("janaf")
+data_file_to_use.append("danemorgan")
+data_file_to_use.append("khazana_polymer")
 data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-#data_file_to_use.append("sluschi")
-#data_file_to_use.append("hopv")
-#data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
+data_file_to_use.append("sluschi")
+data_file_to_use.append("hopv")
+data_file_to_use.append("cip")
+data_file_to_use.append("nanomine")
 
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
+#Only applies to Globus Search
 DELETE_DATA = False
 
 #datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
@@ -133,6 +134,7 @@ def format_single_gmeta(data_dict, full=False):
 		"@version":"2016-11-09",
 		"subject":data_dict["globus_subject"],
 		"visible_to":data_dict["acl"],
+		#"visible_to":["public"],
 		"id":data_dict["globus_id"],
 		"source_id":data_dict["globus_source"],
 		"content":data_dict.get("data", {})
@@ -173,6 +175,39 @@ def globus_search_client():
 	import globus_auth
 	return globus_auth.login("https://datasearch.api.demo.globus.org/")
 
+#Filter for Globus Search
+#Arguments:
+#	data: The data to be filtered and returned clean.
+#	max_list: Maximum size of a valid list. Default -1 for no max.
+#	max_depth: Maximum depth of deepest nested data. Data at max depth will be returned, non-data will be discarded. Default -1 for no max.
+#	depth: Used in recursive calls to see how deep in the function is. Don't touch this.
+def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
+	if type(data) is not dict and type(data) is not list and (type(data) is not bool or depth == 0): #JSON only supports list, dict, and things we consider data (except nested booleans), so this checks if value is data
+		return data
+
+	elif max_depth >= 0 and depth >= max_depth: #If max_depth is set and has been exceeded, stop processing
+		return None
+
+	elif type(data) is list and len(data) <= max_list:
+		new_list = []
+		for elem in data:
+			new_elem = globus_search_filter(elem, max_list, max_depth, depth+1)
+			if new_elem is not None:
+				new_list.append(new_elem)
+		return new_list if new_list else None
+
+	elif type(data) is dict:
+		new_dict = {}
+		for key, value in data.items():
+			new_value = globus_search_filter(value, max_list, max_depth, depth+1)
+			if new_value is not None:
+				new_dict[key] = new_value
+		return new_dict if new_dict else None
+	
+	else: #Something unexpected! Remove it.
+		return None
+
+
 #Ingests data into Globus Search
 #Filters:
 #	No data nested more than N layers (N = 2)
@@ -182,14 +217,18 @@ def globus_search_client():
 #	No nested booleans
 def globus_search_ingest(args):
 	MAX_LIST = 5
+	MAX_NEST = 4
 	#print "Test database ingest:"
 	filtered_list = []
 	data_list = args["ingestable"]["ingest_data"]["gmeta"]
+#	print(data_list)
 	#All the data must be JSON serializable, and therefore must be a list, dict, or actual data (not in a container)
 	for entry in tqdm(data_list, desc="\tFiltering batch", disable= True): #not args["verbose"]): #Current datasets filter too fast for a progress bar to be useful
 
 		filtered_content = {}
 		for key, value in entry["content"].items(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
+			filtered_content[key] = globus_search_filter(value, MAX_LIST, MAX_NEST)
+			'''
 			#if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
 			if value and type(value) is not dict and type(value) is not list: #JSON only supports list, dict, and things we consider data, so this checks if value is (not None) data
 				filtered_content[key] = value
@@ -212,14 +251,18 @@ def globus_search_ingest(args):
 						first_level_list.append(elem)
 				if first_level_list: #If data found
 					filtered_content[key] = first_level_list
+			'''
 		if filtered_content: #If there's nothing left after filtering, should not ingest
 			entry["content"] = filtered_content
 			filtered_list.append(entry)
 	args["ingestable"]["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
 	#Actual ingestion
-#	print str(args["client"].ingest(args["ingestable"]))
-	args["client"].ingest(args["ingestable"])
-
+	#Dumping and loading to get formatted JSON document
+#	temp_data = dumps(args["ingestable"])
+	ingest_data = loads(dumps(args["ingestable"]))
+#	print(ingest_data)
+#	args["client"].ingest(args["ingestable"])
+	args["client"].ingest(ingest_data)
 
 def data_pub_service_client():
 	return "TODO: DPS client"
@@ -472,9 +515,10 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 
 if __name__ == "__main__":
 	print("Ingest start")
+	print("Ingesting to", ingest_to)
 
 ###############################
-#	ingest_refined_feedstock(paths.ref_feed + "cip_refined.json", ["data_pub_service"], verbose=True)
+#	ingest_refined_feedstock("test.json", ["globus_search"], verbose=True)
 
 	for key in data_file_to_use:
 		filename = all_data_files[key]["file"]
