@@ -7,8 +7,11 @@ import shutil
 from numpy import sum
 #from pickle import dump
 from json import dump, load
+from six import print_
 
 import paths #Has globals for paths to data
+
+all_uri = []
 
 def parse_janaf_file(filename):
         '''
@@ -98,13 +101,16 @@ def parse_janaf_file(filename):
 
         return meta_out
         '''
-	output["uri"] = "http://kinetics.nist.gov/janaf/" + output["comp"] + "_" + output["state"]
+        #output["uri"] = "http://kinetics.nist.gov/janaf/" + output["comp"] + "_" + output["state"]
+        output["uri"] = "http://kinetics.nist.gov/janaf/" + output["file"]
+
+        all_uri.append(output["uri"])
 
 #	out_str = str(output)
 #	out_str = out_str.replace('nan', '"nan"')
 #	san_output = eval(out_str)
 
-	return output
+        return output
 
 if __name__ == "__main__":
 	data = []
@@ -132,7 +138,13 @@ if __name__ == "__main__":
 #	print >>out_file, data
 #	dump(data, out_file)
 #	out_file.close()
-	print str(count) + "/" + str(full_count) + " converted."
+	print_(str(count) + "/" + str(full_count) + " converted.")
+
+	duplicates = [x for x in all_uri if all_uri.count(x) > 1]
+	if duplicates:
+		print_("Warning: Duplicate URIs found:\n", set(duplicates))
+
+
 	'''
 	import json
 	print "Dumping to JSON"
@@ -144,6 +156,6 @@ if __name__ == "__main__":
 	with open(paths.sack_feed + "janaf_1000.json", 'w') as fj2:
 		dump(data, fj2)
 	'''
-	print "Done"
+	print_("Done")
 	
 

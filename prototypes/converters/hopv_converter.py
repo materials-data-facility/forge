@@ -8,14 +8,14 @@ feedstock_file = paths.raw_feed + "hopv_all.json"
 feedsack_size = 10
 feedsack_file = paths.sack_feed + "hopv_" + str(feedsack_size) + ".json"
 
-
 #Takes float or nan and returns correct value for JSON serialization - float version if not nan, string "nan" otherwise
 #Currently unused, as only the package 'ujson' requires it, and this script uses 'json'
 def float_nan(value):
 	return float(value) if float(value) == float(value) else "nan" #nan != nan
 
 #Takes a/the HOPV file and parses its interesting structure
-def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, verbose=False):
+def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, uri_dup_check=True, verbose=False):
+	all_uris = []
 	if verbose:
 		print("Opening files")
 	with open(in_filename, 'r') as in_file:
@@ -87,6 +87,8 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, v
 					conformer["calculated_data"] = list_calc
 					list_conformers.append(conformer)
 				molecule["conformers"] = list_conformers
+				molecule["uri"] = molecule["inchi"]
+				all_uri.append(molecule["uri"])
 				try:
 					dump(molecule, out_file)
 					out_file.write("\n")
@@ -103,11 +105,14 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, v
 	
 			if sack_size > 0 and sack_filename:
 				sack_file.close()
-			if verbose:
-				print("Processed", count, "molecules successfully.")
+	if verbose:
+		print("Processed", count, "molecules successfully.")
+	duplicates = [x for x in all_uri if all_uri.count(x) > 1]
+	if duplicates:
+		print("Warning: Duplicate URIs found:\n", set(duplicates)
+
 
 
 if __name__ == "__main__":
-	hopv_converter(hopv_file, feedstock_file, feedsack_size, feedsack_file, True)
-
+	hopv_converter(hopv_file, feedstock_file, feedsack_size, feedsack_file, uri_dup_check=True, verbose=True)
 

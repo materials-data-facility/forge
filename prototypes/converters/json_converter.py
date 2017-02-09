@@ -25,7 +25,8 @@ def find_data(record):
 
 #Takes a JSON file and converts it into formatter-compatible JSON
 #If feed_size > 0, feed_name is required
-def convert_json_to_json(in_name, out_name, feed_size=0, feed_name=None, verbose=False):
+def convert_json_to_json(in_name, out_name, uri_loc, feed_size=0, feed_name=None, verbose=False):
+	all_uri = []
 	if verbose:
 		print("Converting JSON from", in_name, "\nDumping results to", out_name)
 	with open(in_name, 'r') as in_file:
@@ -54,6 +55,8 @@ def convert_json_to_json(in_name, out_name, feed_size=0, feed_name=None, verbose
 				feed_file = open(feed_name, 'w')
 			count = 0
 			for datum in list_of_data:
+				datum["uri"] = eval("datum['" + uri_loc + "']")
+				all_uri.append(datum["uri"])
 				dump(datum, out_file)
 				out_file.write('\n')
 				if count < feed_size:
@@ -63,22 +66,26 @@ def convert_json_to_json(in_name, out_name, feed_size=0, feed_name=None, verbose
 			print("Data written successfully")
 		else:
 			print("Error: No data recovered from file")
+	duplicates = [x for x in all_uri if all_uri.count(x) > 1]
+	if duplicates:
+		print("Warning: Duplicate URIs found:\n", set(duplicates))
 
 if __name__ == "__main__":
 	verbose = True
 	if "cip" in datasets:
 		cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
 		cip_out = paths.raw_feed + "cip_all.json"
+		cip_uri = "case-number"
 		cip_sack_size = 10
 		cip_feed = paths.sack_feed + "cip_10.json"
-		convert_json_to_json(cip_in, cip_out, cip_sack_size, cip_feed, verbose=verbose)
+		convert_json_to_json(cip_in, cip_out, cip_uri, cip_sack_size, cip_feed, verbose=verbose)
 
 	if "ido" in datasets:
 		ido_in = paths.datasets + "10.5061_dryad.ph81h/inorganic_dielectric_optical.json"
 		ido_out = paths.raw_feed + "ido_all.json"
 		ido_sack_size = 10
 		ido_feed = paths.sack_feed + "ido_10.json"
-		convert_json_to_json(ido_in, ido_out, ido_sack_size, ido_feed, verbose=verbose)
+		convert_json_to_json(ido_in, ido_out, ido_uri, ido_sack_size, ido_feed, verbose=verbose)
 		
 
 

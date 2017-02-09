@@ -18,7 +18,7 @@ import paths #Contains variables for relative paths to data
 #Pick one or more datasets to process
 datasets_to_process = []
 #datasets_to_process.append("danemorgan")
-#datasets_to_process.append("khazana_polymer")
+datasets_to_process.append("khazana_polymer")
 datasets_to_process.append("khazana_vasp")
 #datasets_to_process.append("cod")
 #datasets_to_process.append("sluschi")
@@ -585,6 +585,7 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #	feedsack_file: Filename for feedsack output. Ignored if feedsack_size <= 0. Default "feedsack_$SIZE.json" in local directory.
 #
 def process_data(arg_dict):
+	all_uri = []
 	root = arg_dict.get("root", os.getcwd())
 	keep_dir_name_depth = arg_dict.get("keep_dir_name_depth", 0)
 	verbose  = arg_dict.get("verbose", False)
@@ -646,6 +647,7 @@ def process_data(arg_dict):
 			
 			formatted_data = file_data
 			formatted_data["uri"] = uri
+			all_uri.append(formatted_data["uri"])
 	#		all_data_list.append(formatted_data)
 			dump(formatted_data, out_open)
 			out_open.write("\n")
@@ -674,6 +676,11 @@ def process_data(arg_dict):
 #			print "Data written"
 	if verbose:
 		print("Processing complete")
+
+	duplicates = [x for x in all_uri if all_uri.count(x) > 1]
+	if duplicates:
+		print("Warning: Duplicate URIs found:\n", set(duplicates))
+
 	return True #all_data_list
 
 

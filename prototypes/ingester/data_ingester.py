@@ -7,12 +7,15 @@ from sys import exit
 from json import loads, dumps
 from tqdm import tqdm
 #from pymongo import MongoClient
+#from bson import ObjectId
 
 import paths #Contains relative path to data info
 
 #-1 for unlimited
 #max_ingests_at_once = 50 #Now per file
 max_ingests_total = -1
+std_list_lim = 5
+std_nest_lim = 4
 
 #Note: All destinations listed here must have:
 # 1. Function $NAME_client() that requires no arguments and returns whatever should be given to the ingest function as "client".
@@ -37,66 +40,115 @@ all_data_files = {
 	"oqmd" : {
 		"file" : paths.ref_feed +  "oqmd_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 5000
+		"batch_size" : 5000,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
 		},
 	"janaf" : {
 		"file" : paths.ref_feed + "janaf_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 500
+		"batch_size" : 500,
+		"globus_search" : {
+			"list_limit" : -1,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"danemorgan" : {
 		"file" : paths.ref_feed + "danemorgan_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 500
+		"batch_size" : 500,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"khazana_polymer" : {
 		"file" : paths.ref_feed + "khazana_polymer_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 100
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"khazana_vasp" : {
 		"file" : paths.ref_feed +"khazana_vasp_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 1
+		"batch_size" : 1,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"cod" : {
 		"file" : paths.ref_feed + "cod_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 5000
+		"batch_size" : 5000,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"sluschi" : {
 		"file" : paths.ref_feed + "sluschi_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 100
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"hopv" : {
 		"file" : paths.ref_feed + "hopv_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 100
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"cip" : {
 		"file" : paths.ref_feed + "cip_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 100
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		},
 	"nanomine" : {
 		"file" : paths.ref_feed + "nanomine_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 100
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		}
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-data_file_to_use.append("oqmd")
-data_file_to_use.append("janaf")
-data_file_to_use.append("danemorgan")
-data_file_to_use.append("khazana_polymer")
-data_file_to_use.append("khazana_vasp")
+#data_file_to_use.append("oqmd")
+#data_file_to_use.append("janaf")
+#data_file_to_use.append("danemorgan")
+#data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-data_file_to_use.append("sluschi")
+#data_file_to_use.append("sluschi")
 data_file_to_use.append("hopv")
-data_file_to_use.append("cip")
-data_file_to_use.append("nanomine")
+#data_file_to_use.append("cip")
+#data_file_to_use.append("nanomine")
 
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
@@ -126,6 +178,15 @@ def format_single_gmeta(data_dict, full=False):
 		data_dict["globus_source"] = ""
 	if not data_dict.get("acl", None):
 		data_dict["acl"] = ["public"]
+#	if not data_dict.get("__source_name", None):
+#		data_dict["__source_name"] = "Source not found"
+	if not data_dict.get("data", None):
+		content = {}
+	else:
+		content = data_dict["data"]
+		content["mdf_source_name"] = data_dict["mdf_source_name"]
+		content["mdf_source_id"] = data_dict["mdf_source_id"]
+#		content["mdf_id"] = ObjectId(content["mdf_id"])
 #	if data_dict.get("data_context", None):
 #		for elem in data_dict.get("data", {}).keys():
 #			elem = data_dict["data_context"] + ":" + elem
@@ -137,7 +198,7 @@ def format_single_gmeta(data_dict, full=False):
 		#"visible_to":["public"],
 		"id":data_dict["globus_id"],
 		"source_id":data_dict["globus_source"],
-		"content":data_dict.get("data", {})
+		"content":content
 		}
 	gmeta["content"]["@context"] = data_dict["context"]
 
@@ -192,7 +253,7 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 		new_list = []
 		for elem in data:
 			new_elem = globus_search_filter(elem, max_list, max_depth, depth+1)
-			if new_elem is not None:
+			if new_elem is not None and type(new_elem) is not list: #No multi-dim lists
 				new_list.append(new_elem)
 		return new_list if new_list else None
 
@@ -210,14 +271,15 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 
 #Ingests data into Globus Search
 #Filters:
-#	No data nested more than N layers (N = 2)
-#	No lists with more than M elements (M = 5)
+#	No data nested more than N layers
+#	No lists with more than M elements
 #	No multi-dimensional lists
 #	No empty data structures
 #	No nested booleans
 def globus_search_ingest(args):
-	MAX_LIST = 5
-	MAX_NEST = 4
+	max_list = args.get("list_limit", -1)
+	max_nest = args.get("nest_limit", -1)
+
 	#print "Test database ingest:"
 	filtered_list = []
 	data_list = args["ingestable"]["ingest_data"]["gmeta"]
@@ -227,8 +289,9 @@ def globus_search_ingest(args):
 
 		filtered_content = {}
 		for key, value in entry["content"].items(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
-			filtered_content[key] = globus_search_filter(value, MAX_LIST, MAX_NEST)
+			filtered_content[key] = globus_search_filter(value, max_list, max_nest)
 			'''
+			#Moved to globus_search_filter
 			#if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
 			if value and type(value) is not dict and type(value) is not list: #JSON only supports list, dict, and things we consider data, so this checks if value is (not None) data
 				filtered_content[key] = value
@@ -386,7 +449,7 @@ def db_test_ingest(ingestable, client):
 #	ingest_limit: Maximum number of records to ingest overall. Default -1 (unlimited)
 #	verbose: Show status messages? Default False.
 #	delete_not_ingest: Caution! If True, will overwrite existing data instead of ingesting new data. Default False.
-def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
+def ingest_refined_feedstock(json_filename, destinations, destination_args={}, max_ingest_size=-1,  ingest_limit=-1, verbose=False, delete_not_ingest=False):
 	if type(destinations) is not set:
 		destinations = set(destinations)
 	if not destinations.issubset(all_destinations):
@@ -399,14 +462,10 @@ def ingest_refined_feedstock(json_filename, destinations, max_ingest_size=-1,  i
 			"client" : eval(dest + "_client()"),
 			"verbose" : verbose
 			}
-	'''
-	if "globus_search" in destinations:
-		globus_search_args["client"] =  globus_auth.login("https://datasearch.api.demo.globus.org/")
-	if "data_pub_service" in destinations:
-		data_pub_service_args["client"] = "Need client here" #TODO: DPS client
-	if "local_mongodb" in destinations:
-		local_mongodb_args["client"] = MongoClient()
-	'''
+		addl_args = destination_args.get(dest, {})
+		for key, value in addl_args.items():
+			dest_args[dest][key] = value
+
 	if delete_not_ingest:
 		confirm = input("Delete entries y/n: ")
 		if confirm.lower() not in ['y', 'yes']:
@@ -524,8 +583,11 @@ if __name__ == "__main__":
 		filename = all_data_files[key]["file"]
 		ingest_limit = all_data_files[key]["record_limit"]
 		max_ingest_size = all_data_files[key]["batch_size"]
+		destination_args = {}
+		for dest in ingest_to:
+			destination_args[dest] = all_data_files[key].get(dest, {})
 		print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
-		ingest_refined_feedstock(filename, ingest_to, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
+		ingest_refined_feedstock(filename, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
 		print("Finished ingesting from " + filename + "\n")
 	print("Ingest complete")
 

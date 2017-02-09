@@ -4,14 +4,18 @@ Converter (oqmd)
 from qmpy import *
 #from pickle import dump
 from json import dump
+from six import print_
+from tqdm import tqdm
 
 import paths #Contains relative paths to data
 
 feedstock = True
 
-def printDataset(entries, filename):
-	print "Printing to: " + filename
-	print "\tNumber of entries: %d"%(entries.count())
+def printDataset(entries, filename, verbose=False):
+	all_uri = []
+	if verbose:
+		print_("Printing to: " + filename)
+		print_("\tNumber of entries: %d"%(entries.count()))
 #	print >>fp, "id comp energy_pa volume_pa magmom_pa bandgap delta_e stability"
 	values = entries.values_list("entry__id", "composition__formula", "calculation__energy_pa", "calculation__output__volume_pa", "calculation__magmom_pa", "calculation__band_gap", "delta_e", "stability")
 	count = 0
@@ -53,6 +57,7 @@ def printDataset(entries, filename):
 				meta_out["data"]["dc:title"] = "OQMD - " + output["comp:comp"]
 				'''
 				output["uri"] = "http://oqmd.org/materials/entry/" + output["oqmd_id"]
+				all_uri.append(output["uri"])
 				#out_list.append(output)
 				dump(output, fp)
 				fp.write('\n')
@@ -72,7 +77,13 @@ def printDataset(entries, filename):
 #	fp = open(filename, 'w')
 #	dump(out_list, fp)
 #	fp.close()
-	print str(count) + " records saved."
+	if verbose:
+		print_(str(count) + " records saved.")
+
+	#duplicates = [x for x in all_uri if all_uri.count(x) > 1]
+	if len(all_uri) != len(set(all_uri)): #duplicates:
+		print_("Warning: Duplicate URIs found!")
+		print_("This is due to duplicate IDs and can be ignored unless the dataset changes.")
 	
 	'''
 	import json
@@ -90,7 +101,7 @@ def printDataset(entries, filename):
 if __name__ == "__main__":
 	filename = paths.raw_feed + "oqmd_all.json"
 	e = Formation.objects.filter(fit = "standard")
-	printDataset(e, filename)
+	printDataset(e, filename, verbose=True)
 
 #everything = Entry.objects.all()
 

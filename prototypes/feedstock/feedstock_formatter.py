@@ -6,26 +6,28 @@ from json import load, dump, loads
 from sys import exit
 from tqdm import tqdm
 from copy import deepcopy
+from bson import ObjectId
 
 #Pick one or more to refine
 to_refine = []
 
-#to_refine.append("janaf")
-#to_refine.append("khazana_polymer")
-#to_refine.append("khazana_vasp")
-#to_refine.append("danemorgan")
-#to_refine.append("oqmd")
+to_refine.append("janaf")
+to_refine.append("khazana_polymer")
+to_refine.append("khazana_vasp")
+to_refine.append("danemorgan")
+to_refine.append("oqmd")
 #to_refine.append("cod")
-#to_refine.append("sluschi")
-#to_refine.append("hopv")
-#to_refine.append("cip")
+to_refine.append("sluschi")
+to_refine.append("hopv")
+to_refine.append("cip")
 to_refine.append("nanomine")
 
 
-#Formats a record into the appropriate schema
-#TODO: Actually come up with a schema. Until then, this does nothing useful.
+#Formats a record into the appropriate schema and mints BSON ID
+#TODO: Actually define a schema.
 def schema_format(raw_record):
 	formatted = raw_record
+	formatted["mdf_id"] = str(ObjectId())
 	return formatted
 
 
@@ -101,7 +103,8 @@ if __name__ == "__main__":
 
 	if "janaf" in to_refine:
 		janaf_static = {
-			"__source_name" : "janaf",
+			"mdf_source_name" : "janaf",
+			"mdf_source_id" : 2,
 			"globus_id" : "janaf",
 			"globus_source" : "NIST-JANAF",
 			"context" : {
@@ -117,7 +120,8 @@ if __name__ == "__main__":
 
 	if "khazana_polymer" in to_refine:
 		khaz_poly_static = {
-			"__source_name" : "khazana_polymer",
+			"mdf_source_name" : "khazana_polymer",
+			"mdf_source_id" : 4,
 			"globus_source" : "Khazana (Polymer)",
 			"acl" : ["public"]
 			}
@@ -128,7 +132,8 @@ if __name__ == "__main__":
 
 	if "khazana_vasp" in to_refine:
 		khaz_vasp_static = {
-			"__source_name" : "khazana_dft",
+			"mdf_source_name" : "khazana_dft",
+			"mdf_source_id" : 5,
 			"globus_source" : "Khazana (DFT)",
 			"acl" : ["public"]
 			}
@@ -139,7 +144,8 @@ if __name__ == "__main__":
 
 	if "danemorgan" in to_refine:
 		danemorgan_static = {
-			"__source_name" : "ab_initio_solute_database",
+			"mdf_source_name" : "ab_initio_solute_database",
+			"mdf_source_id" : 3,
 			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
 			"acl" : ["public"]
 			}
@@ -150,7 +156,8 @@ if __name__ == "__main__":
 
 	if "oqmd" in to_refine:
 		oqmd_static = {
-			"__source_name" : "oqmd",
+			"mdf_source_name" : "oqmd",
+			"mdf_source_id" : 1,
 			"globus_source" : "Open Quantum Materials Database",
 			"context" : {
 				"oqmd" : "http://www.oqmd.org/",
@@ -166,7 +173,8 @@ if __name__ == "__main__":
 
 	if "cod" in to_refine:
 		cod_static = {
-			"__source_name" : "cod",
+			"mdf_source_name" : "cod",
+			"mdf_source_id" : 6,
 			"globus_source" : "Crystallography Open Database",
 			"acl" : ["public"]
 			}
@@ -177,7 +185,8 @@ if __name__ == "__main__":
 
 	if "sluschi" in to_refine:
 		sluschi_static = {
-			"__source_name" : "sluschi",
+			"mdf_source_name" : "sluschi",
+			"mdf_source_id" : 7,
 			"globus_source" : "Sluschi",
 			"acl" : ["public"]
 			}
@@ -188,27 +197,32 @@ if __name__ == "__main__":
 	
 	if "hopv" in to_refine:
 		hopv_static = {
-			"__source_name" : "hopv",
+			"mdf_source_name" : "hopv",
+			"mdf_source_id" : 8,
 			"globus_source" : "Harvard Open Photovoltaic Database",
 			"acl" : ["public"]
 			}
 		hopv_dynamic = {
+			"globus_subject" : "data['uri']"
 		}
 		refine_feedstock(raw_dir+"hopv_all.json", ref_dir+"hopv_refined.json", hopv_static, hopv_dynamic, verbose)
 
 	if "cip" in to_refine:
 		cip_static = {
-			"__source_name" : "cip",
+			"mdf_source_name" : "cip",
+			"mdf_source_id" : 9,
 			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
 			"acl" : ["public"]
 			}
 		cip_dynamic = {
+			"globus_subject" : "data['uri']"
 			}
 		refine_feedstock(raw_dir+"cip_all.json", ref_dir+"cip_refined.json", cip_static, cip_dynamic, verbose)
 	
 	if "nanomine" in to_refine:
 		nanomine_static = {
-			"__source_name" : "nanomine",
+			"mdf_source_name" : "nanomine",
+			"mdf_source_id" : 10,
 			"globus_source" : "Nanomine",
 			"acl" : ["c8745ef4-d274-11e5-bee8-3b6845397ac9", "117e8833-68f5-4cb2-afb3-05b25db69be1"] #blaiszik, jgaff
 			}
