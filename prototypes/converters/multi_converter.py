@@ -698,7 +698,7 @@ if __name__ == "__main__":
 #					}
 #				},
 			"uri" : "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/",
-			"keep_dir_name_depth" : 2,
+			"keep_dir_name_depth" : 3,
 			"root" : paths.datasets + "dane_morgan/data",
 			"file_pattern" : "^OUTCAR$",
 			"file_format" : "vasp",

@@ -6,6 +6,7 @@ Ingester
 from sys import exit
 from json import loads, dumps
 from tqdm import tqdm
+from copy import deepcopy
 #from pymongo import MongoClient
 #from bson import ObjectId
 
@@ -34,7 +35,7 @@ ingest_to = set()
 #Pick one or more destinations
 ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
-#ingest_to.add("local_mongodb")
+ingest_to.add("local_mongodb")
 
 all_data_files = {
 	"oqmd" : {
@@ -139,16 +140,16 @@ all_data_files = {
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-#data_file_to_use.append("oqmd")
-#data_file_to_use.append("janaf")
-#data_file_to_use.append("danemorgan")
-#data_file_to_use.append("khazana_polymer")
-#data_file_to_use.append("khazana_vasp")
+data_file_to_use.append("oqmd")
+data_file_to_use.append("janaf")
+data_file_to_use.append("danemorgan")
+data_file_to_use.append("khazana_polymer")
+data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-#data_file_to_use.append("sluschi")
+data_file_to_use.append("sluschi")
 data_file_to_use.append("hopv")
-#data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
+data_file_to_use.append("cip")
+data_file_to_use.append("nanomine")
 
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
@@ -528,7 +529,7 @@ def ingest_refined_feedstock(json_filename, destinations, destination_args={}, m
 		if (len(list_ingestable) >= max_ingest_size) or (ingest_limit > 0 and total_count >= ingest_limit and len(list_ingestable) > 0): #If batch is full, OR if total ingest limit is reached, need to ingest batch
 			multi_ingestable = format_multi_gmeta(list_ingestable)
 			for dest in destinations:
-				dest_args[dest]["ingestable"] = multi_ingestable
+				dest_args[dest]["ingestable"] = deepcopy(multi_ingestable)
 				exec(dest + "_ingest(dest_args[dest])")
 			num_batches += 1
 			list_ingestable.clear()
@@ -538,7 +539,7 @@ def ingest_refined_feedstock(json_filename, destinations, destination_args={}, m
 	if list_ingestable: #If data remains uningested (incomplete batch when EOF)
 		multi_ingestable = format_multi_gmeta(list_ingestable)
 		for dest in destinations:
-			dest_args[dest]["ingestable"] = multi_ingestable
+			dest_args[dest]["ingestable"] = deepcopy(multi_ingestable)
 			exec(dest + "_ingest(dest_args[dest])")
 			num_batches += 1
 
