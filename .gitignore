@@ -1,2 +1,9 @@
-
 *.pyc
+*.swp
+*_json.pickle
+*.json
+
+prototypes/feedstock/*
+!prototypes/feedstock/feedstock_formatter.py
+prototypes/datasets/*
+prototypes/datasets
