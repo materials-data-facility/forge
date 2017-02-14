@@ -35,7 +35,7 @@ ingest_to = set()
 #Pick one or more destinations
 ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
-ingest_to.add("local_mongodb")
+#ingest_to.add("local_mongodb")
 
 all_data_files = {
 	"oqmd" : {
@@ -132,23 +132,23 @@ all_data_files = {
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
-			"list_limit" : std_list_lim,
-			"nest_limit" : std_nest_lim
+			"list_limit" : -1,
+			"nest_limit" : -1
 			}
 
 		}
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-data_file_to_use.append("oqmd")
-data_file_to_use.append("janaf")
-data_file_to_use.append("danemorgan")
-data_file_to_use.append("khazana_polymer")
-data_file_to_use.append("khazana_vasp")
+#data_file_to_use.append("oqmd")
+#data_file_to_use.append("janaf")
+#data_file_to_use.append("danemorgan")
+#data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-data_file_to_use.append("sluschi")
-data_file_to_use.append("hopv")
-data_file_to_use.append("cip")
+#data_file_to_use.append("sluschi")
+#data_file_to_use.append("hopv")
+#data_file_to_use.append("cip")
 data_file_to_use.append("nanomine")
 
 
@@ -250,7 +250,7 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 	elif max_depth >= 0 and depth >= max_depth: #If max_depth is set and has been exceeded, stop processing
 		return None
 
-	elif type(data) is list and len(data) <= max_list:
+	elif type(data) is list and (len(data) <= max_list or max_list < 0):
 		new_list = []
 		for elem in data:
 			new_elem = globus_search_filter(elem, max_list, max_depth, depth+1)
@@ -326,7 +326,15 @@ def globus_search_ingest(args):
 	ingest_data = loads(dumps(args["ingestable"]))
 #	print(ingest_data)
 #	args["client"].ingest(args["ingestable"])
-	args["client"].ingest(ingest_data)
+
+#	with open("nanomine_ingest.gmeta", 'w') as gout:
+#		gout.write(str(ingest_data))
+#		gout.write('\n')
+
+	res = args["client"].ingest(ingest_data)
+	if args["verbose"]:
+		print('\t', res)
+
 
 def data_pub_service_client():
 	return "TODO: DPS client"

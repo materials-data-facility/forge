@@ -85,7 +85,11 @@ def convert_nanomine(in_file, out_file, uri_prefix="", sack_size=0, sack_file=No
 				converted = recursive_parse(record)
 #				print(converted)
 				if converted and type(converted) is dict: #Type should be dict, but check anyway
-					converted['uri'] = uri_prefix + converted["_id"]["$oid"]
+					#'$oid' causes issues, move to a different key
+					converted["nanomine_id"] = converted["_id"]["$oid"]
+					converted.pop("_id", None)
+					converted['uri'] = uri_prefix + converted["nanomine_id"]
+					all_uri.append(converted['uri'])
 					dump(converted, output_f)
 					output_f.write('\n')
 					if count < sack_size:

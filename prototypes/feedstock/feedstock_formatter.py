@@ -11,15 +11,15 @@ from bson import ObjectId
 #Pick one or more to refine
 to_refine = []
 
-to_refine.append("janaf")
-to_refine.append("khazana_polymer")
-to_refine.append("khazana_vasp")
-to_refine.append("danemorgan")
-to_refine.append("oqmd")
+#to_refine.append("janaf")
+#to_refine.append("khazana_polymer")
+#to_refine.append("khazana_vasp")
+#to_refine.append("danemorgan")
+#to_refine.append("oqmd")
 #to_refine.append("cod")
-to_refine.append("sluschi")
-to_refine.append("hopv")
-to_refine.append("cip")
+#to_refine.append("sluschi")
+#to_refine.append("hopv")
+#to_refine.append("cip")
 to_refine.append("nanomine")
 
 
