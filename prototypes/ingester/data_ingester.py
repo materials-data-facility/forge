@@ -29,13 +29,15 @@ std_nest_lim = 4
 #		The data must be filtered appropriately
 #		The ingestable data must be ingested
 #		Any arguments besides ingestable can be ignored if necessary
-all_destinations = {"globus_search", "data_pub_service", "local_mongodb"}
+all_destinations = {"globus_search", "data_pub_service", "local_mongodb", "local_elasticsearch"}
 
 ingest_to = set()
 #Pick one or more destinations
-ingest_to.add("globus_search")
+#ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
 #ingest_to.add("local_mongodb")
+ingest_to.add("local_elasticsearch")
+
 
 all_data_files = {
 	"oqmd" : {
@@ -140,7 +142,7 @@ all_data_files = {
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-#data_file_to_use.append("oqmd")
+data_file_to_use.append("oqmd")
 #data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
 #data_file_to_use.append("khazana_polymer")
@@ -149,7 +151,7 @@ data_file_to_use = []
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
-data_file_to_use.append("nanomine")
+#data_file_to_use.append("nanomine")
 
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
@@ -400,6 +402,31 @@ def local_mongodb_ingest(args):
 		filtered_list.append(entry)
 #	print("Total:", total_count, "\nList:", len(filtered_list))
 	db.feedstock.insert_many(filtered_list)
+
+
+
+def local_elasticsearch_client():
+	from elasticsearch import Elasticsearch
+	from elasticsearch.exceptions import RequestError
+#	from elasticsearch_dsl import Index
+	client = Elasticsearch()
+#	Index("mdf", using=client).create()
+	try:
+		client.indices.create(index="mdf")
+	except RequestError: #Index exists
+		pass
+	return client
+
+
+
+def local_elasticsearch_ingest(args):
+	if args["ingestable"]["ingest_type"] == "GMetaList":
+		for entry in args["ingestable"]["ingest_data"]["gmeta"]:
+			print(args["client"].create(index="mdf", body=entry))
+	else:
+		print("Not GMetaList")
+
+
 
 
 '''
