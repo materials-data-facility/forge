@@ -15,7 +15,7 @@ def float_nan(value):
 
 #Takes a/the HOPV file and parses its interesting structure
 def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, uri_dup_check=True, verbose=False):
-	all_uris = []
+	all_uri = []
 	if verbose:
 		print("Opening files")
 	with open(in_filename, 'r') as in_file:
@@ -109,7 +109,7 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, u
 		print("Processed", count, "molecules successfully.")
 	duplicates = [x for x in all_uri if all_uri.count(x) > 1]
 	if duplicates:
-		print("Warning: Duplicate URIs found:\n", set(duplicates)
+		print("Warning: Duplicate URIs found:\n", set(duplicates))
 
 
 
