@@ -62,7 +62,7 @@ all_data_files = {
 	"danemorgan" : {
 		"file" : paths.ref_feed + "danemorgan_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 500,
+		"batch_size" : 10,
 		"globus_search" : {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
@@ -102,7 +102,7 @@ all_data_files = {
 	"sluschi" : {
 		"file" : paths.ref_feed + "sluschi_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 100,
+		"batch_size" : 10,
 		"globus_search" : {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
@@ -138,25 +138,39 @@ all_data_files = {
 			"nest_limit" : -1
 			}
 
+		},
+	"nist_ip" : {
+		"file" : paths.ref_feed + "nist_ip_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
 		}
 	}
 #Pick one or more data files to ingest
 data_file_to_use = []
-data_file_to_use.append("oqmd")
+#data_file_to_use.append("oqmd")
 #data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
 #data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-#data_file_to_use.append("sluschi")
+data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
+#data_file_to_use.append("nist_ip")
 
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
-#Only applies to Globus Search
+#Only applies to globus_search
 DELETE_DATA = False
+
+#This setting deletes Elasticsearch data before re-ingesting
+#Only applies to local_elasticsearch
+DELETE_ES = False
 
 #datacite_namespace = "https://schema.labs.datacite.org/meta/kernel-4.0/metadata.xsd"
 #dc_namespace = "http://dublincore.org/documents/dcmi-terms"
@@ -409,22 +423,38 @@ def local_elasticsearch_client():
 	from elasticsearch import Elasticsearch
 	from elasticsearch.exceptions import RequestError
 #	from elasticsearch_dsl import Index
-	client = Elasticsearch()
+	client = Elasticsearch(timeout=120)
 #	Index("mdf", using=client).create()
 	try:
 		client.indices.create(index="mdf")
 	except RequestError: #Index exists
-		pass
+		if DELETE_ES:
+			client.indices.delete(index="mdf")
+			client.indices.create(index="mdf")
 	return client
 
 
 
 def local_elasticsearch_ingest(args):
+	from elasticsearch import helpers
+#	from time import sleep
 	if args["ingestable"]["ingest_type"] == "GMetaList":
-		for entry in args["ingestable"]["ingest_data"]["gmeta"]:
-			print(args["client"].create(index="mdf", body=entry))
+#		for entry in args["ingestable"]["ingest_data"]["gmeta"]:
+#			print(args["client"].create(index="mdf", body=entry))
+		ingest = ({
+		"_index": "mdf",
+		"_type" : "record",
+		 "_id"   : entry['content']['mdf_id'],
+		"_source": entry,
+		} for entry in args["ingestable"]["ingest_data"]["gmeta"])
+#		sleep(0.01)
+		res = helpers.bulk(args['client'], ingest)
+		if args["verbose"] and False: #This is spammy
+			print(res)
 	else:
-		print("Not GMetaList")
+		res = args["client"].create(index="mdf", body=args["ingestable"]["ingest_data"]["gmeta"])
+		if args["verbose"]:
+			print(res)
 
 
 
