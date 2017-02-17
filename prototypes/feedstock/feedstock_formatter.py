@@ -20,7 +20,8 @@ to_refine = []
 #to_refine.append("sluschi")
 #to_refine.append("hopv")
 #to_refine.append("cip")
-to_refine.append("nanomine")
+#to_refine.append("nanomine")
+to_refine.append("nist_ip")
 
 
 #Formats a record into the appropriate schema and mints BSON ID
@@ -230,6 +231,18 @@ if __name__ == "__main__":
 			"globus_subject" : "data['uri']"
 			}
 		refine_feedstock(raw_dir+"nanomine_all.json", ref_dir+"nanomine_refined.json", nanomine_static, nanomine_dynamic, verbose)
+
+	if "nist_ip" in to_refine:
+		nist_ip_static = {
+			"mdf_source_name" : "nist_ip",
+			"mdf_source_id" : 11,
+			"globus_source" : "NIST Interatomic Potentials",
+			"acl" : ["public"]
+			}
+		nist_ip_dynamic = {
+			"globus_subject" : "data['uri']"
+			}
+		refine_feedstock(raw_dir+"nist_ip_all.json", ref_dir+"nist_ip_refined.json", nist_ip_static, nist_ip_dynamic, verbose)
 
 	if verbose:
 		print("END")
