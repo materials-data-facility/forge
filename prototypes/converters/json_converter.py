@@ -1,13 +1,15 @@
 from json import load, loads, dump
+from os.path import join
+from tqdm import tqdm
 #from ujson import dump
-
+from utils import find_files
 import paths
 
 
 datasets = []
-datasets.append("cip")
+#datasets.append("cip")
 #datasets.append("ido") #Broken for now
-
+datasets.append("nist_ip")
 
 #Generator to run through a JSON record and yield the data
 #Data is defined as the first layer that isn't a list
@@ -28,26 +30,31 @@ def find_data(record):
 def convert_json_to_json(in_name, out_name, uri_loc, feed_size=0, feed_name=None, verbose=False):
 	all_uri = []
 	if verbose:
-		print("Converting JSON from", in_name, "\nDumping results to", out_name)
-	with open(in_name, 'r') as in_file:
-		if verbose:
-			print("Processing")
-		list_of_data = []
-		try: #If input JSON is human-formatted (with newlines), this will fail
-			for line in in_file:
-				line_data = loads(line)
-				for result in find_data(line_data):
+		print("Converting JSON, dumping results to", out_name)
+	if type(in_name) is str:
+		in_name = [in_name]
+	list_of_data = []
+	for one_file in tqdm(in_name, desc="Processing", disable= not verbose):
+		#print(one_file)
+		with open(one_file, 'r') as in_file:
+			#if verbose:
+			#	print("Processing")
+			try: #If input JSON is human-formatted (with newlines), this will fail
+				for line in in_file:
+					line_data = loads(line)
+					for result in find_data(line_data):
+						list_of_data.append(result)
+						
+			except Exception as err: #Fall back to reading the whole thing at once
+				#if list_of_data: #If some lines were already processed, is error in JSON
+					#print("Possible error in JSON on file:", one_file, ":", err)
+					#list_of_data.clear() #Reset and try again
+				#if verbose:
+				#	print("Line reading failed, falling back to whole-file processing")
+				in_file.seek(0) #Reset file to start
+				data = load(in_file)
+				for result in find_data(data):
 					list_of_data.append(result)
-					
-		except Exception as err: #Fall back to reading the whole thing at once
-			if list_of_data: #If some lines were already processed, is error in JSON
-				print("Possible error in JSON:", err)
-				list_of_data.clear() #Reset and try again
-			if verbose:
-				print("Line reading failed, falling back to whole-file processing")
-			data = load(in_file)
-			for result in find_data(data):
-				list_of_data.append(result)
 
 	with open(out_name, 'w') as out_file:		
 		if list_of_data:
@@ -86,7 +93,17 @@ if __name__ == "__main__":
 		ido_sack_size = 10
 		ido_feed = paths.sack_feed + "ido_10.json"
 		convert_json_to_json(ido_in, ido_out, ido_uri, ido_sack_size, ido_feed, verbose=verbose)
-		
 
+	if "nist_ip" in datasets:
+		nist_ip_in = paths.datasets + "nist_ip/interchange"
+		nist_ip_out = paths.raw_feed + "nist_ip_all.json"
+		nist_ip_uri = "interatomic-potential']['id"
+		nist_ip_sack_size = 10
+		nist_ip_feed = paths.sack_feed + "nist_ip_10.json"
+		nist_ip_file_list = []
+		for file_data in find_files(nist_ip_in, ".*\.json$"):
+			nist_ip_file_list.append(join(file_data["path"], file_data["filename"] + file_data["extension"]))
+		convert_json_to_json(nist_ip_file_list, nist_ip_out, nist_ip_uri, nist_ip_sack_size, nist_ip_feed, verbose=verbose)
+		
 
 
