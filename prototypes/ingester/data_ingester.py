@@ -102,7 +102,7 @@ all_data_files = {
 	"sluschi" : {
 		"file" : paths.ref_feed + "sluschi_refined.json",
 		"record_limit" : max_ingests_total,
-		"batch_size" : 10,
+		"batch_size" : 1,
 		"globus_search" : {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
@@ -423,7 +423,7 @@ def local_elasticsearch_client():
 	from elasticsearch import Elasticsearch
 	from elasticsearch.exceptions import RequestError
 #	from elasticsearch_dsl import Index
-	client = Elasticsearch(timeout=120)
+	client = Elasticsearch(timeout=600)
 #	Index("mdf", using=client).create()
 	try:
 		client.indices.create(index="mdf")

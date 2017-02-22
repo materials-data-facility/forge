@@ -80,7 +80,7 @@ def parse_janaf_file(filename):
         output['T'] = T
         output['dH'] = dH
         output['dG'] = dG
-        output['dS'] = [ (h - g) / t if t > 0 else 0 for h,g,t in zip(dH,dG,T)]
+        output['dS'] = [ float((h - g) / t) if t > 0 else 0.0 for h,g,t in zip(dH,dG,T)]
         output['Cp'] = Cp
 	
 #	output["testing"] = "janaftest4"

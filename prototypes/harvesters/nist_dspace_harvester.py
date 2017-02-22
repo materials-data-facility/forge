@@ -70,5 +70,5 @@ def nist_dspace_harvest(out_dir, existing_dir=0, verbose=False):
 
 
 if __name__ == "__main__":
-	nist_dspace_harvest("./nist_data", existing_dir=1, verbose=True)
+	nist_dspace_harvest("./nist_dspace", existing_dir=1, verbose=True)
 
