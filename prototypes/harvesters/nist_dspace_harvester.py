@@ -6,6 +6,8 @@ import os.path
 from shutil import rmtree
 from tqdm import tqdm
 
+import paths
+
 #Collects available data from NIST's DSpace instance and saves to the given directory
 #out_dir: The path to the directory (which will be created) for the data files
 #existing_dir:
@@ -29,7 +31,7 @@ def nist_dspace_harvest(out_dir, existing_dir=0, verbose=False):
 	if item_ids.status_code == 200:
 		item_ids = [str(item_record["id"]) for item_record in tqdm(loads(item_ids.content), desc="Fetching item IDs", disable= not verbose)]
 	else:
-		exit("Item ID GET failure")
+		exit("Item ID GET failure: " + str(item_ids.status_code) + " error")
 
 	#Fetch data/metadata from every ID
 	for item in item_ids:
@@ -47,28 +49,27 @@ def nist_dspace_harvest(out_dir, existing_dir=0, verbose=False):
 		metadata = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/metadata")
 		metadata = loads(metadata.content) if metadata.status_code == 200 else exit("Metadata GET failure")
 
-		with open(os.path.join(item_dir, item + ".metadata"), 'w') as out_file:
+		with open(os.path.join(item_dir, item + "_metadata.json"), 'w') as out_file:
 			dump(metadata, out_file)
 
-		bitstream_ids = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/bitstreams")
-		if bitstream_ids.status_code == 200:
-			bitstream_ids = [str(bit_record["id"]) for bit_record in tqdm(loads(bitstream_ids.content), desc="Fetching bitstream IDs", disable= not verbose)]
+		bitstream_data = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/bitstreams")
+		if bitstream_data.status_code == 200:
+			bitstream_data = [{"bit_id" : str(bit_record["id"]), "bit_name" : bit_record["name"]} for bit_record in tqdm(loads(bitstream_data.content), desc="Fetching bitstream IDs", disable= not verbose)]
 		else:
-			exit("Bitstream ID GET failure")
+			exit("Bitstream ID GET failure: " + str(bitstream_data.status_code) + " error")
 
-		for bitstream in bitstream_ids:
-			data = requests.get("https://materialsdata.nist.gov/dspace/rest/bitstreams/" + bitstream + "/retrieve", stream=True)
+		for bitstream in bitstream_data:
+			data = requests.get("https://materialsdata.nist.gov/dspace/rest/bitstreams/" + bitstream["bit_id"] + "/retrieve", stream=True)
 			#data = data.content if data.status_code == 200 else exit("Data GET failure")
 			if data.status_code != 200:
-				exit("Data GET failure")
+				exit("Data GET failure: " + str(data.status_code) + " error")
 
-			with open(os.path.join(item_dir, item + "_" + bitstream + ".data"), 'wb') as out_file:
+			with open(os.path.join(item_dir, bitstream["bit_name"]), 'wb') as out_file:
 				for chunk in data.iter_content(chunk_size=1024):
 					out_file.write(chunk)
 
 
 
-
 if __name__ == "__main__":
-	nist_dspace_harvest("./nist_dspace", existing_dir=1, verbose=True)
+	nist_dspace_harvest(paths.datasets + "nist_dspace", existing_dir=1, verbose=True)
 
