@@ -157,10 +157,10 @@ data_file_to_use = []
 #data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-data_file_to_use.append("sluschi")
+#data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
+data_file_to_use.append("nanomine")
 #data_file_to_use.append("nist_ip")
 
 
@@ -417,6 +417,28 @@ def local_mongodb_ingest(args):
 #	print("Total:", total_count, "\nList:", len(filtered_list))
 	db.feedstock.insert_many(filtered_list)
 
+#Recursive filter, removes undesirable elements
+def recursive_filter(data):
+	if type(data) is list:
+		new_data = []
+		for elem in data:
+			if elem != elem:
+				elem = None
+			new_data.append(recursive_filter(elem))
+	elif type(data) is dict:
+		new_data = {}
+		for key, value in data.items():
+			if value != value:
+				value = None
+			new_data[key] = recursive_filter(value)
+	else:
+		new_data = data
+	return new_data
+
+
+#No NaNs - convert to null
+def local_elasticsearch_filter(data):
+	return recursive_filter(data)
 
 
 def local_elasticsearch_client():
@@ -441,14 +463,15 @@ def local_elasticsearch_ingest(args):
 	if args["ingestable"]["ingest_type"] == "GMetaList":
 #		for entry in args["ingestable"]["ingest_data"]["gmeta"]:
 #			print(args["client"].create(index="mdf", body=entry))
-		ingest = ({
+		ingest = [{
 		"_index": "mdf",
 		"_type" : "record",
 		 "_id"   : entry['content']['mdf_id'],
 		"_source": entry,
-		} for entry in args["ingestable"]["ingest_data"]["gmeta"])
+		} for entry in args["ingestable"]["ingest_data"]["gmeta"]]
 #		sleep(0.01)
-		res = helpers.bulk(args['client'], ingest)
+		clean_ingest = local_elasticsearch_filter(ingest)
+		res = helpers.bulk(args['client'], clean_ingest)
 		if args["verbose"] and False: #This is spammy
 			print(res)
 	else:
