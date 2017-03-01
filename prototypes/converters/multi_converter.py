@@ -565,7 +565,7 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #Essentially a main for this script, calls the other functions and ties everything together
 #Returns a list of dicts ready for ingestion, and optionally (see below) writes that list out to a file
 #arg_dict accepts:
-#	metadata: a dict of desired metadata (e.g. globus_source, context, etc.), NOT including globus_subject. Default nothing.
+#	DEPRECATED: metadata: a dict of desired metadata (e.g. globus_source, context, etc.), NOT including globus_subject. Default nothing.
 #	uri: the prefix for globus_subject (ex. if uri="http://globus.org/" and uri_adds (see below) is [dir] then a file found in the directory "data/123/" would have globus_subject="http://globus.org/data/123/") Default is empty string.
 #	keep_dir_name_depth: how many layers of directory, counting up from the base file, should be saved and added to the URI. -1 saves the entire path. The default (which is lossy but private) is 0.
 #

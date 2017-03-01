@@ -41,7 +41,7 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 				dir_names = []
 				head, tail = os.path.split(path)
 				dir_names.append(tail)
-				while head:
+				while head and head != os.sep:
 					head, tail = os.path.split(head)
 					dir_names.append(tail)	
 				if keep_dir_name_depth >= 0:
