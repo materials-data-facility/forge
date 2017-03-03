@@ -11,7 +11,7 @@ from bson import ObjectId
 #Pick one or more to refine
 to_refine = []
 
-to_refine.append("janaf")
+#to_refine.append("janaf")
 #to_refine.append("khazana_polymer")
 #to_refine.append("khazana_vasp")
 #to_refine.append("danemorgan")
@@ -22,6 +22,7 @@ to_refine.append("janaf")
 #to_refine.append("cip")
 #to_refine.append("nanomine")
 #to_refine.append("nist_ip")
+to_refine.append("nist_dspace")
 
 
 #Formats a record into the appropriate schema and mints BSON ID
@@ -243,6 +244,21 @@ if __name__ == "__main__":
 			"globus_subject" : "data['uri']"
 			}
 		refine_feedstock(raw_dir+"nist_ip_all.json", ref_dir+"nist_ip_refined.json", nist_ip_static, nist_ip_dynamic, verbose)
+
+	if "nist_dspace" in to_refine:
+		nist_dspace_static = {
+			"mdf_source_name" : "nist_dspace",
+			"mdf_source_id" : 12,
+			"acl" : ["public"]
+			}
+		nist_dspace_dynamic = {
+			"globus_source" : "data['dc_title'][0]",
+			"globus_subject" : "data['uri']"
+			}
+		from utils import find_files
+		for raw_file in find_files(root=raw_dir, file_pattern="^nist_dspace"):
+			ref_file = raw_file["filename"].replace("all", "refined") + raw_file["extension"]
+			refine_feedstock(raw_dir+raw_file["filename"]+raw_file["extension"], ref_dir+ref_file, nist_dspace_static, nist_dspace_dynamic, verbose)
 
 	if verbose:
 		print("END")

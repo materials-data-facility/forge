@@ -39,6 +39,23 @@ ingest_to = set()
 ingest_to.add("local_elasticsearch")
 
 
+#Pick one or more data files to ingest
+data_file_to_use = []
+#data_file_to_use.append("oqmd")
+#data_file_to_use.append("janaf")
+#data_file_to_use.append("danemorgan")
+#data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("khazana_vasp")
+#data_file_to_use.append("cod")
+#data_file_to_use.append("sluschi")
+#data_file_to_use.append("hopv")
+#data_file_to_use.append("cip")
+#data_file_to_use.append("nanomine")
+#data_file_to_use.append("nist_ip")
+data_file_to_use.append("nist_dspace")
+
+
+#Information about each dataset for ingesting
 all_data_files = {
 	"oqmd" : {
 		"file" : paths.ref_feed +  "oqmd_refined.json",
@@ -147,26 +164,22 @@ all_data_files = {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
 			}
+		},
+	"nist_dspace" : {
+		"file" : "",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 10,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
 		}
 	}
-#Pick one or more data files to ingest
-data_file_to_use = []
-#data_file_to_use.append("oqmd")
-#data_file_to_use.append("janaf")
-#data_file_to_use.append("danemorgan")
-#data_file_to_use.append("khazana_polymer")
-#data_file_to_use.append("khazana_vasp")
-#data_file_to_use.append("cod")
-#data_file_to_use.append("sluschi")
-#data_file_to_use.append("hopv")
-#data_file_to_use.append("cip")
-data_file_to_use.append("nanomine")
-#data_file_to_use.append("nist_ip")
 
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 #Only applies to globus_search
-DELETE_DATA = False
+DELETE_GS = False
 
 #This setting deletes Elasticsearch data before re-ingesting
 #Only applies to local_elasticsearch
@@ -675,9 +688,19 @@ if __name__ == "__main__":
 		destination_args = {}
 		for dest in ingest_to:
 			destination_args[dest] = all_data_files[key].get(dest, {})
-		print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
-		ingest_refined_feedstock(filename, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_DATA)
-		print("Finished ingesting from " + filename + "\n")
+		if filename:
+			print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
+			ingest_refined_feedstock(filename, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
+			print("Finished ingesting from " + filename + "\n")
+		elif key == "nist_dspace":
+			from utils import find_files
+			for ref_file in find_files(root=paths.ref_feed, file_pattern="^nist_dspace"):
+				ref_path = paths.ref_feed + ref_file["filename"] + ref_file["extension"]
+				print("Using " + str(ingest_limit) + " records from " + ref_path + " in batches of " + str(max_ingest_size) + ":")
+				ingest_refined_feedstock(ref_path, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
+				print("Finished ingesting from " + ref_path + "\n")
+		else:
+			print("Invalid special dataset")
 	print("Ingest complete")
 
 
