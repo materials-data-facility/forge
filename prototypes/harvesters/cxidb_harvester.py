@@ -2,6 +2,7 @@ import requests
 from json import dump
 import os
 from tqdm import tqdm
+import paths
 
 #Collects available data from CXIDB and saves to the given directory
 #out_dir: The path to the directory (which will be created) for the data files
@@ -36,6 +37,6 @@ def cxidb_harvest(out_dir, existing_dir=0, verbose=False):
 
 
 if __name__ == "__main__":
-	cxidb_harvest("cxidb_metadata", 1, verbose=True)
+	cxidb_harvest(paths.datasets + "cxidb_metadata", 1, verbose=True)
 
 

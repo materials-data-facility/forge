@@ -45,7 +45,7 @@ def matin_harvest(out_dir, existing_dir=0, verbose=False):
 
 
 if __name__ == "__main__":
-	matin_harvest("./matin_metadata", 1)
+	matin_harvest(paths.datasets + "matin_metadata", 1)
 
 
 

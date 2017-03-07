@@ -65,3 +65,49 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 	else:
 		return dir_list
 
+dc_template = {
+	"dc.title" : str(), #Required
+	"dc.creator" : str(), #Required
+	"dc.contributor.author" : list(),
+	"dc.identifier" : str(), #Required
+	"dc.subject" : list(),
+	"dc.description" : str(),
+	"dc.relatedidentifier" : str(),
+	"dc.year" : int()
+	}
+#Takes dict of DataCite formatted metadata, checks if valid
+#If invalid, returns valid=false and the invalid data
+def dc_validate(dc_raw):
+	dc_data = {}
+	for key, value in dc_raw.items(): #Clear out empty values
+		if value:
+			dc_data[key] = value
+	invalid = {}
+	if type(dc_data.get("dc.title", None)) is not str:
+		invalid["dc.title"] = dc_data.get("dc.title", None)
+	if type(dc_data.get("dc.creator", None)) is not str:
+		invalid["dc.creator"] = dc_data.get("dc.creator", None)
+	if type(dc_data.get("dc.contributor.author", list())) is not list:
+		invalid["dc.contributor.author"] = dc_data["dc.contributor.author"]
+	if type(dc_data.get("dc.identifier", None)) is not str:
+		invalid["dc.identifier"] = dc_data.get("dc.identifier", None)
+	if type(dc_data.get("dc.subject", list())) is not list:
+		invalid["dc.subject"] = dc_data["dc.subject"]
+	if type(dc_data.get("dc.description", str())) is not str:
+		invalid["dc.description"] = dc_data["dc.description"]
+	if type(dc_data.get("dc.relatedidentifier", list())) is not list:
+		invalid["dc.relatedidentifier"] = dc_data["dc.relatedidentifier"]
+	if type(dc_data.get("dc.year", int())) is not int:
+		invalid["dc.year"] = dc_data["dc.year"]
+	
+	if invalid:
+		return {
+			"valid" : False,
+			"invalid_fields" : invalid
+			}
+	else:
+		return {
+			"valid" : True,
+			"validated" : dc_data
+			}
+
