@@ -426,7 +426,7 @@ def globus_search_ingest(args):
 #	ingest_data = loads(dumps(args["ingestable"]))
 
 	ingest_data = loads(dumps(searchify(args["ingestable"])))
-	print("\nDATA:", dumps(ingest_data, sort_keys=True, indent=4, separators=(',', ': ')))
+#	print("\nDATA:", dumps(ingest_data, sort_keys=True, indent=4, separators=(',', ': ')))
 	res = args["client"].ingest(ingest_data)
 	exit("Done")
 	if args["verbose"]:
