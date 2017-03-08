@@ -54,14 +54,21 @@ def nist_convert(nist_raw): #TODO: Fix duplicates into list
 		if not nist_data.get(meta_dict["key"], None): #No previous value, copy data
 			nist_data[meta_dict["key"]] = meta_dict["value"]
 		else: #Has value already
-			if type(nist_data[meta_dict["key"]]) is not list: #If previous value is not a list, make it one for appending
-				nist_data[meta_dict["key"]] = [nist_data[meta_dict["key"]]]
-			nist_data[meta_dict["key"]] = nist_data[meta_dict["key"]].append(meta_dict["value"])
+			new_list = []
+			if type(nist_data[meta_dict["key"]]) is not list: #If previous value is not a list, add the single item
+				new_list.append(nist_data[meta_dict["key"]])
+			else: #Previous value is a list
+				new_list += nist_data[meta_dict["key"]]
+			#Now add new element and save
+			new_list.append(meta_dict["value"])
+			nist_data[meta_dict["key"]] = new_list
+
+	#print(dumps(nist_data, sort_keys=True, indent=4, separators=(',', ': ')))
 	dc_nist = {
-#		"dc.title" : str(),
+		"dc.title" : nist_data["dc.title"][0] if type(nist_data.get("dc.title", None)) is list else nist_data.get("dc.title"),
 		"dc.creator" : "NIST",
 		"dc.contributor.author" : [nist_data["dc.contributor.author"]] if type(nist_data.get("dc.contributor.author", None)) is str else nist_data.get("dc.contributor.author", None),
-		"dc.identifier" : nist_data.get("dc.identifier.uri", None),
+		"dc.identifier" : nist_data["dc.identifier.uri"][0] if type(nist_data.get("dc.identifier.uri", None)) is list else nist_data.get("dc.identifier.uri"),
 		"dc.subject" : [nist_data["dc.subject"]] if type(nist_data.get("dc.subject", None)) is str else nist_data.get("dc.subject", None),
 		"dc.description" : nist_data.get("dc.description.abstract", None),
 		"dc.relatedidentifier" : [nist_data["dc.relation.uri"]] if type(nist_data.get("dc.relation.uri", None)) is str else nist_data.get("dc.relation.uri", None),
@@ -98,7 +105,7 @@ def general_meta_converter(in_dir, out_file, conv_func, file_pattern=None, verbo
 			else:
 				print("Error in file '" + file_name + "': Invalid metadata: '" + str(dc_validation["invalid_fields"]) + "'")
 	if verbose:
-		print("Processing complete")
+		print("Processing complete\n")
 
 
 if __name__ == "__main__":
@@ -109,6 +116,7 @@ if __name__ == "__main__":
 	print("#####################\nNIST\n#####################")
 	general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, file_pattern="_metadata.json$",  verbose=True)
 
+#	general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, file_pattern="144_metadata.json$",  verbose=True)
 
 
 
