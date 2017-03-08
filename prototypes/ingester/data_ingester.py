@@ -18,6 +18,13 @@ max_ingests_total = -1
 std_list_lim = 5
 std_nest_lim = 4
 
+#Keys reserved for Globus Search
+globus_keys = ["@context", "@datatype", "@version", "subject", "visible_to", "include", "content", "id", "source_id", "mimetype", "gmeta", "ingest_data", "ingest_type"]
+#Default URL to prepend to fields that do not already have a URL
+default_key = "globus"
+default_uri = "http://globus.org/"
+globus_keys.append(default_key)
+
 #Note: All destinations listed here must have:
 # 1. Function $NAME_client() that requires no arguments and returns whatever should be given to the ingest function as "client".
 # 2. Function $NAME_ingest() that accepts one argument - a dict containing other arguments, including whatever $NAME_client() returned.
@@ -33,10 +40,10 @@ all_destinations = {"globus_search", "data_pub_service", "local_mongodb", "local
 
 ingest_to = set()
 #Pick one or more destinations
-#ingest_to.add("globus_search")
+ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
 #ingest_to.add("local_mongodb")
-ingest_to.add("local_elasticsearch")
+#ingest_to.add("local_elasticsearch")
 
 
 #Pick one or more data files to ingest
@@ -51,8 +58,11 @@ data_file_to_use = []
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
-#data_file_to_use.append("nist_ip")
-data_file_to_use.append("nist_dspace")
+data_file_to_use.append("nist_ip")
+#data_file_to_use.append("nist_dspace")
+#data_file_to_use.append("metadata_matin")
+#data_file_to_use.append("metadata_cxidb")
+#data_file_to_use.append("metadata_nist")
 
 
 #Information about each dataset for ingesting
@@ -173,6 +183,33 @@ all_data_files = {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
 			}
+		},
+	"metadata_matin" : {
+		"file" : paths.ref_feed + "matin_metadata_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+		},
+	"metadata_cxidb" : {
+		"file" : paths.ref_feed + "cxidb_metadata_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+		},
+	"metadata_nist" : {
+		"file" : paths.ref_feed + "nist_metadata_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
 		}
 	}
 
@@ -221,24 +258,24 @@ def format_single_gmeta(data_dict, full=False):
 #		for elem in data_dict.get("data", {}).keys():
 #			elem = data_dict["data_context"] + ":" + elem
 	gmeta = {
-		"@datatype":"GMetaEntry",
-		"@version":"2016-11-09",
-		"subject":data_dict["globus_subject"],
-		"visible_to":data_dict["acl"],
-		#"visible_to":["public"],
-		"id":data_dict["globus_id"],
-		"source_id":data_dict["globus_source"],
-		"content":content
+		"@datatype" : "GMetaEntry",
+		"@version" : "2016-11-09",
+		"subject" : data_dict["globus_subject"],
+		"visible_to" : data_dict["acl"],
+		#"visible_to" : ["public"],
+		"id" : data_dict["globus_id"],
+#		"source_id" : data_dict["globus_source"],#Deprecated
+		"content" : content
 		}
 	gmeta["content"]["@context"] = data_dict["context"]
 
 	if full:
 		gmeta_full = {
-			"@datatype":"GIngest",
-			"@version":"2016-11-09",
-			"ingest_type":"GMetaEntry",
-			"source_id":data_dict["globus_source"],
-			"ingest_data":gmeta
+			"@datatype" : "GIngest",
+			"@version" : "2016-11-09",
+			"ingest_type" : "GMetaEntry",
+#			"source_id" : data_dict["globus_source"],
+			"ingest_data" : gmeta
 			}
 
 	if not full:
@@ -249,14 +286,14 @@ def format_single_gmeta(data_dict, full=False):
 #Formats a list of gmeta entries into a GMetaList, suitable for ingesting
 def format_multi_gmeta(data_list):
 	gmeta = {
-		"@datatype":"GIngest",
-		"@version":"2016-11-09",
-		"ingest_type":"GMetaList",
-		"source_id":data_list[0]["source_id"],
-		"ingest_data":{
-			"@datatype":"GMetaList",
-			"@version":"2016-11-09",
-			"gmeta":data_list
+		"@datatype" : "GIngest",
+		"@version" : "2016-11-09",
+		"ingest_type" : "GMetaList",
+#		"source_id" : data_list[0]["source_id"],
+		"ingest_data" : {
+			"@datatype" : "GMetaList",
+			"@version" : "2016-11-09",
+			"gmeta" : data_list
 			}
 		}
 	return gmeta
@@ -290,6 +327,8 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 	elif type(data) is dict:
 		new_dict = {}
 		for key, value in data.items():
+			if key in globus_keys:
+				key = key + "__"
 			new_value = globus_search_filter(value, max_list, max_depth, depth+1)
 			if new_value is not None:
 				new_dict[key] = new_value
@@ -297,6 +336,28 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 	
 	else: #Something unexpected! Remove it.
 		return None
+
+#Adds a URL to the start of every field because that's what Search requires
+#globus_keys = ["@context", "@datatype", "@version", "subject", "visible_to", "include", "content", "id", "source_id", "mimetype", "gmeta", "ingest_data", "ingest_type"]
+#globus_keys.append("globus") #Contents of "@context"
+def searchify(data):
+	if type(data) is not list and type(data) is not dict:
+		return data
+	elif type(data) is list:
+		new_list = []
+		for elem in data:
+			new_list.append(searchify(elem))
+		return new_list
+	elif type(data) is dict:
+		new_dict = {}
+		for key, value in data.items():
+			if key in globus_keys or ":" in key: #If field is a special Search field or already namespaced, don't add a namespace
+				new_dict[key] = searchify(value)
+			else: #Add a namespace
+				new_dict[default_key+":"+key] = searchify(value)
+		return new_dict
+	else:
+		exit("ERROR: Unidentified data")
 
 
 #Ingests data into Globus Search
@@ -345,14 +406,16 @@ def globus_search_ingest(args):
 				if first_level_list: #If data found
 					filtered_content[key] = first_level_list
 			'''
-		if filtered_content: #If there's nothing left after filtering, should not ingest
+		if filtered_content: #If there's nothing left after filtering, should not ingest)
+			if not filtered_content.get("@context", None):
+				filtered_content["@context"] = {}
+			filtered_content["@context"][default_key] = default_uri
 			entry["content"] = filtered_content
 			filtered_list.append(entry)
 	args["ingestable"]["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
 	#Actual ingestion
-	#Dumping and loading to get formatted JSON document
+
 #	temp_data = dumps(args["ingestable"])
-	ingest_data = loads(dumps(args["ingestable"]))
 #	print(ingest_data)
 #	args["client"].ingest(args["ingestable"])
 
@@ -360,7 +423,12 @@ def globus_search_ingest(args):
 #		gout.write(str(ingest_data))
 #		gout.write('\n')
 
+#	ingest_data = loads(dumps(args["ingestable"]))
+
+	ingest_data = loads(dumps(searchify(args["ingestable"])))
+	print("\nDATA:", dumps(ingest_data, sort_keys=True, indent=4, separators=(',', ': ')))
 	res = args["client"].ingest(ingest_data)
+	exit("Done")
 	if args["verbose"]:
 		print('\t', res)
 

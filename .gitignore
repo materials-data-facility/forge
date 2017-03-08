@@ -2,8 +2,11 @@
 *.swp
 *_json.pickle
 *.json
+*.ipynb_checkpoints
+Untitled*.ipynb
 
 prototypes/feedstock/*
 !prototypes/feedstock/feedstock_formatter.py
 prototypes/datasets/*
 prototypes/datasets
+

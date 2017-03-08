@@ -21,8 +21,11 @@ to_refine = []
 #to_refine.append("hopv")
 #to_refine.append("cip")
 #to_refine.append("nanomine")
-#to_refine.append("nist_ip")
-to_refine.append("nist_dspace")
+to_refine.append("nist_ip")
+#to_refine.append("nist_dspace")
+#to_refine.append("metadata_matin")
+#to_refine.append("metadata_cxidb")
+#to_refine.append("metadata_nist")
 
 
 #Formats a record into the appropriate schema and mints BSON ID
@@ -259,6 +262,43 @@ if __name__ == "__main__":
 		for raw_file in find_files(root=raw_dir, file_pattern="^nist_dspace"):
 			ref_file = raw_file["filename"].replace("all", "refined") + raw_file["extension"]
 			refine_feedstock(raw_dir+raw_file["filename"]+raw_file["extension"], ref_dir+ref_file, nist_dspace_static, nist_dspace_dynamic, verbose)
+
+	if "metadata_matin" in to_refine:
+		metadata_matin_static = {
+			"mdf_source_name" : "matin",
+			"mdf_source_id" : 13,
+			"globus_source" : "MATIN",
+			"acl" : ["public"]
+			}
+		metadata_matin_dynamic = {
+			"globus_subject" : "data['dc.identifier']"
+			}
+		refine_feedstock(raw_dir+"matin_metadata_all.json", ref_dir+"matin_metadata_refined.json", metadata_matin_static, metadata_matin_dynamic, verbose)
+
+	if "metadata_cxidb" in to_refine:
+		metadata_cxidb_static = {
+			"mdf_source_name" : "cxidb",
+			"mdf_source_id" : 14,
+			"globus_source" : "CXIDB",
+			"acl" : ["public"]
+			}
+		metadata_cxidb_dynamic = {
+			"globus_subject" : "data['dc.identifier']"
+			}
+		refine_feedstock(raw_dir+"cxidb_metadata_all.json", ref_dir+"cxidb_metadata_refined.json", metadata_cxidb_static, metadata_cxidb_dynamic, verbose)
+
+	if "metadata_nist" in to_refine:
+		metadata_nist_static = {
+			"mdf_source_name" : "nist_dspace",
+			"mdf_source_id" : 12,
+			"globus_source" : "NIST DSpace (metadata)",
+			"acl" : ["public"]
+			}
+		metadata_nist_dynamic = {
+			"globus_subject" : "data['dc.identifier']"
+			}
+		refine_feedstock(raw_dir+"nist_metadata_all.json", ref_dir+"nist_metadata_refined.json", metadata_nist_static, metadata_nist_dynamic, verbose)
+
 
 	if verbose:
 		print("END")
