@@ -21,7 +21,8 @@ std_nest_lim = 4
 #Keys reserved for Globus Search
 globus_keys = ["@context", "@datatype", "@version", "subject", "visible_to", "include", "content", "id", "source_id", "mimetype", "gmeta", "ingest_data", "ingest_type"]
 #Default URL to prepend to fields that do not already have a URL
-default_key = "globus"
+default_key = "http://globus.org"
+default_sep = "#"
 default_uri = "http://globus.org/"
 globus_keys.append(default_key)
 
@@ -57,8 +58,8 @@ data_file_to_use = []
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
-data_file_to_use.append("nist_ip")
+data_file_to_use.append("nanomine")
+#data_file_to_use.append("nist_ip")
 #data_file_to_use.append("nist_dspace")
 #data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
@@ -328,10 +329,12 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 		new_dict = {}
 		for key, value in data.items():
 			if key in globus_keys:
-				key = key + "__"
+				new_key = "__" + key
+			else:
+				new_key = key
 			new_value = globus_search_filter(value, max_list, max_depth, depth+1)
 			if new_value is not None:
-				new_dict[key] = new_value
+				new_dict[new_key] = new_value
 		return new_dict if new_dict else None
 	
 	else: #Something unexpected! Remove it.
@@ -351,10 +354,10 @@ def searchify(data):
 	elif type(data) is dict:
 		new_dict = {}
 		for key, value in data.items():
-			if key in globus_keys or ":" in key: #If field is a special Search field or already namespaced, don't add a namespace
+			if key in globus_keys or default_sep in key: #If field is a special Search field or already namespaced, don't add a namespace
 				new_dict[key] = searchify(value)
 			else: #Add a namespace
-				new_dict[default_key+":"+key] = searchify(value)
+				new_dict[default_key+default_sep+key] = searchify(value)
 		return new_dict
 	else:
 		exit("ERROR: Unidentified data")
@@ -378,10 +381,10 @@ def globus_search_ingest(args):
 	#All the data must be JSON serializable, and therefore must be a list, dict, or actual data (not in a container)
 	for entry in tqdm(data_list, desc="\tFiltering batch", disable= True): #not args["verbose"]): #Current datasets filter too fast for a progress bar to be useful
 
-		filtered_content = {}
-		for key, value in entry["content"].items(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
-			filtered_content[key] = globus_search_filter(value, max_list, max_nest)
-			'''
+		filtered_content = globus_search_filter(entry["content"])
+		#for key, value in entry["content"].items(): #Actual data starts here, first layer. **Assigning filtered_content[key] = value
+		#	filtered_content[key] = globus_search_filter(value, max_list, max_nest)
+		'''
 			#Moved to globus_search_filter
 			#if not hasattr(value, "__iter__") and value: #Not iterable, must be data (str (in Python 2), int, bool, etc.), and data is not nothing
 			if value and type(value) is not dict and type(value) is not list: #JSON only supports list, dict, and things we consider data, so this checks if value is (not None) data
@@ -405,7 +408,7 @@ def globus_search_ingest(args):
 						first_level_list.append(elem)
 				if first_level_list: #If data found
 					filtered_content[key] = first_level_list
-			'''
+		'''
 		if filtered_content: #If there's nothing left after filtering, should not ingest)
 			if not filtered_content.get("@context", None):
 				filtered_content["@context"] = {}
@@ -428,7 +431,7 @@ def globus_search_ingest(args):
 	ingest_data = loads(dumps(searchify(args["ingestable"])))
 #	print("\nDATA:", dumps(ingest_data, sort_keys=True, indent=4, separators=(',', ': ')))
 	res = args["client"].ingest(ingest_data)
-	exit("Done")
+#	exit("Done")
 	if args["verbose"]:
 		print('\t', res)
 
