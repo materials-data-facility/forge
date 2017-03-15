@@ -17,15 +17,15 @@ to_refine = []
 #to_refine.append("danemorgan")
 #to_refine.append("oqmd")
 #to_refine.append("cod")
-#to_refine.append("sluschi")
-#to_refine.append("hopv")
-#to_refine.append("cip")
-#to_refine.append("nanomine")
+to_refine.append("sluschi")
+to_refine.append("hopv")
+to_refine.append("cip")
+to_refine.append("nanomine")
 to_refine.append("nist_ip")
-#to_refine.append("nist_dspace")
-#to_refine.append("metadata_matin")
-#to_refine.append("metadata_cxidb")
-#to_refine.append("metadata_nist")
+to_refine.append("nist_dspace")
+to_refine.append("metadata_matin")
+to_refine.append("metadata_cxidb")
+to_refine.append("metadata_nist")
 
 
 #Formats a record into the appropriate schema and mints BSON ID

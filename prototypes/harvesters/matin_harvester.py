@@ -27,6 +27,7 @@ def matin_harvest(out_dir, existing_dir=0, verbose=False):
 			exit("Error: '" + out_dir + "' is not a directory")
 		elif existing_dir == -1:
 			rmtree(out_dir)
+			os.mkdir(out_dir)
 	else:
 		os.mkdir(out_dir)
 
