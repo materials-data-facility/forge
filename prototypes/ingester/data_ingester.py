@@ -54,17 +54,17 @@ ingest_to.add("globus_search")
 #Pick one or more data files to ingest
 data_file_to_use = []
 #data_file_to_use.append("oqmd")
-#data_file_to_use.append("janaf")
-#data_file_to_use.append("danemorgan")
-#data_file_to_use.append("khazana_polymer")
-#data_file_to_use.append("khazana_vasp")
+data_file_to_use.append("janaf")
+data_file_to_use.append("danemorgan")
+data_file_to_use.append("khazana_polymer")
+data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-#data_file_to_use.append("sluschi")
-#data_file_to_use.append("hopv")
-#data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
-#data_file_to_use.append("nist_ip")
-#data_file_to_use.append("nist_dspace")
+data_file_to_use.append("sluschi")
+data_file_to_use.append("hopv")
+data_file_to_use.append("cip")
+data_file_to_use.append("nanomine")
+data_file_to_use.append("nist_ip")
+data_file_to_use.append("nist_dspace")
 data_file_to_use.append("metadata_matin")
 data_file_to_use.append("metadata_cxidb")
 data_file_to_use.append("metadata_nist")
@@ -439,7 +439,8 @@ def globus_search_ingest(args):
 	res = args["client"].ingest(ingest_data)
 #	exit("Done")
 	if args["verbose"]:
-		print('\t', res)
+		if not res["success"]:
+			print('\t', res)
 
 
 def data_pub_service_client():
