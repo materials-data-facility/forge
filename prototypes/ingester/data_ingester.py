@@ -45,29 +45,31 @@ all_destinations = {"globus_search", "data_pub_service", "local_mongodb", "local
 
 ingest_to = set()
 #Pick one or more destinations
-ingest_to.add("globus_search")
+#ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
 #ingest_to.add("local_mongodb")
-#ingest_to.add("local_elasticsearch")
+ingest_to.add("local_elasticsearch")
 
 
 #Pick one or more data files to ingest
 data_file_to_use = []
 #data_file_to_use.append("oqmd")
-data_file_to_use.append("janaf")
-data_file_to_use.append("danemorgan")
-data_file_to_use.append("khazana_polymer")
-data_file_to_use.append("khazana_vasp")
+#data_file_to_use.append("janaf")
+#data_file_to_use.append("danemorgan")
+#data_file_to_use.append("khazana_polymer")
+#data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
-data_file_to_use.append("sluschi")
-data_file_to_use.append("hopv")
-data_file_to_use.append("cip")
-data_file_to_use.append("nanomine")
-data_file_to_use.append("nist_ip")
-data_file_to_use.append("nist_dspace")
-data_file_to_use.append("metadata_matin")
-data_file_to_use.append("metadata_cxidb")
-data_file_to_use.append("metadata_nist")
+#data_file_to_use.append("sluschi")
+#data_file_to_use.append("hopv")
+#data_file_to_use.append("cip")
+#data_file_to_use.append("nanomine")
+#data_file_to_use.append("nist_ip")
+#data_file_to_use.append("nist_dspace")
+#data_file_to_use.append("metadata_matin")
+#data_file_to_use.append("metadata_cxidb")
+#data_file_to_use.append("metadata_nist")
+#data_file_to_use.append("pppdb")
+data_file_to_use.append("metadata_materials_commons")
 
 
 #Information about each dataset for ingesting
@@ -215,6 +217,25 @@ all_data_files = {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
 			}
+		},
+	"pppdb" : {
+		"file" : paths.ref_feed + "pppdb_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+		},
+	"metadata_materials_commons" : {
+		"file" : paths.ref_feed + "materials_commons_metadata_refined.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 1,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+
 		}
 	}
 
@@ -562,7 +583,10 @@ def local_elasticsearch_ingest(args):
 		} for entry in args["ingestable"]["ingest_data"]["gmeta"]]
 #		sleep(0.01)
 		clean_ingest = local_elasticsearch_filter(ingest)
-		res = helpers.bulk(args['client'], clean_ingest)
+		try:
+			res = helpers.bulk(args['client'], clean_ingest)
+		except Exception as e:
+			print("ERROR:", repr(e))
 		if args["verbose"] and False: #This is spammy
 			print(res)
 	else:

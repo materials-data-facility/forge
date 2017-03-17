@@ -17,15 +17,17 @@ to_refine = []
 #to_refine.append("danemorgan")
 #to_refine.append("oqmd")
 #to_refine.append("cod")
-to_refine.append("sluschi")
-to_refine.append("hopv")
-to_refine.append("cip")
-to_refine.append("nanomine")
-to_refine.append("nist_ip")
-to_refine.append("nist_dspace")
-to_refine.append("metadata_matin")
-to_refine.append("metadata_cxidb")
+#to_refine.append("sluschi")
+#to_refine.append("hopv")
+#to_refine.append("cip")
+#to_refine.append("nanomine")
+#to_refine.append("nist_ip")
+#to_refine.append("nist_dspace")
+#to_refine.append("metadata_matin")
+#to_refine.append("metadata_cxidb")
 to_refine.append("metadata_nist")
+#to_refine.append("pppdb")
+#to_refine.append("metadata_materials_commons")
 
 
 #Formats a record into the appropriate schema and mints BSON ID
@@ -298,6 +300,32 @@ if __name__ == "__main__":
 			"globus_subject" : "data['dc.identifier']"
 			}
 		refine_feedstock(raw_dir+"nist_metadata_all.json", ref_dir+"nist_metadata_refined.json", metadata_nist_static, metadata_nist_dynamic, verbose)
+	
+	if "pppdb" in to_refine:
+		pppdb_static = {
+			"mdf_source_name" : "pppdb",
+			"mdf_source_id" : 15,
+			"globus_source" : "PPPDB",
+			"acl" : ["public"]
+			}
+		pppdb_dynamic = {
+			"globus_subject" : "data['dc.identifier']"
+			}
+		refine_feedstock(raw_dir+"pppdb_all.json", ref_dir+"pppdb_refined.json", pppdb_static, pppdb_dynamic, verbose)
+
+	if "metadata_materials_commons" in to_refine:
+		metadata_mc_static = {
+			"mdf_source_name" : "materials_commons",
+			"mdf_source_id" : 16,
+			"globus_source" : "Materials Commons",
+			"acl" : ["public"]
+			}
+		metadata_mc_dynamic = {
+			"globus_subject" : "data['dc.identifier']"
+			}
+		refine_feedstock(raw_dir+"materials_commons_metadata_all.json", ref_dir+"materials_commons_metadata_refined.json", metadata_mc_static, metadata_mc_dynamic, verbose)
+
+
 
 
 	if verbose:

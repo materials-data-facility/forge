@@ -14,7 +14,7 @@ headers = {"content-type":"application/json"}
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def materials_commons_harvest(out_dir, filename="materials_commons_metadata.json", existing_dir=0, verbose=False):
+def materials_commons_harvest(out_dir, existing_dir=0, verbose=False):
 	if verbose:
 		print("Begin harvesting")
 	if os.path.exists(out_dir):
@@ -30,11 +30,11 @@ def materials_commons_harvest(out_dir, filename="materials_commons_metadata.json
 
 	#Fetch records
 	res = requests.get(base_url, headers=headers, verify=False)
-
-	with open(os.path.join(out_dir, filename), 'w') as outfile:
-		dump(res.json(), outfile)
+	for record in res.json():
+		with open(os.path.join(out_dir, record["id"] + ".json"), 'w') as outfile:
+			dump(record, outfile)
 
 if __name__ == "__main__":
-	materials_commons_harvest(out_dir=paths.datasets+"materials_commons_metadata", filename="materials_commons_metadata.json", existing_dir=1, verbose=True)
+	materials_commons_harvest(out_dir=paths.datasets+"materials_commons_metadata",  existing_dir=1, verbose=True)
 
 

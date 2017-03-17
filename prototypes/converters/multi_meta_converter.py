@@ -4,8 +4,14 @@ from tqdm import tqdm
 import paths
 from utils import find_files, dc_validate
 
+to_convert = []
+#to_convert.append("matin")
+#to_convert.append("cxidb")
+to_convert.append("nist_dspace")
+#to_convert.append("materials_commons")
 
-def matin_convert(matin_raw):
+
+def matin_convert(maitn_raw):
 	matin_data = matin_raw["metadata"]["oai_dc:dc"]
 	dc_matin = {
 		"dc.title" : matin_data.get("dc:title", None),
@@ -67,15 +73,48 @@ def nist_convert(nist_raw): #TODO: Fix duplicates into list
 	dc_nist = {
 		"dc.title" : nist_data["dc.title"][0] if type(nist_data.get("dc.title", None)) is list else nist_data.get("dc.title"),
 		"dc.creator" : "NIST",
-		"dc.contributor.author" : [nist_data["dc.contributor.author"]] if type(nist_data.get("dc.contributor.author", None)) is str else nist_data.get("dc.contributor.author", None),
-		"dc.identifier" : nist_data["dc.identifier.uri"][0] if type(nist_data.get("dc.identifier.uri", None)) is list else nist_data.get("dc.identifier.uri"),
+		"dc.contributor.author" : [nist_data["dc.contributor.author"]] if type(nist_data.get("dc.contributor.author", None)) is str else nist_data.get("dc.contributor.author", None),	
+		"dc.identifier" : nist_data["dc.identifier.uri"][0] if type(nist_data.get("dc.identifier.uri", None)) is list else nist_data.get("dc.identifier.uri", None),
 		"dc.subject" : [nist_data["dc.subject"]] if type(nist_data.get("dc.subject", None)) is str else nist_data.get("dc.subject", None),
-		"dc.description" : nist_data.get("dc.description.abstract", None),
+		"dc.description" : str(nist_data.get("dc.description.abstract", None)) if nist_data.get("dc.description.abstract", None) else None,
 		"dc.relatedidentifier" : [nist_data["dc.relation.uri"]] if type(nist_data.get("dc.relation.uri", None)) is str else nist_data.get("dc.relation.uri", None),
 		"dc.year" : int(nist_data["dc.date.issued"][:4]) if nist_data.get("dc.date.issued", None) else None
 		}
 	nist_data.update(dc_nist)
+	none_fields = []
+	for key, value in dc_nist.items(): #Only delete own fields, don't delete all Nones
+		if not value:
+			none_fields.append(key)
+	for key in none_fields:
+		nist_data.pop(key)
+
+	nist_data.update(dc_nist)
+#	if nist_data.get("dc.contributor", None):
+#		nist_data["dc_contributor"] = nist_data.pop("dc.contributor")
 	return nist_data
+
+
+def materials_commons_convert(mc_data):
+	dc_mc = {
+		"dc.title" : mc_data.get("title", None),
+		"dc.creator" : "Materials Commons",
+		"dc.contributor.author" : [author["firstname"] + " " + author["lastname"] for author in mc_data.get("authors", [])],
+		"dc.identifier" : mc_data.get("doi", None) if mc_data.get("doi", None) else mc_data.get("id", None),
+		"dc.subject" : mc_data.get("keywords", None),
+		"dc.description" : mc_data.get("description", None),
+#		"dc.relatedidentifier" : mc_data.get("", None),
+		"dc.year" : int(mc_data.get("published_date", "0000")[:4]) if mc_data.get("published", False) else None,
+		}
+
+	none_fields = []
+	for key, value in dc_mc.items():
+		if not value:
+			none_fields.append(key)
+	for key in none_fields:
+		dc_mc.pop(key)
+	mc_data.update(dc_mc)
+	return mc_data
+
 
 
 #Generalized interface for metadata conversion
@@ -109,14 +148,18 @@ def general_meta_converter(in_dir, out_file, conv_func, file_pattern=None, verbo
 
 
 if __name__ == "__main__":
-	print("#####################\nMATIN\n#####################")
-	general_meta_converter(paths.datasets + "matin_metadata", paths.raw_feed + "matin_metadata_all.json", matin_convert, verbose=True)
-	print("#####################\nCXIDB\n#####################")
-	general_meta_converter(paths.datasets + "cxidb_metadata", paths.raw_feed + "cxidb_metadata_all.json", cxidb_convert, verbose=True)
-	print("#####################\nNIST\n#####################")
-	general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, file_pattern="_metadata.json$",  verbose=True)
-
-#	general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, file_pattern="144_metadata.json$",  verbose=True)
+	if "matin" in to_convert:
+		print("#####################\nMATIN\n#####################")
+		general_meta_converter(paths.datasets + "matin_metadata", paths.raw_feed + "matin_metadata_all.json", matin_convert, verbose=True)
+	if "cxidb" in to_convert:
+		print("#####################\nCXIDB\n#####################")
+		general_meta_converter(paths.datasets + "cxidb_metadata", paths.raw_feed + "cxidb_metadata_all.json", cxidb_convert, verbose=True)
+	if "nist_dspace" in to_convert:
+		print("#####################\nNIST\n#####################")
+		general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, file_pattern="_metadata.json$",  verbose=True)
+	if "materials_commons" in to_convert:
+		print("#####################\nMATERIALS COMMONS\n#####################")
+		general_meta_converter(paths.datasets + "materials_commons_metadata", paths.raw_feed + "materials_commons_metadata_all.json", materials_commons_convert,  verbose=True)
 
 
 
