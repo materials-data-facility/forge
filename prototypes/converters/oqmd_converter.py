@@ -6,12 +6,13 @@ from qmpy import *
 from json import dump
 from six import print_
 from tqdm import tqdm
+from bson import ObjectId
 
 import paths #Contains relative paths to data
 
 feedstock = True
 
-def printDataset(entries, filename, verbose=False):
+def printDataset(entries, filename, mdf_data, verbose=False):
 	all_uri = []
 	if verbose:
 		print_("Printing to: " + filename)
@@ -59,7 +60,18 @@ def printDataset(entries, filename, verbose=False):
 				output["uri"] = "http://oqmd.org/materials/entry/" + output["oqmd_id"]
 				all_uri.append(output["uri"])
 				#out_list.append(output)
-				dump(output, fp)
+
+				#Metadata
+				feedstock_data = {}
+				feedstock_data["mdf_id"] = str(ObjectId())
+				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["acl"] = mdf_meta["acl"]
+				feedstock_data["globus_subject"] = output["uri"]
+				feedstock_data["data"] = output
+
+				dump(feedstock_data, fp)
 				fp.write('\n')
 
 #				if count > 100000:
@@ -69,7 +81,7 @@ def printDataset(entries, filename, verbose=False):
 
 
 				if feedstock and count < 10000:
-					dump(output, feed_file)
+					dump(feedstock_data, feed_file)
 					feed_file.write('\n')
 				count+=1
 		if feedstock:
@@ -99,9 +111,15 @@ def printDataset(entries, filename, verbose=False):
 	
 
 if __name__ == "__main__":
+	mdf_metadata = {
+		"mdf_source_name" : "oqmd",
+		"mdf_source_id" : 1,
+		"globus_source" : "Open Quantum Materials Database",
+		"acl" : ["public"]
+		}
 	filename = paths.raw_feed + "oqmd_all.json"
 	e = Formation.objects.filter(fit = "standard")
-	printDataset(e, filename, verbose=True)
+	printDataset(e, filename, mdf_metadata, verbose=True)
 
 #everything = Entry.objects.all()
 

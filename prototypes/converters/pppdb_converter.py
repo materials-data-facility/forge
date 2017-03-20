@@ -4,11 +4,12 @@ from sys import exit
 from tqdm import tqdm
 import paths
 from utils import dc_validate
+from bson import ObjectId
 
 sql_que = "SELECT r.doi, r.type, r.temperature, r.tempunit, r.chinumber, r.chierror, r.chia, r.chiaerror, r.chib, r.chiberror, r.chic, r.chicerror, r.notes, r.indirect, r.reference, r.compound1, r.compound2, p.authors, p.date, r.id FROM reviewed_chis r JOIN papers p ON p.doi = r.doi"
 
 #Converter for PPPDB
-def convert_pppdb(out_stock, login_file, sack_size=0, out_sack=None, verbose=False):
+def convert_pppdb(out_stock, login_file, mdf_meta, sack_size=0, out_sack=None, verbose=False):
 	with open(login_file) as login_in:
 		login = load(login_in)
 	try:
@@ -52,31 +53,46 @@ def convert_pppdb(out_stock, login_file, sack_size=0, out_sack=None, verbose=Fal
 				"date" : tup[18],
 				"pppdb_id" : tup[19] #CHANGED FROM 'id'
 				}
-			record["dc.title"] = "PPPDB - Chi Parameter for " +  record["compound1"] + " and " + record["compound2"]
-			record["dc.creator"] = "PPPDB"
+			feedstock_data = {}
+			feedstock_data["dc.title"] = "PPPDB - Chi Parameter for " +  record["compound1"] + " and " + record["compound2"]
+			feedstock_data["dc.creator"] = "PPPDB"
 			author_list = str(record["authors"]).replace(", III", " (III)").replace(", and", ", ").replace("and", ",").split(",")
-			record["dc.contributor.author"] = [author.strip() for author in author_list]
-			record["dc.identifier"] = "http://pppdb.uchicago.edu&id="+str(record["pppdb_id"])
-			record["dc.subject"] = []
-			record["dc.description"] = str(record["notes"]) if record["notes"] else ""
-			record["dc.relatedidentifier"] = [str(record["doi"])] 
-			record["dc.year"] = int(str(record["date"])[-4:])
+			feedstock_data["dc.contributor.author"] = [author.strip() for author in author_list]
+			feedstock_data["dc.identifier"] = "http://pppdb.uchicago.edu&id="+str(record["pppdb_id"])
+			feedstock_data["dc.subject"] = []
+			feedstock_data["dc.description"] = str(record["notes"]) if record["notes"] else ""
+			feedstock_data["dc.relatedidentifier"] = [str(record["doi"])] 
+			feedstock_data["dc.year"] = int(str(record["date"])[-4:])
 
 			dc_valid = dc_validate(record)
 			if not dc_valid["valid"]:
-				exit("Error in metadata: Invaild fields: " + str(dc_valid["invalid_fields"]))
+				exit("Error in metadata: Invalid fields: " + str(dc_valid["invalid_fields"]))
 
-			dump(record, output)
+			feedstock_data["mdf_id"] = str(ObjectId())
+			feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+			feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+			feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+			feedstock_data["acl"] = mdf_meta["acl"]
+			feedstock_data["globus_subject"] = ["uri"]
+			feedstock_data["data"] = record
+
+			dump(feedstock_data, output)
 			output.write("\n")
 			
 			if sack and sack_size:
-				dump(record, sack)
+				dump(feedstock_data, sack)
 				sack_size -= 1
 		if sack:
 			sack.close()
 
 
 if __name__ == "__main__":
-	convert_pppdb(out_stock=paths.raw_feed+"pppdb_all.json", login_file="sql_login.json", sack_size=10, out_sack=paths.sack_feed+"pppdb_10.json", verbose=True)
+	mdf_metadata = {
+		"mdf_source_name" : "pppdb",
+		"mdf_source_id" : 15,
+		"globus_source" : "Polymer Property Predictor Database",
+		"acl" : ["public"]
+		}
+	convert_pppdb(out_stock=paths.raw_feed+"pppdb_all.json", login_file="sql_login.json", mdf_meta=mdf_metadata, sack_size=10, out_sack=paths.sack_feed+"pppdb_10.json", verbose=True)
 
 

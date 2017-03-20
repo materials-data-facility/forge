@@ -1,13 +1,21 @@
 import paths
 import multi_converter
 from json import load, loads, dump
+from bson import ObjectId
 
 ids = ["177", "184"]
 
 def convert_nist_dspace(id_num, file_format, verbose=False):
 	root = paths.datasets + "nist_dspace/" + id_num + "/"
+	nist_dspace_mdf = {
+		"mdf_source_name" : "nist_dspace",
+		"mdf_source_id" : 12,
+		"globus_source" : "NIST",
+		"acl" : ["public"]
+		}
 	if file_format == "vasp":
 		args = {
+			"mdf_metadata" : nist_dspace_mdf,
 			"uri" : "https://materialsdata.nist.gov/dspace/rest/items/",
 			"keep_dir_name_depth" : 1,
 			"root" : paths.datasets + "nist_dspace/" + id_num + "/",
@@ -50,6 +58,7 @@ def convert_nist_dspace(id_num, file_format, verbose=False):
 
 
 if __name__ == "__main__":
+	print("WARNING: NIST DSpace converter does not handle all files.")
 	for num in ids:
 		convert_nist_dspace(num, "vasp", verbose=True)
 	print("Done.")

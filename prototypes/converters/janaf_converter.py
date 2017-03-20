@@ -8,6 +8,7 @@ from numpy import sum
 #from pickle import dump
 from json import dump, load
 from six import print_
+from bson import ObjectId
 
 import paths #Has globals for paths to data
 
@@ -113,6 +114,12 @@ def parse_janaf_file(filename):
         return output
 
 if __name__ == "__main__":
+	mdf_meta = {
+		"mdf_source_name" : "janaf",
+		"mdf_source_id" : 2,
+		"globus_source" : "NIST-JANAF",
+		"acl" : ["public"]
+		}
 	data = []
 	data_dir = paths.datasets + "janaf/srd13_janaf"
 	out_filename = paths.raw_feed + "janaf_all.json"
@@ -126,11 +133,21 @@ if __name__ == "__main__":
 			entry = parse_janaf_file(os.path.join(data_dir, f))
 			full_count +=1
 			if entry is not None:
-				dump(entry, out_file)
+				#Metadata
+				feedstock_data = {}
+				feedstock_data["mdf_id"] = str(ObjectId())
+				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["acl"] = mdf_meta["acl"]
+				feedstock_data["globus_subject"] = entry["uri"]
+				feedstock_data["data"] = entry
+
+				dump(feedstock_data, out_file)
 				out_file.write('\n')
 #				data.append(entry)
 				if feedstock and count < 1000:
-					dump(entry, feed_file)
+					dump(feedstock_data, feed_file)
 					feed_file.write('\n')
 				count +=1
 #	print json.dumps(data[0], sort_keys=True, indent=4, separators=(',', ': '))

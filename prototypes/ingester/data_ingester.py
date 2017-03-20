@@ -45,10 +45,10 @@ all_destinations = {"globus_search", "data_pub_service", "local_mongodb", "local
 
 ingest_to = set()
 #Pick one or more destinations
-#ingest_to.add("globus_search")
+ingest_to.add("globus_search")
 #ingest_to.add("data_pub_service")
 #ingest_to.add("local_mongodb")
-ingest_to.add("local_elasticsearch")
+#ingest_to.add("local_elasticsearch")
 
 
 #Pick one or more data files to ingest
@@ -61,15 +61,15 @@ data_file_to_use = []
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
-#data_file_to_use.append("cip")
+data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
-#data_file_to_use.append("nist_ip")
+data_file_to_use.append("nist_ip")
 #data_file_to_use.append("nist_dspace")
 #data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
 #data_file_to_use.append("metadata_nist")
 #data_file_to_use.append("pppdb")
-data_file_to_use.append("metadata_materials_commons")
+#data_file_to_use.append("metadata_materials_commons")
 
 
 #Information about each dataset for ingesting

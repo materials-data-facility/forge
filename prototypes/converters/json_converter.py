@@ -2,6 +2,7 @@ from json import load, loads, dump
 from os.path import join
 from tqdm import tqdm
 #from ujson import dump
+from bson import ObjectId
 from utils import find_files
 import paths
 
@@ -27,7 +28,7 @@ def find_data(record):
 
 #Takes a JSON file and converts it into formatter-compatible JSON
 #If feed_size > 0, feed_name is required
-def convert_json_to_json(in_name, out_name, uri_loc, feed_size=0, feed_name=None, verbose=False):
+def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed_name=None, verbose=False):
 	all_uri = []
 	if verbose:
 		print("Converting JSON, dumping results to", out_name)
@@ -64,10 +65,21 @@ def convert_json_to_json(in_name, out_name, uri_loc, feed_size=0, feed_name=None
 			for datum in list_of_data:
 				datum["uri"] = eval("datum['" + uri_loc + "']")
 				all_uri.append(datum["uri"])
-				dump(datum, out_file)
+
+				#Metadata
+				feedstock_data = {}
+				feedstock_data["mdf_id"] = str(ObjectId())
+				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["acl"] = mdf_meta["acl"]
+				feedstock_data["globus_subject"] = datum["uri"]
+				feedstock_data["data"] = datum
+
+				dump(feedstock_data, out_file)
 				out_file.write('\n')
 				if count < feed_size:
-					dump(datum, feed_file)
+					dump(feedstock_data, feed_file)
 					feed_file.write('\n')
 				count += 1
 			print("Data written successfully")
@@ -80,14 +92,21 @@ def convert_json_to_json(in_name, out_name, uri_loc, feed_size=0, feed_name=None
 if __name__ == "__main__":
 	verbose = True
 	if "cip" in datasets:
+		cip_mdf = {
+			"mdf_source_name" : "cip",
+			"mdf_source_id" : 9,
+			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
+			"acl" : ["public"]
+			}
 		cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
 		cip_out = paths.raw_feed + "cip_all.json"
 		cip_uri = "case-number"
 		cip_sack_size = 10
 		cip_feed = paths.sack_feed + "cip_10.json"
-		convert_json_to_json(cip_in, cip_out, cip_uri, cip_sack_size, cip_feed, verbose=verbose)
+		convert_json_to_json(cip_in, cip_out, cip_uri, cip_mdf, cip_sack_size, cip_feed, verbose=verbose)
 
 	if "ido" in datasets:
+		exit("IDO not supported")
 		ido_in = paths.datasets + "10.5061_dryad.ph81h/inorganic_dielectric_optical.json"
 		ido_out = paths.raw_feed + "ido_all.json"
 		ido_sack_size = 10
@@ -95,6 +114,12 @@ if __name__ == "__main__":
 		convert_json_to_json(ido_in, ido_out, ido_uri, ido_sack_size, ido_feed, verbose=verbose)
 
 	if "nist_ip" in datasets:
+		nist_ip_mdf = {
+			"mdf_source_name" : "nist_ip",
+			"mdf_source_id" : 11,
+			"globus_source" : "NIST Interatomic Potentials",
+			"acl" : ["public"]
+			}
 		nist_ip_in = paths.datasets + "nist_ip/interchange"
 		nist_ip_out = paths.raw_feed + "nist_ip_all.json"
 		nist_ip_uri = "interatomic-potential']['id"

@@ -11,6 +11,7 @@ import tarfile
 import zipfile
 import gzip
 import warnings
+from bson import ObjectId
 
 from utils import find_files
 import paths #Contains variables for relative paths to data
@@ -566,6 +567,8 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #Returns a list of dicts ready for ingestion, and optionally (see below) writes that list out to a file
 #arg_dict accepts:
 #	DEPRECATED: metadata: a dict of desired metadata (e.g. globus_source, context, etc.), NOT including globus_subject. Default nothing.
+#
+#*	mdf_metadata: Dict of MDF-specific metadata field values. Required.
 #	uri: the prefix for globus_subject (ex. if uri="http://globus.org/" and uri_adds (see below) is [dir] then a file found in the directory "data/123/" would have globus_subject="http://globus.org/data/123/") Default is empty string.
 #	keep_dir_name_depth: how many layers of directory, counting up from the base file, should be saved and added to the URI. -1 saves the entire path. The default (which is lossy but private) is 0.
 #
@@ -586,6 +589,9 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 #
 def process_data(arg_dict):
 	all_uri = []
+	mdf_meta = arg_dict.get("mdf_metadata", None)
+	if not mdf_meta:
+		exit("Error: No mdf_meta argument supplied")
 	root = arg_dict.get("root", os.getcwd())
 	keep_dir_name_depth = arg_dict.get("keep_dir_name_depth", 0)
 	verbose  = arg_dict.get("verbose", False)
@@ -649,10 +655,21 @@ def process_data(arg_dict):
 			formatted_data["uri"] = uri
 			all_uri.append(formatted_data["uri"])
 	#		all_data_list.append(formatted_data)
-			dump(formatted_data, out_open)
+			
+			#Metadata
+			feedstock_data = {}
+			feedstock_data["mdf_id"] = str(ObjectId())
+			feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+			feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+			feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+			feedstock_data["acl"] = mdf_meta["acl"]
+			feedstock_data["globus_subject"] = formatted_data["uri"]
+			feedstock_data["data"] = formatted_data
+
+			dump(feedstock_data, out_open)
 			out_open.write("\n")
 			if good_count < feedsack_size:
-				dump(formatted_data, feed_out)
+				dump(feedstock_data, feed_out)
 				feed_out.write("\n")
 			good_count += 1
 	if feedsack_size > 0:
@@ -689,6 +706,12 @@ if __name__ == "__main__":
 	
 	#Dane Morgan
 	if "danemorgan" in datasets_to_process:
+		dane_mdf = {
+			"mdf_source_name" : "ab_initio_solute_database",
+			"mdf_source_id" : 3,
+			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
+			"acl" : ["public"]
+			}
 		dane_args = {
 #			"metadata" : {
 #				"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
@@ -697,6 +720,7 @@ if __name__ == "__main__":
 #					"dc" : "http://dublincore.org/documents/dcmi-terms"
 #					}
 #				},
+			"mdf_metadata" : dane_mdf,
 			"uri" : "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/",
 			"keep_dir_name_depth" : 3,
 			"root" : paths.datasets + "dane_morgan/data",
@@ -735,6 +759,12 @@ if __name__ == "__main__":
 
 	#Khazana Polymer
 	if "khazana_polymer" in datasets_to_process:
+		khazana_polymer_mdf = {
+			"mdf_source_name" : "khazana_polymer",
+			"mdf_source_id" : 4,
+			"globus_source" : "Khazana (Polymer)",
+			"acl" : ["public"]
+			}
 		khazana_polymer_args = {
 #			"metadata" : {
 #				"globus_source" : "",
@@ -743,6 +773,7 @@ if __name__ == "__main__":
 #					"dc" : "http://dublincore.org/documents/dcmi-terms"
 #					}
 #				},
+			"mdf_metadata" : khazana_polymer_mdf,
 			"uri" : "http://khazana.uconn.edu/module_search/material_detail.php?id=",
 			"keep_dir_name_depth" : 0,
 			"root" : paths.datasets + "khazana/polymer_scientific_data_confirmed",
@@ -780,6 +811,12 @@ if __name__ == "__main__":
 
 	#Khazana VASP
 	if "khazana_vasp" in datasets_to_process:
+		khazana_vasp_mdf = {
+			"mdf_source_name" : "khazana_dft",
+			"mdf_source_id" : 5,
+			"globus_source" : "Khazana (DFT)",
+			"acl" : ["public"]
+			}
 		khazana_vasp_args = {
 #			"metadata" : {
 #				"globus_source" : "",
@@ -788,6 +825,7 @@ if __name__ == "__main__":
 #					"dc" : "http://dublincore.org/documents/dcmi-terms"
 #					}
 #				},
+			"mdf_metadata" : khazana_vasp_mdf,
 			"uri" : "http://khazana.uconn.edu",
 			"keep_dir_name_depth" : 0,
 			"root" : paths.datasets + "khazana/OUTCARS",
@@ -825,7 +863,15 @@ if __name__ == "__main__":
 
 	#Crystallography Open Database
 	if "cod" in datasets_to_process:
+		exit("COD not supported")
+		cod_mdf = {
+			"mdf_source_name" : "cod",
+			"mdf_source_id" : 6,
+			"globus_source" : "Crystallography Open Database",
+			"acl" : ["public"]
+			}
 		cod_args = {
+			"mdf_metadata" : cod_mdf,
 			"uri" : "http://www.crystallography.net/cod",
 			"keep_dir_name_depth" : 0,
 			#"root" : paths.datasets + "cod/open-cod",
@@ -865,7 +911,14 @@ if __name__ == "__main__":
 
 	#Sluschi
 	if "sluschi" in datasets_to_process:
+		sluschi_mdf = {
+			"mdf_source_name" : "sluschi",
+			"mdf_source_id" : 7,
+			"globus_source" : "SLUSCHI",
+			"acl" : ["public"]
+			}
 		sluschi_args = {
+			"mdf_metadata" : sluschi_mdf,
 			"uri" : "globus:mostly_melted_snow",
 			"keep_dir_name_depth" : -1,
 			"root" : paths.datasets + "sluschi/sluschi",

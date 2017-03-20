@@ -108,7 +108,7 @@ if __name__ == "__main__":
 #	refine_feedstock(raw_dir + "cip_all.json", ref_dir + "cip_refined.json", verbose = True)
 
 
-	if "janaf" in to_refine:
+	if "janaf" in to_refine:#Moved
 		janaf_static = {
 			"mdf_source_name" : "janaf",
 			"mdf_source_id" : 2,
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"janaf_all.json", ref_dir+"janaf_refined.json", janaf_static, janaf_dynamic, verbose)
 
-	if "khazana_polymer" in to_refine:
+	if "khazana_polymer" in to_refine:#Moved
 		khaz_poly_static = {
 			"mdf_source_name" : "khazana_polymer",
 			"mdf_source_id" : 4,
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"khazana_polymer_all.json", ref_dir+"khazana_polymer_refined.json", khaz_poly_static, khaz_poly_dynamic, verbose)
 
-	if "khazana_vasp" in to_refine:
+	if "khazana_vasp" in to_refine:#Moved
 		khaz_vasp_static = {
 			"mdf_source_name" : "khazana_dft",
 			"mdf_source_id" : 5,
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"khazana_vasp_all.json", ref_dir+"khazana_vasp_refined.json", khaz_vasp_static, khaz_vasp_dynamic, verbose)
 
-	if "danemorgan" in to_refine:
+	if "danemorgan" in to_refine:#Moved
 		danemorgan_static = {
 			"mdf_source_name" : "ab_initio_solute_database",
 			"mdf_source_id" : 3,
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"danemorgan_all.json", ref_dir+"danemorgan_refined.json", danemorgan_static, danemorgan_dynamic, verbose)
 
-	if "oqmd" in to_refine:
+	if "oqmd" in to_refine:#Moved
 		oqmd_static = {
 			"mdf_source_name" : "oqmd",
 			"mdf_source_id" : 1,
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"oqmd_all.json", ref_dir+"oqmd_refined.json", oqmd_static, oqmd_dynamic, verbose)
 
-	if "cod" in to_refine:
+	if "cod" in to_refine:#Moved
 		cod_static = {
 			"mdf_source_name" : "cod",
 			"mdf_source_id" : 6,
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"cod_all.json", ref_dir+"cod_refined.json", cod_static, cod_dynamic, verbose)
 
-	if "sluschi" in to_refine:
+	if "sluschi" in to_refine:#Moved
 		sluschi_static = {
 			"mdf_source_name" : "sluschi",
 			"mdf_source_id" : 7,
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"sluschi_all.json", ref_dir+"sluschi_refined.json", sluschi_static, sluschi_dynamic, verbose)
 	
-	if "hopv" in to_refine:
+	if "hopv" in to_refine:#Moved
 		hopv_static = {
 			"mdf_source_name" : "hopv",
 			"mdf_source_id" : 8,
@@ -214,7 +214,7 @@ if __name__ == "__main__":
 		}
 		refine_feedstock(raw_dir+"hopv_all.json", ref_dir+"hopv_refined.json", hopv_static, hopv_dynamic, verbose)
 
-	if "cip" in to_refine:
+	if "cip" in to_refine:#Moved
 		cip_static = {
 			"mdf_source_name" : "cip",
 			"mdf_source_id" : 9,
@@ -226,7 +226,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"cip_all.json", ref_dir+"cip_refined.json", cip_static, cip_dynamic, verbose)
 	
-	if "nanomine" in to_refine:
+	if "nanomine" in to_refine:#Moved
 		nanomine_static = {
 			"mdf_source_name" : "nanomine",
 			"mdf_source_id" : 10,
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"nanomine_all.json", ref_dir+"nanomine_refined.json", nanomine_static, nanomine_dynamic, verbose)
 
-	if "nist_ip" in to_refine:
+	if "nist_ip" in to_refine:#Moved
 		nist_ip_static = {
 			"mdf_source_name" : "nist_ip",
 			"mdf_source_id" : 11,
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"nist_ip_all.json", ref_dir+"nist_ip_refined.json", nist_ip_static, nist_ip_dynamic, verbose)
 
-	if "nist_dspace" in to_refine:
+	if "nist_dspace" in to_refine:#Moved
 		nist_dspace_static = {
 			"mdf_source_name" : "nist_dspace",
 			"mdf_source_id" : 12,
@@ -265,7 +265,7 @@ if __name__ == "__main__":
 			ref_file = raw_file["filename"].replace("all", "refined") + raw_file["extension"]
 			refine_feedstock(raw_dir+raw_file["filename"]+raw_file["extension"], ref_dir+ref_file, nist_dspace_static, nist_dspace_dynamic, verbose)
 
-	if "metadata_matin" in to_refine:
+	if "metadata_matin" in to_refine:#Moved
 		metadata_matin_static = {
 			"mdf_source_name" : "matin",
 			"mdf_source_id" : 13,
@@ -277,7 +277,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"matin_metadata_all.json", ref_dir+"matin_metadata_refined.json", metadata_matin_static, metadata_matin_dynamic, verbose)
 
-	if "metadata_cxidb" in to_refine:
+	if "metadata_cxidb" in to_refine:#Moved
 		metadata_cxidb_static = {
 			"mdf_source_name" : "cxidb",
 			"mdf_source_id" : 14,
@@ -289,7 +289,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"cxidb_metadata_all.json", ref_dir+"cxidb_metadata_refined.json", metadata_cxidb_static, metadata_cxidb_dynamic, verbose)
 
-	if "metadata_nist" in to_refine:
+	if "metadata_nist" in to_refine:#Moved
 		metadata_nist_static = {
 			"mdf_source_name" : "nist_dspace",
 			"mdf_source_id" : 12,
@@ -301,7 +301,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"nist_metadata_all.json", ref_dir+"nist_metadata_refined.json", metadata_nist_static, metadata_nist_dynamic, verbose)
 	
-	if "pppdb" in to_refine:
+	if "pppdb" in to_refine:#Moved
 		pppdb_static = {
 			"mdf_source_name" : "pppdb",
 			"mdf_source_id" : 15,
@@ -313,7 +313,7 @@ if __name__ == "__main__":
 			}
 		refine_feedstock(raw_dir+"pppdb_all.json", ref_dir+"pppdb_refined.json", pppdb_static, pppdb_dynamic, verbose)
 
-	if "metadata_materials_commons" in to_refine:
+	if "metadata_materials_commons" in to_refine:#Moved
 		metadata_mc_static = {
 			"mdf_source_name" : "materials_commons",
 			"mdf_source_id" : 16,

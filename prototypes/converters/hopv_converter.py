@@ -1,12 +1,18 @@
 from json import dump
 from tqdm import tqdm
-
+from bson import ObjectId
 import paths
 
 hopv_file = paths.datasets + "hopv/HOPV_15_revised_2.data"
 feedstock_file = paths.raw_feed + "hopv_all.json"
 feedsack_size = 10
 feedsack_file = paths.sack_feed + "hopv_" + str(feedsack_size) + ".json"
+mdf_metadata = {
+	"mdf_source_name" : "hopv",
+	"mdf_source_id" : 8,
+	"globus_source" : "Harvard Open Photovoltaic Database",
+	"acl" : ["public"]
+	}
 
 #Takes float or nan and returns correct value for JSON serialization - float version if not nan, string "nan" otherwise
 #Currently unused, as only the package 'ujson' requires it, and this script uses 'json'
@@ -14,7 +20,7 @@ def float_nan(value):
 	return float(value) if float(value) == float(value) else "nan" #nan != nan
 
 #Takes a/the HOPV file and parses its interesting structure
-def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, uri_dup_check=True, verbose=False):
+def hopv_converter(in_filename, out_filename, mdf_meta, sack_size=0, sack_filename=None, uri_dup_check=True, verbose=False):
 	all_uri = []
 	if verbose:
 		print("Opening files")
@@ -89,14 +95,25 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, u
 				molecule["conformers"] = list_conformers
 				molecule["uri"] = molecule["inchi"]
 				all_uri.append(molecule["uri"])
+				
+				#Metadata wrapping
+				feedstock_data = {}
+				feedstock_data["mdf_id"] = str(ObjectId())
+				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["acl"] = mdf_meta["acl"]
+				feedstock_data["globus_subject"] = molecule["uri"]
+				feedstock_data["data"] = molecule
+
 				try:
-					dump(molecule, out_file)
+					dump(feedstock_data, out_file)
 					out_file.write("\n")
 				except:
 					print("Error on:\n", molecule)
 					#return
 				if sack_filename and count < sack_size:
-					dump(molecule, sack_file)
+					dump(feedstock_data, sack_file)
 					sack_file.write("\n")
 				count += 1
 				smiles = in_file.readline() #Next molecule
@@ -114,5 +131,5 @@ def hopv_converter(in_filename, out_filename, sack_size=0, sack_filename=None, u
 
 
 if __name__ == "__main__":
-	hopv_converter(hopv_file, feedstock_file, feedsack_size, feedsack_file, uri_dup_check=True, verbose=True)
+	hopv_converter(hopv_file, feedstock_file, mdf_metadata, feedsack_size, feedsack_file, uri_dup_check=True, verbose=True)
 
