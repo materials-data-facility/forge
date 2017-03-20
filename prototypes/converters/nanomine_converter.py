@@ -97,6 +97,7 @@ def convert_nanomine(in_file, out_file, mdf_data, uri_prefix="", sack_size=0, sa
 					feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 					feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
 					feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+					feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 					feedstock_data["acl"] = mdf_meta["acl"]
 					feedstock_data["globus_subject"] = converted["uri"]
 					feedstock_data["data"] = converted
@@ -131,6 +132,7 @@ if __name__ == "__main__":
 		"mdf_source_name" : "nanomine",
 		"mdf_source_id" : 10,
 		"globus_source" : "Nanomine",
+		"mdf_datatype" : "nanomine",
 		"acl" : ["public"]
 		}
 #	convert_nanomine(paths.datasets + "nanomine/nanomine_results", paths.raw_feed + "nanomine_all.json", 10, paths.sack_feed + "nanomine_10.json", verbose=True)

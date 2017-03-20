@@ -11,6 +11,7 @@ mdf_metadata = {
 	"mdf_source_name" : "hopv",
 	"mdf_source_id" : 8,
 	"globus_source" : "Harvard Open Photovoltaic Database",
+	"mdf_datatype" : "hopv",
 	"acl" : ["public"]
 	}
 
@@ -102,6 +103,7 @@ def hopv_converter(in_filename, out_filename, mdf_meta, sack_size=0, sack_filena
 				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
 				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = molecule["uri"]
 				feedstock_data["data"] = molecule

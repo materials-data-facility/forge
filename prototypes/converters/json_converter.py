@@ -72,6 +72,7 @@ def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed
 				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
 				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = datum["uri"]
 				feedstock_data["data"] = datum
@@ -96,6 +97,7 @@ if __name__ == "__main__":
 			"mdf_source_name" : "cip",
 			"mdf_source_id" : 9,
 			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
+			"mdf_datatype" : "json",
 			"acl" : ["public"]
 			}
 		cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
@@ -118,6 +120,7 @@ if __name__ == "__main__":
 			"mdf_source_name" : "nist_ip",
 			"mdf_source_id" : 11,
 			"globus_source" : "NIST Interatomic Potentials",
+			"mdf_datatype" : "json",
 			"acl" : ["public"]
 			}
 		nist_ip_in = paths.datasets + "nist_ip/interchange"

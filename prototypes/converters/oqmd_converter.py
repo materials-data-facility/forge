@@ -67,6 +67,7 @@ def printDataset(entries, filename, mdf_data, verbose=False):
 				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
 				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = output["uri"]
 				feedstock_data["data"] = output
@@ -115,6 +116,7 @@ if __name__ == "__main__":
 		"mdf_source_name" : "oqmd",
 		"mdf_source_id" : 1,
 		"globus_source" : "Open Quantum Materials Database",
+		"mdf_datatype" : "oqmd",
 		"acl" : ["public"]
 		}
 	filename = paths.raw_feed + "oqmd_all.json"
