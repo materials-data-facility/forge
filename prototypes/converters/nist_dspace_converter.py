@@ -12,7 +12,8 @@ def convert_nist_dspace(id_num, file_format, verbose=False):
 		"mdf_source_id" : 12,
 		"globus_source" : "NIST",
 		"mdf_datatype" : "nist_dspace",
-		"acl" : ["public"]
+		"acl" : ["public"],
+		"collection" : "NIST"
 		}
 	if file_format == "vasp":
 		args = {

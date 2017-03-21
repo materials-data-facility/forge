@@ -10,9 +10,10 @@ feedsack_file = paths.sack_feed + "hopv_" + str(feedsack_size) + ".json"
 mdf_metadata = {
 	"mdf_source_name" : "hopv",
 	"mdf_source_id" : 8,
-	"globus_source" : "Harvard Open Photovoltaic Database",
+	"globus_source" : "Harvard Organic Photovoltaic Database",
 	"mdf_datatype" : "hopv",
-	"acl" : ["public"]
+	"acl" : ["public"],
+	"collection" : "Harvard Organic Photovoltaic Database"
 	}
 
 #Takes float or nan and returns correct value for JSON serialization - float version if not nan, string "nan" otherwise
@@ -106,6 +107,7 @@ def hopv_converter(in_filename, out_filename, mdf_meta, sack_size=0, sack_filena
 				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = molecule["uri"]
+				feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 				feedstock_data["data"] = molecule
 
 				try:

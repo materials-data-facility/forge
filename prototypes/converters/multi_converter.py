@@ -665,6 +665,7 @@ def process_data(arg_dict):
 			feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 			feedstock_data["acl"] = mdf_meta["acl"]
 			feedstock_data["globus_subject"] = formatted_data["uri"]
+			feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 			feedstock_data["data"] = formatted_data
 
 			dump(feedstock_data, out_open)
@@ -712,7 +713,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 3,
 			"globus_source" : "High-throughput Ab-initio Dilute Solute Diffusion Database",
 			"mdf_datatype" : "vasp",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "High-throughput Ab-initio Dilute Solute Diffusion Database"
 			}
 		dane_args = {
 #			"metadata" : {
@@ -766,7 +768,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 4,
 			"globus_source" : "Khazana (Polymer)",
 			"mdf_datatype" : "cif",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "Khazana (Polymer)"
 			}
 		khazana_polymer_args = {
 #			"metadata" : {
@@ -819,7 +822,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 5,
 			"globus_source" : "Khazana (DFT)",
 			"mdf_datatype" : "vasp",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "Khazana (DFT)"
 			}
 		khazana_vasp_args = {
 #			"metadata" : {
@@ -873,7 +877,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 6,
 			"globus_source" : "Crystallography Open Database",
 			"mdf_datatype" : "cif",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "Crystallography Open Database"
 			}
 		cod_args = {
 			"mdf_metadata" : cod_mdf,
@@ -921,7 +926,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 7,
 			"globus_source" : "SLUSCHI",
 			"mdf_datatype" : "vasp",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "SLUSCHI"
 			}
 		sluschi_args = {
 			"mdf_metadata" : sluschi_mdf,

@@ -119,7 +119,8 @@ if __name__ == "__main__":
 		"mdf_source_id" : 2,
 		"globus_source" : "NIST-JANAF",
 		"mdf_datatype" : "janaf",
-		"acl" : ["public"]
+		"acl" : ["public"],
+		"collection" : "NIST-JANAF"
 		}
 	data = []
 	data_dir = paths.datasets + "janaf/srd13_janaf"
@@ -143,6 +144,7 @@ if __name__ == "__main__":
 				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = entry["uri"]
+				feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 				feedstock_data["data"] = entry
 
 				dump(feedstock_data, out_file)

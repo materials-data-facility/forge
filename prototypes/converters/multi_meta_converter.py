@@ -38,6 +38,7 @@ def matin_convert(matin_raw, mdf_meta):
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_matin.get("dc.identifier", None)
+	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 	feedstock_data["data"] = matin_raw
 
 	return feedstock_data
@@ -68,6 +69,7 @@ def cxidb_convert(cxidb_data, mdf_meta):
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_cxidb.get("dc.identifier", None)
+	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 	feedstock_data["data"] = cxidb_data
 
 	return feedstock_data
@@ -113,6 +115,7 @@ def nist_convert(nist_raw, mdf_data): #TODO: Fix duplicates into list
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_nist.get("dc.identifier", None)
+	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 	feedstock_data["data"] = nist_data
 
 #	if nist_data.get("dc.contributor", None):
@@ -145,6 +148,7 @@ def materials_commons_convert(mc_data, mdf_data):
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_mc.get("identifier", None)
+	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 	feedstock_data["data"] = mc_data
 
 	return feedstock_data
@@ -188,7 +192,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 13,
 			"globus_source" : "MATIN",
 			"mdf_datatype" : "oai_pmh_metadata",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "MATIN"
 			}
 		print("#####################\nMATIN\n#####################")
 		general_meta_converter(paths.datasets + "matin_metadata", paths.raw_feed + "matin_metadata_all.json", matin_convert, matin_mdf, verbose=True)
@@ -198,7 +203,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 14,
 			"globus_source" : "CXIDB",
 			"mdf_datatype" : "cxidb_metadata",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "CXIDB"
 			}
 		print("#####################\nCXIDB\n#####################")
 		general_meta_converter(paths.datasets + "cxidb_metadata", paths.raw_feed + "cxidb_metadata_all.json", cxidb_convert, cxidb_mdf, verbose=True)
@@ -208,7 +214,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 12,
 			"globus_source" : "NIST DSpace (Metadata)",
 			"mdf_datatype" : "nist_dspace_metadata",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "NIST DSpace (Metadata)"
 			}
 		print("#####################\nNIST\n#####################")
 		general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, nist_dspace_mdf, file_pattern="_metadata.json$",  verbose=True)
@@ -218,7 +225,8 @@ if __name__ == "__main__":
 			"mdf_source_id" : 16,
 			"globus_source" : "Materials Commons",
 			"mdf_datatype" : "materials_commons_metadata",
-			"acl" : ["public"]
+			"acl" : ["public"],
+			"collection" : "Materials Commons"
 			}
 		print("#####################\nMATERIALS COMMONS\n#####################")
 		general_meta_converter(paths.datasets + "materials_commons_metadata", paths.raw_feed + "materials_commons_metadata_all.json", mc_mdf, materials_commons_convert,  verbose=True)

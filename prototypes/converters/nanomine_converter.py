@@ -168,6 +168,7 @@ def dc_format_nanomine(nm_data, mdf_meta):
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_nm.get("dc.identifier", None)
+	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 	feedstock_data["data"] = use_data
 
 	return feedstock_data
@@ -251,7 +252,8 @@ if __name__ == "__main__":
 		"mdf_source_id" : 10,
 		"globus_source" : "Nanomine",
 		"mdf_datatype" : "nanomine",
-		"acl" : ["public"]
+		"acl" : ["public"],
+		"collection" : "Nanomine"
 		}
 #	convert_nanomine(paths.datasets + "nanomine/nanomine_results", paths.raw_feed + "nanomine_all.json", 10, paths.sack_feed + "nanomine_10.json", verbose=True)
 	convert_nanomine(paths.datasets + "nanomine/nanomine.dump", paths.raw_feed + "nanomine_all.json", mdf_data=mdf_metadata, uri_prefix="http://nanomine.northwestern.edu:8000/explore/detail_result_keyword?id=", sack_size=10, sack_file=paths.sack_feed + "nanomine_10.json", verbose=True)

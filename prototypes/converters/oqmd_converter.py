@@ -70,6 +70,7 @@ def printDataset(entries, filename, mdf_data, verbose=False):
 				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = output["uri"]
+				feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 				feedstock_data["data"] = output
 
 				dump(feedstock_data, fp)
@@ -117,7 +118,8 @@ if __name__ == "__main__":
 		"mdf_source_id" : 1,
 		"globus_source" : "Open Quantum Materials Database",
 		"mdf_datatype" : "oqmd",
-		"acl" : ["public"]
+		"acl" : ["public"],
+		"collection" : "Open Quantum Materials Database"
 		}
 	filename = paths.raw_feed + "oqmd_all.json"
 	e = Formation.objects.filter(fit = "standard")

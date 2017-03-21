@@ -75,6 +75,7 @@ def convert_pppdb(out_stock, login_file, mdf_meta, sack_size=0, out_sack=None, v
 			feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 			feedstock_data["acl"] = mdf_meta["acl"]
 			feedstock_data["globus_subject"] = ["uri"]
+			feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 			feedstock_data["data"] = record
 
 			dump(feedstock_data, output)
@@ -93,7 +94,8 @@ if __name__ == "__main__":
 		"mdf_source_id" : 15,
 		"globus_source" : "Polymer Property Predictor Database",
 		"mdf_datatype" : "pppdb",
-		"acl" : ["public"]
+		"acl" : ["public"],
+		"collection" : "Polymer Property Predictor Database"
 		}
 	convert_pppdb(out_stock=paths.raw_feed+"pppdb_all.json", login_file="sql_login.json", mdf_meta=mdf_metadata, sack_size=10, out_sack=paths.sack_feed+"pppdb_10.json", verbose=True)
 
