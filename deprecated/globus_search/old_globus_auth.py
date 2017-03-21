@@ -2,13 +2,15 @@ import os
 import os.path
 import json
 import globus_sdk
+import six
+from six.moves import input
 
+#from globus_datasearch_client.client import DataSearchClient
 from globus_client import DataSearchClient
-
 
 def prompt(s):
     print(s + ': ')
-    return raw_input().strip()
+    return input().strip()
 
 
 def _load_auth_client():
@@ -28,14 +30,13 @@ def _interactive_login():
     print('{0}:\n{1}\n{2}\n{1}\n'
           .format(linkprompt, '-' * len(linkprompt),
                   native_client.oauth2_get_authorize_url()))
-    auth_code = prompt(
-        'Enter the resulting Authorization Code here').strip()
+    auth_code = prompt('Enter the resulting Authorization Code here').strip()
     tkn = native_client.oauth2_exchange_code_for_tokens(auth_code)
 
     return tkn.by_resource_server['datasearch.api.globus.org']
 
 
-def login(base_url, default_search_domain):
+def login(base_url):
     tok_path = os.path.expanduser('~/.globus_datasearch_client_tokens.json')
 
     def _write_tokfile(tokens):
@@ -62,6 +63,4 @@ def login(base_url, default_search_domain):
         tokens['access_token'], tokens['expires_at_seconds'],
         on_refresh=_update_tokfile)
 
-    return DataSearchClient(
-        base_url, default_search_domain=default_search_domain,
-        authorizer=authorizer)
+    return DataSearchClient(base_url, authorizer=authorizer)

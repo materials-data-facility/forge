@@ -61,11 +61,11 @@ data_file_to_use = []
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
-data_file_to_use.append("cip")
+#data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
-data_file_to_use.append("nist_ip")
+#data_file_to_use.append("nist_ip")
 #data_file_to_use.append("nist_dspace")
-#data_file_to_use.append("metadata_matin")
+data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
 #data_file_to_use.append("metadata_nist")
 #data_file_to_use.append("pppdb")
@@ -75,7 +75,7 @@ data_file_to_use.append("nist_ip")
 #Information about each dataset for ingesting
 all_data_files = {
 	"oqmd" : {
-		"file" : paths.ref_feed +  "oqmd_refined.json",
+		"file" : paths.ref_feed +  "oqmd_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 5000,
 		"globus_search" : {
@@ -84,7 +84,7 @@ all_data_files = {
 			}
 		},
 	"janaf" : {
-		"file" : paths.ref_feed + "janaf_refined.json",
+		"file" : paths.ref_feed + "janaf_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 500,
 		"globus_search" : {
@@ -94,7 +94,7 @@ all_data_files = {
 
 		},
 	"danemorgan" : {
-		"file" : paths.ref_feed + "danemorgan_refined.json",
+		"file" : paths.ref_feed + "danemorgan_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 10,
 		"globus_search" : {
@@ -104,7 +104,7 @@ all_data_files = {
 
 		},
 	"khazana_polymer" : {
-		"file" : paths.ref_feed + "khazana_polymer_refined.json",
+		"file" : paths.ref_feed + "khazana_polymer_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -114,7 +114,7 @@ all_data_files = {
 
 		},
 	"khazana_vasp" : {
-		"file" : paths.ref_feed +"khazana_vasp_refined.json",
+		"file" : paths.ref_feed +"khazana_vasp_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 1,
 		"globus_search" : {
@@ -124,7 +124,7 @@ all_data_files = {
 
 		},
 	"cod" : {
-		"file" : paths.ref_feed + "cod_refined.json",
+		"file" : paths.ref_feed + "cod_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 5000,
 		"globus_search" : {
@@ -134,7 +134,7 @@ all_data_files = {
 
 		},
 	"sluschi" : {
-		"file" : paths.ref_feed + "sluschi_refined.json",
+		"file" : paths.ref_feed + "sluschi_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 1,
 		"globus_search" : {
@@ -144,7 +144,7 @@ all_data_files = {
 
 		},
 	"hopv" : {
-		"file" : paths.ref_feed + "hopv_refined.json",
+		"file" : paths.ref_feed + "hopv_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -154,7 +154,7 @@ all_data_files = {
 
 		},
 	"cip" : {
-		"file" : paths.ref_feed + "cip_refined.json",
+		"file" : paths.ref_feed + "cip_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -164,7 +164,7 @@ all_data_files = {
 
 		},
 	"nanomine" : {
-		"file" : paths.ref_feed + "nanomine_refined.json",
+		"file" : paths.ref_feed + "nanomine_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -174,7 +174,7 @@ all_data_files = {
 
 		},
 	"nist_ip" : {
-		"file" : paths.ref_feed + "nist_ip_refined.json",
+		"file" : paths.ref_feed + "nist_ip_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -192,7 +192,7 @@ all_data_files = {
 			}
 		},
 	"metadata_matin" : {
-		"file" : paths.ref_feed + "matin_metadata_refined.json",
+		"file" : paths.ref_feed + "matin_metadata_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -201,7 +201,7 @@ all_data_files = {
 			}
 		},
 	"metadata_cxidb" : {
-		"file" : paths.ref_feed + "cxidb_metadata_refined.json",
+		"file" : paths.ref_feed + "cxidb_metadata_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -210,7 +210,7 @@ all_data_files = {
 			}
 		},
 	"metadata_nist" : {
-		"file" : paths.ref_feed + "nist_metadata_refined.json",
+		"file" : paths.ref_feed + "nist_metadata_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -219,7 +219,7 @@ all_data_files = {
 			}
 		},
 	"pppdb" : {
-		"file" : paths.ref_feed + "pppdb_refined.json",
+		"file" : paths.ref_feed + "pppdb_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {
@@ -228,7 +228,7 @@ all_data_files = {
 			}
 		},
 	"metadata_materials_commons" : {
-		"file" : paths.ref_feed + "materials_commons_metadata_refined.json",
+		"file" : paths.ref_feed + "materials_commons_metadata_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 1,
 		"globus_search" : {
@@ -239,6 +239,9 @@ all_data_files = {
 		}
 	}
 
+
+#Default domain (index) for Globus Search
+globus_domain = "globus_search"
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 #Only applies to globus_search
@@ -327,7 +330,7 @@ def format_multi_gmeta(data_list):
 #Globus Search client
 def globus_search_client():
 	import globus_auth
-	return globus_auth.login("https://datasearch.api.demo.globus.org/")
+	return globus_auth.login("https://datasearch.api.demo.globus.org/", globus_domain)
 
 #Filter for Globus Search
 #Arguments:

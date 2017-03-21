@@ -1,2 +1,2 @@
 #Paths for ingester
-ref_feed = "../feedstock/refined_feedstock/"
+ref_feed = "../feedstock/full_feedstock/"
