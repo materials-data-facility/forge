@@ -6,9 +6,9 @@ from bson import ObjectId
 from utils import find_files, dc_validate
 
 to_convert = []
-#to_convert.append("matin")
+to_convert.append("matin")
 #to_convert.append("cxidb")
-to_convert.append("nist_dspace")
+#to_convert.append("nist_dspace")
 #to_convert.append("materials_commons")
 
 
@@ -170,7 +170,7 @@ def general_meta_converter(in_dir, out_file, conv_func, mdf_metadata, file_patte
 					file_data = load(in_file)
 				except:
 					exit("ERROR ON: " + file_path + "?" + file_name)
-			file_json = conv_func(file_data)
+			file_json = conv_func(file_data, mdf_metadata)
 			dc_validation = dc_validate(file_json)
 			if dc_validation["valid"]:
 				dump(dc_validation["validated"], output)
