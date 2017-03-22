@@ -10,7 +10,7 @@ def convert_nist_dspace(id_num, file_format, verbose=False):
 	nist_dspace_mdf = {
 		"mdf_source_name" : "nist_dspace",
 		"mdf_source_id" : 12,
-		"globus_source" : "NIST",
+#		"globus_source" : "NIST",
 		"mdf_datatype" : "nist_dspace",
 		"acl" : ["public"],
 		"collection" : "NIST"

@@ -117,7 +117,7 @@ if __name__ == "__main__":
 	mdf_meta = {
 		"mdf_source_name" : "janaf",
 		"mdf_source_id" : 2,
-		"globus_source" : "NIST-JANAF",
+#		"globus_source" : "NIST-JANAF",
 		"mdf_datatype" : "janaf",
 		"acl" : ["public"],
 		"collection" : "NIST-JANAF"
@@ -140,7 +140,7 @@ if __name__ == "__main__":
 				feedstock_data["mdf_id"] = str(ObjectId())
 				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = entry["uri"]

@@ -63,15 +63,16 @@ def convert_pppdb(out_stock, login_file, mdf_meta, sack_size=0, out_sack=None, v
 			feedstock_data["dc.description"] = str(record["notes"]) if record["notes"] else ""
 			feedstock_data["dc.relatedidentifier"] = [str(record["doi"])] 
 			feedstock_data["dc.year"] = int(str(record["date"])[-4:])
+			feedstock_data["mdf-base.materials_composition"] = [record["compound1"], record["compound2"]]
 
-			dc_valid = dc_validate(record)
+			dc_valid = dc_validate(feedstock_data)
 			if not dc_valid["valid"]:
 				exit("Error in metadata: Invalid fields: " + str(dc_valid["invalid_fields"]))
 
 			feedstock_data["mdf_id"] = str(ObjectId())
 			feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 			feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-			feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#			feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 			feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 			feedstock_data["acl"] = mdf_meta["acl"]
 			feedstock_data["globus_subject"] = ["uri"]
@@ -92,7 +93,7 @@ if __name__ == "__main__":
 	mdf_metadata = {
 		"mdf_source_name" : "pppdb",
 		"mdf_source_id" : 15,
-		"globus_source" : "Polymer Property Predictor Database",
+#		"globus_source" : "Polymer Property Predictor Database",
 		"mdf_datatype" : "pppdb",
 		"acl" : ["public"],
 		"collection" : "Polymer Property Predictor Database"

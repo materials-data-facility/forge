@@ -34,7 +34,7 @@ def matin_convert(matin_raw, mdf_meta):
 	feedstock_data["mdf_id"] = str(ObjectId())
 	feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 	feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_matin.get("dc.identifier", None)
@@ -65,7 +65,7 @@ def cxidb_convert(cxidb_data, mdf_meta):
 	feedstock_data["mdf_id"] = str(ObjectId())
 	feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 	feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_cxidb.get("dc.identifier", None)
@@ -111,7 +111,7 @@ def nist_convert(nist_raw, mdf_data): #TODO: Fix duplicates into list
 	feedstock_data["mdf_id"] = str(ObjectId())
 	feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 	feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_nist.get("dc.identifier", None)
@@ -144,7 +144,7 @@ def materials_commons_convert(mc_data, mdf_data):
 	feedstock_data["mdf_id"] = str(ObjectId())
 	feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 	feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_mc.get("identifier", None)
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 		matin_mdf = {
 			"mdf_source_name" : "matin",
 			"mdf_source_id" : 13,
-			"globus_source" : "MATIN",
+#			"globus_source" : "MATIN",
 			"mdf_datatype" : "oai_pmh_metadata",
 			"acl" : ["public"],
 			"collection" : "MATIN"
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 		cxidb_mdf = {
 			"mdf_source_name" : "cxidb",
 			"mdf_source_id" : 14,
-			"globus_source" : "CXIDB",
+#			"globus_source" : "CXIDB",
 			"mdf_datatype" : "cxidb_metadata",
 			"acl" : ["public"],
 			"collection" : "CXIDB"
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 		nist_dspace_mdf = {
 			"mdf_source_name" : "nist_dspace",
 			"mdf_source_id" : 12,
-			"globus_source" : "NIST DSpace (Metadata)",
+#			"globus_source" : "NIST DSpace (Metadata)",
 			"mdf_datatype" : "nist_dspace_metadata",
 			"acl" : ["public"],
 			"collection" : "NIST DSpace (Metadata)"
@@ -223,7 +223,7 @@ if __name__ == "__main__":
 		mc_mdf = {
 			"mdf_source_name" : "materials_commons",
 			"mdf_source_id" : 16,
-			"globus_source" : "Materials Commons",
+#			"globus_source" : "Materials Commons",
 			"mdf_datatype" : "materials_commons_metadata",
 			"acl" : ["public"],
 			"collection" : "Materials Commons"

@@ -164,7 +164,7 @@ def dc_format_nanomine(nm_data, mdf_meta):
 	feedstock_data["mdf_id"] = str(ObjectId())
 	feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 	feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+#	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_nm.get("dc.identifier", None)
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 	mdf_metadata = {
 		"mdf_source_name" : "nanomine",
 		"mdf_source_id" : 10,
-		"globus_source" : "Nanomine",
+#		"globus_source" : "Nanomine",
 		"mdf_datatype" : "nanomine",
 		"acl" : ["public"],
 		"collection" : "Nanomine"

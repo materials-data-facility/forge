@@ -4,7 +4,7 @@ Ingester
 #import globus_auth
 #from pickle import load
 from sys import exit
-from json import loads, dumps
+from json import loads, dumps, dump
 from tqdm import tqdm
 from copy import deepcopy
 #from pymongo import MongoClient
@@ -20,11 +20,13 @@ std_nest_lim = 4
 
 #Keys reserved for Globus Search
 globus_keys = ["@context", "@datatype", "@version", "subject", "visible_to", "include", "content", "id", "source_id", "mimetype", "gmeta", "ingest_data", "ingest_type"]
+#Keys that Searchify should not process anything nested in
+globus_stop_keys = ["@context"]
 #Default URL to prepend to fields that do not already have a URL
 default_key = "http://globus.org"
 default_sep = "#"
 default_uri = "http://globus.org/"
-globus_keys.append(default_key)
+#globus_keys.append(default_key)
 replace_chars = { #Dict of characters to replace and what to replace them with
 	"@" : "-"
 	}
@@ -248,6 +250,10 @@ all_data_files = {
 #Default domain (index) for Globus Search
 globus_domain = "globus_search"
 
+#For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. is not used.
+#print_ES_to_file = "ingest_doc.json"
+print_ES_to_file = None
+
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 #Only applies to globus_search
 DELETE_GS = False
@@ -264,45 +270,51 @@ DELETE_ES = False
 #With full=false, the returned entry can be added to a gmeta list, but cannot be ingested directly
 #With full=true, the returned entry is ready for ingestion, but not inclusion in a gmeta list
 def format_single_gmeta(data_dict, full=False):
+	#Default values
+	if type(data_dict.get("acl", None)) is not list:
+		data_dict["acl"] = [data_dict.get("acl", "public")]
 
-	if not data_dict.get("context", None):
-		data_dict["context"] = {}
+#	if not data_dict.get("context", None):
+#		data_dict["context"] = {}
 #	if not data_dict.get("context", {}).get("datacite", None):
 #		data_dict["context"]["datacite"] = datacite_namespace
 #	if not data_dict.get("context", {}).get("dc", None):
 #		data_dict["context"]["dc"] = dc_namespace
-	if not data_dict.get("globus_subject", None):
-		data_dict["globus_subject"] = ""
-	if not data_dict.get("globus_id", None):
-		data_dict["globus_id"] = ""
-	if not data_dict.get("globus_source", None):
-		data_dict["globus_source"] = ""
-	if not data_dict.get("acl", None):
-		data_dict["acl"] = ["public"]
+#	if not data_dict.get("globus_subject", None): #Moved
+#		data_dict["globus_subject"] = ""
+#	if not data_dict.get("globus_id", None):
+#		data_dict["globus_id"] = ""
+#	if not data_dict.get("globus_source", None):
+#		data_dict["globus_source"] = ""
+
 #	if not data_dict.get("__source_name", None):
 #		data_dict["__source_name"] = "Source not found"
-	if not data_dict.get("data", None):
-		content = {}
-	else:
-		content = data_dict["data"]
-		content["mdf_source_name"] = data_dict["mdf_source_name"]
-		content["mdf_source_id"] = data_dict["mdf_source_id"]
-		content["mdf-publish.publication.community"] = "Materials Data Facility" #Community for filtering
-#		content["mdf_id"] = ObjectId(content["mdf_id"])
+#	if not data_dict.get("globus_data", None):
+#		content = {}
+
+#	content = data_dict["globus_data"]
+#	content["mdf_source_name"] = data_dict["mdf_source_name"]
+#	content["mdf_source_id"] = data_dict["mdf_source_id"]
+#	content["mdf-publish.publication.community"] = "Materials Data Facility"
+#	content["mdf_id"] = ObjectId(content["mdf_id"])
+
 #	if data_dict.get("data_context", None):
 #		for elem in data_dict.get("data", {}).keys():
 #			elem = data_dict["data_context"] + ":" + elem
+
+
+	data_dict["mdf-publish.publication.community"] = "Materials Data Facility" #Community for filtering
+
 	gmeta = {
 		"@datatype" : "GMetaEntry",
 		"@version" : "2016-11-09",
-		"subject" : data_dict["globus_subject"],
-		"visible_to" : data_dict["acl"],
-		#"visible_to" : ["public"],
-		"id" : data_dict["globus_id"],
+		"subject" : data_dict.pop("globus_subject", ""),
+		"visible_to" : data_dict.pop("acl"),
+		"id" : data_dict.pop("globus_id", ""),
 #		"source_id" : data_dict["globus_source"],#Deprecated
-		"content" : content
+		"content" : data_dict
 		}
-	gmeta["content"]["@context"] = data_dict["context"]
+	gmeta["content"]["@context"] = data_dict.pop("context", {})
 
 	if full:
 		gmeta_full = {
@@ -377,8 +389,6 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 		return None
 
 #Adds a URL to the start of every field because that's what Search requires
-#globus_keys = ["@context", "@datatype", "@version", "subject", "visible_to", "include", "content", "id", "source_id", "mimetype", "gmeta", "ingest_data", "ingest_type"]
-#globus_keys.append("globus") #Contents of "@context"
 def searchify(data):
 	if type(data) is not list and type(data) is not dict:
 		return data
@@ -391,7 +401,10 @@ def searchify(data):
 		new_dict = {}
 		for key, value in data.items():
 			if key in globus_keys or default_sep in key: #If field is a special Search field or already namespaced, don't add a namespace
-				new_dict[key] = searchify(value)
+				if key in globus_stop_keys: #If field is a special Search field and the value should not be processed
+					new_dict[key] = value
+				else:
+					new_dict[key] = searchify(value)
 			else: #Add a namespace
 				if key.startswith(tuple(replace_namespaces.keys())): #Key has special namespace to expand
 					for token in replace_namespaces.keys():
@@ -456,9 +469,9 @@ def globus_search_ingest(args):
 					filtered_content[key] = first_level_list
 		'''
 		if filtered_content: #If there's nothing left after filtering, should not ingest)
-			if not filtered_content.get("@context", None):
-				filtered_content["@context"] = {}
-			filtered_content["@context"][default_key] = default_uri
+#			if not filtered_content.get("@context", None):
+#				filtered_content["@context"] = {}
+#			filtered_content["@context"][default_key] = default_uri #@context functionality implemented in Searchify
 			entry["content"] = filtered_content
 			filtered_list.append(entry)
 	args["ingestable"]["ingest_data"]["gmeta"] = filtered_list #Can't check this for no data or might break things
@@ -476,6 +489,12 @@ def globus_search_ingest(args):
 
 	ingest_data = loads(dumps(searchify(args["ingestable"])))
 #	print("\nDATA:", dumps(ingest_data, sort_keys=True, indent=4, separators=(',', ': ')))
+	
+	#For debugging
+	if print_ES_to_file and type(print_ES_to_file) is str:
+		with open(print_ES_to_file, 'w') as search_file:
+			dump(ingest_data, search_file)
+
 	res = args["client"].ingest(ingest_data)
 #	exit("Done")
 	if args["verbose"]:
@@ -741,7 +760,7 @@ def ingest_refined_feedstock(json_filename, destinations, destination_args={}, m
 #		for record in tqdm(list_of_data, desc="Preparing records", disable= not verbose):
 		if delete_not_ingest:
 			delete_data = record
-			delete_data.pop("data", None)
+			delete_data.pop("globus_data", None)
 			single_ingestable = format_single_gmeta(delete_data, full=False)
 		else:
 			single_ingestable = format_single_gmeta(record, full=False)
