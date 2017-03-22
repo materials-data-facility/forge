@@ -75,7 +75,7 @@ def convert_pppdb(out_stock, login_file, mdf_meta, sack_size=0, out_sack=None, v
 #			feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 			feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 			feedstock_data["acl"] = mdf_meta["acl"]
-			feedstock_data["globus_subject"] = ["uri"]
+			feedstock_data["globus_subject"] = feedstock_data["dc.identifier"]
 			feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 			feedstock_data["data"] = record
 

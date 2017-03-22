@@ -12,7 +12,7 @@ import paths #Contains relative paths to data
 
 feedstock = True
 
-def printDataset(entries, filename, mdf_data, verbose=False):
+def printDataset(entries, filename, mdf_meta, verbose=False):
 	all_uri = []
 	if verbose:
 		print_("Printing to: " + filename)

@@ -249,6 +249,7 @@ all_data_files = {
 
 #Default domain (index) for Globus Search
 globus_domain = "globus_search"
+#globus_domain = "mdf-test"
 
 #For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. is not used.
 #print_ES_to_file = "ingest_doc.json"

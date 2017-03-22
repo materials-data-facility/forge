@@ -152,7 +152,7 @@ def dc_format_nanomine(nm_data, mdf_meta):
 		"nanomine_id" : nm_data.get("nanomine_id", None),
 #		"characterization" : [elem.replace("_", "") for elem in nm_data["content"]["PolymerNanocomposite"].get("CHARACTERIZATION", {}).keys()],
 		"name" : nm_data["content"]["PolymerNanocomposite"].get("ID", None),
-		"citation" : nm_data["content"]["PolymerNanocomposite"]["DATA_SOURCE"]["Citation"]["CommonFields"],
+#		"citation" : nm_data["content"]["PolymerNanocomposite"]["DATA_SOURCE"]["Citation"]["CommonFields"],
 #		"microscopy_type" : nm_data["content"]["PolymerNanocomposite"].get("MICROSTRUCTURE", {}).get("MicroscopyType", None),
 #		"processing" : nm_data["content"]["PolymerNanocomposite"].get("PROCESSING", None),
 #		"materials" : nm_data["content"]["PolymerNanocomposite"].get("MATERIALS", None),

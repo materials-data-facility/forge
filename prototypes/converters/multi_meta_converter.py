@@ -6,10 +6,10 @@ from bson import ObjectId
 from utils import find_files, dc_validate
 
 to_convert = []
-to_convert.append("matin")
+#to_convert.append("matin")
 #to_convert.append("cxidb")
 #to_convert.append("nist_dspace")
-#to_convert.append("materials_commons")
+to_convert.append("materials_commons")
 
 
 def matin_convert(matin_raw, mdf_meta):
@@ -75,7 +75,7 @@ def cxidb_convert(cxidb_data, mdf_meta):
 	return feedstock_data
 
 
-def nist_convert(nist_raw, mdf_data): #TODO: Fix duplicates into list
+def nist_convert(nist_raw, mdf_meta): #TODO: Fix duplicates into list
 	nist_data = {}
 	for meta_dict in nist_raw:
 		if not nist_data.get(meta_dict["key"], None): #No previous value, copy data
@@ -123,7 +123,7 @@ def nist_convert(nist_raw, mdf_data): #TODO: Fix duplicates into list
 	return feedstock_data
 
 
-def materials_commons_convert(mc_data, mdf_data):
+def materials_commons_convert(mc_data, mdf_meta):
 	dc_mc = {
 		"dc.title" : mc_data.get("title", None),
 		"dc.creator" : "Materials Commons",
@@ -149,6 +149,10 @@ def materials_commons_convert(mc_data, mdf_data):
 	feedstock_data["acl"] = mdf_meta["acl"]
 	feedstock_data["globus_subject"] = dc_mc.get("identifier", None)
 	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
+
+	#Remove unneeded or issue-prone fields before saving data
+	mc_data.pop("files", None)
+	mc_data.pop("authors", None)
 	feedstock_data["data"] = mc_data
 
 	return feedstock_data
@@ -196,7 +200,7 @@ if __name__ == "__main__":
 			"collection" : "MATIN"
 			}
 		print("#####################\nMATIN\n#####################")
-		general_meta_converter(paths.datasets + "matin_metadata", paths.raw_feed + "matin_metadata_all.json", matin_convert, matin_mdf, verbose=True)
+		general_meta_converter(in_dir=paths.datasets+"matin_metadata", out_file=paths.raw_feed+"matin_metadata_all.json", conv_func=matin_convert, mdf_metadata=matin_mdf, verbose=True)
 	if "cxidb" in to_convert:
 		cxidb_mdf = {
 			"mdf_source_name" : "cxidb",
@@ -207,7 +211,7 @@ if __name__ == "__main__":
 			"collection" : "CXIDB"
 			}
 		print("#####################\nCXIDB\n#####################")
-		general_meta_converter(paths.datasets + "cxidb_metadata", paths.raw_feed + "cxidb_metadata_all.json", cxidb_convert, cxidb_mdf, verbose=True)
+		general_meta_converter(in_dir=paths.datasets+"cxidb_metadata", out_file=paths.raw_feed+"cxidb_metadata_all.json", conv_func=cxidb_convert, mdf_metadata=cxidb_mdf, verbose=True)
 	if "nist_dspace" in to_convert:
 		nist_dspace_mdf = {
 			"mdf_source_name" : "nist_dspace",
@@ -218,7 +222,7 @@ if __name__ == "__main__":
 			"collection" : "NIST DSpace (Metadata)"
 			}
 		print("#####################\nNIST\n#####################")
-		general_meta_converter(paths.datasets + "nist_dspace", paths.raw_feed + "nist_metadata_all.json", nist_convert, nist_dspace_mdf, file_pattern="_metadata.json$",  verbose=True)
+		general_meta_converter(in_dir=paths.datasets+"nist_dspace", out_file=paths.raw_feed+"nist_metadata_all.json", conv_func=nist_convert, mdf_metadata=nist_dspace_mdf, file_pattern="_metadata.json$",  verbose=True)
 	if "materials_commons" in to_convert:
 		mc_mdf = {
 			"mdf_source_name" : "materials_commons",
@@ -229,7 +233,7 @@ if __name__ == "__main__":
 			"collection" : "Materials Commons"
 			}
 		print("#####################\nMATERIALS COMMONS\n#####################")
-		general_meta_converter(paths.datasets + "materials_commons_metadata", paths.raw_feed + "materials_commons_metadata_all.json", mc_mdf, materials_commons_convert,  verbose=True)
+		general_meta_converter(in_dir=paths.datasets+"materials_commons_metadata", out_file=paths.raw_feed+"materials_commons_metadata_all.json", conv_func=materials_commons_convert, mdf_metadata=mc_mdf,  verbose=True)
 
 
 

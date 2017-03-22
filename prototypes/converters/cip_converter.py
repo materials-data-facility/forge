@@ -3,14 +3,9 @@ from os.path import join
 from tqdm import tqdm
 #from ujson import dump
 from bson import ObjectId
-from utils import find_files
+from utils import dc_validate
 import paths
 
-
-datasets = []
-#datasets.append("cip")
-#datasets.append("ido") #Broken for now
-datasets.append("nist_ip")
 
 #Generator to run through a JSON record and yield the data
 #Data is defined as the first layer that isn't a list
@@ -28,7 +23,7 @@ def find_data(record):
 
 #Takes a JSON file and converts it into formatter-compatible JSON
 #If feed_size > 0, feed_name is required
-def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed_name=None, verbose=False):
+def convert_cip_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed_name=None, verbose=False):
 	all_uri = []
 	if verbose:
 		print("Converting JSON, dumping results to", out_name)
@@ -68,6 +63,20 @@ def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed
 
 				#Metadata
 				feedstock_data = {}
+				feedstock_data["dc.title"] = "NIST Classical Interatomic Potential - " + datum["forcefield"] + ", " + datum["composition"]
+				feedstock_data["dc.creator"] = " NIST Classical Interatomic Potentials"
+#				feedstock_data["dc.contributor.author"] = []
+				feedstock_data["dc.identifier"] = datum["mpid"]
+				feedstock_data["dc.subject"] = ["total energy", "energy", "elastic matrix", "structure", "elastic modulus", "forcefield"]
+#				feedstock_data["dc.description"] = ""
+#				feedstock_data["dc.relatedidentifier"] = []
+#				feedstock_data["dc.year"] = 0
+				feedstock_data["mdf-base.materials_composition"] = datum["composition"]
+
+				dc_validation = dc_validate(feedstock_data)
+				if not dc_validation["valid"]:
+					exit("ERROR: Invalid fields: " + str(dc_validation["invalid_fields"]))
+
 				feedstock_data["mdf_id"] = str(ObjectId())
 				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
 				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
@@ -93,48 +102,18 @@ def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed
 
 if __name__ == "__main__":
 	verbose = True
-	if "cip" in datasets:
-		cip_mdf = {
-			"mdf_source_name" : "cip",
-			"mdf_source_id" : 9,
-#			"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
-			"mdf_datatype" : "json",
-			"acl" : ["public"],
-			"collection" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface"
-			}
-		cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
-		cip_out = paths.raw_feed + "cip_all.json"
-		cip_uri = "case-number"
-		cip_sack_size = 10
-		cip_feed = paths.sack_feed + "cip_10.json"
-		convert_json_to_json(cip_in, cip_out, cip_uri, cip_mdf, cip_sack_size, cip_feed, verbose=verbose)
-
-	if "ido" in datasets:
-		exit("IDO not supported")
-		ido_in = paths.datasets + "10.5061_dryad.ph81h/inorganic_dielectric_optical.json"
-		ido_out = paths.raw_feed + "ido_all.json"
-		ido_sack_size = 10
-		ido_feed = paths.sack_feed + "ido_10.json"
-		convert_json_to_json(ido_in, ido_out, ido_uri, ido_sack_size, ido_feed, verbose=verbose)
-
-	if "nist_ip" in datasets:
-		nist_ip_mdf = {
-			"mdf_source_name" : "nist_ip",
-			"mdf_source_id" : 11,
-#			"globus_source" : "NIST Interatomic Potentials",
-			"mdf_datatype" : "json",
-			"acl" : ["public"],
-			"collection" : "NIST Interatomic Potentials"
-			}
-		nist_ip_in = paths.datasets + "nist_ip/interchange"
-		nist_ip_out = paths.raw_feed + "nist_ip_all.json"
-		nist_ip_uri = "interatomic-potential']['id"
-		nist_ip_sack_size = 10
-		nist_ip_feed = paths.sack_feed + "nist_ip_10.json"
-		nist_ip_file_list = []
-		for file_data in find_files(nist_ip_in, ".*\.json$"):
-			nist_ip_file_list.append(join(file_data["path"], file_data["filename"] + file_data["extension"]))
-		convert_json_to_json(nist_ip_file_list, nist_ip_out, nist_ip_uri, nist_ip_mdf, nist_ip_sack_size, nist_ip_feed, verbose=verbose)
-		
-
+	cip_mdf = {
+		"mdf_source_name" : "cip",
+		"mdf_source_id" : 9,
+#		"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
+		"mdf_datatype" : "json",
+		"acl" : ["public"],
+		"collection" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface"
+		}
+	cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
+	cip_out = paths.raw_feed + "cip_all.json"
+	cip_uri = "case-number"
+	cip_sack_size = 10
+	cip_feed = paths.sack_feed + "cip_10.json"
+	convert_cip_to_json(in_name=cip_in, out_name=cip_out, uri_loc=cip_uri, mdf_meta=cip_mdf, feed_size=cip_sack_size, feed_name=cip_feed, verbose=verbose)
 
