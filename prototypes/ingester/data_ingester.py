@@ -28,6 +28,11 @@ globus_keys.append(default_key)
 replace_chars = { #Dict of characters to replace and what to replace them with
 	"@" : "-"
 	}
+replace_namespaces = {
+	"dc." : "http://datacite.org/schema/kernel-3#",
+	"mdf-base." : "http://globus.org/publication-schemas/mdf-base/0.1#",
+	"mdf-publish." : "http://globus.org/publish-terms/#"
+	}
 
 
 #Note: All destinations listed here must have:
@@ -63,9 +68,9 @@ data_file_to_use = []
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
-#data_file_to_use.append("nist_ip")
+data_file_to_use.append("nist_ip")
 #data_file_to_use.append("nist_dspace")
-data_file_to_use.append("metadata_matin")
+#data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
 #data_file_to_use.append("metadata_nist")
 #data_file_to_use.append("pppdb")
@@ -282,6 +287,7 @@ def format_single_gmeta(data_dict, full=False):
 		content = data_dict["data"]
 		content["mdf_source_name"] = data_dict["mdf_source_name"]
 		content["mdf_source_id"] = data_dict["mdf_source_id"]
+		content["mdf-publish.publication.community"] = "Materials Data Facility" #Community for filtering
 #		content["mdf_id"] = ObjectId(content["mdf_id"])
 #	if data_dict.get("data_context", None):
 #		for elem in data_dict.get("data", {}).keys():
@@ -387,7 +393,17 @@ def searchify(data):
 			if key in globus_keys or default_sep in key: #If field is a special Search field or already namespaced, don't add a namespace
 				new_dict[key] = searchify(value)
 			else: #Add a namespace
-				new_dict[default_key+default_sep+key] = searchify(value)
+				if key.startswith(tuple(replace_namespaces.keys())): #Key has special namespace to expand
+					for token in replace_namespaces.keys():
+						if key.startswith(token):
+							#Key must be .replace()'d first, to not replace periods in the URL
+							#But this changes the match on the token (potentially), so the token to replace should be .replace()'d
+							new_key = key.replace(".", "/").replace(token.replace(".", "/"), replace_namespaces[token])
+							break #Found namespace, no longer need to check
+				else: #Key does not
+					new_key = default_key + default_sep + key
+
+				new_dict[new_key] = searchify(value)
 		return new_dict
 	else:
 		exit("ERROR: Unidentified data")

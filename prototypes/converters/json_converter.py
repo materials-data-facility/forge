@@ -134,7 +134,7 @@ if __name__ == "__main__":
 		nist_ip_file_list = []
 		for file_data in find_files(nist_ip_in, ".*\.json$"):
 			nist_ip_file_list.append(join(file_data["path"], file_data["filename"] + file_data["extension"]))
-		convert_json_to_json(nist_ip_file_list, nist_ip_out, nist_ip_uri, nist_ip_sack_size, nist_ip_feed, verbose=verbose)
+		convert_json_to_json(nist_ip_file_list, nist_ip_out, nist_ip_uri, nist_ip_mdf, nist_ip_sack_size, nist_ip_feed, verbose=verbose)
 		
 
 
