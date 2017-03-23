@@ -64,7 +64,6 @@ def oai_pmh_harvest(out_dir, base_url, metadata_prefixes=["oai_dc"], resource_ty
 if __name__ == "__main__":
 	nist_mrr_url = "http://matsci.registry.nationaldataservice.org/oai_pmh/server/"
 	matin_url = "https://matin.gatech.edu/oaipmh/"
-	nds_mrr_url = "http://matsci.registry.nationaldataservice.org/oai_pmh/server/"
 
 	if "matin" in to_harvest:
 		oai_pmh_harvest(out_dir=paths.datasets + "matin_metadata", base_url=matin_url, metadata_prefixes=["oai_dc"], existing_dir=1, verbose=True)

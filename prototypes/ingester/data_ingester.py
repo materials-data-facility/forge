@@ -70,14 +70,15 @@ data_file_to_use = []
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
-data_file_to_use.append("nist_ip")
+#data_file_to_use.append("nist_ip")
 #data_file_to_use.append("nist_dspace")
 #data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
 #data_file_to_use.append("metadata_nist")
 #data_file_to_use.append("pppdb")
-#data_file_to_use.append("metadata_materials_commons")
+data_file_to_use.append("metadata_materials_commons")
 
+#data_file_to_use.append("temp_sluschi")
 
 #Information about each dataset for ingesting
 all_data_files = {
@@ -242,18 +243,27 @@ all_data_files = {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
 			}
+		},
+	"temp_sluschi":{
+		"file":paths.ref_feed+"temp_sluschi.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 1,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
 
 		}
 	}
 
 
 #Default domain (index) for Globus Search
-globus_domain = "globus_search"
-#globus_domain = "mdf-test"
+#globus_domain = "globus_search"
+globus_domain = "mdf"
 
 #For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. is not used.
-#print_ES_to_file = "ingest_doc.json"
-print_ES_to_file = None
+print_ES_to_file = "ingest_doc.json"
+#print_ES_to_file = None
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 #Only applies to globus_search

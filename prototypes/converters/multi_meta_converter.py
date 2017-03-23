@@ -6,10 +6,12 @@ from bson import ObjectId
 from utils import find_files, dc_validate
 
 to_convert = []
-#to_convert.append("matin")
-#to_convert.append("cxidb")
-#to_convert.append("nist_dspace")
+to_convert.append("matin")
+to_convert.append("cxidb")
+to_convert.append("nist_dspace")
 to_convert.append("materials_commons")
+
+to_convert.append("temp")
 
 
 def matin_convert(matin_raw, mdf_meta):
@@ -68,7 +70,7 @@ def cxidb_convert(cxidb_data, mdf_meta):
 #	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
-	feedstock_data["globus_subject"] = dc_cxidb.get("dc.identifier", None)
+	feedstock_data["globus_subject"] = cxidb_data["url"]
 	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 	feedstock_data["data"] = cxidb_data
 
@@ -147,7 +149,7 @@ def materials_commons_convert(mc_data, mdf_meta):
 #	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
-	feedstock_data["globus_subject"] = dc_mc.get("identifier", None)
+	feedstock_data["globus_subject"] = dc_mc.get("dc.identifier", None)
 	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 
 	#Remove unneeded or issue-prone fields before saving data
@@ -157,6 +159,32 @@ def materials_commons_convert(mc_data, mdf_meta):
 
 	return feedstock_data
 
+#Temporary manual insert for Sluschi dataset for CHiMaD demo
+def sluschi_temp(s_data, mdf_meta):
+	dc_s = {
+		"dc.title" : "Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces (SLUSCHI)",
+		"dc.creator" : "SLUSCHI",
+		"dc.contributor.author" : ["Hong, Qi-Jun", "van de Walle, Axel"],
+		"dc.identifier" : "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/693",
+
+		
+
+		"dc.year" : 2016
+		}
+	feedstock_data = dc_s
+	feedstock_data["mdf_id"] = str(ObjectId())
+	feedstock_data["mdf_source_name"] = "SLUSCHI"
+	feedstock_data["mdf_source_id"] = 0
+	feedstock_data["mdf_datatype"] = "Metadata"
+	feedstock_data["acl"] = ["public"]
+	feedstock_data["globus_subject"] = "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/693"
+	feedstock_data["mdf-publish.publication.collection"] = "Sluschi"
+	feedstock_data["data"] = {
+		"endpoint_id" : "e38ee745-6d04-11e5-ba46-22000b92c6ec",
+		"endpoint_path" : "/MDF/feedstock/raw_data/datasets/sluschi/sluschi/",
+		"full_uri" : "globus://e38ee745-6d04-11e5-ba46-22000b92c6ec/MDF/feedstock/raw_data/datasets/sluschi/sluschi/"
+		}
+	return feedstock_data
 
 
 #Generalized interface for metadata conversion
@@ -234,6 +262,10 @@ if __name__ == "__main__":
 			}
 		print("#####################\nMATERIALS COMMONS\n#####################")
 		general_meta_converter(in_dir=paths.datasets+"materials_commons_metadata", out_file=paths.raw_feed+"materials_commons_metadata_all.json", conv_func=materials_commons_convert, mdf_metadata=mc_mdf,  verbose=True)
+
+	if "temp" in to_convert:
+		print("\n\nTEMP DEMO FILES\n")
+		general_meta_converter(in_dir=paths.datasets+"cxidb_metadata", out_file=paths.raw_feed+"temp_sluschi.json", conv_func=sluschi_temp, mdf_metadata={}, verbose=True)
 
 
 
