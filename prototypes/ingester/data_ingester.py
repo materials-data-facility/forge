@@ -68,17 +68,17 @@ data_file_to_use = []
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
-#data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
-#data_file_to_use.append("nist_ip")
+data_file_to_use.append("cip")
+data_file_to_use.append("nanomine")
+data_file_to_use.append("nist_ip")
 #data_file_to_use.append("nist_dspace")
-#data_file_to_use.append("metadata_matin")
-#data_file_to_use.append("metadata_cxidb")
-#data_file_to_use.append("metadata_nist")
-#data_file_to_use.append("pppdb")
+data_file_to_use.append("metadata_matin")
+data_file_to_use.append("metadata_cxidb")
+data_file_to_use.append("metadata_nist")
+data_file_to_use.append("pppdb")
 data_file_to_use.append("metadata_materials_commons")
 
-#data_file_to_use.append("temp_sluschi")
+data_file_to_use.append("temp_sluschi")
 
 #Information about each dataset for ingesting
 all_data_files = {
@@ -258,12 +258,12 @@ all_data_files = {
 
 
 #Default domain (index) for Globus Search
-#globus_domain = "globus_search"
-globus_domain = "mdf"
+globus_domain = "globus_search"
+#globus_domain = "mdf"
 
 #For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. is not used.
-print_ES_to_file = "ingest_doc.json"
-#print_ES_to_file = None
+#print_ES_to_file = "ingest_doc.json"
+print_ES_to_file = None
 
 #This setting uses the data file(s), but deletes the actual data before ingest. This causes the record to be "deleted."
 #Only applies to globus_search
@@ -386,13 +386,15 @@ def globus_search_filter(data, max_list=-1, max_depth=-1, depth=0):
 		new_dict = {}
 		for key, value in data.items():
 			if key in globus_keys:
-				new_key = "__" + key
+				#new_key = "__" + key
+				new_key = None #Remove keys that conflict
 			else:
 				new_key = key
-			for char, replacement in replace_chars.items():
-				new_key = new_key.replace(char, replacement) 
+			if new_key:
+				for char, replacement in replace_chars.items():
+					new_key = new_key.replace(char, replacement) 
 			new_value = globus_search_filter(value, max_list, max_depth, depth+1)
-			if new_value is not None:
+			if new_key and new_value is not None:
 				new_dict[new_key] = new_value
 		return new_dict if new_dict else None
 	
