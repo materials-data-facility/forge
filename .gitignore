@@ -6,7 +6,7 @@
 Untitled*.ipynb
 
 prototypes/feedstock/*
-!prototypes/feedstock/feedstock_formatter.py
+prototypes/feedstock
 prototypes/datasets/*
 prototypes/datasets
 

@@ -121,7 +121,7 @@ def dc_format_nanomine(nm_data, mdf_meta):
 #		"dc.description" : nm_cite.get("", None),
 		"dc.relatedidentifier" : [nm_cite.get("DOI", "").replace("doi:", "http://dx.doi.org/"), nm_cite.get("URL", "")],
 		"dc.year" : int(nm_cite.get("PublicationYear", 0)) if nm_cite.get("PublicationYear", None) == nm_cite.get("PublicationYear", None) else None,
-		"mdf-base.materials_composition" : get_nanomine_materials(nm_data),
+		"mdf-base.material_composition" : get_nanomine_materials(nm_data),
 		"mdf-base.data_acquisition_method" : get_nanomine_methods(nm_data)
 		}
 

@@ -69,16 +69,14 @@ data_file_to_use = []
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 data_file_to_use.append("cip")
-data_file_to_use.append("nanomine")
-data_file_to_use.append("nist_ip")
-#data_file_to_use.append("nist_dspace")
-data_file_to_use.append("metadata_matin")
-data_file_to_use.append("metadata_cxidb")
-data_file_to_use.append("metadata_nist")
-data_file_to_use.append("pppdb")
-data_file_to_use.append("metadata_materials_commons")
+#data_file_to_use.append("nanomine")
+#data_file_to_use.append("nist_ip")
+#data_file_to_use.append("metadata_matin")
+#data_file_to_use.append("metadata_cxidb")
+#data_file_to_use.append("metadata_nist_mml")
+#data_file_to_use.append("pppdb")
+#data_file_to_use.append("metadata_materials_commons")
 
-data_file_to_use.append("temp_sluschi")
 
 #Information about each dataset for ingesting
 all_data_files = {
@@ -217,7 +215,7 @@ all_data_files = {
 			"nest_limit" : std_nest_lim
 			}
 		},
-	"metadata_nist" : {
+	"metadata_nist_mml" : {
 		"file" : paths.ref_feed + "nist_metadata_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
@@ -243,23 +241,13 @@ all_data_files = {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
 			}
-		},
-	"temp_sluschi":{
-		"file":paths.ref_feed+"temp_sluschi.json",
-		"record_limit" : max_ingests_total,
-		"batch_size" : 1,
-		"globus_search" : {
-			"list_limit" : std_list_lim,
-			"nest_limit" : std_nest_lim
-			}
-
 		}
 	}
 
 
 #Default domain (index) for Globus Search
 globus_domain = "globus_search"
-#globus_domain = "mdf"
+#globus_domain = "mdf-test"
 
 #For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. is not used.
 #print_ES_to_file = "ingest_doc.json"
@@ -831,9 +819,6 @@ if __name__ == "__main__":
 	print("Ingest start")
 	print("Ingesting to", ingest_to)
 
-###############################
-#	ingest_refined_feedstock("test.json", ["globus_search"], verbose=True)
-
 	for key in data_file_to_use:
 		filename = all_data_files[key]["file"]
 		ingest_limit = all_data_files[key]["record_limit"]
@@ -845,13 +830,13 @@ if __name__ == "__main__":
 			print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
 			ingest_refined_feedstock(filename, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
 			print("Finished ingesting from " + filename + "\n")
-		elif key == "nist_dspace":
-			from utils import find_files
-			for ref_file in find_files(root=paths.ref_feed, file_pattern="^nist_dspace"):
-				ref_path = paths.ref_feed + ref_file["filename"] + ref_file["extension"]
-				print("Using " + str(ingest_limit) + " records from " + ref_path + " in batches of " + str(max_ingest_size) + ":")
-				ingest_refined_feedstock(ref_path, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
-				print("Finished ingesting from " + ref_path + "\n")
+#		elif key == "nist_dspace":
+#			from utils import find_files
+#			for ref_file in find_files(root=paths.ref_feed, file_pattern="^nist_dspace"):
+#				ref_path = paths.ref_feed + ref_file["filename"] + ref_file["extension"]
+#				print("Using " + str(ingest_limit) + " records from " + ref_path + " in batches of " + str(max_ingest_size) + ":")
+#				ingest_refined_feedstock(ref_path, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
+#				print("Finished ingesting from " + ref_path + "\n")
 		else:
 			print("Invalid special dataset")
 	print("Ingest complete")

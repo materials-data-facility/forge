@@ -8,10 +8,8 @@ from utils import find_files, dc_validate
 to_convert = []
 to_convert.append("matin")
 to_convert.append("cxidb")
-to_convert.append("nist_dspace")
+to_convert.append("nist_mml")
 to_convert.append("materials_commons")
-
-to_convert.append("temp")
 
 
 def matin_convert(matin_raw, mdf_meta):
@@ -95,7 +93,7 @@ def nist_convert(nist_raw, mdf_meta): #TODO: Fix duplicates into list
 	#print(dumps(nist_data, sort_keys=True, indent=4, separators=(',', ': ')))
 	dc_nist = {
 		"dc.title" : nist_data["dc.title"][0] if type(nist_data.get("dc.title", None)) is list else nist_data.get("dc.title"),
-		"dc.creator" : "NIST",
+		"dc.creator" : "NIST MML",
 		"dc.contributor.author" : [nist_data["dc.contributor.author"]] if type(nist_data.get("dc.contributor.author", None)) is str else nist_data.get("dc.contributor.author", None),	
 		"dc.identifier" : nist_data["dc.identifier.uri"][0] if type(nist_data.get("dc.identifier.uri", None)) is list else nist_data.get("dc.identifier.uri", None),
 		"dc.subject" : [nist_data["dc.subject"]] if type(nist_data.get("dc.subject", None)) is str else nist_data.get("dc.subject", None),
@@ -159,33 +157,6 @@ def materials_commons_convert(mc_data, mdf_meta):
 
 	return feedstock_data
 
-#Temporary manual insert for Sluschi dataset for CHiMaD demo
-def sluschi_temp(s_data, mdf_meta):
-	dc_s = {
-		"dc.title" : "Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces (SLUSCHI)",
-		"dc.creator" : "SLUSCHI",
-		"dc.contributor.author" : ["Hong, Qi-Jun", "van de Walle, Axel"],
-		"dc.identifier" : "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/693",
-
-		
-
-		"dc.year" : 2016
-		}
-	feedstock_data = dc_s
-	feedstock_data["mdf_id"] = str(ObjectId())
-	feedstock_data["mdf_source_name"] = "SLUSCHI"
-	feedstock_data["mdf_source_id"] = 0
-	feedstock_data["mdf_datatype"] = "Metadata"
-	feedstock_data["acl"] = ["public"]
-	feedstock_data["globus_subject"] = "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/693"
-	feedstock_data["mdf-publish.publication.collection"] = "Sluschi"
-	feedstock_data["data"] = {
-		"endpoint_id" : "e38ee745-6d04-11e5-ba46-22000b92c6ec",
-		"endpoint_path" : "/MDF/feedstock/raw_data/datasets/sluschi/sluschi/",
-		"full_uri" : "globus://e38ee745-6d04-11e5-ba46-22000b92c6ec/MDF/feedstock/raw_data/datasets/sluschi/sluschi/"
-		}
-	return feedstock_data
-
 
 #Generalized interface for metadata conversion
 #in_dir is the directory metadata files are stored
@@ -240,17 +211,17 @@ if __name__ == "__main__":
 			}
 		print("#####################\nCXIDB\n#####################")
 		general_meta_converter(in_dir=paths.datasets+"cxidb_metadata", out_file=paths.raw_feed+"cxidb_metadata_all.json", conv_func=cxidb_convert, mdf_metadata=cxidb_mdf, verbose=True)
-	if "nist_dspace" in to_convert:
-		nist_dspace_mdf = {
-			"mdf_source_name" : "nist_dspace",
+	if "nist_mml" in to_convert:
+		nist_mml_mdf = {
+			"mdf_source_name" : "nist_mml",
 			"mdf_source_id" : 12,
 #			"globus_source" : "NIST DSpace (Metadata)",
-			"mdf_datatype" : "nist_dspace_metadata",
+			"mdf_datatype" : "nist_mml_metadata",
 			"acl" : ["public"],
-			"collection" : "NIST DSpace (Metadata)"
+			"collection" : "NIST Material Measurement Laboratory Repository"
 			}
 		print("#####################\nNIST\n#####################")
-		general_meta_converter(in_dir=paths.datasets+"nist_dspace", out_file=paths.raw_feed+"nist_metadata_all.json", conv_func=nist_convert, mdf_metadata=nist_dspace_mdf, file_pattern="_metadata.json$",  verbose=True)
+		general_meta_converter(in_dir=paths.datasets+"nist_mml", out_file=paths.raw_feed+"nist_mml_all.json", conv_func=nist_convert, mdf_metadata=nist_mml_mdf, file_pattern="_metadata.json$",  verbose=True)
 	if "materials_commons" in to_convert:
 		mc_mdf = {
 			"mdf_source_name" : "materials_commons",
@@ -262,10 +233,5 @@ if __name__ == "__main__":
 			}
 		print("#####################\nMATERIALS COMMONS\n#####################")
 		general_meta_converter(in_dir=paths.datasets+"materials_commons_metadata", out_file=paths.raw_feed+"materials_commons_metadata_all.json", conv_func=materials_commons_convert, mdf_metadata=mc_mdf,  verbose=True)
-
-	if "temp" in to_convert:
-		print("\n\nTEMP DEMO FILES\n")
-		general_meta_converter(in_dir=paths.datasets+"cxidb_metadata", out_file=paths.raw_feed+"temp_sluschi.json", conv_func=sluschi_temp, mdf_metadata={}, verbose=True)
-
 
 

@@ -111,7 +111,7 @@ def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed
 				composition = ""
 				for elem in datum["element"]:
 					composition += elem + " "
-				feedstock_data["mdf-base.materials_composition"] = composition
+				feedstock_data["mdf-base.material_composition"] = composition
 
 				feedstock_data["mdf_id"] = str(ObjectId())
 				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]

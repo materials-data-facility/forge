@@ -71,6 +71,7 @@ def printDataset(entries, filename, mdf_meta, verbose=False):
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = output["uri"]
 				feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
+				feedstock_data["mdf-base.material_composition"] = output["comp"]
 				feedstock_data["data"] = output
 
 				dump(feedstock_data, fp)

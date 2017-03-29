@@ -145,6 +145,7 @@ if __name__ == "__main__":
 				feedstock_data["acl"] = mdf_meta["acl"]
 				feedstock_data["globus_subject"] = entry["uri"]
 				feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
+				feedstock_data["mdf-base.material_composition"] = entry["comp"]
 				feedstock_data["data"] = entry
 
 				dump(feedstock_data, out_file)

@@ -18,11 +18,14 @@ import paths #Contains variables for relative paths to data
 
 #Pick one or more datasets to process
 datasets_to_process = []
-#datasets_to_process.append("danemorgan")
+datasets_to_process.append("danemorgan")
 datasets_to_process.append("khazana_polymer")
-datasets_to_process.append("khazana_vasp")
-#datasets_to_process.append("cod")
+#datasets_to_process.append("khazana_vasp")
 #datasets_to_process.append("sluschi")
+
+
+#datasets_to_process.append("cod") #Unsupported right now
+
 
 #Export a smaller feedstock file for testing?
 #If False, will still write full feedstock file

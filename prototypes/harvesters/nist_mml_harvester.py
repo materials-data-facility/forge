@@ -8,14 +8,14 @@ from tqdm import tqdm
 
 import paths
 
-#Collects available data from NIST's DSpace instance and saves to the given directory
+#Collects available data from NIST's MML and saves to the given directory
 #out_dir: The path to the directory (which will be created) for the data files
 #existing_dir:
 #	-1: Remove out_dir if it exists
 #	 0: Error if out_dir exists (Default)
 #	 1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def nist_dspace_harvest(out_dir, existing_dir=0, verbose=False):
+def nist_mml_harvest(out_dir, existing_dir=0, verbose=False):
 	if os.path.exists(out_dir):
 		if existing_dir == 0:
 			exit("Directory '" + out_dir + "' exists")
@@ -53,6 +53,7 @@ def nist_dspace_harvest(out_dir, existing_dir=0, verbose=False):
 		with open(os.path.join(item_dir, item + "_metadata.json"), 'w') as out_file:
 			dump(metadata, out_file)
 
+		''' #Process data later, interested in metadata only for now
 		bitstream_data = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/bitstreams")
 		if bitstream_data.status_code == 200:
 			bitstream_data = [{"bit_id" : str(bit_record["id"]), "bit_name" : bit_record["name"]} for bit_record in tqdm(loads(bitstream_data.content), desc="Fetching bitstream IDs", disable= not verbose)]
@@ -68,9 +69,10 @@ def nist_dspace_harvest(out_dir, existing_dir=0, verbose=False):
 			with open(os.path.join(item_dir, bitstream["bit_name"]), 'wb') as out_file:
 				for chunk in data.iter_content(chunk_size=1024):
 					out_file.write(chunk)
+		'''
 
 
 
 if __name__ == "__main__":
-	nist_dspace_harvest(paths.datasets + "nist_dspace", existing_dir=1, verbose=True)
+	nist_mml_harvest(paths.datasets + "nist_mml", existing_dir=1, verbose=True)
 

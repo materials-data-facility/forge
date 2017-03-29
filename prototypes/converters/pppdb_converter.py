@@ -63,7 +63,7 @@ def convert_pppdb(out_stock, login_file, mdf_meta, sack_size=0, out_sack=None, v
 			feedstock_data["dc.description"] = str(record["notes"]) if record["notes"] else ""
 			feedstock_data["dc.relatedidentifier"] = [str(record["doi"])] 
 			feedstock_data["dc.year"] = int(str(record["date"])[-4:])
-			feedstock_data["mdf-base.materials_composition"] = [record["compound1"], record["compound2"]]
+			feedstock_data["mdf-base.material_composition"] = [record["compound1"], record["compound2"]]
 
 			dc_valid = dc_validate(feedstock_data)
 			if not dc_valid["valid"]:

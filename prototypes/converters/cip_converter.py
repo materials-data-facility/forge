@@ -71,7 +71,7 @@ def convert_cip_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed_
 #				feedstock_data["dc.description"] = ""
 #				feedstock_data["dc.relatedidentifier"] = []
 #				feedstock_data["dc.year"] = 0
-				feedstock_data["mdf-base.materials_composition"] = datum["composition"]
+				feedstock_data["mdf-base.material_composition"] = datum["composition"]
 
 				dc_validation = dc_validate(feedstock_data)
 				if not dc_validation["valid"]:
@@ -108,7 +108,8 @@ if __name__ == "__main__":
 #		"globus_source" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
 		"mdf_datatype" : "json",
 		"acl" : ["public"],
-		"collection" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface"
+		#"collection" : "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface"
+		"collection" : "NIST Classical Interatomic Potentials"
 		}
 	cip_in = paths.datasets + "10.5061_dryad.dd56c/classical_interatomic_potentials.json"
 	cip_out = paths.raw_feed + "cip_all.json"
