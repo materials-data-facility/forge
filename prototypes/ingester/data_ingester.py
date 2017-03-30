@@ -73,9 +73,10 @@ data_file_to_use = []
 #data_file_to_use.append("nist_ip")
 #data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
-data_file_to_use.append("metadata_nist_mml")
+#data_file_to_use.append("metadata_nist_mml")
 #data_file_to_use.append("pppdb")
 #data_file_to_use.append("metadata_materials_commons")
+data_file_to_use.append("xafs_dl")
 
 
 #Information about each dataset for ingesting
@@ -237,6 +238,15 @@ all_data_files = {
 		"file" : paths.ref_feed + "materials_commons_metadata_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 1,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+		},
+	"xafs_dl" : {
+		"file" : paths.ref_feed + "xafs_dl_all.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
 		"globus_search" : {
 			"list_limit" : std_list_lim,
 			"nest_limit" : std_nest_lim
