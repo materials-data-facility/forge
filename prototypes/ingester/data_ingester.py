@@ -76,7 +76,8 @@ data_file_to_use = []
 #data_file_to_use.append("metadata_nist_mml")
 #data_file_to_use.append("pppdb")
 #data_file_to_use.append("metadata_materials_commons")
-data_file_to_use.append("xafs_dl")
+#data_file_to_use.append("xafs_dl")
+data_file_to_use.append("core_mof")
 
 
 #Information about each dataset for ingesting
@@ -245,6 +246,15 @@ all_data_files = {
 		},
 	"xafs_dl" : {
 		"file" : paths.ref_feed + "xafs_dl_all.json",
+		"record_limit" : max_ingests_total,
+		"batch_size" : 100,
+		"globus_search" : {
+			"list_limit" : std_list_lim,
+			"nest_limit" : std_nest_lim
+			}
+		},
+	"core_mof" : {
+		"file" : paths.ref_feed + "core_mof_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {

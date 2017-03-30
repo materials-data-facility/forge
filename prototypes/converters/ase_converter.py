@@ -1,5 +1,5 @@
 '''
-Converter (multiple sources)
+Converter (ase)
 '''
 import os
 #from pickle import dump
@@ -16,6 +16,7 @@ from bson import ObjectId
 from utils import find_files
 import paths #Contains variables for relative paths to data
 
+''' #Moved to separate converter
 #Pick one or more datasets to process
 datasets_to_process = []
 datasets_to_process.append("danemorgan")
@@ -36,6 +37,7 @@ khaz_p_feedsack = 100
 khaz_v_feedsack = 3
 cod_feedsack = 100
 sluschi_feedsack = 100
+'''
 
 #Currently-supported formats are listed below.
 supported_formats = ['vasp', 'cif']
@@ -305,7 +307,7 @@ def read_vasp_out(filename=None, index=slice(0), force_consistent=False):
 #	output_file: Name of a file to dump the final JSON to. Will be in pickle format. Default None, which suppresses dumping to file.
 #	error_log: A file object (not file name) to log exceptions during processing instead of terminating the program. Default None, which suppresses logging and throws exceptions.
 #	verbose: Print status messages? Default False.
-def convert_to_json(file_path=None, file_name=None, data_format="", output_file=None, error_log=None, verbose=False):
+def convert_ase_to_json(file_path=None, file_name=None, data_format="", output_file=None, error_log=None, verbose=False):
 	ase_template = {
 #		"constraints" : None,
 		"all_distances" : None,
@@ -372,7 +374,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 		if error_log:
 			try:
 				#r = read_cif(file_path)
-				rset = [read(file_path)]
+				rset = [read(file_path, format="cif")]
 			except Exception as err:
 				error_log.write("ERROR: '" + str(err) + "' with the following CIF file:\n")
 				error_log.write(file_path + "\n\n")
@@ -380,7 +382,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 				return None
 		else:
 			#r = read_cif(file_path)
-			rset = [read(file_path)]
+			rset = [read(file_path, format="cif")]
 
 	ase_list = []
 	for result in rset:
@@ -413,7 +415,7 @@ def convert_to_json(file_path=None, file_name=None, data_format="", output_file=
 		
 		total_count += 1
 		try:
-			ase_dict["potential_energy_raw"] = result.get_potential_energy(apply_constraints=False)
+			ase_dict["potential_energy_raw"] = result.get_potential_energy(apply_constraint=False)
 			success_count += 1
 		except:
 			failure_count += 1
@@ -565,9 +567,8 @@ def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1
 	else:
 		return dir_list
 '''
-
-#Essentially a main for this script, calls the other functions and ties everything together
-#Returns a list of dicts ready for ingestion, and optionally (see below) writes that list out to a file
+''' #Moved to separate converter
+#Calls ase_converter functions and ties everything together
 #arg_dict accepts:
 #	DEPRECATED: metadata: a dict of desired metadata (e.g. globus_source, context, etc.), NOT including globus_subject. Default nothing.
 #
@@ -632,8 +633,8 @@ def process_data(arg_dict):
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
 		with warnings.catch_warnings():
-			warnings.simplefilter("ignore") #Either it fails (and is logged in convert_to_json) or it's fine.
-			file_data = convert_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
+			warnings.simplefilter("ignore") #Either it fails (and is logged in convert_ase_to_json) or it's fine.
+			file_data = convert_ase_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]
@@ -642,9 +643,9 @@ def process_data(arg_dict):
 			for addition in uri_adds:
 				if addition == 'dir':
 					for dir_name in file_data["dirs"]:
-						uri = os.path.join(uri, dir_name)
+						uri += os.path.join(uri, dir_name)
 				elif addition == 'filename':
-					uri = os.path.join(uri, file_data["filename"])
+					uri += os.path.join(uri, file_data["filename"])
 				elif addition == 'ext':
 					uri += file_data["ext"]
 				else:
@@ -747,7 +748,7 @@ if __name__ == "__main__":
 		dane = process_data(dane_args)
 		if dane_args["verbose"]:
 			print("DONE\n")
-		'''
+		
 		if feedsack:
 			
 			print "Creating JSON files"
@@ -761,7 +762,7 @@ if __name__ == "__main__":
 				dump(dane[:dane_feedsack], fd2)
 			if dane_args["verbose"]:
 				print "Done\n"
-		'''
+		
 
 
 	#Khazana Polymer
@@ -802,7 +803,7 @@ if __name__ == "__main__":
 		khaz_p = process_data(khazana_polymer_args)
 		if khazana_polymer_args["verbose"]:
 			print("DONE\n")
-		'''
+		
 		if feedsack:
 		
 			print "Creating JSON files"
@@ -816,7 +817,7 @@ if __name__ == "__main__":
 				dump(khaz_p[:khaz_p_feedsack], fk2)
 			if khazana_polymer_args["verbose"]:
 				print "Done\n"
-		'''
+		
 
 	#Khazana VASP
 	if "khazana_vasp" in datasets_to_process:
@@ -856,7 +857,7 @@ if __name__ == "__main__":
 		khaz_v = process_data(khazana_vasp_args)
 		if khazana_vasp_args["verbose"]:
 			print("DONE\n")
-		'''
+		
 		if feedsack:
 			
 			print "Creating JSON files"
@@ -870,7 +871,7 @@ if __name__ == "__main__":
 				dump(khaz_v[:khaz_v_feedsack], fk2)
 			if khazana_vasp_args["verbose"]:
 				print "Done\n"
-		'''
+		
 
 	#Crystallography Open Database
 	if "cod" in datasets_to_process:
@@ -912,7 +913,7 @@ if __name__ == "__main__":
 				print("Processed directory", j, '\n')
 		if cod_args["verbose"]:
 			print("DONE\n")
-		'''
+		
 		if feedsack:
 			if cod_args["verbose"]:
 				print "Making COD feedsack (" + str(cod_feedsack) + ")"
@@ -920,7 +921,7 @@ if __name__ == "__main__":
 				dump(cod[:cod_feedsack], fc)
 			if cod_args["verbose"]:
 				print "Done\n"
-		'''
+		
 
 	#Sluschi
 	if "sluschi" in datasets_to_process:
@@ -953,7 +954,7 @@ if __name__ == "__main__":
 		sluschi = process_data(sluschi_args)
 		if sluschi_args["verbose"]:
 			print("DONE\n")
-		'''
+	
 		if feedsack:
 			if sluschi_args["verbose"]:
 				print "Making sluschi feedsack (" + str(sluschi_feedsack) + ")"
@@ -961,8 +962,12 @@ if __name__ == "__main__":
 				dump(sluschi[:sluschi_feedsack], fc)
 			if sluschi_args["verbose"]:
 				print "Done\n"
-		'''
+	
 
 	
 	print("END")
+'''
+
+if __name__ == "__main__":
+	print("The ASE converter does not currently have datasets associated with it. You may be looking for the VASP/CIF converter ('vasp_cif_converter.py') or the CoRE-MOF converter ('core_mof_converter.py').")
 

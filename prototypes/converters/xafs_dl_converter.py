@@ -66,6 +66,7 @@ def xafs_dl_convert(out_file, sack_size=0, sack_file=None, verbose=False):
 						"dc.relatedidentifier" : [data["original_data_file"]],
 						"dc.year" : int(data["date_uploaded"][:4]),
 						"mdf-base.material_composition" : record[s1_formula],
+						"mdf-base.data_acquisition_method" : "XAFS",
 						"mdf_id" : str(ObjectId()),
 						"mdf_source_name" : "xafs_dl",
 						"mdf_source_id" : 18,
