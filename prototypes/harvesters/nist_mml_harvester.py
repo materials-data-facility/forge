@@ -27,31 +27,40 @@ def nist_mml_harvest(out_dir, existing_dir=0, verbose=False):
 	else:
 		os.mkdir(out_dir)
 
-	#Fetch list of item IDs and error out if even one fails
-	item_ids = requests.get("https://materialsdata.nist.gov/dspace/rest/items")
-	if item_ids.status_code == 200:
-		item_ids = [str(item_record["id"]) for item_record in tqdm(loads(item_ids.content), desc="Fetching item IDs", disable= not verbose)]
+	#Fetch list of collections
+	coll_res = requests.get("https://materialsdata.nist.gov/dspace/rest/collections")
+	if coll_res.status_code == 200:
+		coll_ids = [str(coll_record["id"]) for coll_record in tqdm(loads(coll_res.content), desc="Fetching collection IDs", disable= not verbose)]
 	else:
-		exit("Item ID GET failure: " + str(item_ids.status_code) + " error")
+		exit("Collection ID GET failure: " + str(coll_res.status_code) + " error")
 
-	#Fetch data/metadata from every ID
-	for item in item_ids:
-		#Make new directory for this data if needed
-		item_dir = os.path.join(out_dir, item)
-		if existing_dir == 1: #If collisions are possible
-			if os.path.exists(item_dir): #And if there is a collision
-				if not os.path.isdir(item_dir): #Error-check
-					exit("Error: Directory collision with non-directory: '" + item_dir + "'")
-			else: #No collision
+	#Fetch items in every collection
+	for coll in coll_ids:
+		#Fetch list of item IDs and error out if even one fails
+		item_res = requests.get("https://materialsdata.nist.gov/dspace/rest/collections/" + coll + "/items")
+		if item_res.status_code == 200:
+			item_ids = [str(item_record["id"]) for item_record in tqdm(loads(item_res.content), desc="Fetching item IDs", disable= not verbose)]
+		else:
+			exit("Item ID GET failure: " + str(item_res.status_code) + " error")
+
+		#Fetch data/metadata from every ID
+		for item in item_ids:
+			#Make new directory for this data if needed
+			item_dir = os.path.join(out_dir, item)
+			if existing_dir == 1: #If collisions are possible
+				if os.path.exists(item_dir): #And if there is a collision
+					if not os.path.isdir(item_dir): #Error-check
+						exit("Error: Directory collision with non-directory: '" + item_dir + "'")
+				else: #No collision
+					os.mkdir(item_dir)
+			else: #Collisions not possible
 				os.mkdir(item_dir)
-		else: #Collisions not possible
-			os.mkdir(item_dir)
 
-		metadata = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/metadata")
-		metadata = loads(metadata.content) if metadata.status_code == 200 else exit("Metadata GET failure")
+			metadata = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/metadata")
+			metadata = loads(metadata.content) if metadata.status_code == 200 else exit("Metadata GET failure")
 
-		with open(os.path.join(item_dir, item + "_metadata.json"), 'w') as out_file:
-			dump(metadata, out_file)
+			with open(os.path.join(item_dir, item + "_metadata.json"), 'w') as out_file:
+				dump(metadata, out_file)
 
 		''' #Process data later, interested in metadata only for now
 		bitstream_data = requests.get("https://materialsdata.nist.gov/dspace/rest/items/" + item + "/bitstreams")

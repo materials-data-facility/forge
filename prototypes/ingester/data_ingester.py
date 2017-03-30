@@ -68,12 +68,12 @@ data_file_to_use = []
 #data_file_to_use.append("cod")
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
-data_file_to_use.append("cip")
+#data_file_to_use.append("cip")
 #data_file_to_use.append("nanomine")
 #data_file_to_use.append("nist_ip")
 #data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
-#data_file_to_use.append("metadata_nist_mml")
+data_file_to_use.append("metadata_nist_mml")
 #data_file_to_use.append("pppdb")
 #data_file_to_use.append("metadata_materials_commons")
 
@@ -216,7 +216,7 @@ all_data_files = {
 			}
 		},
 	"metadata_nist_mml" : {
-		"file" : paths.ref_feed + "nist_metadata_all.json",
+		"file" : paths.ref_feed + "nist_mml_all.json",
 		"record_limit" : max_ingests_total,
 		"batch_size" : 100,
 		"globus_search" : {

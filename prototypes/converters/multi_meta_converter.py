@@ -6,10 +6,10 @@ from bson import ObjectId
 from utils import find_files, dc_validate
 
 to_convert = []
-to_convert.append("matin")
-to_convert.append("cxidb")
+#to_convert.append("matin")
+#to_convert.append("cxidb")
 to_convert.append("nist_mml")
-to_convert.append("materials_commons")
+#to_convert.append("materials_commons")
 
 
 def matin_convert(matin_raw, mdf_meta):
