@@ -29,7 +29,7 @@ def main(argv):
 def run_extraction(filename):
     '''
     Parse the NREL file. Get the data defined by the header
-    'gp_extrapolated' -> Extrapolated Gap
+    'gap_extrapolated' -> Extrapolated Gap
     'delta_homo' -> Highest Occupied Molecular Orbital difference
     'sum_f_osc' -> Sum of OSC
     'delta_optical_lumo' -> Optical Lowest Unoccupied Molecular Orbital difference
