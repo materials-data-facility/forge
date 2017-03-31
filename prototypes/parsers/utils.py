@@ -1,6 +1,9 @@
 import os
 import re
 from tqdm import tqdm
+import tarfile
+import zipfile
+import gzip
 #Finds all directories containing a specified type of file and returns list of dicts with path to files and data gleaned from folder names
 #root specifies the path to the first dir to start with. Default is current working directory.
 #file_match is a string containing the file name to search for. Default is None, which matches all files.

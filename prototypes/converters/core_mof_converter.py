@@ -55,7 +55,7 @@ def core_mof_convert(in_dir, out_file, doi_file, temp_file="temp.out", err_log=N
 				#Add metadata
 #				cif_metadata = loads(raw_metadata) #Metadata currently incorrect here
 				feedstock_data = {
-					"dc.title" : "CoRE-MOF - " + file_data["chemical_formula"],
+					"dc.title" : "CoRE-MOF - " + file_data["chemical_formula"] + " (" + cif["filename"].split("_")[0] + ")",
 					"dc.creator" : "CoRE-MOF",
 					"dc.contributor.author" : [],
 					"dc.identifier" : "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + file_data["filename"],
