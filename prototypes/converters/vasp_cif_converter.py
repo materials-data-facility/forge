@@ -4,10 +4,10 @@ from json import dump
 import warnings
 from bson import ObjectId
 
-from utils import find_files
+from parsers.utils import find_files
 import paths #Contains variables for relative paths to data
 
-from ase_converter import convert_ase_to_json
+from parsers.ase_converter import convert_ase_to_json
 
 #Pick one or more datasets to process
 datasets_to_process = []

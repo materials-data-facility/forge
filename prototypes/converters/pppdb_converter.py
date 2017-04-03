@@ -3,7 +3,7 @@ import mysql.connector
 from sys import exit
 from tqdm import tqdm
 import paths
-from utils import dc_validate
+from parsers.utils import dc_validate
 from bson import ObjectId
 
 sql_que = "SELECT r.doi, r.type, r.temperature, r.tempunit, r.chinumber, r.chierror, r.chia, r.chiaerror, r.chib, r.chiberror, r.chic, r.chicerror, r.notes, r.indirect, r.reference, r.compound1, r.compound2, p.authors, p.date, r.id FROM reviewed_chis r JOIN papers p ON p.doi = r.doi"

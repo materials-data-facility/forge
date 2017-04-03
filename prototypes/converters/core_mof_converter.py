@@ -3,10 +3,10 @@ from tqdm import tqdm
 from json import dump, loads
 from bson import ObjectId
 
-from utils import find_files, dc_validate
+from parsers.utils import find_files, dc_validate
 import paths #Contains variables for relative paths to data
 
-from ase_converter import convert_ase_to_json
+from parsers.ase_converter import convert_ase_to_json
 
 #Args:
 #	in_dir: Directory containing CIFs

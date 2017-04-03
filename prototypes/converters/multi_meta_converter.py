@@ -3,7 +3,7 @@ import os
 from tqdm import tqdm
 import paths
 from bson import ObjectId
-from utils import find_files, dc_validate
+from parsers.utils import find_files, dc_validate
 
 to_convert = []
 #to_convert.append("matin")
