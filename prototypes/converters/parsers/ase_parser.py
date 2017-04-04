@@ -264,10 +264,8 @@ def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
 #Arguments:
 #*	file_path: Path to the data file (or directory for VASP)
 #	data_format: Type of data found at the end of the path. Supported formats are listed in the global variable supported_formats. This is REQUIRED.
-#	output_file: Name of a file to dump the final JSON to. Will be in pickle format. Default None, which suppresses dumping to file.
-#	error_log: A file object (not file name) to log exceptions during processing instead of terminating the program. Default None, which suppresses logging and throws exceptions.
 #	verbose: Print status messages? Default False.
-def parse_ase(file_path, data_format=None, output_file=None, error_log=None, verbose=False):
+def parse_ase(file_path, data_format=None, verbose=False):
 	ase_template = {
 #		"constraints" : None,
 		"all_distances" : None,
@@ -311,48 +309,9 @@ def parse_ase(file_path, data_format=None, output_file=None, error_log=None, ver
 		file_path = os.getcwd()
 
 	if data_format == 'vasp':
-		if error_log:
-			try:
-				rset = __read_vasp_out(file_path)
-			except Exception as err:
-				error_log.write("ERROR: '" + str(err) + "' with the following VASP file:\n")
-				error_log.write(file_path + "\n\n")
-				#with open(error_log, 'a') as err_file:
-				#	err_file.write("ERROR: '" + str(err) + "' with the following file\n:")
-				#	err_file.write(outcar_path)
-				return None
-		else:
-			rset = __read_vasp_out(file_path)
-	'''
-	elif data_format == 'cif':
-		#if not file_name:
-		#	print "Error: file_name required for 'cif' format."
-		#	return None
-		#full_path = os.path.join(file_path, file_name)
-		if error_log:
-			try:
-				#r = read_cif(file_path)
-				rset = [read(file_path, format="cif")]
-			except Exception as err:
-				error_log.write("ERROR: '" + str(err) + "' with the following CIF file:\n")
-				error_log.write(file_path + "\n\n")
-				#error_log.write(full_path + "\n\n")
-				return None
-		else:
-			#r = read_cif(file_path)
-			rset = [read(file_path, format="cif")]
-	'''
+		rset = __read_vasp_out(file_path)
 	else:
-		if error_log:
-			try:
-				rset = [read(file_path, format=data_format)]
-			except Exception as err:
-				error_log.write("ERROR: '" + str(err) + "' with the following file:\n")
-				error_log.write(file_path + "\n\n")
-				return None
-		else:
-			rset = [read(file_path, format=data_format)]
-
+		rset = [read(file_path, format=data_format)]
 
 	ase_list = []
 	for result in rset:
@@ -458,14 +417,7 @@ def parse_ase(file_path, data_format=None, output_file=None, error_log=None, ver
 		print("There were " + str(success_count) + " successes and " + str(failure_count) + " failures.")
 		print("No data existed for " + str(none_count - failure_count) + " items.") #none_count includes items that are None because they failed, don't want to report failures twice
 	
-	if output_file:
-		with open(output_file, 'w') as out_file:
-			dumps(ase_dict, out_file)
-		if verbose:
-			print(str(len(ase_dict)) + " valid items written to '" + output_file + "'.")
-	else:
-		if verbose:
-			print(str(len(ase_dict)) + " valid items saved.")
+		print(str(len(ase_dict)) + " valid items returned.")
 
 	if data_format == "vasp":
 		return {"frames" : ase_list}

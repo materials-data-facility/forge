@@ -9,12 +9,12 @@ def get_record():
 	return {"link_to_data" : "http://globus.org", "some_values" : list(range(10)), "random_number" : random.random()}
 
 #Example converter using the recommended write record-by-record form
-def convert_recommended_form():
-	#Input dataset metadata
+def converter_recommended_form():
+	#Collect dataset metadata
 	dataset_metadata = {
-		"dc.title" : "Testing dataset",
+		"dc.title" : "Testing dataset 1",
 		"dc.identifier" : "http://example.com",
-		"mdf_source_name" : "test_dataset"
+		"mdf_source_name" : "test_dataset1"
 		}
 	#Write out dataset metadata
 	result = validator.write_metadata(dataset_metadata)
@@ -43,4 +43,15 @@ def convert_recommended_form():
 
 	#The dataset is processed
 	print("Successfully processed dataset feedstock")
+
+#Example converter with the alternate write-all-records-at-once form
+def converter_alternate_form():
+	#Collect dataset metadata
+	dataset_metadata = {
+		"dc.title" : "Testing dataset 2",
+		"dc.identifier" : "http://example.com",
+		"mdf_source_name" : "test_dataset2"
+		}
+	
+
 
