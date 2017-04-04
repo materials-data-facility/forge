@@ -75,9 +75,9 @@ data_file_to_use = []
 #data_file_to_use.append("metadata_cxidb")
 #data_file_to_use.append("metadata_nist_mml")
 #data_file_to_use.append("pppdb")
-#data_file_to_use.append("metadata_materials_commons")
+data_file_to_use.append("metadata_materials_commons")
 #data_file_to_use.append("xafs_dl")
-data_file_to_use.append("core_mof")
+#data_file_to_use.append("core_mof")
 
 
 #Information about each dataset for ingesting
@@ -780,8 +780,10 @@ def ingest_refined_feedstock(json_filename, destinations, destination_args={}, m
 		record = loads(in_record)
 #		for record in tqdm(list_of_data, desc="Preparing records", disable= not verbose):
 		if delete_not_ingest:
-			delete_data = record
-			delete_data.pop("globus_data", None)
+			delete_data = {}
+			delete_data["globus_subject"] = record.get("globus_subject")
+			delete_data["acl"] = record.get("acl", ["public"])
+			delete_data["globus_id"] = record.get("globus_id", "")
 			single_ingestable = format_single_gmeta(delete_data, full=False)
 		else:
 			single_ingestable = format_single_gmeta(record, full=False)

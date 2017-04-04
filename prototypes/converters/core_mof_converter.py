@@ -6,7 +6,7 @@ from bson import ObjectId
 from parsers.utils import find_files, dc_validate
 import paths #Contains variables for relative paths to data
 
-from parsers.ase_converter import convert_ase_to_json
+from parsers.ase_parser import parse_ase
 
 #Args:
 #	in_dir: Directory containing CIFs
@@ -48,7 +48,7 @@ def core_mof_convert(in_dir, out_file, doi_file, temp_file="temp.out", err_log=N
 					for line in raw_in:
 						temp_out.write(line)
 			#Process actual CIF
-			file_data = convert_ase_to_json(file_path=temp_file, data_format="cif", output_file=None, error_log=err_open if err_log else None, verbose=False)
+			file_data = parse_ase(file_path=temp_file, data_format="cif", output_file=None, error_log=err_open if err_log else None, verbose=False)
 
 			if file_data:
 				file_data["filename"] = cif["filename"] + cif["extension"]

@@ -1,12 +1,9 @@
 import os
 from tqdm import tqdm
 from ase.io import read
-from utils import find_files
 
-#Currently-supported formats are listed below.
-supported_formats = ['vasp', 'cif']
 
-def read_vasp(filename='CONTCAR'):
+def __read_vasp(filename='CONTCAR'):
     """Import POSCAR/CONTCAR type file.
 
     Reads unitcell, atom positions and constraints from the POSCAR/CONTCAR
@@ -138,7 +135,7 @@ def read_vasp(filename='CONTCAR'):
     return atoms
 
 
-def read_vasp_out(filename=None, index=slice(0), force_consistent=False):
+def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
     ###OLD INDEX DEFAULT: -1
     """Import OUTCAR type file.
 
@@ -155,10 +152,10 @@ def read_vasp_out(filename=None, index=slice(0), force_consistent=False):
     data_path = os.path.dirname(filename)
 
     try:  # try to read constraints, first from CONTCAR, then from POSCAR
-        constr = read_vasp(os.path.join(data_path, 'CONTCAR')).constraints
+        constr = __read_vasp(os.path.join(data_path, 'CONTCAR')).constraints
     except Exception:
         try:
-            constr = read_vasp(os.path.join(data_path, 'POSCAR')).constraints
+            constr = __read_vasp(os.path.join(data_path, 'POSCAR')).constraints
         except Exception:
             constr = None
 
@@ -265,13 +262,12 @@ def read_vasp_out(filename=None, index=slice(0), force_consistent=False):
 
 #Exactly what it says on the tin. Works on file types listed in supported_formats.
 #Arguments:
-#	file_path: Path to the data file. Default None, which uses the current working directory.
-#*	file_name: Name of the specific file to use. Default None. This is required for certain formats.
-#*	data_format: Type of data found at the end of the path. Supported formats are listed in the global variable supported_formats. This is REQUIRED.
+#*	file_path: Path to the data file (or directory for VASP)
+#	data_format: Type of data found at the end of the path. Supported formats are listed in the global variable supported_formats. This is REQUIRED.
 #	output_file: Name of a file to dump the final JSON to. Will be in pickle format. Default None, which suppresses dumping to file.
 #	error_log: A file object (not file name) to log exceptions during processing instead of terminating the program. Default None, which suppresses logging and throws exceptions.
 #	verbose: Print status messages? Default False.
-def convert_ase_to_json(file_path=None, file_name=None, data_format="", output_file=None, error_log=None, verbose=False):
+def parse_ase(file_path, data_format=None, output_file=None, error_log=None, verbose=False):
 	ase_template = {
 #		"constraints" : None,
 		"all_distances" : None,
@@ -313,14 +309,11 @@ def convert_ase_to_json(file_path=None, file_name=None, data_format="", output_f
 		}
 	if not file_path:
 		file_path = os.getcwd()
-	data_format = data_format.lower().strip('.')
-	if data_format not in supported_formats:
-		print("Error: Invalid data format '" + data_format + "'.")
-		return None
-	elif data_format == 'vasp':
+
+	if data_format == 'vasp':
 		if error_log:
 			try:
-				rset = read_vasp_out(file_path)
+				rset = __read_vasp_out(file_path)
 			except Exception as err:
 				error_log.write("ERROR: '" + str(err) + "' with the following VASP file:\n")
 				error_log.write(file_path + "\n\n")
@@ -329,7 +322,8 @@ def convert_ase_to_json(file_path=None, file_name=None, data_format="", output_f
 				#	err_file.write(outcar_path)
 				return None
 		else:
-			rset = read_vasp_out(file_path)
+			rset = __read_vasp_out(file_path)
+	'''
 	elif data_format == 'cif':
 		#if not file_name:
 		#	print "Error: file_name required for 'cif' format."
@@ -347,6 +341,18 @@ def convert_ase_to_json(file_path=None, file_name=None, data_format="", output_f
 		else:
 			#r = read_cif(file_path)
 			rset = [read(file_path, format="cif")]
+	'''
+	else:
+		if error_log:
+			try:
+				rset = [read(file_path, format=data_format)]
+			except Exception as err:
+				error_log.write("ERROR: '" + str(err) + "' with the following file:\n")
+				error_log.write(file_path + "\n\n")
+				return None
+		else:
+			rset = [read(file_path, format=data_format)]
+
 
 	ase_list = []
 	for result in rset:
@@ -463,7 +469,7 @@ def convert_ase_to_json(file_path=None, file_name=None, data_format="", output_f
 
 	if data_format == "vasp":
 		return {"frames" : ase_list}
-	elif data_format == "cif":
+	else:
 		return ase_list[0]
 
 

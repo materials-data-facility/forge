@@ -7,7 +7,7 @@ from bson import ObjectId
 from parsers.utils import find_files
 import paths #Contains variables for relative paths to data
 
-from parsers.ase_converter import convert_ase_to_json
+from parsers.ase_parser import parse_ase
 
 #Pick one or more datasets to process
 datasets_to_process = []
@@ -98,8 +98,8 @@ def process_data(arg_dict):
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
 		with warnings.catch_warnings():
-			warnings.simplefilter("ignore") #Either it fails (and is logged in convert_ase_to_json) or it's fine.
-			file_data = convert_ase_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
+			warnings.simplefilter("ignore") #Either it fails (and is logged in the parser) or it's fine.
+			file_data = parse_ase(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]
