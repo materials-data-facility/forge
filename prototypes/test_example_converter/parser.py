@@ -1,7 +1,8 @@
 import random
 
 #TEST FUNCTION
-#Parses single datum into single record
+#Input: single record
+#Output: single record
 def parse_test_single(test_data):
 	random.seed(str(test_data))
 	result = {
@@ -13,11 +14,14 @@ def parse_test_single(test_data):
 	return result
 
 #TEST FUNCTION
-#Parses single datum into list of records
+#Input: single record
+#Output: yields many records
 def parse_test_list(test_data):
 	try:
 		count = int(test_data)
 	except:
 		count = 10
-	return [parse_test_single(i) for i in range(count)]
+	for i in range(count):
+		yield parse_test_single(i)
+#	return [parse_test_single(i) for i in range(count)]
 
