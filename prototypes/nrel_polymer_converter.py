@@ -6,9 +6,13 @@ import json
 
 
 def main(argv):
-    path = len(argv) == 2 and os.path.dirname(argv[0]) or "/Users/mo/Documents/MDF"
-    filename = len(argv) == 2 and os.path.basename(argv[0]) or "NREL_polymer_export.txt"
-    output = len(argv) == 2 and argv[1] or "NREL_polymer_output.txt"
+    if not len(argv) == 2:
+    	print("Exiting! Use with two arguments: script.py input_file output_file.")
+    	exit(0)
+        
+    path = len(argv) == 2 and os.path.dirname(argv[0])
+    filename = len(argv) == 2 and os.path.basename(argv[0])
+    output = len(argv) == 2 and argv[1]
 
     # print filename
     records = process_file(path, filename)
