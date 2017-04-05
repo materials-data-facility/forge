@@ -54,6 +54,7 @@ def convert(input_path, verbose=False):
 		#print("Error:", result["message"])
 
 
+	#TODO: Save your converter as [dataset_name]_converter.py
 	#You're done!
 	if verbose:
 		print("Finished converting")

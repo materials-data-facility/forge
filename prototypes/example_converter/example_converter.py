@@ -1,5 +1,5 @@
 import parser
-from validator import Validator
+from validator_copy import Validator
 
 from sys import exit
 import random

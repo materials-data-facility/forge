@@ -260,11 +260,11 @@ def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
         return [images[i] for i in range(start, stop, step)]
 
 
-#Exactly what it says on the tin. Works on file types listed in supported_formats.
+#Parser for data in ASE-readable formats
 #Arguments:
 #*	file_path: Path to the data file (or directory for VASP)
-#	data_format: Type of data found at the end of the path. Supported formats are listed in the global variable supported_formats. This is REQUIRED.
-#	verbose: Print status messages? Default False.
+#	data_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None
+#	verbose: Print status messages? Default False
 def parse_ase(file_path, data_format=None, verbose=False):
 	ase_template = {
 #		"constraints" : None,
@@ -426,5 +426,9 @@ def parse_ase(file_path, data_format=None, verbose=False):
 
 
 if __name__ == "__main__":
-	print("This is a parser, not a converter. Parsers are no directly associated with datasets.")
+	print("\nThis is the parser for ASE-readable data.")
+	print("USAGE:\n\nparse_ase(file_path, data_format=None, verbose=False)")
+	print("Arguments:\n\tfile_path: Path to the data file (or directory for VASP)")
+	print("\tdata_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None")
+	print("\tverbose: Print status messages? Default False\n")
 
