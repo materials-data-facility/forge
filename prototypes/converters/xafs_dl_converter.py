@@ -3,7 +3,7 @@ from tqdm import tqdm
 import paths
 import psycopg2
 from bson import ObjectId
-from utils import dc_validate
+from parsers.utils import dc_validate
 from urllib import parse
 
 

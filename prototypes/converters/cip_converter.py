@@ -3,7 +3,7 @@ from os.path import join
 from tqdm import tqdm
 #from ujson import dump
 from bson import ObjectId
-from utils import dc_validate
+from parsers.utils import dc_validate
 import paths
 
 

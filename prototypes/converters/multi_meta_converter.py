@@ -3,13 +3,13 @@ import os
 from tqdm import tqdm
 import paths
 from bson import ObjectId
-from utils import find_files, dc_validate
+from parsers.utils import find_files, dc_validate
 
 to_convert = []
 #to_convert.append("matin")
 #to_convert.append("cxidb")
-to_convert.append("nist_mml")
-#to_convert.append("materials_commons")
+#to_convert.append("nist_mml")
+to_convert.append("materials_commons")
 
 
 def matin_convert(matin_raw, mdf_meta):
@@ -147,7 +147,7 @@ def materials_commons_convert(mc_data, mdf_meta):
 #	feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
 	feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
 	feedstock_data["acl"] = mdf_meta["acl"]
-	feedstock_data["globus_subject"] = dc_mc.get("dc.identifier", None)
+	feedstock_data["globus_subject"] = "https://materialscommons.org/mcpub/#/details/" + mc_data.get("id")
 	feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
 
 	#Remove unneeded or issue-prone fields before saving data

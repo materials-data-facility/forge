@@ -4,10 +4,10 @@ from json import dump
 import warnings
 from bson import ObjectId
 
-from utils import find_files
+from parsers.utils import find_files
 import paths #Contains variables for relative paths to data
 
-from ase_converter import convert_ase_to_json
+from parsers.ase_parser import parse_ase
 
 #Pick one or more datasets to process
 datasets_to_process = []
@@ -98,8 +98,15 @@ def process_data(arg_dict):
 		uri = arg_dict.get("uri", "")
 		full_path = os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"])
 		with warnings.catch_warnings():
-			warnings.simplefilter("ignore") #Either it fails (and is logged in convert_ase_to_json) or it's fine.
-			file_data = convert_ase_to_json(file_path=full_path, data_format=arg_dict["file_format"], output_file=None, error_log=err_log, verbose=False) #Status messages spam with large datasets
+			warnings.simplefilter("ignore") #Either it fails (and is logged here) or it's fine.
+			try:
+				file_data = parse_ase(file_path=full_path, data_format=arg_dict["file_format"], verbose=False) #Status messages spam with large datasets
+			except Exception as e:
+				if err_log:
+					err_log.write("ERROR with file: '" + file_path + "':\n" + repr(e) + "\n\n")
+					file_data = None
+				else:
+					raise
 		if file_data:
 			file_data["dirs"] = dir_data["dirs"]
 			file_data["filename"] = dir_data["filename"]

@@ -4,7 +4,7 @@ import os
 import paths
 import re
 from bson import ObjectId
-from utils import dc_validate
+from parsers.utils import dc_validate
 #import bson
 #import bsonjs
 #import json_converter

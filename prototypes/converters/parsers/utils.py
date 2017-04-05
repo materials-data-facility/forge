@@ -1,12 +1,16 @@
 import os
 import re
 from tqdm import tqdm
+import tarfile
+import zipfile
+import gzip
 #Finds all directories containing a specified type of file and returns list of dicts with path to files and data gleaned from folder names
-#root specifies the path to the first dir to start with. Default is current working directory.
-#file_match is a string containing the file name to search for. Default is None, which matches all files.
-#keep_dir_name_depth is how many layers of dir, counting from the base file up, contain data to save. -1 saves everything in the path. Default is 0, which disables saving anything.
-#max_files is the maximum number of results to return. Default -1, which returns all results.
-#uncompress_archives, if True, will uncompress archives found before checking against the file_pattern. This is *SLOW*, and does not guarantee archives that expand into directories will be searched. Default False, which leaves archives alone.
+#Arguments:
+#	root: Path to the first dir to start with. Default is current working directory.
+#	file_match: regex string containing the file name to search for. Default is None, which matches all files.
+#	keep_dir_name_depth: How many layers of dir, counting from the base file up, contain data to save. -1 saves everything in the path. Default is 0, which disables saving anything.
+#	max_files: Maximum number of results to return. Default -1, which returns all results.
+#	uncompress_archives: If True, will uncompress archives found before checking against the file_pattern. This is *SLOW*, and does not guarantee archives that expand into directories will be searched. Default False, which leaves archives alone.
 def find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1, uncompress_archives=False, verbose=False):
 	if not root:
 		root = os.getcwd()
@@ -110,4 +114,21 @@ def dc_validate(dc_raw):
 			"valid" : True,
 			"validated" : dc_data
 			}
+
+if __name__ == "__main__":
+	print("\nThis is a module containing miscellaneous utility functions.")
+	print("Functions:\n")
+	print("find_files(root=None, file_pattern=None, keep_dir_name_depth=0, max_files=-1, uncompress_archives=False, verbose=False)")
+	print("Finds all directories containing a specified type of file and returns list of dicts with path to files and data gleaned from folder names")
+	print("Arguments:\n\troot: Path to the first dir to start with. Default is current working directory.")
+	print("\tfile_match: regex string containing the file name to search for. Default is None, which matches all files.")
+	print("\tkeep_dir_name_depth: How many layers of dir, counting from the base file up, contain data to save. -1 saves everything in the path. Default is 0, which disables saving anything.")
+	print("\tmax_files: Maximum number of results to return. Default -1, which returns all results.")
+	print("\tuncompress_archives: If True, will uncompress archives found before checking against the file_pattern. This is *SLOW*, and does not guarantee archives that expand into directories will be searched. Default False, which leaves archives alone.")
+
+	print("\ndc_validate(dc_raw)")
+	print("Checks data for valid DataCite (modified) metadata")
+	print("If the metadata is invalid, returns valid=false and the invalid data")
+	print("Arguments:\n\tdc_raw: Dictionary of metadata to be validated\n")
+
 
