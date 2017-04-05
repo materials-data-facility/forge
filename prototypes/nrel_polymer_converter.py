@@ -9,7 +9,7 @@ def main(argv):
     if not len(argv) == 2:
     	print("Exiting! Use with two arguments: script.py input_file output_file.")
     	exit(0)
-        
+
     path = len(argv) == 2 and os.path.dirname(argv[0])
     filename = len(argv) == 2 and os.path.basename(argv[0])
     output = len(argv) == 2 and argv[1]
@@ -21,8 +21,8 @@ def main(argv):
     gw = open(output, "w")
     try:
         for record in records:
-            print(json.dumps(record))
-            gw.write(json.dumps(record) + "\n")
+            print(json.dumps(record, indent=4))
+            gw.write(json.dumps(record, indent=4) + "\n")
     except IOError:
         print("A list Records is empty!")
 
