@@ -136,17 +136,17 @@ def run_extraction(filename):
     'ambient' -> Environment such as vacuum, liquid etc.
     'technique' -> Experimental technique
     'coverage_theta' -> Coverage of the diffusing specie
-    'diffusion_coefficient' -> Diffusion coefficient (cm2s-1)
-    'diffusion_coefficient_note' -> Diffusion coefficient note
+    'diffusion_coefficient' -> Pre-exponential factor of the diffusion coefficient (cm2s-1)
+    'diffusion_coefficient_note' -> Pre-exponential factor of the diffusion coefficient note
     'activation_energy' -> Activation energy (kcal/mol)
     'activation_energy_note' -> Activation energy note
     'desorption_energy' -> Desorption energy (kcal/mol)
     'desorption_energy_note' -> Desorption energy note
-    'omega' -> Omega
-    'omega_note' -> Omega note
-    'alpha' -> Alpha
-    'alpha_note' -> Alpha note
-    'temperature_range' -> Temperature range relative to the substarte melting point
+    'corrugation_omega' -> Corrugation ratio Omega = Ediff/Edes
+    'corrugation_omega_note' -> Corrugation ratio note
+    'energy_alpha' -> Activation energy alpha= Ediff/kTm
+    'energy_alpha_note' -> Activation energy alpha note
+    'temperature_range' -> Temperature range relative to the substrate melting point, T/Tm
     'temperature_range_note' -> Temperature range note
     'reference1' -> Reference 1
     'reference2' -> Reference 2
@@ -157,7 +157,7 @@ def run_extraction(filename):
     # parse excel spreadsheet and create list of dictionaries with key headers
     heads = ['system', 'diffusing_species', 'substrate', 'system_note', 'ambient', 'technique', 'coverage_theta',
              'diffusion_coefficient', 'diffusion_coefficient_note', 'activation_energy', 'activation_energy_note',
-             'desorption_energy', 'desorption_energy_note', 'omega', 'omega_note', 'alpha', 'alpha_note',
+             'desorption_energy', 'desorption_energy_note', 'corrugation_omega', 'corrugation_omega_note', 'energy_alpha', 'energy_alpha_note',
              'temperature_range', 'temperature_range_note', 'reference1', 'reference2', 'reference3']
     records = list()
 
