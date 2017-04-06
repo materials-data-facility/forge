@@ -69,13 +69,13 @@ data_file_to_use = []
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
-#data_file_to_use.append("nanomine")
+data_file_to_use.append("nanomine")
 #data_file_to_use.append("nist_ip")
 #data_file_to_use.append("metadata_matin")
 #data_file_to_use.append("metadata_cxidb")
 #data_file_to_use.append("metadata_nist_mml")
 #data_file_to_use.append("pppdb")
-data_file_to_use.append("metadata_materials_commons")
+#data_file_to_use.append("metadata_materials_commons")
 #data_file_to_use.append("xafs_dl")
 #data_file_to_use.append("core_mof")
 
@@ -269,7 +269,7 @@ all_data_files = {
 globus_domain = "globus_search"
 #globus_domain = "mdf-test"
 
-#For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. is not used.
+#For debugging, to print the ES ingest to a file, put the filename here. Should be None/False/etc. if not used.
 #print_ES_to_file = "ingest_doc.json"
 print_ES_to_file = None
 
