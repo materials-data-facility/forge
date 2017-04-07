@@ -31,8 +31,6 @@ def core_mof_convert(in_dir, out_file, doi_file, temp_file="temp.out", sack_size
 		if sack_file:
 			count = 0
 			feedsack = open(sack_file, 'w')
-		if err_log:
-			err_open = open(err_log, 'w')
 		for cif in tqdm(file_list, desc="Processing CIFs", disable= not verbose):
 			#Gather metadata
 			doi = ""

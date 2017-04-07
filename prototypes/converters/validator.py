@@ -63,6 +63,17 @@ class Validator:
 		record["mdf_node_type"] = "record"
 		record["mdf_source_name"] = self.__mdf_source_name
 
+		if record.get("mdf-base.material_composition", None):
+			str_of_elem = ""
+			for char in list(record["mdf-base.material_composition"]):
+				if char.isupper(): #Uppercase indicates start of new element symbol
+					str_of_elem += " " + char
+				elif char.islower(): #Lowercase indicates continuation of symbol
+					str_of_elem += char
+				#Anything else is not useful (numbers, whitespace, etc.)
+			record["mdf-base.elements"] = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
+
+
 		new_data = {
 			"files" : record["data"].pop("files")
 			}
