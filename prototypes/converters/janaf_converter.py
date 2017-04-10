@@ -83,21 +83,21 @@ def parse_janaf_file(filename):
         output['dG'] = dG
         output['dS'] = [ float((h - g) / t) if t > 0 else 0.0 for h,g,t in zip(dH,dG,T)]
         output['Cp'] = Cp
-	
-#	output["testing"] = "janaftest4"
-#	output["janaf:comp"] = "1234"
+    
+#   output["testing"] = "janaftest4"
+#   output["janaf:comp"] = "1234"
         '''
         meta_out = {
-		"globus_subject" : "http://kinetics.nist.gov/janaf/" + output["comp:comp"] + "_" + output["janaf:state"],
-		"globus_id" : "janaf",
-		"globus_source" : "NIST-JANAF",
-		"context" : {
-			"janaf" : "http://kinetics.nist.gov/janaf/",
-			"dc" : "http://dublincore.org/documents/dcmi-terms",
-			"comp" : "composition"
-			},
-		"data" : output
-		}
+        "globus_subject" : "http://kinetics.nist.gov/janaf/" + output["comp:comp"] + "_" + output["janaf:state"],
+        "globus_id" : "janaf",
+        "globus_source" : "NIST-JANAF",
+        "context" : {
+            "janaf" : "http://kinetics.nist.gov/janaf/",
+            "dc" : "http://dublincore.org/documents/dcmi-terms",
+            "comp" : "composition"
+            },
+        "data" : output
+        }
         meta_out["data"]["dc:title"] = "JANAF - " + output["comp:comp"] + " - " + output["janaf:state"]
 
         return meta_out
@@ -107,77 +107,77 @@ def parse_janaf_file(filename):
 
         all_uri.append(output["uri"])
 
-#	out_str = str(output)
-#	out_str = out_str.replace('nan', '"nan"')
-#	san_output = eval(out_str)
+#   out_str = str(output)
+#   out_str = out_str.replace('nan', '"nan"')
+#   san_output = eval(out_str)
 
         return output
 
 if __name__ == "__main__":
-	mdf_meta = {
-		"mdf_source_name" : "janaf",
-		"mdf_source_id" : 2,
-#		"globus_source" : "NIST-JANAF",
-		"mdf_datatype" : "janaf",
-		"acl" : ["public"],
-		"collection" : "NIST-JANAF"
-		}
-	data = []
-	data_dir = paths.datasets + "janaf/srd13_janaf"
-	out_filename = paths.raw_feed + "janaf_all.json"
-	feedstock = True
-	count = 0
-	full_count = 0
-	with open(out_filename, 'w') as out_file:
-		if feedstock:
-			feed_file = open(paths.sack_feed + "janaf_1000.json", 'w')
-		for f in os.listdir(data_dir):
-			entry = parse_janaf_file(os.path.join(data_dir, f))
-			full_count +=1
-			if entry is not None:
-				#Metadata
-				feedstock_data = {}
-				feedstock_data["mdf_id"] = str(ObjectId())
-				feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
-				feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-#				feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
-				feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
-				feedstock_data["acl"] = mdf_meta["acl"]
-				feedstock_data["globus_subject"] = entry["uri"]
-				feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
-				feedstock_data["mdf-base.material_composition"] = entry["comp"]
-				feedstock_data["data"] = entry
+    mdf_meta = {
+        "mdf_source_name" : "janaf",
+        "mdf_source_id" : 2,
+#       "globus_source" : "NIST-JANAF",
+        "mdf_datatype" : "janaf",
+        "acl" : ["public"],
+        "collection" : "NIST-JANAF"
+        }
+    data = []
+    data_dir = paths.datasets + "janaf/srd13_janaf"
+    out_filename = paths.raw_feed + "janaf_all.json"
+    feedstock = True
+    count = 0
+    full_count = 0
+    with open(out_filename, 'w') as out_file:
+        if feedstock:
+            feed_file = open(paths.sack_feed + "janaf_1000.json", 'w')
+        for f in os.listdir(data_dir):
+            entry = parse_janaf_file(os.path.join(data_dir, f))
+            full_count +=1
+            if entry is not None:
+                #Metadata
+                feedstock_data = {}
+                feedstock_data["mdf_id"] = str(ObjectId())
+                feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
+                feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
+#               feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
+                feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
+                feedstock_data["acl"] = mdf_meta["acl"]
+                feedstock_data["globus_subject"] = entry["uri"]
+                feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
+                feedstock_data["mdf-base.material_composition"] = entry["comp"]
+                feedstock_data["data"] = entry
 
-				dump(feedstock_data, out_file)
-				out_file.write('\n')
-#				data.append(entry)
-				if feedstock and count < 1000:
-					dump(feedstock_data, feed_file)
-					feed_file.write('\n')
-				count +=1
-#	print json.dumps(data[0], sort_keys=True, indent=4, separators=(',', ': '))
-#	out_file = open(out_filename, 'w')
-#	print >>out_file, data
-#	dump(data, out_file)
-#	out_file.close()
-	print_(str(count) + "/" + str(full_count) + " converted.")
+                dump(feedstock_data, out_file)
+                out_file.write('\n')
+#               data.append(entry)
+                if feedstock and count < 1000:
+                    dump(feedstock_data, feed_file)
+                    feed_file.write('\n')
+                count +=1
+#   print json.dumps(data[0], sort_keys=True, indent=4, separators=(',', ': '))
+#   out_file = open(out_filename, 'w')
+#   print >>out_file, data
+#   dump(data, out_file)
+#   out_file.close()
+    print_(str(count) + "/" + str(full_count) + " converted.")
 
-	duplicates = [x for x in all_uri if all_uri.count(x) > 1]
-	if duplicates:
-		print_("Warning: Duplicate URIs found:\n", set(duplicates))
+    duplicates = [x for x in all_uri if all_uri.count(x) > 1]
+    if duplicates:
+        print_("Warning: Duplicate URIs found:\n", set(duplicates))
 
 
-	'''
-	import json
-	print "Dumping to JSON"
-	print "Dumping all"
-	with open("janaf_all.json", 'w') as fj1:
-		json.dump(data, fj1)
-	
-	print "Dumping 1000"
-	with open(paths.sack_feed + "janaf_1000.json", 'w') as fj2:
-		dump(data, fj2)
-	'''
-	print_("Done")
-	
+    '''
+    import json
+    print "Dumping to JSON"
+    print "Dumping all"
+    with open("janaf_all.json", 'w') as fj1:
+        json.dump(data, fj1)
+    
+    print "Dumping 1000"
+    with open(paths.sack_feed + "janaf_1000.json", 'w') as fj2:
+        dump(data, fj2)
+    '''
+    print_("Done")
+    
 

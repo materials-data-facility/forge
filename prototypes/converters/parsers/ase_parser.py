@@ -147,7 +147,7 @@ def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
     from ase import Atoms, Atom
 
     if not filename:
-    	filename = os.path.join(os.getcwd(), 'OUTCAR')
+        filename = os.path.join(os.getcwd(), 'OUTCAR')
 
     data_path = os.path.dirname(filename)
 
@@ -262,173 +262,173 @@ def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
 
 #Parser for data in ASE-readable formats
 #Arguments:
-#*	file_path: Path to the data file (or directory for VASP)
-#	data_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None
-#	verbose: Print status messages? Default False
+#*  file_path: Path to the data file (or directory for VASP)
+#   data_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None
+#   verbose: Print status messages? Default False
 def parse_ase(file_path, data_format=None, verbose=False):
-	ase_template = {
-#		"constraints" : None,
-		"all_distances" : None,
-		"angular_momentum" : None,
-		"atomic_numbers" : None,
-		"cell" : None,
-		"cell_lengths_and_angles" : None,
-		"celldisp" : None,
-		"center_of_mass" : None,
-		"charges" : None,
-		"chemical_formula" : None,
-		"chemical_symbols" : None,
-		"dipole_moment" : None,
-		"forces" : None,
-#		"forces_raw" : None,
-		"initial_charges" : None,
-		"initial_magnetic_moments" : None,
-		"kinetic_energy" : None,
-		"magnetic_moment" : None,
-		"magnetic_moments" : None,
-		"masses" : None,
-		"momenta" : None,
-		"moments_of_inertia" : None,
-		"number_of_atoms" : None,
-		"pbc" : None,
-		"positions" : None,
-		"potential_energies" : None,
-		"potential_energy" : None,
-#		"potential_energy_raw" : None,
-		"reciprocal_cell" : None,
-		"scaled_positions" : None,
-		"stress" : None,
-		"stresses" : None,
-		"tags" : None,
-		"temperature" : None,
-		"total_energy" : None,
-		"velocities" : None,
-		"volume" : None,
-		}
-	if not file_path:
-		file_path = os.getcwd()
+    ase_template = {
+#       "constraints" : None,
+        "all_distances" : None,
+        "angular_momentum" : None,
+        "atomic_numbers" : None,
+        "cell" : None,
+        "cell_lengths_and_angles" : None,
+        "celldisp" : None,
+        "center_of_mass" : None,
+        "charges" : None,
+        "chemical_formula" : None,
+        "chemical_symbols" : None,
+        "dipole_moment" : None,
+        "forces" : None,
+#       "forces_raw" : None,
+        "initial_charges" : None,
+        "initial_magnetic_moments" : None,
+        "kinetic_energy" : None,
+        "magnetic_moment" : None,
+        "magnetic_moments" : None,
+        "masses" : None,
+        "momenta" : None,
+        "moments_of_inertia" : None,
+        "number_of_atoms" : None,
+        "pbc" : None,
+        "positions" : None,
+        "potential_energies" : None,
+        "potential_energy" : None,
+#       "potential_energy_raw" : None,
+        "reciprocal_cell" : None,
+        "scaled_positions" : None,
+        "stress" : None,
+        "stresses" : None,
+        "tags" : None,
+        "temperature" : None,
+        "total_energy" : None,
+        "velocities" : None,
+        "volume" : None,
+        }
+    if not file_path:
+        file_path = os.getcwd()
 
-	if data_format == 'vasp':
-		rset = __read_vasp_out(file_path)
-	else:
-		rset = [read(file_path, format=data_format)]
+    if data_format == 'vasp':
+        rset = __read_vasp_out(file_path)
+    else:
+        rset = [read(file_path, format=data_format)]
 
-	ase_list = []
-	for result in rset:
-		ase_dict = ase_template.copy()
-		total_count = 0
-		failure_count = 0
-		success_count = 0
-		none_count = 0
-		for key in ase_dict.keys():
-			total_count += 1
-			try:
-				ase_dict[key] = eval("result.get_" + key + "()")
-				success_count += 1
-			except: #(NotImplementedError, AttributeError): More exception types here than can reasonably be found, just catching everything
-				failure_count +=1
-				ase_dict[key] = None
-		#Populate other fields
-		
-		total_count += 1
-		ase_dict["constraints"] = result.constraints #Should always exist, even if empty
-		success_count += 1
-		
-		total_count += 1
-		try:
-			ase_dict["forces_raw"] = result.get_forces(apply_constraint=False)
-			success_count += 1
-		except:
-			failure_count += 1
-			ase_dict["forces_raw"] = None
-		
-		total_count += 1
-		try:
-			ase_dict["potential_energy_raw"] = result.get_potential_energy(apply_constraint=False)
-			success_count += 1
-		except:
-			failure_count += 1
-			ase_dict["potential_energy_raw"] = None
+    ase_list = []
+    for result in rset:
+        ase_dict = ase_template.copy()
+        total_count = 0
+        failure_count = 0
+        success_count = 0
+        none_count = 0
+        for key in ase_dict.keys():
+            total_count += 1
+            try:
+                ase_dict[key] = eval("result.get_" + key + "()")
+                success_count += 1
+            except: #(NotImplementedError, AttributeError): More exception types here than can reasonably be found, just catching everything
+                failure_count +=1
+                ase_dict[key] = None
+        #Populate other fields
+        
+        total_count += 1
+        ase_dict["constraints"] = result.constraints #Should always exist, even if empty
+        success_count += 1
+        
+        total_count += 1
+        try:
+            ase_dict["forces_raw"] = result.get_forces(apply_constraint=False)
+            success_count += 1
+        except:
+            failure_count += 1
+            ase_dict["forces_raw"] = None
+        
+        total_count += 1
+        try:
+            ase_dict["potential_energy_raw"] = result.get_potential_energy(apply_constraint=False)
+            success_count += 1
+        except:
+            failure_count += 1
+            ase_dict["potential_energy_raw"] = None
 
-		#Remove None results, and fix other objects
-		#numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
-		none_keys = []
-		for key in ase_dict.keys():
-			if 'numpy' in str(type(ase_dict[key])).lower():
-				ase_dict[key] = ase_dict[key].tolist()
-			if ase_dict[key] is None:
-				none_keys.append(key)
-				none_count += 1
-#			elif ase_dict[key] != ase_dict[key]:
-#				none_keys.append(key)
-#				none_count += 1
-			#elif 'fixatoms' in str(type(ase_dict[key])).lower():
-			#	ase_dict[key] = ase_dict[key].get_indices().tolist()
-			elif type(ase_dict[key]) is list:
-				new_list = []
-				for elem in ase_dict[key]:
-					#if 'numpy' in str(type(elem)).lower():
-					#	new_elem = elem.tolist()
-					if 'fixatoms' in str(elem).lower():
-						new_elem = elem.get_indices().tolist()
-#					elif elem != elem:
-#						new_elem = None
-					else:
-						new_elem = elem
-					if new_elem:
-						new_list.append(new_elem)
-				if new_list:
-					ase_dict[key] = new_list
-				else:
-					none_keys.append(key)
-		'''
-		#Remove None results
-		none_keys = []
-		for key, value in ase_dict.items():
-			if value is None:
-				#ase_dict.pop(key)
-				none_keys.append(key)
-				none_count += 1
-			elif value != value:
-				none_keys.append(key)
-				none_count += 1
-			elif type(value) is list:
-				
-			
-			elif type(value) is list and value.all() != value.all(): #NaN
-				none_keys.append(key)
-			elif type(value) is dict and value.values().all() != value.values().all(): #NaN
-				none_keys.append(key)
-			else:
-				try:
-					if value != value:
-						none_keys.append(key)
-				except ValueError: #Swallow issues with direct comparison
-					pass
-		'''
-		for key in none_keys:
-			ase_dict.pop(key)
-		
-		ase_list.append(ase_dict)
+        #Remove None results, and fix other objects
+        #numpy ndarrays and FixAtoms instances aren't JSON serializable, but we need to convert our data to JSON
+        none_keys = []
+        for key in ase_dict.keys():
+            if 'numpy' in str(type(ase_dict[key])).lower():
+                ase_dict[key] = ase_dict[key].tolist()
+            if ase_dict[key] is None:
+                none_keys.append(key)
+                none_count += 1
+#           elif ase_dict[key] != ase_dict[key]:
+#               none_keys.append(key)
+#               none_count += 1
+            #elif 'fixatoms' in str(type(ase_dict[key])).lower():
+            #   ase_dict[key] = ase_dict[key].get_indices().tolist()
+            elif type(ase_dict[key]) is list:
+                new_list = []
+                for elem in ase_dict[key]:
+                    #if 'numpy' in str(type(elem)).lower():
+                    #   new_elem = elem.tolist()
+                    if 'fixatoms' in str(elem).lower():
+                        new_elem = elem.get_indices().tolist()
+#                   elif elem != elem:
+#                       new_elem = None
+                    else:
+                        new_elem = elem
+                    if new_elem:
+                        new_list.append(new_elem)
+                if new_list:
+                    ase_dict[key] = new_list
+                else:
+                    none_keys.append(key)
+        '''
+        #Remove None results
+        none_keys = []
+        for key, value in ase_dict.items():
+            if value is None:
+                #ase_dict.pop(key)
+                none_keys.append(key)
+                none_count += 1
+            elif value != value:
+                none_keys.append(key)
+                none_count += 1
+            elif type(value) is list:
+                
+            
+            elif type(value) is list and value.all() != value.all(): #NaN
+                none_keys.append(key)
+            elif type(value) is dict and value.values().all() != value.values().all(): #NaN
+                none_keys.append(key)
+            else:
+                try:
+                    if value != value:
+                        none_keys.append(key)
+                except ValueError: #Swallow issues with direct comparison
+                    pass
+        '''
+        for key in none_keys:
+            ase_dict.pop(key)
+        
+        ase_list.append(ase_dict)
 
-	#Print results
-	if verbose:
-		print("Processed " + str(total_count) + " items.")
-		print("There were " + str(success_count) + " successes and " + str(failure_count) + " failures.")
-		print("No data existed for " + str(none_count - failure_count) + " items.") #none_count includes items that are None because they failed, don't want to report failures twice
-	
-		print(str(len(ase_dict)) + " valid items returned.")
+    #Print results
+    if verbose:
+        print("Processed " + str(total_count) + " items.")
+        print("There were " + str(success_count) + " successes and " + str(failure_count) + " failures.")
+        print("No data existed for " + str(none_count - failure_count) + " items.") #none_count includes items that are None because they failed, don't want to report failures twice
+    
+        print(str(len(ase_dict)) + " valid items returned.")
 
-	if data_format == "vasp":
-		return {"frames" : ase_list}
-	else:
-		return ase_list[0]
+    if data_format == "vasp":
+        return {"frames" : ase_list}
+    else:
+        return ase_list[0]
 
 
 if __name__ == "__main__":
-	print("\nThis is the parser for ASE-readable data.")
-	print("USAGE:\n\nparse_ase(file_path, data_format=None, verbose=False)")
-	print("Arguments:\n\tfile_path: Path to the data file (or directory for VASP)")
-	print("\tdata_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None")
-	print("\tverbose: Print status messages? Default False\n")
+    print("\nThis is the parser for ASE-readable data.")
+    print("USAGE:\n\nparse_ase(file_path, data_format=None, verbose=False)")
+    print("Arguments:\n\tfile_path: Path to the data file (or directory for VASP)")
+    print("\tdata_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None")
+    print("\tverbose: Print status messages? Default False\n")
 

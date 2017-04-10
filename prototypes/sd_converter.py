@@ -8,8 +8,8 @@ import json
 
 def main(argv):
     if not len(argv) == 2:
-    	print("Exiting! Use with two arguments: script.py input_file output_file.")
-    	exit(0)
+        print("Exiting! Use with two arguments: script.py input_file output_file.")
+        exit(0)
 
     path = len(argv) == 2 and os.path.dirname(argv[0])
     filename = len(argv) == 2 and os.path.basename(argv[0])
