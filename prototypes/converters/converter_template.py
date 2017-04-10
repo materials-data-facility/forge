@@ -50,26 +50,26 @@ def convert(input_path, verbose=False):
         #    RCM (Recommended, should be present if possible)
         #    OPT (Optional, can be present if useful)
         record_metadata = {
-            "globus_subject": ,                      # REQ string: Unique value (should be URI if possible)
+            "globus_subject": ,                      # REQ string: Unique value (should be URI to record if possible)
             "acl": ,                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
-            "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
+            "mdf-publish.publication.collection": ,  # RCM string: Collection the record belongs to
             "mdf_data_class": ,                      # RCM string: Type of data in record
             "mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
 
-            "dc.title": ,                            # REQ string: Title of dataset
-            "dc.creator": ,                          # OPT string: Owner of dataset
-            "dc.identifier": ,                       # RCM string: Link to dataset (dataset DOI if available)
-            "dc.contributor.author": ,               # OPT list of strings: Author(s) of dataset
-            "dc.subject": ,                          # OPT list of strings: Keywords about dataset
-            "dc.description": ,                      # OPT string: Description of dataset contents
-            "dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (such as an article)
-            "dc.year": ,                             # OPT integer: Year of dataset creation
+            "dc.title": ,                            # REQ string: Title of record
+            "dc.creator": ,                          # OPT string: Owner of record (if different from dataset)
+            "dc.identifier": ,                       # RCM string: Link to record (record webpage, if available)
+            "dc.contributor.author": ,               # OPT list of strings: Author(s) of record (if different from dataset)
+            "dc.subject": ,                          # OPT list of strings: Keywords about record
+            "dc.description": ,                      # OPT string: Description of record
+            "dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (if different form dataset)
+            "dc.year": ,                             # OPT integer: Year of record creation (if different from dataset)
 
             "data": {                                # REQ dictionary: Other record data (described below)
                 "raw": ,                             # RCM string: Original data record text, if feasible
                 "files": ,                           # REQ dictionary: {file_type : uri_to_file} pairs, may be empty (Example: {"cif" : "https://example.org/cifs/data_file.cif"})
 
-                # other                              # RCM any JSON-valid type: Any other data fields you would like to include go in the "data" dictionary. Keys will be prepended with mdf_source_name
+                # other                              # RCM any JSON-valid type: Any other data fields you would like to include go in the "data" dictionary. Keys will be prepended with mdf_source_name:
                 }
             }
 
@@ -88,7 +88,7 @@ def convert(input_path, verbose=False):
     #if result["success"] is not True:
         #print("Error:", result["message"])
 
-    # TODO: Save your converter as [dataset_name]_converter.py
+    # TODO: Save your converter as [mdf_source_name]_converter.py
     # You're done!
     if verbose:
         print("Finished converting")

@@ -80,7 +80,7 @@ class Validator:
         if "raw" in record["data"].keys():
             new_data["raw"] = record["data"].pop("raw")
         for key, value in record["data"].items():
-            new_data[self.__mdf_source_name + key] = value
+            new_data[self.__mdf_source_name + ":" + key] = value
         record["data"] = new_data
 
         #Write new record to feedstock
