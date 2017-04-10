@@ -61,7 +61,7 @@ def convert(input_path, verbose=False):
             #"dc.contributor.author": ,                                                     # OPT list of strings: Author(s) of record (if different from dataset)
             #"dc.subject": ,                                                                # OPT list of strings: Keywords about record
             "dc.description": "This is an example record",                                  # OPT string: Description of record
-            #"dc.relatedidentifier": ,                                                      # OPT list of strings: Link(s) to related materials (if different form dataset)
+            #"dc.relatedidentifier": ,                                                      # OPT list of strings: Link(s) to related materials (if different from dataset)
             #"dc.year": ,                                                                   # OPT integer: Year of record creation (if different from dataset)
 
             "data": {                                                                       # REQ dictionary: Other record data (described below)

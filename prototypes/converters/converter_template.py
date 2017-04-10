@@ -20,7 +20,7 @@ def convert(input_path, verbose=False):
         "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
 
         "dc.title": ,                            # REQ string: Title of dataset
-        "dc.creator": ,                          # REQ string: Host(?) of dataset
+        "dc.creator": ,                          # REQ string: Owner of dataset
         "dc.identifier": ,                       # REQ string: Link to dataset (dataset DOI if available)
         "dc.contributor.author": ,               # RCM list of strings: Author(s) of dataset
         "dc.subject": ,                          # RCM list of strings: Keywords about dataset
@@ -62,7 +62,7 @@ def convert(input_path, verbose=False):
             "dc.contributor.author": ,               # OPT list of strings: Author(s) of record (if different from dataset)
             "dc.subject": ,                          # OPT list of strings: Keywords about record
             "dc.description": ,                      # OPT string: Description of record
-            "dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (if different form dataset)
+            "dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (if different from dataset)
             "dc.year": ,                             # OPT integer: Year of record creation (if different from dataset)
 
             "data": {                                # REQ dictionary: Other record data (described below)
