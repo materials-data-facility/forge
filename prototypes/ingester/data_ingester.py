@@ -13,8 +13,8 @@ from copy import deepcopy
 import paths #Contains relative path to data info
 
 #-1 for unlimited
-#max_ingests_at_once = 50 #Now per file
 max_ingests_total = -1
+default_batch_size = 100
 std_list_lim = 5
 std_nest_lim = 4
 
@@ -69,198 +69,44 @@ data_file_to_use = []
 #data_file_to_use.append("sluschi")
 #data_file_to_use.append("hopv")
 #data_file_to_use.append("cip")
-data_file_to_use.append("nanomine")
+#data_file_to_use.append("nanomine")
 #data_file_to_use.append("nist_ip")
-#data_file_to_use.append("metadata_matin")
-#data_file_to_use.append("metadata_cxidb")
-#data_file_to_use.append("metadata_nist_mml")
+#data_file_to_use.append("matin_metadata")
+#data_file_to_use.append("cxidb_metadata")
+#data_file_to_use.append("nist_mml")
 #data_file_to_use.append("pppdb")
-#data_file_to_use.append("metadata_materials_commons")
+#data_file_to_use.append("materials_commons_metadata")
 #data_file_to_use.append("xafs_dl")
 #data_file_to_use.append("core_mof")
+data_file_to_use.append("qm_mdt_c")
 
 
 #Information about each dataset for ingesting
+#Template (all fields optional, mix and match):
+# mdf_source_name: {
+#   "record_limit": ,
+#   "batch_size": ,
+#   "destination_specific_args: {},
+#   "globus_search": {  #This is a destination-specific arg dict
+#       "list_limit": ,
+#       "nest_limit": 
+#       }
+#   }
 all_data_files = {
     "oqmd" : {
-        "file" : paths.ref_feed +  "oqmd_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 5000,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "janaf" : {
-        "file" : paths.ref_feed + "janaf_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 500,
-        "globus_search" : {
-            "list_limit" : -1,
-            "nest_limit" : std_nest_lim
-            }
-
+        "batch_size" : 5000
         },
     "danemorgan" : {
-        "file" : paths.ref_feed + "danemorgan_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 10,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
-        },
-    "khazana_polymer" : {
-        "file" : paths.ref_feed + "khazana_polymer_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
+        "batch_size" : 10
         },
     "khazana_vasp" : {
-        "file" : paths.ref_feed +"khazana_vasp_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 1,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
-        },
-    "cod" : {
-        "file" : paths.ref_feed + "cod_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 5000,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
+        "batch_size" : 1
         },
     "sluschi" : {
-        "file" : paths.ref_feed + "sluschi_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 1,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
+        "batch_size" : 1
         },
-    "hopv" : {
-        "file" : paths.ref_feed + "hopv_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
-        },
-    "cip" : {
-        "file" : paths.ref_feed + "cip_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-
-        },
-    "nanomine" : {
-        "file" : paths.ref_feed + "nanomine_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : -1,
-            "nest_limit" : -1
-            }
-
-        },
-    "nist_ip" : {
-        "file" : paths.ref_feed + "nist_ip_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "nist_dspace" : {
-        "file" : "",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 10,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "metadata_matin" : {
-        "file" : paths.ref_feed + "matin_metadata_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "metadata_cxidb" : {
-        "file" : paths.ref_feed + "cxidb_metadata_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "metadata_nist_mml" : {
-        "file" : paths.ref_feed + "nist_mml_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "pppdb" : {
-        "file" : paths.ref_feed + "pppdb_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "metadata_materials_commons" : {
-        "file" : paths.ref_feed + "materials_commons_metadata_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 1,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "xafs_dl" : {
-        "file" : paths.ref_feed + "xafs_dl_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
-        },
-    "core_mof" : {
-        "file" : paths.ref_feed + "core_mof_all.json",
-        "record_limit" : max_ingests_total,
-        "batch_size" : 100,
-        "globus_search" : {
-            "list_limit" : std_list_lim,
-            "nest_limit" : std_nest_lim
-            }
+    "materials_commons_metadata" : {
+        "batch_size" : 1
         }
     }
 
@@ -451,8 +297,8 @@ def searchify(data):
 #   No empty data structures
 #   No nested booleans
 def globus_search_ingest(args):
-    max_list = args.get("list_limit", -1)
-    max_nest = args.get("nest_limit", -1)
+    max_list = args.get("list_limit", std_list_lim)
+    max_nest = args.get("nest_limit", std_nest_lim)
 
     #print "Test database ingest:"
     filtered_list = []
@@ -842,12 +688,12 @@ if __name__ == "__main__":
     print("Ingesting to", ingest_to)
 
     for key in data_file_to_use:
-        filename = all_data_files[key]["file"]
-        ingest_limit = all_data_files[key]["record_limit"]
-        max_ingest_size = all_data_files[key]["batch_size"]
+        filename = paths.ref_feed + key + "_all.json"
+        ingest_limit = all_data_files.get(key, {}).get("record_limit", max_ingests_total)
+        max_ingest_size = all_data_files.get(key, {}).get("batch_size", default_batch_size)
         destination_args = {}
         for dest in ingest_to:
-            destination_args[dest] = all_data_files[key].get(dest, {})
+            destination_args[dest] = all_data_files.get(key, {}).get(dest, {})
         if filename:
             print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
             ingest_refined_feedstock(filename, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
