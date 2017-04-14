@@ -10,6 +10,7 @@ class Validator:
         self.__feedstock = None
         self.dataset_id = None
         self.__mdf_source_name = None
+        self.__uris = []
 
         res = self.__write_metadata(metadata)
         if not res["success"]:
@@ -57,6 +58,12 @@ class Validator:
         rec_val = validate_record(record)
         if not rec_val["success"]:
             return {"success" : False, "message" : rec_val["message"]}
+
+        # Check for duplicate URIs
+        if record["globus_subject"] in self.__uris:
+            return {"success" : False, "message" : "'globus_subject' duplicate found:" + record["globus_subject"]}
+        else:
+            self.__uris.append(record["globus_subject"]
 
         record["mdf_id"] = str(ObjectId())
         record["parent_id"] = self.dataset_id
