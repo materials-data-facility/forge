@@ -78,7 +78,7 @@ def convert(input_path, verbose=False):
         # Check if the Validator accepted the record, and print a message if it didn't
         # If the Validator returns "success" == True, the record was written successfully
         if result["success"] is not True:
-            print("Error:", result["message"], ":", result["invalid_data"])
+            print("Error:", result["message"], ":", result.get("invalid_data", ""))
 
     if verbose:
         print("Finished converting")

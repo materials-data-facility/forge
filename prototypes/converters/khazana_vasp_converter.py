@@ -5,7 +5,7 @@ from parsers.utils import find_files
 from parsers.ase_parser import parse_ase
 
 
-# This is the converter for the High-throughput Ab-initio Dilute Solute Diffusion Database dataset from Dane Morgan's group 
+# This is the converter for Khazana VASP DFT data.
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
@@ -13,19 +13,19 @@ def convert(input_path, verbose=False):
 
     # Collect the metadata
     dataset_metadata = {
-        "globus_subject": "https://publish.globus.org/jspui/handle/ITEM/164",
+        "globus_subject": "http://khazana.uconn.edu/module_search/search.php?m=2",
         "acl": ["public"],
-        "mdf_source_name": "ab_initio_solute_database",
-        "mdf-publish.publication.collection": "High-throughput Ab-initio Dilute Solute Diffusion Database",
+        "mdf_source_name": "khazana_vasp",
+        "mdf-publish.publication.collection": "Khazana",
 
-        "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database",
-        "dc.creator": "Materials Data Facility",
-        "dc.identifier": "http://dx.doi.org/doi:10.18126/M2X59R",
-        "dc.contributor.author": ["Wu, Henry", "Mayeshiba, Tam", "Morgan, Dane,"],
-        "dc.subject": ["dilute", "solute", "DFT", "diffusion"],
-        "dc.description": "We demonstrate automated generation of diffusion databases from high-throughput density functional theory (DFT) calculations. A total of more than 230 dilute solute diffusion systems in Mg, Al, Cu, Ni, Pd, and Pt host lattices have been determined using multi-frequency diffusion models. We apply a correction method for solute diffusion in alloys using experimental and simulated values of host self-diffusivity.",
-        "dc.relatedidentifier": ["http://dx.doi.org/10.1038/sdata.2016.54", "http://dx.doi.org/10.6084/m9.figshare.1546772"],
-        "dc.year": 2016
+        "dc.title": "Khazana (VASP)",
+        "dc.creator": "University of Connecticut",
+        "dc.identifier": "http://khazana.uconn.edu",
+#        "dc.contributor.author": ,
+        "dc.subject": ["DFT", "VASP"]
+#        "dc.description": ,
+#        "dc.relatedidentifier": ,
+#        "dc.year": 
         }
 
 
@@ -41,27 +41,26 @@ def convert(input_path, verbose=False):
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
 
     # Each record also needs its own metadata
-    for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR$", keep_dir_name_depth=3), desc="Processing data files", disable= not verbose):
+    for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR"), desc="Processing data files", disable= not verbose):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"]), data_format="vasp", verbose=False)
 
-        uri = "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/"
-        for dir_name in dir_data["dirs"]:
-            uri = os.path.join(uri, dir_name)
+        uri = "http://khazana.uconn.edu/"
+        uri += dir_data["filename"] + dir_data["extension"]
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
-            "mdf-publish.publication.collection": "High-throughput Ab-initio Dilute Solute Diffusion Database",
+            "mdf-publish.publication.collection": "Khazana",
             "mdf_data_class": "vasp",
             "mdf-base.material_composition": file_data["frames"][0]["chemical_formula"],
 
-            "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database" + file_data["frames"][0]["chemical_formula"],
-            #"dc.creator": ,
+            "dc.title": "Khazana VASP - " + file_data["frames"][0]["chemical_formula"],
+#            "dc.creator": ,
             "dc.identifier": uri,
-            #"dc.contributor.author": ,
-            #"dc.subject": ,
-            #"dc.description": ,
-            #"dc.relatedidentifier": ,
-            #"dc.year": ,
+#            "dc.contributor.author": ,
+#            "dc.subject": ,
+#            "dc.description": ,
+#            "dc.relatedidentifier": ,
+#            "dc.year": ,
 
             "data": {
                 "raw": str(file_data),
@@ -75,7 +74,7 @@ def convert(input_path, verbose=False):
         # Check if the Validator accepted the record, and print a message if it didn't
         # If the Validator returns "success" == True, the record was written successfully
         if result["success"] is not True:
-            print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
+            print("Error:", result["message"], ":", result.get("invalid_metadata"))
 
     if verbose:
         print("Finished converting")
@@ -86,4 +85,4 @@ def convert(input_path, verbose=False):
 if __name__ == "__main__":
     import paths
     print("Begin conversion")
-    convert(paths.datasets + "dane_morgan/data", True)
+    convert(paths.datasets+"khazana/OUTCARS", True)

@@ -14,7 +14,7 @@ class Validator:
 
         res = self.__write_metadata(metadata)
         if not res["success"]:
-            raise ValueError("Invalid metadata: '" + res["message"])
+            raise ValueError("Invalid metadata: '" + res["message"] + "' " + res["invalid_metadata"])
 
     #del attempts cleanup
     def __del__(self):
@@ -26,11 +26,17 @@ class Validator:
     #Sets metadata for dataset
     def __write_metadata(self, metadata):
         if self.__feedstock or self.dataset_id or self.__mdf_source_name: #Metadata already set; cannot change
-            return {"success" : False, "message" : "Metadata already written for this dataset"}
+            return {
+                "success": False,
+                "message": "Metadata already written for this dataset"
+                }
 
         md_val = validate_metadata(metadata)
         if not md_val["success"]:
-            return {"success" : False, "message" : md_val["message"]}
+            return {
+                "success": False,
+                "message": md_val["message"]
+                }
 
         metadata["mdf_source_name"] = metadata["mdf_source_name"].lower().replace(" ", "_")
         self.__mdf_source_name = metadata["mdf_source_name"]
@@ -46,24 +52,37 @@ class Validator:
             
             self.dataset_id = metadata["mdf_id"]
 
-            return {"success" : True}
+            return {"success": True}
 
         except:
-            return {"success" : False, "message" : "Error: Bad metadata"}
+            return {
+                "success": False,
+                "message": "Error: Bad metadata"
+                }
 
     #Output single record to feedstock
     def write_record(self, record):
         if (not self.__feedstock) or (not self.dataset_id) or (not self.__mdf_source_name): #Metadata not set
-            return {"success" : False, "message" : "Metadata not written for this dataset"}
+            return {
+                "success": False,
+                "message": "Metadata not written for this dataset"
+                }
         rec_val = validate_record(record)
         if not rec_val["success"]:
-            return {"success" : False, "message" : rec_val["message"]}
+            return {
+                "success": False,
+                "message": rec_val["message"],
+                "invalid_metadata": rec_val["invalid_metadata"]
+                }
 
         # Check for duplicate URIs
         if record["globus_subject"] in self.__uris:
-            return {"success" : False, "message" : "'globus_subject' duplicate found:" + record["globus_subject"]}
+            return {
+                "success": False,
+                "message": "'globus_subject' duplicate found:" + record["globus_subject"]
+                }
         else:
-            self.__uris.append(record["globus_subject"]
+            self.__uris.append(record["globus_subject"])
 
         record["mdf_id"] = str(ObjectId())
         record["parent_id"] = self.dataset_id
@@ -96,13 +115,19 @@ class Validator:
             self.__feedstock.write("\n")
             return {"success" : True}
         except:
-            return {"success" : False, "message" : "Error: Bad record"}
+            return {
+                "success": False,
+                "message": "Error: Bad record"
+                }
 
     #Output whole dataset to feedstock
     #all_records must be a list of all the dataset records
     def write_dataset(self, all_records):
         if (not self.__feedstock) or (not self.dataset_id): #Metadata not set
-            return {"success" : False, "message" : "Metadata not written for this dataset"}
+            return {
+                "success": False,
+                "message": "Metadata not written for this dataset"
+                }
         #Write all records to feedstock
         for record in all_records:
             result = self.write_record(record)
@@ -269,14 +294,12 @@ def validate_metadata(metadata):
             })
 
     if not invalid_list:
-        return {
-            "success" : True
-            }
+        return {"success": True}
     else:
         return {
-            "success" : False,
-            "invalid_metadata" : invalid_list,
-            "message" : "Invalid dataset metadata"
+            "success": False,
+            "invalid_metadata": invalid_list,
+            "message": "Invalid dataset metadata"
             }
 
 
@@ -479,14 +502,12 @@ def validate_record(metadata):
             })
 
     if not invalid_list:
-        return {
-            "success" : True
-            }
+        return {"success": True}
     else:
         return {
-            "success" : False,
-            "invalid_metadata" : invalid_list,
-            "message" : "Invalid dataset metadata"
+            "success": False,
+            "invalid_metadata": invalid_list,
+            "message": "Invalid record metadata"
             }
 
 if __name__ == "__main__":
