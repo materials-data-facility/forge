@@ -60,7 +60,7 @@ ingest_to.add("globus_search")
 
 #Pick one or more data files to ingest
 data_file_to_use = []
-#data_file_to_use.append("oqmd")
+data_file_to_use.append("oqmd")
 #data_file_to_use.append("janaf")
 #data_file_to_use.append("danemorgan")
 #data_file_to_use.append("khazana_polymer")
@@ -78,7 +78,7 @@ data_file_to_use = []
 #data_file_to_use.append("materials_commons_metadata")
 #data_file_to_use.append("xafs_dl")
 #data_file_to_use.append("core_mof")
-data_file_to_use.append("qm_mdt_c")
+#data_file_to_use.append("qm_mdt_c")
 
 
 #Information about each dataset for ingesting
@@ -94,7 +94,7 @@ data_file_to_use.append("qm_mdt_c")
 #   }
 all_data_files = {
     "oqmd" : {
-        "batch_size" : 5000
+        "batch_size" : 10000
         },
     "danemorgan" : {
         "batch_size" : 10

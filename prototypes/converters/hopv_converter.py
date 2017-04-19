@@ -1,139 +1,144 @@
-from json import dump
-from tqdm import tqdm
-from bson import ObjectId
-import paths
+from validator import Validator
 
-hopv_file = paths.datasets + "hopv/HOPV_15_revised_2.data"
-feedstock_file = paths.raw_feed + "hopv_all.json"
-feedsack_size = 10
-feedsack_file = paths.sack_feed + "hopv_" + str(feedsack_size) + ".json"
-mdf_metadata = {
-    "mdf_source_name" : "hopv",
-    "mdf_source_id" : 8,
-#   "globus_source" : "Harvard Organic Photovoltaic Database",
-    "mdf_datatype" : "hopv",
-    "acl" : ["public"],
-    "collection" : "Harvard Organic Photovoltaic Database"
-    }
 
-#Takes float or nan and returns correct value for JSON serialization - float version if not nan, string "nan" otherwise
-#Currently unused, as only the package 'ujson' requires it, and this script uses 'json'
-def float_nan(value):
-    return float(value) if float(value) == float(value) else "nan" #nan != nan
-
-#Takes a/the HOPV file and parses its interesting structure
-def hopv_converter(in_filename, out_filename, mdf_meta, sack_size=0, sack_filename=None, uri_dup_check=True, verbose=False):
-    all_uri = []
+# This is the converter for the Harvard Organic Photovoltaic Database.
+# Arguments:
+#   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
+#   verbose (bool): Should the script print status messages to standard output? Default False.
+def convert(input_path, verbose=False):
     if verbose:
-        print("Opening files")
-    with open(in_filename, 'r') as in_file:
-        with open(out_filename, 'w') as out_file:
-            if sack_size > 0 and sack_filename:
-                sack_file = open(sack_filename, 'w')
-            count = 0
-            eof = False
-            smiles = in_file.readline() #Priming read
-            if not smiles: #Blank line is EOF in Python
-                eof = True
-            if verbose:
-                print("Processing input file")
-            while not eof:
-                #Molecule level
-                molecule = {}
-                molecule["smiles"] = smiles.strip()
-                molecule["inchi"] = in_file.readline().strip()
-                exp_data = in_file.readline().strip().split(',')
-                molecule["experimental_data"] = {
-                    "doi" : exp_data[0],
-                    "inchikey" : exp_data[1],
-                    "construction" : exp_data[2],
-                    "architecture" : exp_data[3],
-                    "complement" : exp_data[4],
-                    "homo" : float(exp_data[5]),
-                    "lumo" : float(exp_data[6]),
-                    "electrochemical_gap" : float(exp_data[7]),
-                    "optical_gap" : float(exp_data[8]),
-                    "pce" : float(exp_data[9]),
-                    "voc" : float(exp_data[10]),
-                    "jsc" : float(exp_data[11]),
-                    "fill_factor" : float(exp_data[12])
+        print("Begin converting")
+
+    # Collect the metadata
+    dataset_metadata = {
+        "globus_subject": "https://figshare.com/articles/HOPV15_Dataset/1610063/4",
+        "acl": ["public"],
+        "mdf_source_name": "hopv",
+        "mdf-publish.publication.collection": "Harvard Organic Photovoltaic Dataset",
+
+        "dc.title": "Harvard Organic Photovoltaic Dataset",
+        "dc.creator": "Harvard University",
+        "dc.identifier": "https://dx.doi.org/10.6084/m9.figshare.1610063.v4",
+        "dc.contributor.author": ["Aspuru-Guzik, Alan"],
+        "dc.subject": ["Organic Photovoltaic Cells", "quantum chemistry", "density functional theory", "calibration"],
+#        "dc.description": ,
+        "dc.relatedidentifier": ["https://dx.doi.org/10.1038/sdata.2016.86"],
+        "dc.year": 2016
+        }
+
+
+    # Make a Validator to help write the feedstock
+    # You must pass the metadata to the constructor
+    # Each Validator instance can only be used for a single dataset
+    dataset_validator = Validator(dataset_metadata)
+
+
+    # Get the data
+    # Each record also needs its own metadata
+    with open(input_path, 'r') as in_file:
+        eof = False
+        smiles = in_file.readline() # Priming read
+        if not smiles:
+            eof = True
+        while not eof:
+            #Molecule level
+            molecule = {}
+            molecule["smiles"] = smiles.strip()
+            molecule["inchi"] = in_file.readline().strip()
+            exp_data = in_file.readline().strip().split(',')
+            molecule["experimental_data"] = {
+                "doi" : exp_data[0],
+                "inchikey" : exp_data[1],
+                "construction" : exp_data[2],
+                "architecture" : exp_data[3],
+                "complement" : exp_data[4],
+                "homo" : float(exp_data[5]),
+                "lumo" : float(exp_data[6]),
+                "electrochemical_gap" : float(exp_data[7]),
+                "optical_gap" : float(exp_data[8]),
+                "pce" : float(exp_data[9]),
+                "voc" : float(exp_data[10]),
+                "jsc" : float(exp_data[11]),
+                "fill_factor" : float(exp_data[12])
+                }
+            molecule["pruned_smiles"] = in_file.readline().strip()
+            molecule["num_conformers"] = int(in_file.readline().strip())
+            #Conformer level
+            list_conformers = []
+            for i in range(molecule["num_conformers"]):
+                conformer = {}
+                conformer["conformer_number"] = int(in_file.readline().strip("\n Cconformer"))
+                conformer["num_atoms"] = int(in_file.readline().strip())
+                #Atom level
+                list_atoms = []
+                for j in range(conformer["num_atoms"]):
+                    atom_data = in_file.readline().strip().split(' ')
+                    atom = {
+                        "element" : atom_data[0],
+                        "x_coordinate" : float(atom_data[1]),
+                        "y_coordinate" : float(atom_data[2]),
+                        "z_coordinate" : float(atom_data[3])
+                        }
+                    list_atoms.append(atom)
+                conformer["atoms"] = list_atoms
+                #Four sets of calculated data
+                list_calc = []
+                for k in range(4):
+                    calc_data = in_file.readline().strip().split(",")
+                    calculated = {
+                        "set_description" : calc_data[0],
+                        "homo" : float(calc_data[1]),
+                        "lumo" : float(calc_data[2]),
+                        "gap" : float(calc_data[3]),
+                        "scharber_pce" : float(calc_data[4]),
+                        "scharber_voc" : float(calc_data[5]),
+                        "scharber_jsc" : float(calc_data[6])
+                        }
+                    list_calc.append(calculated)
+                conformer["calculated_data"] = list_calc
+                list_conformers.append(conformer)
+            molecule["conformers"] = list_conformers
+
+            record_metadata = {
+                "globus_subject": "hopv://" + molecule["inchi"],
+                "acl": ["public"],
+                "mdf-publish.publication.collection": "Harvard Organic Photovoltaic Dataset",
+#                "mdf_data_class": ,
+#                "mdf-base.material_composition": ,
+
+                "dc.title": "HOPV - " + molecule["inchi"],
+#                "dc.creator": ,
+#                "dc.identifier": ,
+#                "dc.contributor.author": ,
+#                "dc.subject": ,
+#                "dc.description": ,
+#                "dc.relatedidentifier": ,
+#                "dc.year": ,
+
+                "data": {
+#                    "raw": str(molecule),
+                    "files": {}
                     }
-                molecule["pruned_smiles"] = in_file.readline().strip()
-                molecule["num_conformers"] = int(in_file.readline().strip())
-                #Conformer level
-                list_conformers = []
-                for i in tqdm(range(molecule["num_conformers"]), desc="Processing molecule " + str(count + 1), disable= not verbose):
-                    conformer = {}
-                    conformer["conformer_number"] = int(in_file.readline().strip("\n Cconformer"))
-                    conformer["num_atoms"] = int(in_file.readline().strip())
-                    #Atom level
-                    list_atoms = []
-                    for j in range(conformer["num_atoms"]):
-                        atom_data = in_file.readline().strip().split(' ')
-                        atom = {
-                            "element" : atom_data[0],
-                            "x_coordinate" : float(atom_data[1]),
-                            "y_coordinate" : float(atom_data[2]),
-                            "z_coordinate" : float(atom_data[3])
-                            }
-                        list_atoms.append(atom)
-                    conformer["atoms"] = list_atoms
-                    #Four sets of calculated data
-                    list_calc = []
-                    for k in range(4):
-                        calc_data = in_file.readline().strip().split(",")
-                        calculated = {
-                            "set_description" : calc_data[0],
-                            "homo" : float(calc_data[1]),
-                            "lumo" : float(calc_data[2]),
-                            "gap" : float(calc_data[3]),
-                            "scharber_pce" : float(calc_data[4]),
-                            "scharber_voc" : float(calc_data[5]),
-                            "scharber_jsc" : float(calc_data[6])
-                            }
-                        list_calc.append(calculated)
-                    conformer["calculated_data"] = list_calc
-                    list_conformers.append(conformer)
-                molecule["conformers"] = list_conformers
-                molecule["uri"] = molecule["inchi"]
-                all_uri.append(molecule["uri"])
-                
-                #Metadata wrapping
-                feedstock_data = {}
-                feedstock_data["mdf_id"] = str(ObjectId())
-                feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
-                feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-#               feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
-                feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
-                feedstock_data["acl"] = mdf_meta["acl"]
-                feedstock_data["globus_subject"] = molecule["uri"]
-                feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
-                feedstock_data["data"] = molecule
+                }
 
-                try:
-                    dump(feedstock_data, out_file)
-                    out_file.write("\n")
-                except:
-                    print("Error on:\n", molecule)
-                    #return
-                if sack_filename and count < sack_size:
-                    dump(feedstock_data, sack_file)
-                    sack_file.write("\n")
-                count += 1
-                smiles = in_file.readline() #Next molecule
-                if not smiles: #Blank line is EOF
-                    eof = True
-    
-            if sack_size > 0 and sack_filename:
-                sack_file.close()
+            # Pass each individual record to the Validator
+            result = dataset_validator.write_record(record_metadata)
+
+            # Check if the Validator accepted the record, and print a message if it didn't
+            # If the Validator returns "success" == True, the record was written successfully
+            if result["success"] is not True:
+                print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
+            
+            smiles = in_file.readline() #Next molecule
+            if not smiles: #Blank line is EOF
+                eof = True
+
     if verbose:
-        print("Processed", count, "molecules successfully.")
-    duplicates = [x for x in all_uri if all_uri.count(x) > 1]
-    if duplicates:
-        print("Warning: Duplicate URIs found:\n", set(duplicates))
+        print("Finished converting")
 
 
-
+# Optionally, you can have a default call here for testing
+# The convert function may not be called in this way, so code here is primarily for testing
 if __name__ == "__main__":
-    hopv_converter(hopv_file, feedstock_file, mdf_metadata, feedsack_size, feedsack_file, uri_dup_check=True, verbose=True)
-
+    import paths
+    convert(paths.datasets + "hopv/HOPV_15_revised_2.data", True)

@@ -16,12 +16,12 @@ def convert(input_path, verbose=False):
         "globus_subject": "https://publish.globus.org/jspui/handle/ITEM/164",
         "acl": ["public"],
         "mdf_source_name": "ab_initio_solute_database",
-        "mdf-publish.publication.collection": "High-throughput Ab-initio Dilute Solute Diffusion Database",
+        "mdf-publish.publication.collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
 
         "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database",
         "dc.creator": "Materials Data Facility",
         "dc.identifier": "http://dx.doi.org/doi:10.18126/M2X59R",
-        "dc.contributor.author": ["Wu, Henry", "Mayeshiba, Tam", "Morgan, Dane,"],
+        "dc.contributor.author": ["Wu, Henry", "Mayeshiba, Tam", "Morgan, Dane"],
         "dc.subject": ["dilute", "solute", "DFT", "diffusion"],
         "dc.description": "We demonstrate automated generation of diffusion databases from high-throughput density functional theory (DFT) calculations. A total of more than 230 dilute solute diffusion systems in Mg, Al, Cu, Ni, Pd, and Pt host lattices have been determined using multi-frequency diffusion models. We apply a correction method for solute diffusion in alloys using experimental and simulated values of host self-diffusivity.",
         "dc.relatedidentifier": ["http://dx.doi.org/10.1038/sdata.2016.54", "http://dx.doi.org/10.6084/m9.figshare.1546772"],
@@ -44,17 +44,17 @@ def convert(input_path, verbose=False):
     for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR$", keep_dir_name_depth=3), desc="Processing data files", disable= not verbose):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"]), data_format="vasp", verbose=False)
 
-        uri = "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/published/publication_164/data/"
+        uri = "https://data.materialsdatafacility.org/published/publication_164/data/"
         for dir_name in dir_data["dirs"]:
             uri = os.path.join(uri, dir_name)
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
-            "mdf-publish.publication.collection": "High-throughput Ab-initio Dilute Solute Diffusion Database",
+            "mdf-publish.publication.collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
             "mdf_data_class": "vasp",
             "mdf-base.material_composition": file_data["frames"][0]["chemical_formula"],
 
-            "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database" + file_data["frames"][0]["chemical_formula"],
+            "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database - " + file_data["frames"][0]["chemical_formula"],
             #"dc.creator": ,
             "dc.identifier": uri,
             #"dc.contributor.author": ,
@@ -64,7 +64,7 @@ def convert(input_path, verbose=False):
             #"dc.year": ,
 
             "data": {
-                "raw": str(file_data),
+#                "raw": str(file_data),
                 "files": {"outcar": uri}
                 }
             }
