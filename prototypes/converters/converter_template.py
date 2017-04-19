@@ -6,6 +6,8 @@ from validator import Validator
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
 def convert(input_path, verbose=False):
+    if verbose:
+        print("Begin converting")
 
     # Collect the metadata
     # TODO: Fill in these dictionary fields for your dataset
@@ -79,7 +81,7 @@ def convert(input_path, verbose=False):
         # Check if the Validator accepted the record, and print a message if it didn't
         # If the Validator returns "success" == True, the record was written successfully
         if result["success"] is not True:
-            print("Error:", result["message"], ":", result.get("invalid_metadata", "")
+            print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
 
     # Alternatively, if the only way you can process your data is in one large list, you can pass the list to the Validator
     # You still must add the required metadata to your records

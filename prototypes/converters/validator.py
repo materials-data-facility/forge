@@ -14,7 +14,7 @@ class Validator:
 
         res = self.__write_metadata(metadata)
         if not res["success"]:
-            raise ValueError("Invalid metadata: '" + res["message"] + "' " + res["invalid_metadata"])
+            raise ValueError("Invalid metadata: '" + res["message"] + "' " + str(res.get("invalid_metadata", "")))
 
     #del attempts cleanup
     def __del__(self):
@@ -35,7 +35,8 @@ class Validator:
         if not md_val["success"]:
             return {
                 "success": False,
-                "message": md_val["message"]
+                "message": md_val["message"],
+                "invalid_metadata": md_val.get("invalid_metadata", "")
                 }
 
         metadata["mdf_source_name"] = metadata["mdf_source_name"].lower().replace(" ", "_")

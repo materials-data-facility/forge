@@ -6,7 +6,7 @@ from validator import Validator
 from parsers.utils import find_files
 from parsers.ase_parser import parse_ase
 
-
+# This is the converter for the QM MD Trajectories of C7O2H10 dataset
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
