@@ -148,9 +148,8 @@ def run_extraction(filename):
     'energy_alpha_note' -> Activation energy alpha note
     'temperature_range' -> Temperature range relative to the substrate melting point, T/Tm
     'temperature_range_note' -> Temperature range note
-    'reference1' -> Reference 1
-    'reference2' -> Reference 2
-    'reference3' -> Reference 3
+    'references' -> list of References
+
     :param filename: Filename of Surface Diffusion data file
     :return: List of Dictionaries containing data
     '''
@@ -158,7 +157,7 @@ def run_extraction(filename):
     heads = ['system', 'diffusing_species', 'substrate', 'system_note', 'ambient', 'technique', 'coverage_theta',
              'diffusion_coefficient', 'diffusion_coefficient_note', 'activation_energy', 'activation_energy_note',
              'desorption_energy', 'desorption_energy_note', 'corrugation_omega', 'corrugation_omega_note', 'energy_alpha', 'energy_alpha_note',
-             'temperature_range', 'temperature_range_note', 'reference1', 'reference2', 'reference3']
+             'temperature_range', 'temperature_range_note', 'references']
     records = list()
 
     try:
@@ -176,24 +175,24 @@ def run_extraction(filename):
             row_index = 0
             while row_index < ws.nrows:
                 elements = list()
+                papers = list()
 
                 column_index = 0
-                while column_index < 20:
+                while column_index < 19:
                     value = get_value(ws, wb, row_index, column_index)
                     elements.append(value)
                     column_index += 1
 
-                if elements[0] != 'System' and elements[0] != '' and elements[1] != '' and elements[2] != '' and \
-                                elements[19] != '':
+                if elements[0] != 'System' and elements[0] != '' and elements[1] != '' and elements[2] != '':
                     elements[5] = methods[elements[5]]
-                    refs = elements[19].strip().split(",")
-                    elements[19] = references['0']
-                    if len(refs) == 1:
-                        elements.append(references[refs[0].strip()])
-                        elements.append("")
-                    elif len(refs) > 1:
-                        elements.append(references[refs[0].strip()])
-                        elements.append(references[refs[1].strip()])
+
+                    value = get_value(ws, wb, row_index, 19)
+                    papers.append(references['0'])
+                    if value != '':
+                        papers_num = value.strip().split(",")
+                        for paper in papers_num:
+                            papers.append(references[paper.strip()])
+                        elements.append(papers)
 
                     if len(heads) == len(elements):
                         records.append(dict(zip(heads, elements)))
