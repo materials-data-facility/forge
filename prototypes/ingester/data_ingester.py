@@ -698,15 +698,8 @@ if __name__ == "__main__":
             print("Using " + str(ingest_limit) + " records from " + filename + " in batches of " + str(max_ingest_size) + ":")
             ingest_refined_feedstock(filename, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
             print("Finished ingesting from " + filename + "\n")
-#       elif key == "nist_dspace":
-#           from utils import find_files
-#           for ref_file in find_files(root=paths.ref_feed, file_pattern="^nist_dspace"):
-#               ref_path = paths.ref_feed + ref_file["filename"] + ref_file["extension"]
-#               print("Using " + str(ingest_limit) + " records from " + ref_path + " in batches of " + str(max_ingest_size) + ":")
-#               ingest_refined_feedstock(ref_path, ingest_to, destination_args=destination_args, max_ingest_size=max_ingest_size, ingest_limit=ingest_limit, verbose=True, delete_not_ingest=DELETE_GS)
-#               print("Finished ingesting from " + ref_path + "\n")
         else:
-            print("Invalid special dataset")
+            print("Invalid dataset filename")
     print("Ingest complete")
 
 

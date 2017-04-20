@@ -32,32 +32,21 @@ def convert(input_path, verbose=False):
     
     #Make a Validator to help write the feedstock
     #You can pass the metadata to the constructor
-    dataset_validator = Validator(dataset_metadata) 
-    #Alternately, if you don't pass the metadata to the constructor, you can write the metadata later, before you write any records
-    #Don't give the Validator metadata twice
-    #dataset_validator.write_metadata(dataset_metadata)
+    dataset_validator = Validator(dataset_metadata)
 
 
     #Get the data
-    #TODO: Write the code to convert your dataset's records into JSON-serializable Python dictionaries
-        #Each record should be exactly one dictionary
-        #It is recommended that you convert your records one at a time, but it is possible to put them all into one big list (see below)
-        #It is also recommended that you use a parser to help with this process if one is available for your datatype
-
     for cif in tqdm(find_files(root=input_path, file_pattern=".cif", verbose=verbose), desc="Processing files", disable= not verbose):
-        full_path = os.path.join(cif["path"], cif["filename"] + cif["extension"])
         #TODO:FIX
-            cif_data = parse_ase(file_path=full_path, data_format="cif", verbose=False)
+            cif_data = parse_ase(file_path=os.path.join(cif["path"], cif["filename"]), data_format="cif", verbose=False)
         if cif_data:
-            print(cif_data)
-            return
             #Each record also needs its own metadata
             record_metadata = {
                 "mdf_source_name" : "amcs",
-                "dc.title" : "AMCS - " + chemical_formula,
+                "dc.title" : "AMCS - " + cif_data["chemical_formula"],
                 "dc.creator" : "The American Mineralogist Crystal Structure Database",
                 "dc.contributor.author" : ["Downs, R.T.", "Hall-Wallace, M."],
-                "dc.identifier" : "http://rruff.geo.arizona.edu/AMS/minerals/" + _chemical_name_mineral,
+                "dc.identifier" : "http://rruff.geo.arizona.edu/AMS/minerals/" + cif_data["_chemical_name_mineral"],
 #               "dc.subject" : [],
 #               "dc.description" : "",
 #               "dc.relatedidentifier" : [],
@@ -75,16 +64,6 @@ def convert(input_path, verbose=False):
             if result["success"] != True:
                 print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
 
-    #Alternatively, if the only way you can process your data is in one large list, you can pass the list to the Validator
-    #You still must add the required metadata to your records
-    #It is recommended to use the other method if possible
-    #result = dataset_validator.write_dataset(your_records_with_metadata)
-    #if result["success"] != True:
-        #print("Error:", result["message"])
-
-
-    #TODO: Save your converter as [dataset_name]_converter.py
-    #You're done!
     if verbose:
         print("Finished converting")
 

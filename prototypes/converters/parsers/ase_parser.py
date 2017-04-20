@@ -176,61 +176,71 @@ def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
     magnetization = []
 
     for n, line in enumerate(data):
-        if 'POTCAR:' in line:
-            temp = line.split()[2]
-            for c in ['.', '_', '1']:
-                if c in temp:
-                    temp = temp[0:temp.find(c)]
-            species += [temp]
-        if 'ions per type' in line:
-            species = species[:len(species) // 2]
-            temp = line.split()
-            for ispecies in range(len(species)):
-                species_num += [int(temp[ispecies + 4])]
-                natoms += species_num[-1]
-                for iatom in range(species_num[-1]):
-                    symbols += [species[ispecies]]
-        if 'direct lattice vectors' in line:
-            cell = []
-            for i in range(3):
-                temp = data[n + 1 + i].split()
-                cell += [[float(temp[0]), float(temp[1]), float(temp[2])]]
-            atoms.set_cell(cell)
-        if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
-            # choose between energy wigh smearing extrapolated to zero
-            # or free energy (latter is consistent with forces)
-            energy_zero = float(data[n + 4].split()[6])
-            energy_free = float(data[n + 2].split()[4])
-            energy = energy_zero
-            if force_consistent:
-                energy = energy_free
-            if ecount < poscount:
-                # reset energy for LAST set of atoms, not current one -
-                # VASP 5.11? and up
-                images[-1].calc.results['energy'] = energy
-                images[-1].calc.set(energy=energy)
-            ecount += 1
-        if 'magnetization (x)' in line:
-            magnetization = []
-            for i in range(natoms):
-                magnetization += [float(data[n + 4 + i].split()[4])]
+        try:
+            if 'POTCAR:' in line:
+                temp = line.split()[2]
+                for c in ['.', '_', '1']:
+                    if c in temp:
+                        temp = temp[0:temp.find(c)]
+                species += [temp]
+            if 'ions per type' in line:
+                species = species[:len(species) // 2]
+                temp = line.split()
+                for ispecies in range(len(species)):
+                    species_num += [int(temp[ispecies + 4])]
+                    natoms += species_num[-1]
+                    for iatom in range(species_num[-1]):
+                        symbols += [species[ispecies]]
+            if 'direct lattice vectors' in line:
+                cell = []
+                for i in range(3):
+                    temp = data[n + 1 + i].split()
+                    cell += [[float(temp[0]), float(temp[1]), float(temp[2])]]
+                atoms.set_cell(cell)
+            if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
+                # choose between energy wigh smearing extrapolated to zero
+                # or free energy (latter is consistent with forces)
+                energy_zero = float(data[n + 4].split()[6])
+                energy_free = float(data[n + 2].split()[4])
+                energy = energy_zero
+                if force_consistent:
+                    energy = energy_free
+                if ecount < poscount:
+                    # reset energy for LAST set of atoms, not current one -
+                    # VASP 5.11? and up
+                    images[-1].calc.results['energy'] = energy
+                    images[-1].calc.set(energy=energy)
+                ecount += 1
+            if 'magnetization (x)' in line:
+                magnetization = []
+                for i in range(natoms):
+                    magnetization += [float(data[n + 4 + i].split()[4])]
+        except Exception:
+            pass
         if 'POSITION          ' in line:
-            forces = []
-            positions = []
-            for iatom in range(natoms):
-                temp = data[n + 2 + iatom].split()
-                atoms += Atom(symbols[iatom],
-                              [float(temp[0]), float(temp[1]), float(temp[2])])
-                forces += [[float(temp[3]), float(temp[4]), float(temp[5])]]
-                positions += [[float(temp[0]), float(temp[1]), float(temp[2])]]
-                atoms.set_calculator(SinglePointCalculator(atoms,
-                                                           energy=energy,
-                                                           forces=forces))
-            images += [atoms]
-            if len(magnetization) > 0:
-                images[-1].calc.magmoms = np.array(magnetization, float)
-            atoms = Atoms(pbc=True, constraint=constr)
-            poscount += 1
+            try:
+                forces = []
+                positions = []
+                for iatom in range(natoms):
+                    temp = data[n + 2 + iatom].split()
+                    try:
+                        new_atom = Atom(symbols[iatom],
+                                      [float(temp[0]), float(temp[1]), float(temp[2])])
+                    except Exception:
+                        new_atom = Atom(symbols[iatom])
+                    atoms += new_atom
+                    forces += [[float(temp[3]), float(temp[4]), float(temp[5])]]
+                    positions += [[float(temp[0]), float(temp[1]), float(temp[2])]]
+                    atoms.set_calculator(SinglePointCalculator(atoms,
+                                                               energy=energy,
+                                                               forces=forces))
+                images += [atoms]
+                if len(magnetization) > 0:
+                    images[-1].calc.magmoms = np.array(magnetization, float)
+                atoms = Atoms(pbc=True, constraint=constr)
+                poscount += 1
+            except Exception:
+                pass
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
@@ -325,7 +335,7 @@ def parse_ase(file_path, data_format=None, verbose=False):
             try:
                 ase_dict[key] = eval("result.get_" + key + "()")
                 success_count += 1
-            except: #(NotImplementedError, AttributeError): More exception types here than can reasonably be found, just catching everything
+            except Exception: #(NotImplementedError, AttributeError): More exception types here than can reasonably be found, just catching everything
                 failure_count +=1
                 ase_dict[key] = None
         #Populate other fields

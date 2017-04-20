@@ -49,13 +49,13 @@ def convert(input_path, doi_file_path, verbose=False):
                 doi_dict[values[0]] = values[1]
 
     for cif in tqdm(find_files(input_path, file_pattern=".cif", verbose=verbose), desc="Processing CIFs", disable= not verbose):
-        with open(os.path.join(cif["path"], cif["filename"] + cif["extension"])) as cif_in:
+        with open(os.path.join(cif["path"], cif["filename"])) as cif_in:
             # Discard non-CIF, duplicate metadata in first line
             cif_in.readline()
             file_data = parse_ase(file_path=cif_in, data_format="cif", verbose=False)
 
         record_metadata = {
-            "globus_subject": "https://github.com/gregchung/gregchung.github.io/blob/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"] + cif["extension"],
+            "globus_subject": "https://github.com/gregchung/gregchung.github.io/blob/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
             "acl": ["public"],
             "mdf-publish.publication.collection": "CoRE-MOF",
             "mdf_data_class": "cif",
@@ -63,7 +63,7 @@ def convert(input_path, doi_file_path, verbose=False):
 
             "dc.title": "CoRE-MOF - " + file_data["chemical_formula"] + " (" + cif["filename"].split("_")[0] + ")",
 #            "dc.creator": ,
-            "dc.identifier": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"] + cif["extension"],
+            "dc.identifier": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
 #            "dc.contributor.author": ,
 #            "dc.subject": ,
 #            "dc.description": ,
@@ -72,7 +72,7 @@ def convert(input_path, doi_file_path, verbose=False):
 
             "data": {
 #                "raw": ,
-                "files": {"cif": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"] + cif["extension"]}
+                "files": {"cif": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"]}
                 }
             }
 

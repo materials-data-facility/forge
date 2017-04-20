@@ -37,10 +37,10 @@ def convert(input_path, verbose=False):
     # Get the data
     # Each record also needs its own metadata
     for file_data in tqdm(find_files(input_path, "xyz"), desc="Processing QM_MDT_C", disable= not verbose):
-        file_path = os.path.join(file_data["path"], file_data["filename"] + file_data["extension"])
+        file_path = os.path.join(file_data["path"], file_data["filename"])
         record = parse_ase(file_path, "xyz")
         record_metadata = {
-            "globus_subject": "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["filename"] + file_data["extension"],
+            "globus_subject": "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["no_root_path"] + "/" if file_data["no_root_path"] else "" + file_data["filename"],
             "acl": ["public"],
             "mdf-publish.publication.collection": "Quantum Machine",
             "mdf_data_class": "xyz",
@@ -58,8 +58,8 @@ def convert(input_path, verbose=False):
             "data": {
                 #"raw": ,                             # RCM string: Original data record text, if feasible
                 "files": {
-                    "xyz" : "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["filename"] + file_data["extension"],
-                    "energy.dat" : "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["filename"] + ".energy.dat"
+                    "xyz" : "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["filename"],
+                    "energy.dat" : "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["filename"].replace(".xyz", "") + ".energy.dat"
                     },
                 "temperature" : {
                     "value": 500,

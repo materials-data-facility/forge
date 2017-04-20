@@ -35,16 +35,14 @@ def convert(input_path, verbose=False):
     dataset_validator = Validator(dataset_metadata)
 
     # Each record also needs its own metadata
-    for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR$", keep_dir_name_depth=-1), desc="Processing data files", disable= not verbose):
-        file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"] + dir_data["extension"]), data_format="vasp", verbose=False)
+    for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR$"), desc="Processing data files", disable= not verbose):
+        file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="vasp", verbose=False)
 
         # If no data, skip record
         if not file_data["frames"]:
             continue
 
-        uri = "globus:sluschi/"
-        for dir_name in dir_data["dirs"]:
-            uri = os.path.join(uri, dir_name)
+        uri = "globus:sluschi/" + dir_data["no_root_path"] + "/" + dir_data["filename"]
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
@@ -62,7 +60,7 @@ def convert(input_path, verbose=False):
 #            "dc.year": ,
 
             "data": {
-                "raw": str(file_data),
+#                "raw": str(file_data),
                 "files": {"outcar": uri}
                 }
             }
