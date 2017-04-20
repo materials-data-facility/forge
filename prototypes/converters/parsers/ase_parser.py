@@ -430,7 +430,10 @@ def parse_ase(file_path, data_format=None, verbose=False):
         print(str(len(ase_dict)) + " valid items returned.")
 
     if data_format == "vasp":
-        return {"frames" : ase_list}
+        if ase_list:
+            return {"frames" : ase_list}
+        else:
+            return None
     else:
         return ase_list[0]
 

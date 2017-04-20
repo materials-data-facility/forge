@@ -60,9 +60,9 @@ ingest_to.add("globus_search")
 
 #Pick one or more data files to ingest
 data_file_to_use = []
-data_file_to_use.append("oqmd")
+#data_file_to_use.append("oqmd")
 #data_file_to_use.append("janaf")
-#data_file_to_use.append("danemorgan")
+data_file_to_use.append("ab_initio_solute_database")
 #data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
@@ -95,9 +95,6 @@ data_file_to_use.append("oqmd")
 all_data_files = {
     "oqmd" : {
         "batch_size" : 10000
-        },
-    "danemorgan" : {
-        "batch_size" : 10
         },
     "khazana_vasp" : {
         "batch_size" : 1
