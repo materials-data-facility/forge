@@ -1,7 +1,7 @@
 from validator import Validator
 
 
-# This is a template converter. It is not complete, and incomplete parts are labelled with "TODO"
+# This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
@@ -21,6 +21,7 @@ def convert(input_path, verbose=False):
         "mdf_source_name": ,                     # REQ string: Unique name for dataset
         "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
 
+        "cite_as": ,                             # REQ list of strings: Complete citation(s) for this dataset.
         "dc.title": ,                            # REQ string: Title of dataset
         "dc.creator": ,                          # REQ string: Owner of dataset
         "dc.identifier": ,                       # REQ string: Link to dataset (dataset DOI if available)
@@ -58,6 +59,7 @@ def convert(input_path, verbose=False):
             "mdf_data_class": ,                      # RCM string: Type of data in record
             "mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
 
+            "cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)
             "dc.title": ,                            # REQ string: Title of record
             "dc.creator": ,                          # OPT string: Owner of record (if different from dataset)
             "dc.identifier": ,                       # RCM string: Link to record (record webpage, if available)

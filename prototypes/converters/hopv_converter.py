@@ -16,6 +16,7 @@ def convert(input_path, verbose=False):
         "mdf_source_name": "hopv",
         "mdf-publish.publication.collection": "Harvard Organic Photovoltaic Dataset",
 
+        "cite_as": ["Aspuru-Guzik, Alan (2016): The Harvard Organic Photovoltaics 2015 (HOPV) dataset: An experiment-theory calibration resource.. Figshare. https://doi.org/10.6084/m9.figshare.1610063.v4"],
         "dc.title": "Harvard Organic Photovoltaic Dataset",
         "dc.creator": "Harvard University",
         "dc.identifier": "https://dx.doi.org/10.6084/m9.figshare.1610063.v4",

@@ -22,6 +22,7 @@ def convert(input_path, doi_file_path, verbose=False):
         "mdf_source_name": "core_mof",
         "mdf-publish.publication.collection": "CoRE-MOF",
 
+        "cite_as": ['D. Nazarian, J. Camp, D.S. Sholl, "A Comprehensive Set of High-Quality Point Charges for Simulations of Metal-Organic Frameworks," Chemistry of Materials, 2016, 28 (3), pp 785–793'],
         "dc.title": "Computation-Ready Experimental Metal-Organic Frameworks Database",
         "dc.creator": "Pusan National University",
         "dc.identifier": "http://gregchung.github.io/CoRE-MOFs/",
@@ -55,7 +56,7 @@ def convert(input_path, doi_file_path, verbose=False):
             file_data = parse_ase(file_path=cif_in, data_format="cif", verbose=False)
 
         record_metadata = {
-            "globus_subject": "https://github.com/gregchung/gregchung.github.io/blob/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
+            "globus_subject": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
             "acl": ["public"],
             "mdf-publish.publication.collection": "CoRE-MOF",
             "mdf_data_class": "cif",
@@ -63,7 +64,7 @@ def convert(input_path, doi_file_path, verbose=False):
 
             "dc.title": "CoRE-MOF - " + file_data["chemical_formula"] + " (" + cif["filename"].split("_")[0] + ")",
 #            "dc.creator": ,
-            "dc.identifier": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
+            "dc.identifier": "https://github.com/gregchung/gregchung.github.io/blob/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
 #            "dc.contributor.author": ,
 #            "dc.subject": ,
 #            "dc.description": ,

@@ -18,6 +18,7 @@ def convert(input_path, verbose=False):
         "mdf_source_name": "cip",
         "mdf-publish.publication.collection": "Classical Interatomic Potentials",
 
+        "cite_as": ["Choudhary K, Congo FYP, Liang T, Becker C, Hennig RG, Tavazza F (2017) Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface. Scientific Data 4: 160125. http://dx.doi.org/10.1038/sdata.2016.125", "Choudhary K, Congo FYP, Liang T, Becker C, Hennig RG, Tavazza F (2017) Data from: Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.dd56c"],
         "dc.title": "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
         "dc.creator": "National Institute of Standards and Technology",
         "dc.identifier": "http://dx.doi.org/10.5061/dryad.dd56c",

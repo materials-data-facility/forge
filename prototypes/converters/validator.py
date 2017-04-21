@@ -8,8 +8,9 @@ class Validator:
     #init takes dataset metadata to start processing and save another function call
     def __init__(self, metadata):
         self.__feedstock = None
-        self.dataset_id = None
+        self.__dataset_id = None
         self.__mdf_source_name = None
+        self.__cite_as = None
         self.__uris = []
 
         res = self.__write_metadata(metadata)
@@ -25,7 +26,7 @@ class Validator:
 
     #Sets metadata for dataset
     def __write_metadata(self, metadata):
-        if self.__feedstock or self.dataset_id or self.__mdf_source_name: #Metadata already set; cannot change
+        if self.__feedstock or self.__dataset_id or self.__mdf_source_name: #Metadata already set; cannot change
             return {
                 "success": False,
                 "message": "Metadata already written for this dataset"
@@ -39,8 +40,12 @@ class Validator:
                 "invalid_metadata": md_val.get("invalid_metadata", "")
                 }
 
+        # Log mdf_source_name
         metadata["mdf_source_name"] = metadata["mdf_source_name"].lower().replace(" ", "_")
         self.__mdf_source_name = metadata["mdf_source_name"]
+
+        # Log citation
+        self.__cite_as = metadata["cite_as"]
 
         #Open feedstock file for the first time and write metadata entry
         feedstock_path = paths.feedstock + metadata["mdf_source_name"] + "_all.json"
@@ -51,7 +56,7 @@ class Validator:
             dump(metadata, self.__feedstock)
             self.__feedstock.write("\n")
             
-            self.dataset_id = metadata["mdf_id"]
+            self.__dataset_id = metadata["mdf_id"]
 
             return {"success": True}
 
@@ -63,7 +68,7 @@ class Validator:
 
     #Output single record to feedstock
     def write_record(self, record):
-        if (not self.__feedstock) or (not self.dataset_id) or (not self.__mdf_source_name): #Metadata not set
+        if (not self.__feedstock) or (not self.__dataset_id) or (not self.__mdf_source_name): #Metadata not set
             return {
                 "success": False,
                 "message": "Metadata not written for this dataset"
@@ -85,10 +90,14 @@ class Validator:
         else:
             self.__uris.append(record["globus_subject"])
 
+        # Copy/set non-user-settable metadata
         record["mdf_id"] = str(ObjectId())
-        record["parent_id"] = self.dataset_id
+        record["parent_id"] = self.__dataset_id
         record["mdf_node_type"] = "record"
         record["mdf_source_name"] = self.__mdf_source_name
+
+        if not record.get("cite_as", None):
+            record["cite_as"] = self.__cite_as
 
         if record.get("mdf-base.material_composition", None):
             str_of_elem = ""
@@ -124,7 +133,7 @@ class Validator:
     #Output whole dataset to feedstock
     #all_records must be a list of all the dataset records
     def write_dataset(self, all_records):
-        if (not self.__feedstock) or (not self.dataset_id): #Metadata not set
+        if (not self.__feedstock) or (not self.__dataset_id): #Metadata not set
             return {
                 "success": False,
                 "message": "Metadata not written for this dataset"
@@ -136,6 +145,10 @@ class Validator:
                 print("Error on record: ", record)
         return {"success" : True}
 
+    @property
+    def dataset_id(self):
+        return self.__dataset_id
+
 
 #Function to validate metadata fields
 def validate_metadata(metadata):
@@ -144,6 +157,7 @@ def validate_metadata(metadata):
         "acl",
         "mdf_source_name",
         "mdf-publish.publication.collection",
+        "cite_as",
         "dc.title",
         "dc.creator",
         "dc.identifier",
@@ -192,6 +206,21 @@ def validate_metadata(metadata):
             "field" : "mdf-publish.publication.collection",
             "value" : metadata.get("mdf-publish.publication.collection", None),
             "reason" : "mdf-publish.publication.collection must be a non-empty string"
+            })
+
+    #cite_as must exist, and be a list
+    if type(metadata.get("cite_as", None)) is not list:
+        invalid_list.append({
+            "field" : "cite_as",
+            "value" : metadata.get("cite_as", None),
+            "reason" : "cite_as is required and must be a list"
+            })
+    #cite_as must contain only non-empty strings
+    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("cite_as") ] ):
+        invalid_list.append({
+            "field" : "cite_as",
+            "value" : metadata.get("cite_as", None),
+            "reason" : "cite_as must contain only non-empty strings"
             })
 
     #dc.title must exist, and be a non-empty string
@@ -313,6 +342,7 @@ def validate_record(metadata):
         "mdf-publish.publication.collection",
         "mdf_data_class",
         "mdf-base.material_composition",
+        "cite_as",
         "dc.title",
         "dc.creator",
         "dc.identifier",
@@ -379,6 +409,21 @@ def validate_record(metadata):
             "field" : "mdf-base.material_composition",
             "value" : metadata.get("mdf-base.material_composition", None),
             "reason" : "mdf-base.material_composition must be a non-empty string"
+            })
+
+    #cite_as, if it exists, must be a list
+    if type(metadata.get("cite_as", [])) is not list:
+        invalid_list.append({
+            "field" : "cite_as",
+            "value" : metadata.get("cite_as", None),
+            "reason" : "cite_as must be a list"
+            })
+    #cite_as, if it exists, must contain only non-empty strings
+    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("cite_as", []) ] ):
+        invalid_list.append({
+            "field" : "cite_as",
+            "value" : metadata.get("cite_as", None),
+            "reason" : "cite_as must contain only non-empty strings"
             })
 
     #dc.title must exist, and be a non-empty string

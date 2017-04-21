@@ -14,6 +14,7 @@ def convert(input_path, verbose=False):
     #Collect the metadata
     dataset_metadata = {
         "mdf_source_name" : "amcs",
+        "cite_as": ["Downs, R.T. and Hall-Wallace, M. (2003) The American Mineralogist Crystal Structure Database. American Mineralogist 88, 247-250."],
         "dc.title" : "AMCS DB",
         "dc.creator" : "The American Mineralogist Crystal Structure Database",
         "dc.contributor.author" : ["Downs, R.T.", "Hall-Wallace, M."],

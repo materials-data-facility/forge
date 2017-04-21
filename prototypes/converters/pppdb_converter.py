@@ -2,6 +2,7 @@ import mysql.connector
 from sys import exit
 from json import load
 from tqdm import tqdm
+from chemspipy import ChemSpider
 from validator import Validator
 
 
@@ -20,6 +21,7 @@ def convert(login_file, verbose=False):
         "mdf_source_name": "pppdb",
         "mdf-publish.publication.collection": "PPPDB",
 
+        "cite_as": ["Publication in progress"],
         "dc.title": "Polymer Property Predictor and Database",
         "dc.creator": "University of Chicago",
         "dc.identifier": "http://pppdb.uchicago.edu/",
@@ -55,6 +57,11 @@ def convert(login_file, verbose=False):
     except mysql.connector.OperationalError as e:
         exit("Error: Bad cursor: " + repr(e))
 
+    try:
+        cs = ChemSpider(login["chemspi_token"])
+    except Exception as e:
+        exit("Error: Cannot authenticate to ChemSpider: " + repr(e))
+
     for tup in tqdm(cursor, desc="Processing records", disable= not verbose):
         record = {
             "doi" : tup[0],
@@ -79,12 +86,19 @@ def convert(login_file, verbose=False):
             "pppdb_id" : tup[19] #CHANGED FROM 'id'
             }
 
+        # Get chemical formulas for the compounds
+        comp1 = cs.search(record["compound1"].replace("poly(", "").replace(")", ""))
+        comp2 = cs.search(record["compound2"].replace("poly(", "").replace(")", ""))
+        # If exactly one result is returned, get the formula and strip non-alphanumeric characters
+        chem1 = (''.join([ch for ch in comp1[0].molecular_formula if ch.isalnum()])) if len(comp1) == 1 else ""
+        chem2 = (''.join([ch for ch in comp2[0].molecular_formula if ch.isalnum()])) if len(comp2) == 1 else ""
+
         record_metadata = {
             "globus_subject": "http://pppdb.uchicago.edu&id="+str(record["pppdb_id"]),
             "acl": ["public"],
             "mdf-publish.publication.collection": "Polymer Property Predictor and Database",
 #            "mdf_data_class": ,
-            "mdf-base.material_composition": record["compound1"] + " " + record["compound2"],
+            "mdf-base.material_composition": chem1 + " " + chem2,
 
             "dc.title": "PPPDB - Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
 #            "dc.creator": ,
@@ -118,4 +132,4 @@ def convert(login_file, verbose=False):
 # The convert function may not be called in this way, so code here is primarily for testing
 if __name__ == "__main__":
     import paths
-    convert("sql_login.json", True)
+    convert("pppdb_logins.json", True)

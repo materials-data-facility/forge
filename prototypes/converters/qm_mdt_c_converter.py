@@ -19,6 +19,7 @@ def convert(input_path, verbose=False):
         "mdf_source_name": "qm_mdt_c",
         "mdf-publish.publication.collection": "Quantum Machine",
 
+        "cite_as": ["S. Chmiela, A. Tkatchenko, H. E. Sauceda, I. Poltavsky, K. T. Schütt, K.-R. Müller Machine Learning of Accurate Energy-Conserving Molecular Force Fields, 2017.", "K. T. Schütt, F. Arbabzadah, S. Chmiela, K.-R. Müller, A. Tkatchenko Quantum-Chemical Insights from Deep Tensor Neural Networks, Nat. Commun. 8, 13890, 2017."],
         "dc.title": "Quantum Machine - MD Trajectories of C7O2H10",
         "dc.creator": "Quantum Machine",
         "dc.identifier": "http://quantum-machine.org/datasets/#md-datasets",

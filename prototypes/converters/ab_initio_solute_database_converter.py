@@ -18,6 +18,7 @@ def convert(input_path, verbose=False):
         "mdf_source_name": "ab_initio_solute_database",
         "mdf-publish.publication.collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
 
+        "cite_as": ['Wu, Henry; Mayeshiba, Tam; Morgan, Dane, "Dataset for High-throughput Ab-initio Dilute Solute Diffusion Database," 2016, http://dx.doi.org/doi:10.18126/M2X59R'],
         "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database",
         "dc.creator": "Materials Data Facility",
         "dc.identifier": "http://dx.doi.org/doi:10.18126/M2X59R",
