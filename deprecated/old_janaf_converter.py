@@ -43,33 +43,33 @@ def parse_janaf_file(filename):
                 # Get the number of atoms per formula unit
         comp = data['identifiers']['chemical formula']
         if len(comp) < 1: return None
-        try:
-            n_atoms = sum(parse_comp(comp).values())
-        except:
-            return None
+#        try:
+#            n_atoms = sum(parse_comp(comp).values())
+#        except:
+#            return None
 #        print comp, n_atoms
 
         # Load in data
         T = []
-        dH = []
-        dG = []
+#        dH = []
+#        dG = []
         Cp = []
         for row in data['data']:
                 try:
                         t = row['T']
                         cp = row['values'][u'Cp\xb0']
-                        dh = row['values'][u'delta-f H\xb0']
-                        dg = row['values'][u'delta-f G\xb0']
+#                        dh = row['values'][u'delta-f H\xb0']
+#                        dg = row['values'][u'delta-f G\xb0']
                 except:
                         continue
                 T.append(float(t))
                 Cp.append(float(cp))
-                dH.append(float(dh))
-                dG.append(float(dg))
+#                dH.append(float(dh))
+#                dG.append(float(dg))
 
                 # Normalize by number of atoms in the formula unit
-        dH = [ x / n_atoms for x in dH ]
-        dG = [ x / n_atoms for x in dG ]
+#        dH = [ x / n_atoms for x in dH ]
+#        dG = [ x / n_atoms for x in dG ]
 
         # Prepare output
         output = {}

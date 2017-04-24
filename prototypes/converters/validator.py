@@ -110,11 +110,14 @@ class Validator:
             record["mdf-base.elements"] = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
 
 
-        new_data = {
-            "files" : record["data"].pop("files")
-            }
-        if "raw" in record["data"].keys():
-            new_data["raw"] = record["data"].pop("raw")
+        new_data = {}
+        namespace_exempt_keys = [
+            "raw",
+            "files"
+            ]
+        for key in namespace_exempt_keys:
+            if key in record["data"].keys():
+                new_data[key] = record["data"].pop(key)
         for key, value in record["data"].items():
             new_data[self.__mdf_source_name + ":" + key] = value
         record["data"] = new_data
