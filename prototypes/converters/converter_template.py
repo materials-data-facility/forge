@@ -22,6 +22,8 @@ def convert(input_path, verbose=False):
         "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
 
         "cite_as": ,                             # REQ list of strings: Complete citation(s) for this dataset.
+        "license": ,                             # RCM string: License to use the dataset (preferrably a link to the actual license).
+
         "dc.title": ,                            # REQ string: Title of dataset
         "dc.creator": ,                          # REQ string: Owner of dataset
         "dc.identifier": ,                       # REQ string: Link to dataset (dataset DOI if available)
@@ -60,6 +62,8 @@ def convert(input_path, verbose=False):
             "mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
 
             "cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)
+            "license": ,                             # OPT string: License to use the record (if different from dataset) (preferrably a link to the actual license).
+
             "dc.title": ,                            # REQ string: Title of record
             "dc.creator": ,                          # OPT string: Owner of record (if different from dataset)
             "dc.identifier": ,                       # RCM string: Link to record (record webpage, if available)

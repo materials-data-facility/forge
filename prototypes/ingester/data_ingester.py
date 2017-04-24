@@ -62,7 +62,7 @@ ingest_to.add("globus_search")
 data_file_to_use = []
 #data_file_to_use.append("oqmd")
 #data_file_to_use.append("janaf")
-data_file_to_use.append("ab_initio_solute_database")
+#data_file_to_use.append("ab_initio_solute_database")
 #data_file_to_use.append("khazana_polymer")
 #data_file_to_use.append("khazana_vasp")
 #data_file_to_use.append("cod")
@@ -79,6 +79,7 @@ data_file_to_use.append("ab_initio_solute_database")
 #data_file_to_use.append("xafs_dl")
 #data_file_to_use.append("core_mof")
 #data_file_to_use.append("qm_mdt_c")
+data_file_to_use.append("ti_o_fitting_db")
 
 
 #Information about each dataset for ingesting

@@ -191,6 +191,10 @@ def validate_metadata(metadata, entry_type, strict=True):
                 "type": list,
                 "contains": str
                 },
+            "license": {
+                "req": False,
+                "type": str
+                },
             "dc.title": {
                 "req": True,
                 "type": str
@@ -256,6 +260,10 @@ def validate_metadata(metadata, entry_type, strict=True):
                 "req": False,
                 "type": list,
                 "contains": str
+                },
+            "license": {
+                "req": False,
+                "type": str
                 },
             "dc.title": {
                 "req": True,
