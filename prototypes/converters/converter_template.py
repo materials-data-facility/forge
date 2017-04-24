@@ -71,9 +71,9 @@ def convert(input_path, verbose=False):
 
             "data": {                                # REQ dictionary: Other record data (described below)
                 "raw": ,                             # RCM string: Original data record text, if feasible
-                "files": ,                           # REQ dictionary: {file_type : uri_to_file} pairs, may be empty (Example: {"cif" : "https://example.org/cifs/data_file.cif"})
+                "files": ,                           # RCM dictionary: {file_type : uri_to_file} pairs, data files (Example: {"cif" : "https://example.org/cifs/data_file.cif"})
 
-                # other                              # RCM any JSON-valid type: Any other data fields you would like to include go in the "data" dictionary. Keys will be prepended with mdf_source_name:
+                # other                              # RCM any JSON-valid type: Any other data fields you would like to include go in the "data" dictionary. Keys will be prepended with 'mdf_source_name:'
                 }
             }
 

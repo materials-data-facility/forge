@@ -68,7 +68,7 @@ def convert(input_path, doi_file_path, verbose=False):
 #            "dc.contributor.author": ,
 #            "dc.subject": ,
 #            "dc.description": ,
-            "dc.relatedidentifier": [doi_dict[key] for key in doi_dict.keys() if cif["filename"].startswith(key)],
+#            "dc.relatedidentifier": [doi_dict[key] for key in doi_dict.keys() if cif["filename"].startswith(key)],
 #            "dc.year": ,
 
             "data": {
@@ -76,6 +76,9 @@ def convert(input_path, doi_file_path, verbose=False):
                 "files": {"cif": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"]}
                 }
             }
+        relatedidentifier = [doi_dict[key] for key in doi_dict.keys() if cif["filename"].startswith(key)]
+        if relatedidentifier:
+            record_metadata["dc.relatedidentifier"] = relatedidentifier
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

@@ -32,7 +32,7 @@ class Validator:
                 "message": "Metadata already written for this dataset"
                 }
 
-        md_val = validate_metadata(metadata)
+        md_val = validate_metadata(metadata, "dataset")
         if not md_val["success"]:
             return {
                 "success": False,
@@ -73,7 +73,7 @@ class Validator:
                 "success": False,
                 "message": "Metadata not written for this dataset"
                 }
-        rec_val = validate_record(record)
+        rec_val = validate_metadata(record, "record")
         if not rec_val["success"]:
             return {
                 "success": False,
@@ -150,402 +150,213 @@ class Validator:
         return self.__dataset_id
 
 
-#Function to validate metadata fields
-def validate_metadata(metadata):
-    valid_list = [
-        "globus_subject",
-        "acl",
-        "mdf_source_name",
-        "mdf-publish.publication.collection",
-        "cite_as",
-        "dc.title",
-        "dc.creator",
-        "dc.identifier",
-        "dc.contributor.author",
-        "dc.subject",
-        "dc.description",
-        "dc.relatedidentifier",
-        "dc.year"
-        ]
+# Function to validate metadata fields
+# Args:
+#   metadata: dict, metadata to validate
+#   entry_type: string, type of metadata (dataset, record, etc.)
+#   strict: bool, only allow whitelisted metadata? Default True.
+def validate_metadata(metadata, entry_type, strict=True):
+    # valid_meta format:
+    #   field_name: {
+    #       "req": bool, is field required?
+    #       "type": type, datatype
+    #       "contains": type, for lists, type of data inside (None for any type)
+    #       }
     invalid_list = []
+    if entry_type == "dataset":
+        # Valid dataset metadata
+        valid_meta = {
+            "globus_subject": {
+                "req": True,
+                "type": str
+                },
+            "acl": {
+                "req": True,
+                "type": list,
+                "contains": str
+                },
+            "mdf_source_name": {
+                "req": True,
+                "type": str
+                },
+            "mdf-publish.publication.collection": {
+                "req": False,
+                "type": str
+                },
+            "cite_as": {
+                "req": True,
+                "type": list,
+                "contains": str
+                },
+            "dc.title": {
+                "req": True,
+                "type": str
+                },
+            "dc.creator": {
+                "req": True,
+                "type": str
+                },
+            "dc.identifier": {
+                "req": True,
+                "type": str
+                },
+            "dc.contributor.author": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.subject": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.description": {
+                "req": False,
+                "type": str
+                },
+            "dc.relatedidentifier": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.year": {
+                "req": False,
+                "type": int
+                }
+            }
+        # Not implemented: nist_mrr, mdf_credits
+    elif entry_type == "record":
+        # Valid record metadata
+        valid_meta = {
+            "globus_subject": {
+                "req": True,
+                "type": str
+                },
+            "acl": {
+                "req": True,
+                "type": list,
+                "contains": str
+                },
+            "mdf-publish.publication.collection": {
+                "req": False,
+                "type": str
+                },
+            "mdf_data_class": {
+                "req": False,
+                "type": str
+                },
+            "mdf-base.material_composition": {
+                "req": False,
+                "type": str
+                },
+            "cite_as": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.title": {
+                "req": True,
+                "type": str
+                },
+            "dc.creator": {
+                "req": False,
+                "type": str
+                },
+            "dc.identifier": {
+                "req": False,
+                "type": str
+                },
+            "dc.contributor.author": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.subject": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.description": {
+                "req": False,
+                "type": str
+                },
+            "dc.relatedidentifier": {
+                "req": False,
+                "type": list,
+                "contains": str
+                },
+            "dc.year": {
+                "req": False,
+                "type": int
+                },
+            "data": {
+                "req": True,
+                "type": dict,
+                "contains": None
+                }
+            }
+        # Additional check for data block
+        data_valid = validate_metadata(metadata.get("data", {}), "record_data", strict=False)
+        if not data_valid["success"]:
+            invalid_list += data_valid["invalid_list"]
 
-    #globus_subject must exist, and be a non-empty string
-    if type(metadata.get("globus_subject", None)) is not str or not metadata.get("globus_subject"):
-        invalid_list.append({
-            "field" : "globus_subject",
-            "value" : metadata.get("globus_subject", None),
-            "reason" : "globus_subject is required and must be a string"
-            })
-
-    #acl must exist, and be a list
-    if type(metadata.get("acl", None)) is not list:
-        invalid_list.append({
-            "field" : "acl",
-            "value" : metadata.get("acl", None),
-            "reason" : "acl is required and must be a list"
-            })
-    #acl must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("acl") ] ):
-        invalid_list.append({
-            "field" : "acl",
-            "value" : metadata.get("acl", None),
-            "reason" : "acl must contain only non-empty strings"
-            })
-    
-    #mdf_source_name must exist, and be a non-empty string
-    if type(metadata.get("mdf_source_name", None)) is not str or not metadata.get("mdf_source_name"):
-        invalid_list.append({
-            "field" : "mdf_source_name",
-            "value" : metadata.get("mdf_source_name", None),
-            "reason" : "mdf_source_name is required and must be a string"
-            })
-
-    #mdf-publish.publication.collection, if it exists, must be a non-empty string
-    if type(metadata.get("mdf-publish.publication.collection", "")) is not str or not metadata.get("mdf-publish.publication.collection", True):
-        invalid_list.append({
-            "field" : "mdf-publish.publication.collection",
-            "value" : metadata.get("mdf-publish.publication.collection", None),
-            "reason" : "mdf-publish.publication.collection must be a non-empty string"
-            })
-
-    #cite_as must exist, and be a list
-    if type(metadata.get("cite_as", None)) is not list:
-        invalid_list.append({
-            "field" : "cite_as",
-            "value" : metadata.get("cite_as", None),
-            "reason" : "cite_as is required and must be a list"
-            })
-    #cite_as must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("cite_as") ] ):
-        invalid_list.append({
-            "field" : "cite_as",
-            "value" : metadata.get("cite_as", None),
-            "reason" : "cite_as must contain only non-empty strings"
-            })
-
-    #dc.title must exist, and be a non-empty string
-    if type(metadata.get("dc.title", None)) is not str or not metadata.get("dc.title"):
-        invalid_list.append({
-            "field" : "dc.title",
-            "value" : metadata.get("dc.title", None),
-            "reason" : "dc.title is required and must be a string"
-            })
-    
-    #dc.creator must exist, and be a non-empty string
-    if type(metadata.get("dc.creator", None)) is not str or not metadata.get("dc.creator"):
-        invalid_list.append({
-            "field" : "dc.creator",
-            "value" : metadata.get("dc.creator", None),
-            "reason" : "dc.creator is required and must be a string"
-            })
-
-    #dc.identifier must exist, and be a non-empty string
-    if type(metadata.get("dc.identifier", None)) is not str or not metadata.get("dc.identifier"):
-        invalid_list.append({
-            "field" : "dc.identifier",
-            "value" : metadata.get("dc.identifier", None),
-            "reason" : "dc.identifier is required and must be a string"
-            })
-
-    #dc.contributor.author, if it exists, must be a list
-    if type(metadata.get("dc.contributor.author", [])) is not list:
-        invalid_list.append({
-            "field" : "dc.contributor.author",
-            "value" : metadata.get("dc.contributor.author", None),
-            "reason" : "dc.contributor.author must be a list"
-            })
-    #dc.contributor.author, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("dc.contributor.author", []) ] ):
-        invalid_list.append({
-            "field" : "dc.contributor.author",
-            "value" : metadata.get("dc.contributor.author", None),
-            "reason" : "dc.contributor.author must contain only non-empty strings"
-            })
-
-    #dc.subject, if it exists, must be a list
-    if type(metadata.get("dc.subject", [])) is not list:
-        invalid_list.append({
-            "field" : "dc.subject",
-            "value" : metadata.get("dc.subject", None),
-            "reason" : "dc.subject must be a list"
-            })
-    #dc.subject, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("dc.subject", []) ] ):
-        invalid_list.append({
-            "field" : "dc.subject",
-            "value" : metadata.get("dc.subject", None),
-            "reason" : "dc.subject must contain only non-empty strings"
-            })
-
-    #dc.description, if it exists, must be a non-empty string
-    if type(metadata.get("dc.description", "")) is not str or not metadata.get("dc.identifier", True):
-        invalid_list.append({
-            "field" : "dc.description",
-            "value" : metadata.get("dc.description", None),
-            "reason" : "dc.description must be a non-empty string"
-            })
-
-    #dc.relatedidentifier, if it exists, must be a list
-    if type(metadata.get("dc.relatedidentifier", [])) is not list:
-        invalid_list.append({
-            "field" : "dc.relatedidentifier",
-            "value" : metadata.get("dc.relatedidentifier", None),
-            "reason" : "dc.relatedidentifier must be a list"
-            })
-    #dc.relatedidentifier, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("dc.relatedidentifier", []) ] ):
-        invalid_list.append({
-            "field" : "dc.relatedidentifier",
-            "value" : metadata.get("dc.relatedidentifier", None),
-            "reason" : "dc.relatedidentifier must contain only non-empty strings"
-            })
-
-    #dc.year, if it exists, must be an int
-    if type(metadata.get("dc.year", 0)) is not int:
-        invalid_list.append({
-            "field" : "dc.year",
-            "value" : metadata.get("dc.year", None),
-            "reason" : "dc.year must be an integer"
-            })
-
-    #NIST_MRR fields
-    #Not implemented
-
-    #mdf_credits
-    #Not implemented
-
-    #No other metadata is allowed
-    disallowed_list = [x for x in metadata.keys() if x not in valid_list]
-    for key in disallowed_list:
-        invalid_list.append({
-            "field" : key,
-            "value" : metadata.get(key, None),
-            "reason" : key + " is not a valid metadata field"
-            })
-
-    if not invalid_list:
-        return {"success": True}
+    elif entry_type == "record_data":
+        # Validate the data dict of a record's metadata
+        valid_meta = {
+            "raw": {
+                "req": False,
+                "type": str
+                },
+            "files": {
+                "req": False,
+                "type": dict,
+                "contains": str
+                }
+            }
     else:
         return {
             "success": False,
-            "invalid_metadata": invalid_list,
-            "message": "Invalid dataset metadata"
+            "message": entry_type + " is not a valid entry type."
             }
 
+    # Check metadata
+    for field, reqs in valid_meta.items():
+        # If the field type is not correct or field is required but is missing, the metadata is invalid.
+        # If the field is not required, the type will be instantiated and will subsequently pass the check.
+        if type(metadata.get(field, None if reqs["req"] else reqs["type"]())) is not reqs["type"] or not metadata.get(field, not reqs["req"]):
+            invalid_list.append({
+                "field" : field,
+                "value" : metadata.get(field, None),
+                "reason" : field + (" is required and" if reqs["req"] else "") + " must be a non-empty " + reqs["type"].__name__
+                })
+        # If the field is a list and the contents should all be a given datatype, check the list.
+        elif reqs["type"] is list and reqs.get("contains"):
+            # Makes a list of bools. Each bool is True only is the element is not empty and is the correct type.
+            # If not all bools are True, the metadata is invalid.
+            if not all( [(type(elem) is reqs["contains"] and elem) for elem in metadata.get(field, None if reqs["req"] else reqs["type"]())] ):
+                invalid_list.append({
+                    "field" : field,
+                    "value" : metadata.get(field, None),
+                    "reason" : field + " must contain only non-empty " + reqs["contains"].__name__
+                    })
+        # Same as list check, but with a dictionary.
+        elif reqs["type"] is dict and reqs.get("contains"):
+            if not all( [(type(elem) is reqs["contains"] and elem) for elem in metadata.get(field, None if reqs["req"] else reqs["type"]()).values()] ):
+                invalid_list.append({
+                    "field": field,
+                    "value" : metadata.get(field, None),
+                    "reason" : field + " must contain only non-empty " + reqs["contains"].__name__
+                    })
 
-#Function to validate record fields
-def validate_record(metadata):
-    valid_list = [
-        "globus_subject",
-        "acl",
-        #"mdf_source_name", 
-        "mdf-publish.publication.collection",
-        "mdf_data_class",
-        "mdf-base.material_composition",
-        "cite_as",
-        "dc.title",
-        "dc.creator",
-        "dc.identifier",
-        "dc.contributor.author",
-        "dc.subject",
-        "dc.description",
-        "dc.relatedidentifier",
-        "dc.year",
-        "data"
-        ]
-    invalid_list = []
-
-    #globus_subject must exist, and be a non-empty string
-    if type(metadata.get("globus_subject", None)) is not str or not metadata.get("globus_subject"):
-        invalid_list.append({
-            "field" : "globus_subject",
-            "value" : metadata.get("globus_subject", None),
-            "reason" : "globus_subject is required and must be a string"
-            })
-
-    #acl must exist, and be a list
-    if type(metadata.get("acl", None)) is not list:
-        invalid_list.append({
-            "field" : "acl",
-            "value" : metadata.get("acl", None),
-            "reason" : "acl is required and must be a list"
-            })
-    #acl must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("acl") ] ):
-        invalid_list.append({
-            "field" : "acl",
-            "value" : metadata.get("acl", None),
-            "reason" : "acl must contain only non-empty strings"
-            })
-
-# Requirement removed
-#   #mdf_source_name must exist, and be a non-empty string
-#   if type(metadata.get("mdf_source_name", None)) is not str or not metadata.get("mdf_source_name"):
-#       invalid_list.append({
-#           "field" : "mdf_source_name",
-#           "value" : metadata.get("mdf_source_name", None),
-#           "reason" : "mdf_source_name is required and must be a string"
-#           })
-
-    #mdf-publish.publication.collection, if it exists, must be a non-empty string
-    if type(metadata.get("mdf-publish.publication.collection", "")) is not str or not metadata.get("mdf-publish.publication.collection", True):
-        invalid_list.append({
-            "field" : "mdf-publish.publication.collection",
-            "value" : metadata.get("mdf-publish.publication.collection", None),
-            "reason" : "mdf-publish.publication.collection must be a non-empty string"
-            })
-
-    #mdf_data_class, if it exists, must be a non-empty string
-    if type(metadata.get("mdf_data_class", "")) is not str or not metadata.get("mdf_data_class", True):
-        invalid_list.append({
-            "field" : "mdf_data_class",
-            "value" : metadata.get("mdf_data_class", None),
-            "reason" : "mdf_data_class must be a non-empty string"
-            })
-
-    #mdf-base.material_composition, if it exists, must be a non-empty string
-    if type(metadata.get("mdf-base.material_composition", "")) is not str or not metadata.get("mdf-base.material_composition", True):
-        invalid_list.append({
-            "field" : "mdf-base.material_composition",
-            "value" : metadata.get("mdf-base.material_composition", None),
-            "reason" : "mdf-base.material_composition must be a non-empty string"
-            })
-
-    #cite_as, if it exists, must be a list
-    if type(metadata.get("cite_as", [])) is not list:
-        invalid_list.append({
-            "field" : "cite_as",
-            "value" : metadata.get("cite_as", None),
-            "reason" : "cite_as must be a list"
-            })
-    #cite_as, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("cite_as", []) ] ):
-        invalid_list.append({
-            "field" : "cite_as",
-            "value" : metadata.get("cite_as", None),
-            "reason" : "cite_as must contain only non-empty strings"
-            })
-
-    #dc.title must exist, and be a non-empty string
-    if type(metadata.get("dc.title", None)) is not str or not metadata.get("dc.title"):
-        invalid_list.append({
-            "field" : "dc.title",
-            "value" : metadata.get("dc.title", None),
-            "reason" : "dc.title is required and must be a string"
-            })
-    
-    #dc.creator, if it exists, must be a non-empty string
-    if type(metadata.get("dc.creator", "")) is not str or not metadata.get("dc.creator", True):
-        invalid_list.append({
-            "field" : "dc.creator",
-            "value" : metadata.get("dc.creator", None),
-            "reason" : "dc.creator must be a string"
-            })
-
-    #dc.identifier, if it exists, must be a non-empty string
-    if type(metadata.get("dc.identifier", "")) is not str or not metadata.get("dc.identifier", True):
-        invalid_list.append({
-            "field" : "dc.identifier",
-            "value" : metadata.get("dc.identifier", None),
-            "reason" : "dc.identifier must be a string"
-            })
-
-    #dc.contributor.author, if it exists, must be a list
-    if type(metadata.get("dc.contributor.author", [])) is not list:
-        invalid_list.append({
-            "field" : "dc.contributor.author",
-            "value" : metadata.get("dc.contributor.author", None),
-            "reason" : "dc.contributor.author must be a list"
-            })
-    #dc.contributor.author, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("dc.contributor.author", []) ] ):
-        invalid_list.append({
-            "field" : "dc.contributor.author",
-            "value" : metadata.get("dc.contributor.author", None),
-            "reason" : "dc.contributor.author must contain only non-empty strings"
-            })
-
-    #dc.subject, if it exists, must be a list
-    if type(metadata.get("dc.subject", [])) is not list:
-        invalid_list.append({
-            "field" : "dc.subject",
-            "value" : metadata.get("dc.subject", None),
-            "reason" : "dc.subject must be a list"
-            })
-    #dc.subject, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("dc.subject", []) ] ):
-        invalid_list.append({
-            "field" : "dc.subject",
-            "value" : metadata.get("dc.subject", None),
-            "reason" : "dc.subject must contain only non-empty strings"
-            })
-
-    #dc.description, if it exists, must be a non-empty string
-    if type(metadata.get("dc.description", "")) is not str or not metadata.get("dc.identifier", True):
-        invalid_list.append({
-            "field" : "dc.description",
-            "value" : metadata.get("dc.description", None),
-            "reason" : "dc.description must be a non-empty string"
-            })
-
-    #dc.relatedidentifier, if it exists, must be a list
-    if type(metadata.get("dc.relatedidentifier", [])) is not list:
-        invalid_list.append({
-            "field" : "dc.relatedidentifier",
-            "value" : metadata.get("dc.relatedidentifier", None),
-            "reason" : "dc.relatedidentifier must be a list"
-            })
-    #dc.relatedidentifier, if it exists, must contain only non-empty strings
-    elif not all( [ (type(elem) is str and elem) for elem in metadata.get("dc.relatedidentifier", []) ] ):
-        invalid_list.append({
-            "field" : "dc.relatedidentifier",
-            "value" : metadata.get("dc.relatedidentifier", None),
-            "reason" : "dc.relatedidentifier must contain only non-empty strings"
-            })
-
-    #dc.year, if it exists, must be an int
-    if type(metadata.get("dc.year", 0)) is not int:
-        invalid_list.append({
-            "field" : "dc.year",
-            "value" : metadata.get("dc.year", None),
-            "reason" : "dc.year must be an integer"
-            })
-
-    #mdf_facts
-    #Not implemented
-
-    #mdf_credits
-    #Not implemented
-
-    #data must exist, and be a dictionary
-    if type(metadata.get("data", None)) is not dict:
-        invalid_list.append({
-            "field" : "data",
-            "value" : metadata.get("data", None),
-            "reason" : "data is required"
-            })
-    elif type(metadata.get("data").get("raw", "")) is not str:
-        invalid_list.append({
-            "field" : "data['raw']",
-            "value" : metadata.get("data").get("raw", None),
-            "reason" : "data['raw'] must be a string"
-            })
-    elif type(metadata.get("data").get("files", None)) is not dict:
-        invalid_list.append({
-            "field" : "data['files']",
-            "value" : metadata.get("data").get("files", None),
-            "reason" : "data['files'] is required and must be a dictionary (but may be empty)"
-            })
-
-
-    #No other metadata is allowed
-    disallowed_list = [x for x in metadata.keys() if x not in valid_list]
-    for key in disallowed_list:
-        invalid_list.append({
-            "field" : key,
-            "value" : metadata.get(key, None),
-            "reason" : key + " is not a valid metadata field"
-            })
+    if strict:
+        # No other metadata is allowed
+        disallowed_list = [x for x in metadata.keys() if x not in valid_meta.keys()]
+        for key in disallowed_list:
+            invalid_list.append({
+                "field" : key,
+                "value" : metadata.get(key, None),
+                "reason" : key + " is not a valid metadata field"
+                })
 
     if not invalid_list:
         return {"success": True}
@@ -553,7 +364,7 @@ def validate_record(metadata):
         return {
             "success": False,
             "invalid_metadata": invalid_list,
-            "message": "Invalid record metadata"
+            "message": "Invalid " + entry_type + " metadata"
             }
 
 if __name__ == "__main__":
