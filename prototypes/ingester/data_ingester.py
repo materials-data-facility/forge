@@ -79,7 +79,8 @@ data_file_to_use = []
 #data_file_to_use.append("xafs_dl")
 #data_file_to_use.append("core_mof")
 #data_file_to_use.append("qm_mdt_c")
-data_file_to_use.append("ti_o_fitting_db")
+#data_file_to_use.append("ti_o_fitting_db")
+data_file_to_use.append("ti_o_meam_model")
 
 
 #Information about each dataset for ingesting

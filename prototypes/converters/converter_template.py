@@ -1,38 +1,53 @@
+import json
+import sys
 from validator import Validator
 
 
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
+#   metadata (string or dict): The path to the JSON dataset metadata file, a dict containing the dataset metadata, or None to specify the metadata here. Default None.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
-def convert(input_path, verbose=False):
+def convert(input_path, metadata=None, verbose=False):
     if verbose:
         print("Begin converting")
 
     # Collect the metadata
-    # TODO: Fill in these dictionary fields for your dataset
+    # TODO: Make sure the metadata is present in some form.
     # Fields can be:
     #    REQ (Required, must be present)
     #    RCM (Recommended, should be present if possible)
     #    OPT (Optional, can be present if useful)
-    dataset_metadata = {
-        "globus_subject": ,                      # REQ string: Unique value (should be URI if possible)
-        "acl": ,                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
-        "mdf_source_name": ,                     # REQ string: Unique name for dataset
-        "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
+    if not metadata:
+        dataset_metadata = {
+#            "globus_subject": ,                      # REQ string: Unique value (should be URI if possible)
+#            "acl": ,                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
+#            "mdf_source_name": ,                     # REQ string: Unique name for dataset
+#            "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
 
-        "cite_as": ,                             # REQ list of strings: Complete citation(s) for this dataset.
-        "license": ,                             # RCM string: License to use the dataset (preferrably a link to the actual license).
+#            "cite_as": ,                             # REQ list of strings: Complete citation(s) for this dataset.
+#            "license": ,                             # RCM string: License to use the dataset (preferrably a link to the actual license).
 
-        "dc.title": ,                            # REQ string: Title of dataset
-        "dc.creator": ,                          # REQ string: Owner of dataset
-        "dc.identifier": ,                       # REQ string: Link to dataset (dataset DOI if available)
-        "dc.contributor.author": ,               # RCM list of strings: Author(s) of dataset
-        "dc.subject": ,                          # RCM list of strings: Keywords about dataset
-        "dc.description": ,                      # RCM string: Description of dataset contents
-        "dc.relatedidentifier": ,                # RCM list of strings: Link(s) to related materials (such as an article)
-        "dc.year":                               # RCM integer: Year of dataset creation
-        }
+#            "dc.title": ,                            # REQ string: Title of dataset
+#            "dc.creator": ,                          # REQ string: Owner of dataset
+#            "dc.identifier": ,                       # REQ string: Link to dataset (dataset DOI if available)
+#            "dc.contributor.author": ,               # RCM list of strings: Author(s) of dataset
+#            "dc.subject": ,                          # RCM list of strings: Keywords about dataset
+#            "dc.description": ,                      # RCM string: Description of dataset contents
+#            "dc.relatedidentifier": ,                # RCM list of strings: Link(s) to related materials (such as an article)
+#            "dc.year":                               # RCM integer: Year of dataset creation
+            }
+    elif type(metadata) is str:
+        try:
+            with open(metadata, 'r') as metadata_file:
+                dataset_metadata = json.load(metadata_file)
+        except Exception as e:
+            sys.exit("Error: Unable to read metadata: " + repr(e))
+    elif type(metadata) is dict:
+        dataset_metadata = metadata
+    else:
+        sys.exit("Error: Invalid metadata parameter")
+
 
 
     # Make a Validator to help write the feedstock
