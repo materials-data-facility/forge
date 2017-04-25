@@ -1,165 +1,111 @@
-from json import load, loads, dump, dumps
-from os.path import join
+import os
+import json
 from tqdm import tqdm
-#from ujson import dump
-from bson import ObjectId
-from parsers.utils import find_files, dc_validate
-import paths
+from parsers.utils import find_files
+from validator import Validator
 
 
-#Generator to run through a JSON record and yield the data
-#Data is defined as the first layer that isn't a list
-#Pseudo-code examples:
-#   [ {1}, {2}, {3}] yields {1} then {2} then {3}
-#   [ [ {1}, {2} ], [ {[3]}, {4} ] ] yields {1} then {2} then {[3]} then {4}
-#   {1} yields {1}
-def find_data(record):
-    if type(record) is list:
-        for elem in record:
-            for result in find_data(elem):
-                yield result
-    else: #Not list, treat as data
-        yield record
-
-#Takes a JSON file and converts it into formatter-compatible JSON
-#If feed_size > 0, feed_name is required
-def convert_json_to_json(in_name, out_name, uri_loc, mdf_meta, feed_size=0, feed_name=None, verbose=False):
-    all_uri = []
+# This is the converter for the NIST Interatomic Potentials dataset.
+# Arguments:
+#   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
+#   verbose (bool): Should the script print status messages to standard output? Default False.
+def convert(input_path, verbose=False):
     if verbose:
-        print("Converting JSON, dumping results to", out_name)
-    if type(in_name) is str:
-        in_name = [in_name]
-    list_of_data = []
-    for one_file in tqdm(in_name, desc="Processing", disable= not verbose):
-        #print(one_file)
-        with open(one_file, 'r') as in_file:
-            #if verbose:
-            #   print("Processing")
-            try: #If input JSON is human-formatted (with newlines), this will fail
-                for line in in_file:
-                    line_data = loads(line)
-                    for result in find_data(line_data):
-                        list_of_data.append(result)
-                        
-            except Exception as err: #Fall back to reading the whole thing at once
-                #if list_of_data: #If some lines were already processed, is error in JSON
-                    #print("Possible error in JSON on file:", one_file, ":", err)
-                    #list_of_data.clear() #Reset and try again
-                #if verbose:
-                #   print("Line reading failed, falling back to whole-file processing")
-                in_file.seek(0) #Reset file to start
-                data = load(in_file)
-                for result in find_data(data):
-                    list_of_data.append(result)
+        print("Begin converting")
 
-    with open(out_name, 'w') as out_file:       
-        if list_of_data:
-            if feed_size > 0:
-                feed_file = open(feed_name, 'w')
-            count = 0
-            for entry in list_of_data:
-                datum = entry["interatomic-potential"] #All data is in interatomic-potential, don't need extra nest layer
-#               datum["uri"] = eval("datum['" + uri_loc + "']")
-#               all_uri.append(datum["uri"])
+    # Collect the metadata
+    dataset_metadata = {
+        "globus_subject": "https://www.ctcms.nist.gov/potentials/",
+        "acl": ["public"],
+        "mdf_source_name": "nist_ip",
+        "mdf-publish.publication.collection": "NIST Interatomic Potentials",
 
-                #Metadata
-                feedstock_data = {}
-                #Parse out the important bits
-                url_list = []
-                link_texts = []
-                url_base = ""
-                for artifact in datum["implementation"]:
-                    for web_link in artifact["artifact"]:
-                        url = web_link.get("web-link", {}).get("URL", None)
-                        if url:
-                            url_list.append(url)
-                            if not url_base:
-                                url_base = web_link["web-link"]["URL"].rsplit("/", 1)[0]
-                            elif web_link["web-link"]["URL"].rsplit("/", 1)[0] != url_base:
-                                print("Mismatch base_url:", web_link["web-link"]["URL"].rsplit("/", 1)[0], "vs.", url_base)
-                                #exit("ERROR: Web link URL base mismatch:\n\n" + str(entry) + "\n\n")
-                                pass
-                        link_text = web_link.get("web-link", {}).get("link-text", None)
-                        if link_text:
-                            link_texts.append(link_text)
+        "cite_as": ['C.A. Becker, et al., "Considerations for choosing and using force fields and interatomic potentials in materials science and engineering," Current Opinion in Solid State and Materials Science, 17, 277-283 (2013). https://www.ctcms.nist.gov/potentials'],
+#        "license": ,
 
-                datum["uri"] = url_base
-                all_uri.append(datum["uri"])
-
-                title = "NIST Interatomic Potential - "
-                for text in link_texts:
-                    title += text + ", "
-                feedstock_data["dc.title"] = title
-                feedstock_data["dc.creator"] = "NIST Interatomic Potentials Repository Project"
-#               feedstock_data["dc.contributor.author"] = []
-                feedstock_data["dc.identifier"] = datum["uri"] if datum["uri"] else datum["id"]
-                feedstock_data["dc.subject"] = ["interatomic potential", "forcefield"]
-
-                description = ""
-                for note in datum["description"]["notes"]:
-                    description += note["text"] + "; "
-                feedstock_data["dc.description"] = description
-
-                related_list = url_list
-                for citation in datum["description"]["citation"]:
-                    doi = citation.get("DOI", None)
-                    if doi:
-                        related_list.append("http://dx.doi.org/" + doi)
-                feedstock_data["dc.relatedidentifier"] = related_list
-                feedstock_data["dc.year"] = int(datum["id"][:4])
-
-                composition = ""
-                for elem in datum["element"]:
-                    composition += elem + " "
-                feedstock_data["mdf-base.material_composition"] = composition
-
-                feedstock_data["mdf_id"] = str(ObjectId())
-                feedstock_data["mdf_source_name"] = mdf_meta["mdf_source_name"]
-                feedstock_data["mdf_source_id"] = mdf_meta["mdf_source_id"]
-#               feedstock_data["globus_source"] = mdf_meta.get("globus_source", "")
-                feedstock_data["mdf_datatype"] = mdf_meta["mdf_datatype"]
-                feedstock_data["acl"] = mdf_meta["acl"]
-                feedstock_data["globus_subject"] = feedstock_data["dc.identifier"]
-                feedstock_data["mdf-publish.publication.collection"] = mdf_meta["collection"]
-                feedstock_data["data_links"] = url_list
-                feedstock_data["data"] = { "raw" : dumps(entry) } #Only thing to keep is the raw data
-
-                dc_validation = dc_validate(feedstock_data)
-                if not dc_validation["valid"]:
-                    exit("ERROR: Invalid fields: " + str(dc_validation["invalid_fields"]))
-
-                dump(feedstock_data, out_file)
-                out_file.write('\n')
-                if count < feed_size:
-                    dump(feedstock_data, feed_file)
-                    feed_file.write('\n')
-                count += 1
-            print("Data written successfully")
-        else:
-            print("Error: No data recovered from file")
-    duplicates = [x for x in all_uri if all_uri.count(x) > 1]
-    if duplicates:
-        print("Warning: Duplicate URIs found:\n", set(duplicates))
-
-if __name__ == "__main__":
-    verbose = True
-    nist_ip_mdf = {
-        "mdf_source_name" : "nist_ip",
-        "mdf_source_id" : 11,
-#       "globus_source" : "NIST Interatomic Potentials",
-        "mdf_datatype" : "json",
-        "acl" : ["public"],
-        "collection" : "NIST Interatomic Potentials"
+        "dc.title": "NIST Interatomic Potentials Repository Project",
+        "dc.creator": "National Institute of Standards and Technology",
+        "dc.identifier": "https://www.ctcms.nist.gov/potentials/",
+        "dc.contributor.author": ["C.A. Becker, et al."],
+        "dc.subject": ["interatomic potential", "forcefield"],
+        "dc.description": "This repository provides a source for interatomic potentials (force fields), related files, and evaluation tools to help researchers obtain interatomic models and judge their quality and applicability.",
+#        "dc.relatedidentifier": ,
+        "dc.year": 2013
         }
-    nist_ip_in = paths.datasets + "nist_ip/interchange"
-    nist_ip_out = paths.raw_feed + "nist_ip_all.json"
-    nist_ip_uri = "id"
-    nist_ip_sack_size = 10
-    nist_ip_feed = paths.sack_feed + "nist_ip_10.json"
-    nist_ip_file_list = []
-    for file_data in find_files(nist_ip_in, ".*\.json$"):
-        nist_ip_file_list.append(join(file_data["path"], file_data["filename"] + file_data["extension"]))
-    convert_json_to_json(in_name=nist_ip_file_list, out_name=nist_ip_out, uri_loc=nist_ip_uri, mdf_meta=nist_ip_mdf, feed_size=nist_ip_sack_size, feed_name=nist_ip_feed, verbose=verbose)
-        
 
 
+    # Make a Validator to help write the feedstock
+    # You must pass the metadata to the constructor
+    # Each Validator instance can only be used for a single dataset
+    dataset_validator = Validator(dataset_metadata)
+
+
+    # Get the data
+    # Each record also needs its own metadata
+    for file_data in tqdm(find_files(input_path, "\.json$"), desc="Processing files", disable= not verbose):
+        try:
+            with open(os.path.join(file_data["path"], file_data["filename"]), 'r') as ip_file:
+                ip_data = json.load(ip_file)["interatomic-potential"]
+            if not ip_data:
+                raise ValueError("No data in file")
+        except Exception as e:
+            if verbose:
+                print("Error reading '" + os.path.join(file_data["path"], file_data["filename"]) + "'")
+            continue
+        url_list = []
+        link_texts = []
+        for artifact in ip_data["implementation"]:
+            for web_link in artifact["artifact"]:
+                url = web_link.get("web-link", {}).get("URL", None)
+                if url:
+                    url_list.append(url)
+                link_text = web_link.get("web-link", {}).get("link-text", None)
+                if link_text:
+                    link_texts.append(link_text)
+
+        record_metadata = {
+            "globus_subject": ip_data["id"],
+            "acl": ["public"],
+            "mdf-publish.publication.collection": "NIST Interatomic Potentials",
+#            "mdf_data_class": ,
+#            "mdf-base.material_composition": "".join(ip_data["element"]),
+
+#            "cite_as": ,
+#            "license": ,
+
+            "dc.title": "NIST Interatomic Potential - " + ", ".join(link_texts),
+#            "dc.creator": ,
+            "dc.identifier": ip_data["id"],
+#            "dc.contributor.author": ,
+#            "dc.subject": ,
+#            "dc.description": "; ".join(ip_data["description"]["notes"]),
+#            "dc.relatedidentifier": url_list,
+#            "dc.year": ,
+
+            "data": {
+                "raw": json.dumps(ip_data),
+#                "files": ,
+                }
+            }
+        if ip_data["element"]:
+            record_metadata["mdf-base.material_composition"] = "".join(ip_data["element"])
+        if url_list:
+            record_metadata["dc.relatedidentifier"] = url_list
+
+        # Pass each individual record to the Validator
+        result = dataset_validator.write_record(record_metadata)
+
+        # Check if the Validator accepted the record, and print a message if it didn't
+        # If the Validator returns "success" == True, the record was written successfully
+        if result["success"] is not True:
+            print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
+
+    if verbose:
+        print("Finished converting")
+
+
+# Optionally, you can have a default call here for testing
+# The convert function may not be called in this way, so code here is primarily for testing
+if __name__ == "__main__":
+    import paths
+    convert(paths.datasets+"nist_ip", True)
