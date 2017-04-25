@@ -116,9 +116,9 @@ class Validator:
             "files"
             ]
         for key in namespace_exempt_keys:
-            if key in record["data"].keys():
+            if key in record.get("data", {}).keys():
                 new_data[key] = record["data"].pop(key)
-        for key, value in record["data"].items():
+        for key, value in record.get("data", {}).items():
             new_data[self.__mdf_source_name + ":" + key] = value
         record["data"] = new_data
 
@@ -301,7 +301,7 @@ def validate_metadata(metadata, entry_type, strict=True):
                 "type": int
                 },
             "data": {
-                "req": True,
+                "req": False,
                 "type": dict,
                 "contains": None
                 }

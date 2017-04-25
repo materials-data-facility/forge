@@ -88,7 +88,7 @@ def convert(input_path, metadata=None, verbose=False):
             "dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (if different from dataset)
             "dc.year": ,                             # OPT integer: Year of record creation (if different from dataset)
 
-            "data": {                                # REQ dictionary: Other record data (described below)
+            "data": {                                # RCM dictionary: Other record data (described below)
                 "raw": ,                             # RCM string: Original data record text, if feasible
                 "files": ,                           # RCM dictionary: {file_type : uri_to_file} pairs, data files (Example: {"cif" : "https://example.org/cifs/data_file.cif"})
 
