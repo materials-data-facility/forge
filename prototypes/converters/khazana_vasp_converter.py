@@ -18,6 +18,7 @@ def convert(input_path, verbose=False):
         "mdf_source_name": "khazana_vasp",
         "mdf-publish.publication.collection": "Khazana",
 
+        "cite_as": ["http://khazana.uconn.edu/module_search/search.php?m=2"],
         "dc.title": "Khazana (VASP)",
         "dc.creator": "University of Connecticut",
         "dc.identifier": "http://khazana.uconn.edu",
@@ -44,7 +45,7 @@ def convert(input_path, verbose=False):
     for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR"), desc="Processing data files", disable= not verbose):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="vasp", verbose=False)
 
-        uri = "http://khazana.uconn.edu/" + dir_data["filename"]
+        uri = "https://data.materialsdatafacility.org/collections/khazana/OUTCARS/" + dir_data["filename"]
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],

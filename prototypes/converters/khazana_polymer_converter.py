@@ -42,7 +42,7 @@ def convert(input_path, verbose=False):
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
 
     # Each record also needs its own metadata
-    for dir_data in tqdm(find_files(root=input_path), desc="Processing data files", disable= not verbose):
+    for dir_data in tqdm(find_files(input_path, "\.cif$"), desc="Processing data files", disable= not verbose):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="cif", verbose=False)
 
         uri = "http://khazana.uconn.edu/module_search/material_detail.php?id=" + dir_data["filename"].replace(".cif", "")
