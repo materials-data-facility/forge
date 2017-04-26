@@ -72,7 +72,7 @@ def convert(input_path, metadata=None, verbose=False):
         record_metadata = {
             "globus_subject": ,                      # REQ string: Unique value (should be URI to record if possible)
             "acl": ,                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
-            "mdf-publish.publication.collection": ,  # RCM string: Collection the record belongs to
+            "mdf-publish.publication.collection": ,  # OPT string: Collection the record belongs to (if different from dataset)
             "mdf_data_class": ,                      # RCM string: Type of data in record
             "mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
 

@@ -12,6 +12,7 @@ class Validator:
         self.__mdf_source_name = None
         self.__cite_as = None
         self.__uris = []
+        self.__collection = None
 
         res = self.__write_metadata(metadata)
         if not res["success"]:
@@ -46,6 +47,9 @@ class Validator:
 
         # Log citation
         self.__cite_as = metadata["cite_as"]
+
+        # Log collection
+        self.__collection = metadata["mdf-publish.publication.collection"]
 
         #Open feedstock file for the first time and write metadata entry
         feedstock_path = paths.feedstock + metadata["mdf_source_name"] + "_all.json"
@@ -98,6 +102,9 @@ class Validator:
 
         if not record.get("cite_as", None):
             record["cite_as"] = self.__cite_as
+
+        if not record.get("mdf-publish.publication.collection", None) and self.__collection:
+            record["mdf-publish.publication.collection"] = self.__collection
 
         if record.get("mdf-base.material_composition", None):
             str_of_elem = ""

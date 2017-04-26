@@ -36,7 +36,7 @@ def uncompress_tree(root, verbose=False):
                 tar.extractall()
                 tar.close()
             elif zipfile.is_zipfile(abs_path):
-                z = zipfile.open(abs_path)
+                z = zipfile.ZipFile(abs_path)
                 z.extractall()
                 z.close()
             else:
@@ -44,7 +44,7 @@ def uncompress_tree(root, verbose=False):
                     with gzip.open(abs_path) as gz:
                         file_data = gz.read()
                         with open(abs_path.rsplit('.', 1)[0], 'w') as newfile: #Opens the absolute path, including filename, for writing, but does not include the extension (should be .gz or similar)
-                            newfile.write(file_data)
+                            newfile.write(str(file_data))
                 except IOError: #This will occur at gz.read() if the file is not a gzip.
                     pass
 
