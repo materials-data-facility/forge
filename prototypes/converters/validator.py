@@ -13,6 +13,9 @@ class Validator:
         self.__cite_as = None
         self.__uris = []
         self.__collection = None
+        self.__acl = None
+        self.__license = None
+        self.__data_class = None
 
         res = self.__write_metadata(metadata)
         if not res["success"]:
@@ -49,7 +52,16 @@ class Validator:
         self.__cite_as = metadata["cite_as"]
 
         # Log collection
-        self.__collection = metadata["mdf-publish.publication.collection"]
+        self.__collection = metadata.get("mdf-publish.publication.collection", None)
+
+        # Log default acls
+        self.__acl = metadata["acl"]
+
+        # Log default license
+        self.__license = metadata.get("license", None)
+
+        # Log data class
+        self.__data_class = metadata.get("mdf_data_class", None)
 
         #Open feedstock file for the first time and write metadata entry
         feedstock_path = paths.feedstock + metadata["mdf_source_name"] + "_all.json"
@@ -94,7 +106,7 @@ class Validator:
         else:
             self.__uris.append(record["globus_subject"])
 
-        # Copy/set non-user-settable metadata
+        # Copy/set non-user-settable metadata and dataset defaults
         record["mdf_id"] = str(ObjectId())
         record["parent_id"] = self.__dataset_id
         record["mdf_node_type"] = "record"
@@ -103,8 +115,22 @@ class Validator:
         if not record.get("cite_as", None):
             record["cite_as"] = self.__cite_as
 
+        if not record.get("acl", None):
+            record["acl"] = self.__acl
+
         if not record.get("mdf-publish.publication.collection", None) and self.__collection:
             record["mdf-publish.publication.collection"] = self.__collection
+
+        if not record.get("license", None) and self.__license:
+            record["license"] = self.__license
+
+        if not record.get("mdf_data_class", None) and self.__data_class:
+            record["mdf_data_class"] = self.__data_class
+        elif record.get("mdf_data_class", None) != self.__data_class:
+            return {
+                "success": False,
+                "message": "mdf_data_class mismatch: '" + record.get("mdf_data_class", None) + "' does not match dataset value of '" + self.__data_class + "'"
+                }
 
         if record.get("mdf-base.material_composition", None):
             str_of_elem = ""
@@ -190,6 +216,10 @@ def validate_metadata(metadata, entry_type, strict=True):
                 "type": str
                 },
             "mdf-publish.publication.collection": {
+                "req": False,
+                "type": str
+                },
+            "mdf_data_class": {
                 "req": False,
                 "type": str
                 },

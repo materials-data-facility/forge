@@ -24,6 +24,7 @@ def convert(input_path, metadata=None, verbose=False):
 #            "acl": ,                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
 #            "mdf_source_name": ,                     # REQ string: Unique name for dataset
 #            "mdf-publish.publication.collection": ,  # RCM string: Collection the dataset belongs to
+#            "mdf_data_class": ,                      # RCM string: Type of data in all records in the dataset (do not provide for multi-type datasets)
 
 #            "cite_as": ,                             # REQ list of strings: Complete citation(s) for this dataset.
 #            "license": ,                             # RCM string: License to use the dataset (preferrably a link to the actual license).
@@ -73,7 +74,7 @@ def convert(input_path, metadata=None, verbose=False):
             "globus_subject": ,                      # REQ string: Unique value (should be URI to record if possible)
             "acl": ,                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
             "mdf-publish.publication.collection": ,  # OPT string: Collection the record belongs to (if different from dataset)
-            "mdf_data_class": ,                      # RCM string: Type of data in record
+            "mdf_data_class": ,                      # OPT string: Type of data in record (if not set in dataset metadata)
             "mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
 
             "cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)
