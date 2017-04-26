@@ -80,7 +80,9 @@ data_file_to_use = []
 #data_file_to_use.append("core_mof")
 #data_file_to_use.append("qm_mdt_c")
 #data_file_to_use.append("ti_o_fitting_db")
-data_file_to_use.append("ti_o_meam_model")
+#data_file_to_use.append("ti_o_meam_model")
+#data_file_to_use.append("doak_strain_energies")
+data_file_to_use.append("trinkle_elastic_fe_bcc")
 
 
 #Information about each dataset for ingesting
