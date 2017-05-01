@@ -3,6 +3,8 @@ from bson import ObjectId
 import os
 import paths
 
+list_of_all_elements = ["Ac","Ag","Al","Am","Ar","As","At","Au","B","Ba","Be","Bh","Bi","Bk","Br","C","Ca","Cd","Ce","Cf","Cl","Cm","Cn","Co","Cr","Cs","Cu","Db","Ds","Dy","Er","Es","Eu","F","Fe","Fl","Fm","Fr","Ga","Gd","Ge","H","He","Hf","Hg","Ho","Hs","I","In","Ir","K","Kr","La","Li","Lr","Lu","Lv","Md","Mg","Mn","Mo","Mt","N","Na","Nb","Nd","Ne","Ni","No","Np","O","Os","P","Pa","Pb","Pd","Pm","Po","Pr","Pt","Pu","Ra","Rb","Re","Rf","Rg","Rh","Rn","Ru","S","Sb","Sc","Se","Sg","Si","Sm","Sn","Sr","Ta","Tb","Tc","Te","Th","Ti","Tl","Tm","U","Uuo","Uup","Uus","Uut","V","W","Xe","Y","Yb","Zn","Zr"]
+
 #Validator class holds data about a dataset while writing to feedstock
 class Validator:
     #init takes dataset metadata to start processing and save another function call
@@ -140,7 +142,11 @@ class Validator:
                 elif char.islower(): #Lowercase indicates continuation of symbol
                     str_of_elem += char
                 #Anything else is not useful (numbers, whitespace, etc.)
-            record["mdf-base.elements"] = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
+
+            list_of_elem = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
+            # If any "element" isn't in the periodic table, the entire composition is likely not a chemical formula and should not be parsed
+            if all([elem in list_of_all_elements for elem in list_of_elem]):
+                record["mdf-base.elements"] = list_of_elem
 
 
         new_data = {}
