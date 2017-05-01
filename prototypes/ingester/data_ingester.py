@@ -84,7 +84,8 @@ data_file_to_use = []
 #data_file_to_use.append("doak_strain_energies")
 #data_file_to_use.append("trinkle_elastic_fe_bcc")
 #data_file_to_use.append("oxygen_interstitials_deformation")
-data_file_to_use.append("strain_effects_oxygen")
+#data_file_to_use.append("strain_effects_oxygen")
+data_file_to_use.append("nrel_pv")
 
 
 #Information about each dataset for ingesting

@@ -129,7 +129,7 @@ class Validator:
         elif record.get("mdf_data_class", None) != self.__data_class:
             return {
                 "success": False,
-                "message": "mdf_data_class mismatch: '" + record.get("mdf_data_class", None) + "' does not match dataset value of '" + self.__data_class + "'"
+                "message": "mdf_data_class mismatch: '" + record.get("mdf_data_class", "None") + "' does not match dataset value of '" + str(self.__data_class) + "'"
                 }
 
         if record.get("mdf-base.material_composition", None):
