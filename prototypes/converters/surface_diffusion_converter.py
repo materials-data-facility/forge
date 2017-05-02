@@ -20,21 +20,21 @@ def convert(input_path, metadata=None, verbose=False):
     #    OPT (Optional, can be present if useful)
     if not metadata:
         dataset_metadata = {
-                        "globus_subject": "https://materialsdatafacility.org/",                     # REQ string: Unique value (should be URI if possible)
-                        "acl": ["public"],                          # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
-                        "mdf_source_name": "surface_diffusion",   # REQ string: Unique name for dataset
-                        "mdf-publish.publication.collection": "Diffusion",  # RCM string: Collection the dataset belongs to
-            #            "mdf_data_class": ,                      # RCM string: Type of data in all records in the dataset (do not provide for multi-type datasets)
-                        "cite_as": ["Citation pending"],          # REQ list of strings: Complete citation(s) for this dataset.
-            #            "license": ,                             # RCM string: License to use the dataset (preferrably a link to the actual license).
-                        "dc.title": "Surface diffusion",          # REQ string: Title of dataset
-                        "dc.creator": "University of Illinois",   # REQ string: Owner of dataset
-                        "dc.identifier": "https://materialsdatafacility.org/",  # REQ string: Link to dataset (dataset DOI if available)
-            #           "dc.contributor.author": ,                # RCM list of strings: Author(s) of dataset
-            #            "dc.subject": ,                          # RCM list of strings: Keywords about dataset
-                        "dc.description": "Surface Diffusion Coefficients",                      # RCM string: Description of dataset contents
-            #            "dc.relatedidentifier": ,                # RCM list of strings: Link(s) to related materials (such as an article)
-                        "dc.year": 2017                           # RCM integer: Year of dataset creation
+            "globus_subject": "https://materialsdatafacility.org/",   # REQ string: Unique value (should be URI if possible)
+            "acl": ["public"],                        # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
+            "mdf_source_name": "surface_diffusion",   # REQ string: Unique name for dataset
+            "mdf-publish.publication.collection": "Diffusion",  # RCM string: Collection the dataset belongs to
+            # "mdf_data_class": ,                     # RCM string: Type of data in all records in the dataset (do not provide for multi-type datasets)
+            "cite_as": ["Citation pending"],          # REQ list of strings: Complete citation(s) for this dataset.
+            # "license": ,                            # RCM string: License to use the dataset (preferrably a link to the actual license).
+            "dc.title": "Surface diffusion",          # REQ string: Title of dataset
+            "dc.creator": "University of Illinois",   # REQ string: Owner of dataset
+            "dc.identifier": "https://materialsdatafacility.org/",  # REQ string: Link to dataset (dataset DOI if available)
+            # "dc.contributor.author": ,              # RCM list of strings: Author(s) of dataset
+            # "dc.subject": ,                         # RCM list of strings: Keywords about dataset
+            "dc.description": "Surface Diffusion Coefficients",                      # RCM string: Description of dataset contents
+            # "dc.relatedidentifier": ,               # RCM list of strings: Link(s) to related materials (such as an article)
+            "dc.year": 2017                           # RCM integer: Year of dataset creation
         }
     elif type(metadata) is str:
         try:
@@ -55,7 +55,6 @@ def convert(input_path, metadata=None, verbose=False):
 
 
     # Get the data
-    # TODO: Write the code to convert your dataset's records into JSON-serializable Python dictionaries
     #    Each record should be exactly one dictionary
     #    It is recommended that you convert your records one at a time, but it is possible to put them all into one big list (see below)
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
@@ -73,55 +72,47 @@ def convert(input_path, metadata=None, verbose=False):
             print("A list Records is empty!")
 
         # Each record also needs its own metadata
-        for record in records:
-            # TODO: Fill in these dictionary fields for each record
+        # for record in records:
+        for index, record in enumerate(records, start=1):
             # Fields can be:
             #    REQ (Required, must be present)
             #    RCM (Recommended, should be present if possible)
             #    OPT (Optional, can be present if useful)
+            uri = "https://materialsdatafacility.org/collection/Diffusion/" + + str(index)
             record_metadata = {
-                "globus_subject": "https://materialsdatafacility.org/",    # REQ string: Unique value (should be URI to record if possible)
-                "acl": ["public"],                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
-                #"mdf-publish.publication.collection": ,  # OPT string: Collection the record belongs to (if different from dataset)
-                #"mdf_data_class": ,                      # OPT string: Type of data in record (if not set in dataset metadata)
-                #"mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
+                "globus_subject": uri,                     # REQ string: Unique value (should be URI to record if possible)
+                "acl": ["public"],                         # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
+                # "mdf-publish.publication.collection": ,  # OPT string: Collection the record belongs to (if different from dataset)
+                # "mdf_data_class": ,                      # OPT string: Type of data in record (if not set in dataset metadata)
+                # "mdf-base.material_composition": ,       # RCM string: Chemical composition of material in record
 
-                #"cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)
-                #"license": ,                             # OPT string: License to use the record (if different from dataset) (preferrably a link to the actual license).
+                # "cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)
+                # "license": ,                             # OPT string: License to use the record (if different from dataset) (preferrably a link to the actual license).
 
-                "dc.title": "",                            # REQ string: Title of record
-                #"dc.creator": ,                          # OPT string: Owner of record (if different from dataset)
-                #"dc.identifier": ,                       # RCM string: Link to record (record webpage, if available)
-                #"dc.contributor.author": ,               # OPT list of strings: Author(s) of record (if different from dataset)
-                #"dc.subject": ,                          # OPT list of strings: Keywords about record
-                #"dc.description": ,                      # OPT string: Description of record
-                #"dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (if different from dataset)
-                #"dc.year": ,                             # OPT integer: Year of record creation (if different from dataset)
+                "dc.title": record["diffusing_species"] + "/" + record["substrate"],  # REQ string: Title of record
+                # "dc.creator": ,                          # OPT string: Owner of record (if different from dataset)
+                # "dc.identifier": ,                       # RCM string: Link to record (record webpage, if available)
+                # "dc.contributor.author": ,               # OPT list of strings: Author(s) of record (if different from dataset)
+                # "dc.subject": ,                          # OPT list of strings: Keywords about record
+                # "dc.description": ,                      # OPT string: Description of record
+                # "dc.relatedidentifier": ,                # OPT list of strings: Link(s) to related materials (if different from dataset)
+                # "dc.year": ,                             # OPT integer: Year of record creation (if different from dataset)
 
-                "data": {                                # RCM dictionary: Other record data (described below)
-                    "raw": json.dumps(record)                             # RCM string: Original data record text, if feasible
-                    #"files": ,                           # RCM dictionary: {file_type : uri_to_file} pairs, data files (Example: {"cif" : "https://example.org/cifs/data_file.cif"})
-
-                    # other                              # RCM any JSON-valid type: Any other data fields you would like to include go in the "data" dictionary. Keys will be prepended with 'mdf_source_name:'
+                "data": {                                  # RCM dictionary: Other record data (described below)
+                    "raw": json.dumps(record)              # RCM string: Original data record text, if feasible
+                    # "files":                             # RCM dictionary: {file_type : uri_to_file} pairs, data files (Example: {"cif" : "https://example.org/cifs/data_file.cif"})
                     }
                 }
 
             # Pass each individual record to the Validator
-            result = {"success": True}  #dataset_validator.write_record(record_metadata)
+            result = dataset_validator.write_record(record_metadata)
 
             # Check if the Validator accepted the record, and print a message if it didn't
             # If the Validator returns "success" == True, the record was written successfully
             if result["success"] is not True:
                 print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
 
-        # Alternatively, if the only way you can process your data is in one large list, you can pass the list to the Validator
-        # You still must add the required metadata to your records
-        # It is recommended to use the previous method if possible
-        # result = dataset_validator.write_dataset(your_records_with_metadata)
-        #if result["success"] is not True:
-            #print("Error:", result["message"])
-
-        # TODO: Save your converter as [mdf_source_name]_converter.py
+        # Save your converter as [mdf_source_name]_converter.py
         # You're done!
         if verbose:
             print("Finished converting")
@@ -227,7 +218,7 @@ def get_references(wb):
 def run_extraction(wb):
     '''
     Parse the Surface Diffusion file. Get the data defined by the header
-    'system' -> Full system of a dissusing specie on a substrate
+    'system' -> Full system of a diffusing specie on a substrate
     'diffusing_species' -> Diffusing species
     'substrate' -> Substrate
     'system_note' -> System note
@@ -258,15 +249,15 @@ def run_extraction(wb):
              'temperature_range', 'temperature_range_note', 'references']
     records = list()
 
-    #print("The number of worksheets is", wb.nsheets)
-    #print("Worksheet name(s):", wb.sheet_names())
+    # print("The number of worksheets is", wb.nsheets)
+    # print("Worksheet name(s):", wb.sheet_names())
 
     methods = get_methods(wb)
     references = get_references(wb)
 
     for sheetx in range(0, wb.nsheets - 2):
         ws = wb.sheet_by_index(sheetx)
-        #print(ws.name, ws.nrows, ws.ncols)
+        # print(ws.name, ws.nrows, ws.ncols)
 
         row_index = 0
         while row_index < ws.nrows:
@@ -302,4 +293,5 @@ def run_extraction(wb):
 # Optionally, you can have a default call here for testing
 # The convert function may not be called in this way, so code here is primarily for testing
 if __name__ == "__main__":
-    convert('/Users/mo/Documents/MDF/Surface_Diff_Coefficients.xlsx', verbose=True)
+    import paths
+    convert(paths.datasets + "diffusion/Surface_Diff_Coefficients.xlsx", verbose=True)
