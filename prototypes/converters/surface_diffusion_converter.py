@@ -34,7 +34,7 @@ def convert(input_path, metadata=None, verbose=False):
             #            "dc.subject": ,                          # RCM list of strings: Keywords about dataset
                         "dc.description": "Surface Diffusion Coefficients",                      # RCM string: Description of dataset contents
             #            "dc.relatedidentifier": ,                # RCM list of strings: Link(s) to related materials (such as an article)
-                        "dc.year": "2017"                              # RCM integer: Year of dataset creation
+                        "dc.year": 2017                           # RCM integer: Year of dataset creation
         }
     elif type(metadata) is str:
         try:
@@ -258,49 +258,45 @@ def run_extraction(wb):
              'temperature_range', 'temperature_range_note', 'references']
     records = list()
 
-    try:
-        #print("The number of worksheets is", wb.nsheets)
-        #print("Worksheet name(s):", wb.sheet_names())
+    #print("The number of worksheets is", wb.nsheets)
+    #print("Worksheet name(s):", wb.sheet_names())
 
-        methods = get_methods(wb)
-        references = get_references(wb)
+    methods = get_methods(wb)
+    references = get_references(wb)
 
-        for sheetx in range(0, wb.nsheets - 2):
-            ws = wb.sheet_by_index(sheetx)
-            # print ws.name, ws.nrows, ws.ncols
+    for sheetx in range(0, wb.nsheets - 2):
+        ws = wb.sheet_by_index(sheetx)
+        #print(ws.name, ws.nrows, ws.ncols)
 
-            row_index = 0
-            while row_index < ws.nrows:
-                elements = list()
-                papers = list()
+        row_index = 0
+        while row_index < ws.nrows:
+            elements = list()
+            papers = list()
 
-                column_index = 0
-                while column_index < 19:
-                    value = get_value(ws, wb, row_index, column_index)
-                    elements.append(value)
-                    column_index += 1
+            column_index = 0
+            while column_index < 19:
+                value = get_value(ws, wb, row_index, column_index)
+                elements.append(value)
+                column_index += 1
 
-                if elements[0] != 'System' and elements[0] != '' and elements[1] != '' and elements[2] != '':
-                    elements[5] = methods[elements[5]]
+            if elements[0] != 'System' and elements[0] != '' and elements[1] != '' and elements[2] != '':
+                elements[5] = methods[elements[5]]
 
-                    value = get_value(ws, wb, row_index, 19)
-                    papers.append(references['0'])
-                    if value != '':
-                        papers_num = value.strip().split(",")
-                        for paper in papers_num:
-                            papers.append(references[paper.strip()])
-                        elements.append(papers)
+                value = get_value(ws, wb, row_index, 19)
+                papers.append(references['0'])
+                if value != '':
+                    papers_num = value.strip().split(",")
+                    for paper in papers_num:
+                        papers.append(references[paper.strip()])
+                    elements.append(papers)
 
-                    if len(heads) == len(elements):
-                        records.append(dict(zip(heads, elements)))
-                    else:
-                        print("Wrong number of records: " + str(len(elements)) + " instead of " + str(len(heads)))
+                if len(heads) == len(elements):
+                    records.append(dict(zip(heads, elements)))
+                else:
+                    print("Wrong number of records: " + str(len(elements)) + " instead of " + str(len(heads)))
 
-                row_index += 1
-        return records
-    except IOError:
-        print("File " + filename + " does not exist!")
-
+            row_index += 1
+    return records
 
 
 # Optionally, you can have a default call here for testing
