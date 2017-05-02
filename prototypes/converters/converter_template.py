@@ -8,6 +8,7 @@ from validator import Validator
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   metadata (string or dict): The path to the JSON dataset metadata file, a dict containing the dataset metadata, or None to specify the metadata here. Default None.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
+#       NOTE: The converter should have NO output if verbose is False, unless there is an error.
 def convert(input_path, metadata=None, verbose=False):
     if verbose:
         print("Begin converting")
