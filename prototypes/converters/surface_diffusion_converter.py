@@ -78,7 +78,7 @@ def convert(input_path, metadata=None, verbose=False):
             #    REQ (Required, must be present)
             #    RCM (Recommended, should be present if possible)
             #    OPT (Optional, can be present if useful)
-            uri = "https://materialsdatafacility.org/collection/Diffusion/" + + str(index)
+            uri = "https://materialsdatafacility.org/collection/Diffusion/" + str(index)
             record_metadata = {
                 "globus_subject": uri,                     # REQ string: Unique value (should be URI to record if possible)
                 "acl": ["public"],                         # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
