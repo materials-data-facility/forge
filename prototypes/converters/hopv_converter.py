@@ -1,5 +1,9 @@
+import json
 from validator import Validator
 
+import paths
+
+base_file = paths.datasets+"hopv/"
 
 # This is the converter for the Harvard Organic Photovoltaic Database.
 # Arguments:
@@ -37,11 +41,14 @@ def convert(input_path, verbose=False):
     # Get the data
     # Each record also needs its own metadata
     with open(input_path, 'r') as in_file:
+        index = 0
         eof = False
         smiles = in_file.readline() # Priming read
         if not smiles:
             eof = True
         while not eof:
+            index += 1
+            filename = "hopv_" + str(index) + ".txt"
             #Molecule level
             molecule = {}
             molecule["smiles"] = smiles.strip()
@@ -100,16 +107,18 @@ def convert(input_path, verbose=False):
                 list_conformers.append(conformer)
             molecule["conformers"] = list_conformers
 
+            uri = "https://data.materialsdatafacility.org/collections/hopv/" + filename
             record_metadata = {
-                "globus_subject": "hopv://" + molecule["inchi"],
+#                "globus_subject": "hopv://" + molecule["smiles"],
+                "globus_subject": uri,
                 "acl": ["public"],
                 "mdf-publish.publication.collection": "Harvard Organic Photovoltaic Dataset",
 #                "mdf_data_class": ,
-#                "mdf-base.material_composition": ,
+                "mdf-base.material_composition": molecule["smiles"],
 
-                "dc.title": "HOPV - " + molecule["inchi"],
+                "dc.title": "HOPV - " + molecule["smiles"],
 #                "dc.creator": ,
-#                "dc.identifier": ,
+                "dc.identifier": uri,
 #                "dc.contributor.author": ,
 #                "dc.subject": ,
 #                "dc.description": ,
@@ -118,7 +127,10 @@ def convert(input_path, verbose=False):
 
                 "data": {
 #                    "raw": str(molecule),
-                    "files": {}
+                    "files": {
+                        "molecule": uri,
+                        "original": "https://data.materialsdatafacility.org/collections/hopv/HOPV_15_revised_2.data"
+                        }
                     }
                 }
 
@@ -129,7 +141,10 @@ def convert(input_path, verbose=False):
             # If the Validator returns "success" == True, the record was written successfully
             if result["success"] is not True:
                 print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
-            
+            else:
+                with open(base_file + filename, 'w') as outfile:
+                    json.dump(molecule, outfile)
+
             smiles = in_file.readline() #Next molecule
             if not smiles: #Blank line is EOF
                 eof = True
