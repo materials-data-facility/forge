@@ -135,7 +135,7 @@ class Validator:
 
         if not record.get("mdf_data_class", None) and self.__data_class:
             record["mdf_data_class"] = self.__data_class
-        elif record.get("mdf_data_class", None) != self.__data_class:
+        elif self.__data_class and record.get("mdf_data_class", None) != self.__data_class:
             return {
                 "success": False,
                 "message": "mdf_data_class mismatch: '" + record.get("mdf_data_class", "None") + "' does not match dataset value of '" + str(self.__data_class) + "'",
