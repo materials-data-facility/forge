@@ -56,6 +56,8 @@ def convert(input_path, metadata=None, verbose=False):
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
     dataset_validator = Validator(dataset_metadata)
+    # You can also force the Validator to treat warnings as errors with strict=True
+    #dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     # Get the data
@@ -105,6 +107,9 @@ def convert(input_path, metadata=None, verbose=False):
         # If the Validator returns "success" == True, the record was written successfully
         if result["success"] is not True:
             print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
+        # The Validator may return warnings if strict=False, which should be noted
+        if result.get("warnings", None):
+            print("Warnings:", result["warnings"])
 
     # Alternatively, if the only way you can process your data is in one large list, you can pass the list to the Validator
     # You still must add the required metadata to your records

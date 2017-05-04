@@ -17,6 +17,7 @@ def convert(verbose=False):
         "acl": ["public"],
         "mdf_source_name": "xafs_sl",
         "mdf-publish.publication.collection": "XAFS Spectra Library",
+        "mdf_data_class": "xafs",
 
         "dc.title": "XAFS Spectra Library",
         "dc.creator": "University of Chicago",
@@ -65,7 +66,6 @@ def convert(verbose=False):
                     "globus_subject": parse.quote("http://cars.uchicago.edu/xaslib/spectrum/" + str(record[s_id]), safe="/:"),
                     "acl": ["public"],
                     "mdf-publish.publication.collection": "XAFS Spectra Library",
-                    "mdf_data_class": "xafs",
                     "mdf-base.material_composition": record[s1_formula],
 
                     "dc.title": record[s_name],

@@ -23,6 +23,7 @@ def convert(input_path, metadata=None, verbose=False):
             "acl": ["public"],
             "mdf_source_name": "doak_strain_energies",
             "mdf-publish.publication.collection": "Doak Strain Energies",
+            "mdf_data_class": "vasp",
 
             "cite_as": ["Doak JW, Wolverton C (2012) Coherent and incoherent phase stabilities of thermoelectric rocksalt IV-VI semiconductor alloys. Phys. Rev. B 86: 144202 http://dx.doi.org/10.1103/PhysRevB.86.144202"],
             "license": "http://creativecommons.org/licenses/by-sa/3.0/us/",
@@ -65,7 +66,6 @@ def convert(input_path, metadata=None, verbose=False):
                 "globus_subject": uri,
                 "acl": ["public"],
                 "mdf-publish.publication.collection": "Doak Strain Energies",
-                "mdf_data_class": "vasp",
                 "mdf-base.material_composition": data["frames"][0]["chemical_formula"],
 
     #            "cite_as": ,

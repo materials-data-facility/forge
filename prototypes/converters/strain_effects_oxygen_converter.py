@@ -22,6 +22,7 @@ def convert(input_path, metadata=None, verbose=False):
             "acl": ["public"],
             "mdf_source_name": "strain_effects_oxygen",
             "mdf-publish.publication.collection": "Strain Effects on Oxygen Migration",
+            "mdf_data_class": "vasp",
 
             "cite_as": ["Mayeshiba, T. & Morgan, D. Strain effects on oxygen migration in perovskites. Physical chemistry chemical physics : PCCP 17, 2715-2721, doi:10.1039/c4cp05554c (2015).", "Mayeshiba, T. & Morgan, D. Correction: Strain effects on oxygen migration in perovskites. Physical chemistry chemical physics : PCCP, doi:10.1039/c6cp90050j (2016)."],
 #            "license": ,
@@ -64,7 +65,6 @@ def convert(input_path, metadata=None, verbose=False):
                 "globus_subject": uri,
                 "acl": ["public"],
     #            "mdf-publish.publication.collection": ,
-                "mdf_data_class": "vasp",
                 "mdf-base.material_composition": data["frames"][0]["chemical_formula"],
 
     #            "cite_as": ,

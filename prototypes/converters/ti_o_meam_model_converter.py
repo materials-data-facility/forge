@@ -66,7 +66,7 @@ def convert(input_path, metadata=None, verbose=False):
             "globus_subject": "https://data.materialsdatafacility.org/collections/" + file_data["no_root_path"] + "/" + file_data["filename"],                      # REQ string: Unique value (should be URI to record if possible)
             "acl": ["public"],                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
             "mdf-publish.publication.collection": "Ti-O MEAM Model",  # RCM string: Collection the record belongs to
-            "mdf_data_class": "vasp",                      # RCM string: Type of data in record
+#            "mdf_data_class": "vasp",                      # RCM string: Type of data in record
             "mdf-base.material_composition": record["frames"][0]["chemical_formula"],       # RCM string: Chemical composition of material in record
 
 #            "cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)
@@ -108,6 +108,7 @@ if __name__ == "__main__":
         "acl": ["public"],
         "mdf_source_name": "ti_o_meam_model",
         "mdf-publish.publication.collection": "Ti-O MEAM Model",
+        "mdf_data_class": "vasp",
         "cite_as": ['W.J. Joost, S. Ankem, M.M. Kuklja "A modified embedded atom method potential for the titanium-oxygen system" Modelling and Simulation in Materials Science and Engineering Vol. 23, pp. 015006 (2015) doi:10.1088/0965-0393/23/1/015006'],
         "dc.title": "A Modified Embedded Atom Method Potential for the Titanium-Oxygen System",
         "dc.creator": "University of Maryland",

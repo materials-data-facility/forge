@@ -18,6 +18,7 @@ def convert(input_path, verbose=False):
         "acl": ["public"],
         "mdf_source_name": "qm_mdt_c",
         "mdf-publish.publication.collection": "Quantum Machine",
+        "mdf_data_class": "xyz",
 
         "cite_as": ["S. Chmiela, A. Tkatchenko, H. E. Sauceda, I. Poltavsky, K. T. Schütt, K.-R. Müller Machine Learning of Accurate Energy-Conserving Molecular Force Fields, 2017.", "K. T. Schütt, F. Arbabzadah, S. Chmiela, K.-R. Müller, A. Tkatchenko Quantum-Chemical Insights from Deep Tensor Neural Networks, Nat. Commun. 8, 13890, 2017."],
         "dc.title": "Quantum Machine - MD Trajectories of C7O2H10",
@@ -44,7 +45,6 @@ def convert(input_path, verbose=False):
             "globus_subject": "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["no_root_path"] + "/" if file_data["no_root_path"] else "" + file_data["filename"],
             "acl": ["public"],
             "mdf-publish.publication.collection": "Quantum Machine",
-            "mdf_data_class": "xyz",
             "mdf-base.material_composition": record.get("chemical_formula", ""),
 
             "dc.title": "MD Trajectories of C7O2H10 - " + record.get("chemical_formula", "") + " - " + file_data["filename"],

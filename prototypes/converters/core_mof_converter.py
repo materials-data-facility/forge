@@ -21,6 +21,7 @@ def convert(input_path, doi_file_path, verbose=False):
         "acl": ["public"],
         "mdf_source_name": "core_mof",
         "mdf-publish.publication.collection": "CoRE-MOF",
+        "mdf_data_class": "cif",
 
         "cite_as": ['D. Nazarian, J. Camp, D.S. Sholl, "A Comprehensive Set of High-Quality Point Charges for Simulations of Metal-Organic Frameworks," Chemistry of Materials, 2016, 28 (3), pp 785–793'],
         "dc.title": "Computation-Ready Experimental Metal-Organic Frameworks Database",
@@ -59,7 +60,6 @@ def convert(input_path, doi_file_path, verbose=False):
             "globus_subject": "https://raw.githubusercontent.com/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
             "acl": ["public"],
             "mdf-publish.publication.collection": "CoRE-MOF",
-            "mdf_data_class": "cif",
             "mdf-base.material_composition": file_data["chemical_formula"],
 
             "dc.title": "CoRE-MOF - " + file_data["chemical_formula"] + " (" + cif["filename"].split("_")[0] + ")",

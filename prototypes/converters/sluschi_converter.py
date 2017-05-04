@@ -17,6 +17,7 @@ def convert(input_path, verbose=False):
         "acl": ["public"],
         "mdf_source_name": "sluschi",
         "mdf-publish.publication.collection": "SLUSCHI",
+        "mdf_data_class": "vasp",
 
         "cite_as": ["Qi-Jun Hong, Axel van de Walle, A user guide for SLUSCHI: Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces, Calphad, Volume 52, March 2016, Pages 88-97, ISSN 0364-5916, http://doi.org/10.1016/j.calphad.2015.12.003."],
         "dc.title": "Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces",
@@ -48,7 +49,6 @@ def convert(input_path, verbose=False):
             "globus_subject": uri,
             "acl": ["public"],
             "mdf-publish.publication.collection": "SLUSCHI",
-            "mdf_data_class": "vasp",
             "mdf-base.material_composition": file_data["frames"][0]["chemical_formula"],
 
             "dc.title": "SLUSCHI - " + file_data["frames"][0]["chemical_formula"],

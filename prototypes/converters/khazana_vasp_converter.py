@@ -17,6 +17,7 @@ def convert(input_path, verbose=False):
         "acl": ["public"],
         "mdf_source_name": "khazana_vasp",
         "mdf-publish.publication.collection": "Khazana",
+        "mdf_data_class": "vasp",
 
         "cite_as": ["http://khazana.uconn.edu/module_search/search.php?m=2"],
         "dc.title": "Khazana (VASP)",
@@ -50,7 +51,6 @@ def convert(input_path, verbose=False):
             "globus_subject": uri,
             "acl": ["public"],
             "mdf-publish.publication.collection": "Khazana",
-            "mdf_data_class": "vasp",
             "mdf-base.material_composition": file_data["frames"][0]["chemical_formula"],
 
             "dc.title": "Khazana VASP - " + file_data["frames"][0]["chemical_formula"],

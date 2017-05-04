@@ -19,6 +19,7 @@ def convert(input_path, verbose=False):
         "acl": ["public"],                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
         "mdf_source_name": "ti_o_fitting_db",                     # REQ string: Unique name for dataset
         "mdf-publish.publication.collection": "Ti-O Fitting Database",  # RCM string: Collection the dataset belongs to
+        "mdf_data_class": "vasp",                      # RCM string: Type of data in record
 
         "cite_as": ["Trinkle, Dallas R.; Zhang, Pinchao Fitting database entries for a modified embedded atom method potential for interstitial oxygen in titanium (2016-07-25) http://hdl.handle.net/11256/782"],
         "license": "http://creativecommons.org/licenses/by/3.0/us/",                             # RCM string: License to use the dataset (preferrably a link to the actual license).
@@ -51,7 +52,6 @@ def convert(input_path, verbose=False):
                 "globus_subject": uri,                      # REQ string: Unique value (should be URI to record if possible)
                 "acl": ["public"],                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
                 "mdf-publish.publication.collection": "Ti-O Fitting Database",  # RCM string: Collection the record belongs to
-                "mdf_data_class": "vasp",                      # RCM string: Type of data in record
                 "mdf-base.material_composition": data["frames"][0]["chemical_formula"],       # RCM string: Chemical composition of material in record
 
     #            "cite_as": ,                             # OPT list of strings: Complete citation(s) for this record (if different from dataset)

@@ -17,6 +17,7 @@ def convert(input_path, verbose=False):
         "acl": ["public"],
         "mdf_source_name": "khazana_polymer",
         "mdf-publish.publication.collection": "Khazana",
+        "mdf_data_class": "cif",
 
         "cite_as": ["T. D. Huan, A. Mannodi-Kanakkithodi, C. Kim, V. Sharma, G. Pilania, R. Ramprasad\nA polymer dataset for accelerated property prediction and design Sci. Data, 3, 160012 (2016).", "A. Mannodi-Kanakkithodi, G. M. Treich, T. D. Huan, R. Ma, M. Tefferi, Y. Cao, G A. Sotzing, R. Ramprasad\nRational Co-Design of Polymer Dielectrics for Energy Storage Adv. Mater., 28, 6277 (2016).", "T. D. Huan, A. Mannodi-Kanakkithodi, R. Ramprasad\nAccelerated materials property predictions and design using motif-based fingerprints Phys. Rev. B, 92, 014106 (2015).", "A. Mannodi-Kanakkithodi, G. Pilania, T. D. Huan, T. Lookman, R. Ramprasad\nMachine learning strategy for accelerated design of polymer dielectrics Sci. Rep., 6, 20952 (2016)."],
         "dc.title": "Khazana (Polymer)",
@@ -50,7 +51,6 @@ def convert(input_path, verbose=False):
             "globus_subject": uri,
             "acl": ["pubilc"],
             "mdf-publish.publication.collection": "Khazana",
-            "mdf_data_class": "cif",
             "mdf-base.material_composition": file_data["chemical_formula"],
 
             "dc.title": "Khazana Polymer - " + file_data["chemical_formula"],

@@ -23,6 +23,7 @@ def convert(input_path, metadata=None, verbose=False):
             "acl": ["public"],
             "mdf_source_name": "trinkle_elastic_fe_bcc",
             "mdf-publish.publication.collection": "Elastic Fe BCC",
+            "mdf_data_class": "vasp",
 
             "cite_as": ["M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Comp. Mat. Sci. 126, 503 (2017).M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Data in Brief 10, 147 (2017)."],
             "license": "http://creativecommons.org/publicdomain/zero/1.0/",
@@ -64,7 +65,6 @@ def convert(input_path, metadata=None, verbose=False):
             "globus_subject": uri,
             "acl": ["public"],
             "mdf-publish.publication.collection": "Elastic Fe BCC",
-            "mdf_data_class": "vasp",
             "mdf-base.material_composition": data["frames"][0]["chemical_formula"],
 
 #            "cite_as": ,

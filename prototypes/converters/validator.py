@@ -1,23 +1,24 @@
-from json import dump
+import json
 from bson import ObjectId
+from copy import deepcopy
 import os
 import paths
 
-list_of_all_elements = ["Ac","Ag","Al","Am","Ar","As","At","Au","B","Ba","Be","Bh","Bi","Bk","Br","C","Ca","Cd","Ce","Cf","Cl","Cm","Cn","Co","Cr","Cs","Cu","Db","Ds","Dy","Er","Es","Eu","F","Fe","Fl","Fm","Fr","Ga","Gd","Ge","H","He","Hf","Hg","Ho","Hs","I","In","Ir","K","Kr","La","Li","Lr","Lu","Lv","Md","Mg","Mn","Mo","Mt","N","Na","Nb","Nd","Ne","Ni","No","Np","O","Os","P","Pa","Pb","Pd","Pm","Po","Pr","Pt","Pu","Ra","Rb","Re","Rf","Rg","Rh","Rn","Ru","S","Sb","Sc","Se","Sg","Si","Sm","Sn","Sr","Ta","Tb","Tc","Te","Th","Ti","Tl","Tm","U","Uuo","Uup","Uus","Uut","V","W","Xe","Y","Yb","Zn","Zr"]
+LIST_OF_ALL_ELEMENTS = ["Ac","Ag","Al","Am","Ar","As","At","Au","B","Ba","Be","Bh","Bi","Bk","Br","C","Ca","Cd","Ce","Cf","Cl","Cm","Cn","Co","Cr","Cs","Cu","Db","Ds","Dy","Er","Es","Eu","F","Fe","Fl","Fm","Fr","Ga","Gd","Ge","H","He","Hf","Hg","Ho","Hs","I","In","Ir","K","Kr","La","Li","Lr","Lu","Lv","Md","Mg","Mn","Mo","Mt","N","Na","Nb","Nd","Ne","Ni","No","Np","O","Os","P","Pa","Pb","Pd","Pm","Po","Pr","Pt","Pu","Ra","Rb","Re","Rf","Rg","Rh","Rn","Ru","S","Sb","Sc","Se","Sg","Si","Sm","Sn","Sr","Ta","Tb","Tc","Te","Th","Ti","Tl","Tm","U","Uuo","Uup","Uus","Uut","V","W","Xe","Y","Yb","Zn","Zr"]
+
+MAX_KEYS = 10
+MAX_LIST = 5
 
 #Validator class holds data about a dataset while writing to feedstock
 class Validator:
     #init takes dataset metadata to start processing and save another function call
-    def __init__(self, metadata):
+    def __init__(self, metadata, strict=False):
         self.__feedstock = None
         self.__dataset_id = None
         self.__mdf_source_name = None
-        self.__cite_as = None
         self.__uris = []
-        self.__collection = None
-        self.__acl = None
-        self.__license = None
-        self.__data_class = None
+
+        self.__strict = strict
 
         res = self.__write_metadata(metadata)
         if not res["success"]:
@@ -38,12 +39,13 @@ class Validator:
                 "message": "Metadata already written for this dataset"
                 }
 
-        md_val = validate_metadata(metadata, "dataset")
+        md_val = validate_metadata(metadata, "dataset", strict=self.__strict)
         if not md_val["success"]:
             return {
                 "success": False,
                 "message": md_val["message"],
-                "invalid_metadata": md_val.get("invalid_metadata", "")
+                "invalid_metadata": md_val.get("invalid_metadata", ""),
+                "warnings": md_val.get("warnings", [])
                 }
 
         # Log mdf_source_name
@@ -71,12 +73,15 @@ class Validator:
         metadata["mdf_node_type"] = "dataset"
         try:
             self.__feedstock = open(feedstock_path, 'w')
-            dump(metadata, self.__feedstock)
+            json.dump(metadata, self.__feedstock)
             self.__feedstock.write("\n")
             
             self.__dataset_id = metadata["mdf_id"]
 
-            return {"success": True}
+            return {
+                "success": True,
+                "warnings": md_val.get("warnings", [])
+                }
 
         except:
             return {
@@ -91,19 +96,21 @@ class Validator:
                 "success": False,
                 "message": "Metadata not written for this dataset"
                 }
-        rec_val = validate_metadata(record, "record")
+        rec_val = validate_metadata(record, "record", strict=self.__strict)
         if not rec_val["success"]:
             return {
                 "success": False,
                 "message": rec_val["message"],
-                "invalid_metadata": rec_val["invalid_metadata"]
+                "invalid_metadata": rec_val.get("invalid_metadata", ""),
+                "warnings": rec_val.get("warnings", [])
                 }
 
         # Check for duplicate URIs
         if record["globus_subject"] in self.__uris:
             return {
                 "success": False,
-                "message": "'globus_subject' duplicate found:" + record["globus_subject"]
+                "message": "'globus_subject' duplicate found:" + record["globus_subject"],
+                "warnings": rec_val.get("warnings", [])
                 }
         else:
             self.__uris.append(record["globus_subject"])
@@ -131,7 +138,8 @@ class Validator:
         elif record.get("mdf_data_class", None) != self.__data_class:
             return {
                 "success": False,
-                "message": "mdf_data_class mismatch: '" + record.get("mdf_data_class", "None") + "' does not match dataset value of '" + str(self.__data_class) + "'"
+                "message": "mdf_data_class mismatch: '" + record.get("mdf_data_class", "None") + "' does not match dataset value of '" + str(self.__data_class) + "'",
+                "warnings": rec_val.get("warnings", [])
                 }
 
         if record.get("mdf-base.material_composition", None):
@@ -145,7 +153,7 @@ class Validator:
 
             list_of_elem = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
             # If any "element" isn't in the periodic table, the entire composition is likely not a chemical formula and should not be parsed
-            if all([elem in list_of_all_elements for elem in list_of_elem]):
+            if all([elem in LIST_OF_ALL_ELEMENTS for elem in list_of_elem]):
                 record["mdf-base.elements"] = list_of_elem
 
 
@@ -163,9 +171,12 @@ class Validator:
 
         #Write new record to feedstock
         try:
-            dump(record, self.__feedstock)
+            json.dump(record, self.__feedstock)
             self.__feedstock.write("\n")
-            return {"success" : True}
+            return {
+                "success" : True,
+                "warnings": rec_val.get("warnings", [])
+                }
         except:
             return {
                 "success": False,
@@ -175,7 +186,7 @@ class Validator:
     #Output whole dataset to feedstock
     #all_records must be a list of all the dataset records
     def write_dataset(self, all_records):
-        if (not self.__feedstock) or (not self.__dataset_id): #Metadata not set
+        if (not self.__feedstock) or (not self.__dataset_id) or (not self.__mdf_source_name): #Metadata not set
             return {
                 "success": False,
                 "message": "Metadata not written for this dataset"
@@ -185,6 +196,8 @@ class Validator:
             result = self.write_record(record)
             if not result["success"]:
                 print("Error on record: ", record)
+            elif result["warnings"]:
+                print("Warning:", result["warnings"])
         return {"success" : True}
 
     @property
@@ -196,8 +209,17 @@ class Validator:
 # Args:
 #   metadata: dict, metadata to validate
 #   entry_type: string, type of metadata (dataset, record, etc.)
-#   strict: bool, only allow whitelisted metadata? Default True.
-def validate_metadata(metadata, entry_type, strict=True):
+#   strict: bool, warnings are errors? Default False.
+def validate_metadata(metadata, entry_type, strict=False):
+    try:
+        json.loads(json.dumps(metadata))
+        if type(metadata) is not dict:
+            raise TypeError
+    except TypeError:
+         return {
+            "success": False,
+            "message": "Metadata must be a JSON-serializable dict"
+            }
     # valid_meta format:
     #   field_name: {
     #       "req": bool, is field required?
@@ -205,6 +227,7 @@ def validate_metadata(metadata, entry_type, strict=True):
     #       "contains": type, for lists, type of data inside (None for any type)
     #       }
     invalid_list = []
+    warning_list = []
     if entry_type == "dataset":
         # Valid dataset metadata
         valid_meta = {
@@ -350,11 +373,12 @@ def validate_metadata(metadata, entry_type, strict=True):
                 }
             }
         # Additional check for data block
-        data_valid = validate_metadata(metadata.get("data", {}), "record_data", strict=False)
+        data_valid = validate_metadata(metadata.get("data", {}), "user_data", strict=strict)
         if not data_valid["success"]:
             invalid_list += data_valid["invalid_list"]
+        warning_list += data_valid["warnings"]
 
-    elif entry_type == "record_data":
+    elif entry_type == "user_data":
         # Validate the data dict of a record's metadata
         valid_meta = {
             "raw": {
@@ -367,6 +391,12 @@ def validate_metadata(metadata, entry_type, strict=True):
                 "contains": str
                 }
             }
+        # Additional validations for data dict
+        res = validate_user_data(metadata)
+        metadata = res["value"]
+        warning_list += res["warnings"]
+
+
     else:
         return {
             "success": False,
@@ -402,24 +432,88 @@ def validate_metadata(metadata, entry_type, strict=True):
                     "reason" : field + " must contain only non-empty " + reqs["contains"].__name__
                     })
 
+    # No other metadata is allowed
+    disallowed_list = [x for x in metadata.keys() if x not in valid_meta.keys()]
+    for key in disallowed_list:
+        invalid_list.append({
+            "field" : key,
+            "value" : metadata.get(key, None),
+            "reason" : key + " is not a valid metadata field"
+            })
+
     if strict:
-        # No other metadata is allowed
-        disallowed_list = [x for x in metadata.keys() if x not in valid_meta.keys()]
-        for key in disallowed_list:
-            invalid_list.append({
-                "field" : key,
-                "value" : metadata.get(key, None),
-                "reason" : key + " is not a valid metadata field"
-                })
+        invalid_list += warning_list
+        warning_list.clear()
 
     if not invalid_list:
-        return {"success": True}
+        return {
+            "success": True,
+            "warnings": warning_list
+            }
     else:
         return {
             "success": False,
             "invalid_metadata": invalid_list,
-            "message": "Invalid " + entry_type + " metadata"
+            "message": "Invalid " + entry_type + " metadata",
+            "warnings": warning_list
             }
+
+
+def validate_user_data(data, total_keys=0):
+    warnings = []
+    if type(data) is list:
+        if len(data) > MAX_LIST:
+            return {
+                "value": None,
+                "warnings": ["List of length " + str(len(data)) + " exceeds maximum length of " + str(MAX_LIST)]
+                }
+        elif any([type(elem) is list for elem in data]):
+            return {
+                "value": None,
+                "warnings": ["Lists containing lists are not allowed"]
+                }
+        else:
+            new_list = []
+            for elem in data:
+                res = validate_user_data(elem, total_keys)
+                if res["warnings"]:
+                    warnings += res["warnings"]
+                if res["value"]:
+                    new_list.append(res["value"])
+                    total_keys = res["total_keys"]
+            return {
+                "value": new_list,
+                "warnings": warnings,
+                "total_keys": total_keys
+                }
+    elif type(data) is dict:
+        total_keys += len(data.keys())
+        if total_keys > MAX_KEYS:
+            return {
+                "value": None,
+                "warnings": ["Data exceeds the total number of allowed keys (" + str(MAX_KEYS) + ")"]
+                }
+        else:
+            new_dict = {}
+            for key, value in data.items():
+                res = validate_user_data(value, total_keys)
+                if res["warnings"]:
+                    warnings += res["warnings"]
+                if res["value"]:
+                   new_dict[key] = res["value"]
+                   total_keys = res["total_keys"]
+            return {
+                "value": new_dict,
+                "warnings": warnings,
+                "total_keys": total_keys
+                }
+    else:
+        return {
+            "value": data,
+            "warnings": warnings,
+            "total_keys": total_keys
+            }
+
 
 if __name__ == "__main__":
     print("\nThis is the Validator. You can use the Validator to write valid, converted data into feedstock.")

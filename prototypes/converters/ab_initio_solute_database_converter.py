@@ -17,6 +17,7 @@ def convert(input_path, verbose=False):
         "acl": ["public"],
         "mdf_source_name": "ab_initio_solute_database",
         "mdf-publish.publication.collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
+        "mdf_data_class": "vasp",
 
         "cite_as": ['Wu, Henry; Mayeshiba, Tam; Morgan, Dane, "Dataset for High-throughput Ab-initio Dilute Solute Diffusion Database," 2016, http://dx.doi.org/doi:10.18126/M2X59R'],
         "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database",
@@ -50,7 +51,6 @@ def convert(input_path, verbose=False):
                 "globus_subject": uri,
                 "acl": ["public"],
                 "mdf-publish.publication.collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
-                "mdf_data_class": "vasp",
                 "mdf-base.material_composition": file_data["frames"][0]["chemical_formula"],
 
                 "dc.title": "High-throughput Ab-initio Dilute Solute Diffusion Database - " + file_data["frames"][0]["chemical_formula"],

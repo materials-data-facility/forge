@@ -23,6 +23,7 @@ def convert(input_path, metadata=None, verbose=False):
             "acl": ["public"],
             "mdf_source_name": "oxygen_interstitials_deformation",
             "mdf-publish.publication.collection": "Oxygen Interstitials and Deformation Twins in alpha-Titanium",
+            "mdf_data_class": "vasp",
 
             "cite_as": ["Interaction Between Oxygen Interstitials and Deformation Twins in alpha-Titanium, Acta Materialia v. 105 (2016), pp. 44 - 51 http://dx.doi.org/10.1016/j.actamat.2015.12.019"],
             "license": "http://creativecommons.org/licenses/by/3.0/us/",
@@ -64,7 +65,6 @@ def convert(input_path, metadata=None, verbose=False):
             "globus_subject": uri,
             "acl": ["public"],
             "mdf-publish.publication.collection": "Oxygen Interstitials and Deformation Twins in alpha-Titanium",
-            "mdf_data_class": "vasp",
             "mdf-base.material_composition": data["frames"][0]["chemical_formula"],
 
 #            "cite_as": ,
