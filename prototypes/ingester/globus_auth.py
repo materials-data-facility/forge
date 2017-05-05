@@ -2,13 +2,13 @@ import os
 import os.path
 import json
 import globus_sdk
-
+from six.moves import input
 from globus_client import DataSearchClient
 
 
 def prompt(s):
     print(s + ': ')
-    return raw_input().strip()
+    return input().strip()
 
 
 def _load_auth_client():

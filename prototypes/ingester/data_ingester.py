@@ -7,7 +7,8 @@ from tqdm import tqdm
 import globus_auth
 import paths
 
-globus_url = "https://datasearch.api.demo.globus.org/"
+#globus_url = "https://datasearch.api.demo.globus.org/"
+globus_url = "https://search.api.globus.org/"
 globus_domain = "globus_search"
 
 namespaces = {
@@ -134,27 +135,27 @@ if __name__ == "__main__":
         print("\nPlease specify what mdf_source_name(s) to ingest, or 'all'\n")
     elif sys.argv[0] == "all":
         all_source_names = [
-#            "oqmd",
-#            "janaf",
-#            "ab_initio_solute_database",
-#            "khazana_polymer",
-#            "khazana_vasp",
-#            "sluschi",
-#            "hopv",
-#            "cip",
-#            "nanomine",
-#            "nist_ip",
-#            "pppdb",
-#            "xafs_sl",
-#            "core_mof",
-#            "qm_mdt_c",
-#            "ti_o_fitting_db",
-#            "ti_o_meam_model",
-#            "doak_strain_energies",
-#            "trinkle_elastic_fe_bcc",
-#            "oxygen_interstitials_deformation",
-#            "strain_effects_oxygen",
-#            "nrel_pv"
+            "oqmd",
+            "nist_janaf",
+            "ab_initio_solute_database",
+            "khazana_polymer",
+            "khazana_vasp",
+            "sluschi",
+            "hopv",
+            "cip",
+            "nanomine",
+            "nist_ip",
+            "pppdb",
+            "xafs_sl",
+            "core_mof",
+            "qm_mdt_c",
+            "ti_o_fitting_db",
+            "ti_o_meam_model",
+            "doak_strain_energies",
+            "trinkle_elastic_fe_bcc",
+            "oxygen_interstitials_deformation",
+            "strain_effects_oxygen",
+            "nrel_pv"
 
 #            "matin_metadata",
 #            "cxidb_metadata",
