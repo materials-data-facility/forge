@@ -19,6 +19,8 @@ def convert(verbose=False):
         "mdf-publish.publication.collection": "XAFS Spectra Library",
         "mdf_data_class": "xafs",
 
+        "cite_as": ["http://cars.uchicago.edu/xaslib"],
+
         "dc.title": "XAFS Spectra Library",
         "dc.creator": "University of Chicago",
         "dc.identifier": "http://cars.uchicago.edu/xaslib",
@@ -73,7 +75,7 @@ def convert(verbose=False):
                     "dc.identifier": parse.quote("http://cars.uchicago.edu/xaslib/spectrum/" + str(record[s_id]), safe="/:"),
                     "dc.contributor.author": [record[p_name]],
 #                    "dc.subject": ,
-                    "dc.description": record[s_comments],
+#                    "dc.description": record[s_comments],
                     "dc.relatedidentifier": [parse.quote("http://cars.uchicago.edu/xaslib/rawfile/" + str(record[s_id]) + "/" + record[s_name] + ".xdi", safe="/:")],
                     "dc.year": int(str(record[s_submission_date])[:4]),
 
@@ -94,6 +96,8 @@ def convert(verbose=False):
                         "user_comments" : record[s_comments]
                         }
                     }
+                if record[s_comments]:
+                    record_metadata["dc.description"] = record[s_comments]
 
                 # Pass each individual record to the Validator
                 result = dataset_validator.write_record(record_metadata)

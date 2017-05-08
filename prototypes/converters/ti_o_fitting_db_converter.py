@@ -80,7 +80,7 @@ def convert(input_path, verbose=False):
             if result["success"] is not True:
                 print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
         except Exception:
-            print(data_file["path"] + "/" + data_file["filename"])
+            print("Error on:", data_file["path"] + "/" + data_file["filename"])
 
 
     # TODO: Save your converter as [mdf_source_name]_converter.py

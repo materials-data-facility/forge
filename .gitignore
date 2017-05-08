@@ -10,3 +10,5 @@ prototypes/feedstock
 prototypes/datasets/*
 prototypes/datasets
 
+
+*.swo

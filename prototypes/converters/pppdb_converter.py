@@ -36,7 +36,7 @@ def convert(login_file, verbose=False):
     # Make a Validator to help write the feedstock
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
-    dataset_validator = Validator(dataset_metadata)
+    dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     # Get the data
@@ -103,15 +103,15 @@ def convert(login_file, verbose=False):
             "dc.title": "PPPDB - Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
 #            "dc.creator": ,
             "dc.identifier": "http://pppdb.uchicago.edu&id="+str(record["pppdb_id"]),
-            "dc.contributor.author": [author.strip() for author in str(record["authors"]).replace(", III", " (III)").replace(", and", ", ").replace("and", ",").split(",")],
+            "dc.contributor.author": [author.strip() for author in str(record.pop("authors")).replace(", III", " (III)").replace(", and", ", ").replace("and", ",").split(",")],
 #            "dc.subject": ,
             "dc.description": str(record["notes"]) if record["notes"] else "Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
-            "dc.relatedidentifier": [str(record["doi"])],
+            "dc.relatedidentifier": [str(record.pop("doi"))],
             "dc.year": int(str(record["date"])[-4:]),
 
             "data": {
 #                "raw": ,
-                "files": {}
+#                "files": {}
                 }
             }
         record_metadata["data"].update(record)

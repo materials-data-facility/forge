@@ -41,7 +41,7 @@ def convert(input_path, verbose=False):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="vasp", verbose=False)
 
         # If no data, skip record
-        if not file_data["frames"]:
+        if not file_data or not file_data["frames"]:
             continue
 
         uri = "globus:sluschi/" + dir_data["no_root_path"] + "/" + dir_data["filename"]

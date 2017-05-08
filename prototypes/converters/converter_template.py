@@ -55,7 +55,7 @@ def convert(input_path, metadata=None, verbose=False):
     # Make a Validator to help write the feedstock
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
-    dataset_validator = Validator(dataset_metadata)
+    dataset_validator = Validator(dataset_metadata, strict=False)
     # You can also force the Validator to treat warnings as errors with strict=True
     #dataset_validator = Validator(dataset_metadata, strict=True)
 

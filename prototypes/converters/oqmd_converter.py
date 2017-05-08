@@ -65,6 +65,7 @@ def convert(input_path, metadata=None, verbose=False):
             if len(pair) > 1:
                 lookup[pair[0]] = pair[1]
 
+    count = 0
     for filename in tqdm(os.listdir(os.path.join(input_path, "metadata-files")), desc="Processing files", disable= not verbose):
         full_path = os.path.join(input_path, "metadata-files", filename)
         if os.path.isfile(full_path):
@@ -73,6 +74,7 @@ def convert(input_path, metadata=None, verbose=False):
             metadata_path = lookup.get(filename.split(".")[0], "None").replace("//", "/").strip()
             outcar_path = os.path.join(os.path.dirname(metadata_path)) if metadata_path != "None" else "Unavailable"
             record_metadata = {
+                "scroll_id": count,
                 "globus_subject": record["url"],
                 "acl": ["public"],
 #                "mdf-publish.publication.collection": ,
@@ -94,8 +96,10 @@ def convert(input_path, metadata=None, verbose=False):
                 "data": {
 #                    "raw": ,
                     "files": {
-                        "metadata": "https://data.materialsdatafacility.org" + metadata_path,
-                        "outcar": "https://data.materialsdatafacility.org" + outcar_path + "/OUTCAR.gz"
+                        "metadata": metadata_path,
+                        "outcar": outcar_path + "/OUTCAR.gz",
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "https_server": "https://data.materialsdatafacility.org"
                         },
                     "band gap": record["band_gap"],
                     "configuration": record["configuration"],
@@ -110,7 +114,7 @@ def convert(input_path, metadata=None, verbose=False):
             if record.get("total energy", None):
                 record_metadata["data"]["total energy"] = record["total energy"]
 
-
+            count += 1
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)

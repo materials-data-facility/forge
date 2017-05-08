@@ -6,7 +6,7 @@ import paths
 
 LIST_OF_ALL_ELEMENTS = ["Ac","Ag","Al","Am","Ar","As","At","Au","B","Ba","Be","Bh","Bi","Bk","Br","C","Ca","Cd","Ce","Cf","Cl","Cm","Cn","Co","Cr","Cs","Cu","Db","Ds","Dy","Er","Es","Eu","F","Fe","Fl","Fm","Fr","Ga","Gd","Ge","H","He","Hf","Hg","Ho","Hs","I","In","Ir","K","Kr","La","Li","Lr","Lu","Lv","Md","Mg","Mn","Mo","Mt","N","Na","Nb","Nd","Ne","Ni","No","Np","O","Os","P","Pa","Pb","Pd","Pm","Po","Pr","Pt","Pu","Ra","Rb","Re","Rf","Rg","Rh","Rn","Ru","S","Sb","Sc","Se","Sg","Si","Sm","Sn","Sr","Ta","Tb","Tc","Te","Th","Ti","Tl","Tm","U","Uuo","Uup","Uus","Uut","V","W","Xe","Y","Yb","Zn","Zr"]
 
-MAX_KEYS = 10
+MAX_KEYS = 20
 MAX_LIST = 5
 
 #Validator class holds data about a dataset while writing to feedstock
@@ -301,6 +301,11 @@ def validate_metadata(metadata, entry_type, strict=False):
     elif entry_type == "record":
         # Valid record metadata
         valid_meta = {
+            #Temp for scrolling
+            "scroll_id": {
+                "req": False,
+                "type": int
+                },
             "globus_subject": {
                 "req": True,
                 "type": str
@@ -375,7 +380,7 @@ def validate_metadata(metadata, entry_type, strict=False):
         # Additional check for data block
         data_valid = validate_metadata(metadata.get("data", {}), "user_data", strict=strict)
         if not data_valid["success"]:
-            invalid_list += data_valid["invalid_list"]
+            invalid_list += data_valid["invalid_metadata"]
         warning_list += data_valid["warnings"]
 
     elif entry_type == "user_data":
@@ -393,7 +398,7 @@ def validate_metadata(metadata, entry_type, strict=False):
             }
         # Additional validations for data dict
         res = validate_user_data(metadata)
-        metadata = res["value"]
+        metadata = res["value"] if res["value"] else {}
         warning_list += res["warnings"]
 
 
@@ -433,7 +438,7 @@ def validate_metadata(metadata, entry_type, strict=False):
                     })
 
     # No other metadata is allowed
-    disallowed_list = [x for x in metadata.keys() if x not in valid_meta.keys()]
+    disallowed_list = [x for x in metadata.keys() if x not in valid_meta.keys() and entry_type != "user_data"]
     for key in disallowed_list:
         invalid_list.append({
             "field" : key,
