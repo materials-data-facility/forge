@@ -167,7 +167,8 @@ class Validator:
                 new_data[key] = record["data"].pop(key)
         for key, value in record.get("data", {}).items():
             new_data[self.__mdf_source_name + ":" + key] = value
-        record["data"] = new_data
+        if new_data:
+            record["data"] = new_data
 
         #Write new record to feedstock
         try:
