@@ -65,7 +65,7 @@ def convert(input_path, metadata=None, verbose=False):
             if len(pair) > 1:
                 lookup[pair[0]] = pair[1]
 
-    count = 0
+    count = 1
     for filename in tqdm(os.listdir(os.path.join(input_path, "metadata-files")), desc="Processing files", disable= not verbose):
         full_path = os.path.join(input_path, "metadata-files", filename)
         if os.path.isfile(full_path):

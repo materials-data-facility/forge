@@ -2,9 +2,10 @@ import json
 from bson import ObjectId
 from copy import deepcopy
 import os
+import re
 import paths
 
-LIST_OF_ALL_ELEMENTS = ["Ac","Ag","Al","Am","Ar","As","At","Au","B","Ba","Be","Bh","Bi","Bk","Br","C","Ca","Cd","Ce","Cf","Cl","Cm","Cn","Co","Cr","Cs","Cu","Db","Ds","Dy","Er","Es","Eu","F","Fe","Fl","Fm","Fr","Ga","Gd","Ge","H","He","Hf","Hg","Ho","Hs","I","In","Ir","K","Kr","La","Li","Lr","Lu","Lv","Md","Mg","Mn","Mo","Mt","N","Na","Nb","Nd","Ne","Ni","No","Np","O","Os","P","Pa","Pb","Pd","Pm","Po","Pr","Pt","Pu","Ra","Rb","Re","Rf","Rg","Rh","Rn","Ru","S","Sb","Sc","Se","Sg","Si","Sm","Sn","Sr","Ta","Tb","Tc","Te","Th","Ti","Tl","Tm","U","Uuo","Uup","Uus","Uut","V","W","Xe","Y","Yb","Zn","Zr"]
+DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Americium": "Am", "Argon": "Ar", "Arsenic": "As", "Astatine": "At", "Gold": "Au", "Boron": "B", "Barium": "Ba", "Beryllium": "Be", "Bohrium": "Bh", "Bismuth": "Bi", "Berkelium": "Bk", "Bromine": "Br", "Carbon": "C", "Calcium": "Ca", "Cadmium": "Cd", "Cerium": "Ce", "Californium": "Cf", "Chlorine": "Cl", "Curium": "Cm", "Copernicium": "Cn", "Cobalt": "Co", "Chromium": "Cr", "Cesium": "Cs", "Copper": "Cu", "Dubnium": "Db", "Darmstadtium": "Ds", "Dysprosium": "Dy", "Erbium": "Er", "Einsteinium": "Es", "Europium": "Eu", "Fluorine": "F", "Iron": "Fe", "Flerovium": "Fl", "Fermium": "Fm", "Francium": "Fr", "Gallium": "Ga", "Gadolinium": "Gd", "Germanium": "Ge", "Hydrogen": "H", "Helium": "He", "Hafnium": "Hf", "Mercury": "Hg", "Holmium": "Ho", "Hassium": "Hs", "Iodine": "I", "Indium": "In", "Iridium": "Ir", "Potassium": "K", "Krypton": "Kr", "Lanthanum": "La", "Lithium": "Li", "Lawrencium": "Lr", "Lutetium": "Lu", "Livermorium": "Lv", "Mendelevium": "Md", "Magnesium": "Mg", "Manganese": "Mn", "Molybdenum": "Mo", "Meitnerium": "Mt", "Nitrogen": "N", "Sodium": "Na", "Niobium": "Nb", "Neodymium": "Nd", "Neon": "Ne", "Nickel": "Ni", "Nobelium": "No", "Neptunium": "Np", "Oxygen": "O", "Osmium": "Os", "Phosphorus": "P", "Protactinium": "Pa", "Lead": "Pb", "Palladium": "Pd", "Promethium": "Pm", "Polonium": "Po", "Praseodymium": "Pr", "Platinum": "Pt", "Plutonium": "Pu", "Radium": "Ra", "Rubidium": "Rb", "Rhenium": "Re", "Rutherfordium": "Rf", "Roentgenium": "Rg", "Rhodium": "Rh", "Radon": "Rn", "Ruthenium": "Ru", "Sulfur": "S", "Antimony": "Sb", "Scandium": "Sc", "Selenium": "Se", "Seaborgium": "Sg", "Silicon": "Si", "Samarium": "Sm", "Tin": "Sn", "Strontium": "Sr", "Tantalum": "Ta", "Terbium": "Tb", "Technetium": "Tc", "Tellurium": "Te", "Thorium": "Th", "Titanium": "Ti", "Thallium": "Tl", "Thulium": "Tm", "Uranium": "U", "Ununoctium": "Uuo", "Ununpentium": "Uup", "Ununseptium": "Uus", "Ununtrium": "Uut", "Vanadium": "V", "Tungsten": "W", "Xenon": "Xe", "Yttrium": "Y", "Ytterbium": "Yb", "Zinc": "Zn", "Zirconium": "Zr"}
 
 MAX_KEYS = 20
 MAX_LIST = 5
@@ -143,8 +144,11 @@ class Validator:
                 }
 
         if record.get("mdf-base.material_composition", None):
+            composition = record["mdf-base.material_composition"].replace(" and ", "")
+            for element in DICT_OF_ALL_ELEMENTS.keys():
+                composition = re.sub("(?i)"+element, DICT_OF_ALL_ELEMENTS[element], composition)
             str_of_elem = ""
-            for char in list(record["mdf-base.material_composition"]):
+            for char in list(composition):
                 if char.isupper(): #Uppercase indicates start of new element symbol
                     str_of_elem += " " + char
                 elif char.islower(): #Lowercase indicates continuation of symbol
@@ -153,7 +157,7 @@ class Validator:
 
             list_of_elem = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
             # If any "element" isn't in the periodic table, the entire composition is likely not a chemical formula and should not be parsed
-            if all([elem in LIST_OF_ALL_ELEMENTS for elem in list_of_elem]):
+            if all([elem in DICT_OF_ALL_ELEMENTS.values() for elem in list_of_elem]):
                 record["mdf-base.elements"] = list_of_elem
 
 
