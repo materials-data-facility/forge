@@ -1,6 +1,6 @@
 def parse_tab(in_str, sep=',', headers=[]):
     # Tabular data rows should be delineated by newline
-    in_str = in_str.split('\n')
+    in_str = in_str.strip().split('\n')
     # Infer headers from first line if not provided
     if not headers:
         headers = in_str.pop(0).split(sep)
