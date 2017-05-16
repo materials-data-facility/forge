@@ -1,6 +1,6 @@
-def parse_tab(in_str, sep=',', headers=[]):
+def parse_tab(in_str, sep=',', headers=[], entry_sep="\n"):
     # Tabular data rows should be delineated by newline
-    in_str = in_str.strip().split('\n')
+    in_str = in_str.strip().split(entry_sep)
     # Infer headers from first line if not provided
     if not headers:
         headers = in_str.pop(0).split(sep)
@@ -27,4 +27,5 @@ if __name__ == "__main__":
     print("\theaders: List of headers for the data. Default []")
     print("\t\tIf headers is empty, the headers will be taken from the first line of input.")
     print("\t\tIf there are not enough headers for the data, the extra data will be lost.")
+    print("\tentry_sep: The separator between rows or lines of data. Default newline ('\\n')")
     print("Yields: Each record as a dictionary in the format {header1: value, ..., headerN: value}")
