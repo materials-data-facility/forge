@@ -1,13 +1,16 @@
 import json
+from globus_sdk.response import GlobusHTTPResponse
 # Removes GMeta wrapping
 # Args:
-#   gmeta: Dict (or JSON str) to unwrap
+#   gmeta: Dict (or GlobusHTTPResponse, or JSON str) to unwrap
 #   clean_namespaces: Should the script clean the URL namespaces from dict keys? Default False.
 def gmeta_pop(gmeta, clean_namespaces=False):
     if type(gmeta) is str:
         gmeta = json.loads(gmeta)
+    elif type(gmeta) is GlobusHTTPResponse:
+        gmeta = json.loads(gmeta.text)
     elif type(gmeta) is not dict:
-        raise TypeError("gmeta must be dict or JSON string")
+        raise TypeError("gmeta must be dict, GlobusHTTPResponse, or JSON string")
     results = []
     for res in gmeta["gmeta"]:
         for con in res["content"]:
