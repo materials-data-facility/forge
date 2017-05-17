@@ -20,7 +20,7 @@ def convert(input_path, metadata=None, verbose=False):
         dataset_metadata = {
             "globus_subject": "http://www.west-code.org/database/gwsoc81/index.php",                      # REQ string: Unique value (should be URI if possible)
             "acl": ["public"],                                 # REQ list of strings: UUID(s) of users/groups allowed to access data, or ["public"]
-            "mdf_source_name": "gw_soc_81",                     # REQ string: Unique name for dataset
+            "mdf_source_name": "gw_soc81",                     # REQ string: Unique name for dataset
             "mdf-publish.publication.collection": "GW-SOC81",  # RCM string: Collection the dataset belongs to
 #            "mdf_data_class": ,                      # RCM string: Type of data in all records in the dataset (do not provide for multi-type datasets)
 

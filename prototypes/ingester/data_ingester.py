@@ -155,12 +155,16 @@ if __name__ == "__main__":
             "trinkle_elastic_fe_bcc",
             "oxygen_interstitials_deformation",
             "strain_effects_oxygen",
-            "nrel_pv"
-
-#            "matin_metadata",
-#            "cxidb_metadata",
-#            "materials_commons_metadata",
-#            "nist_mml"
+            "nrel_pv",
+            "jcap_benchmarking_db",
+            "jcap_xps_spectral_db",
+            #"gw100", #Waiting on Search to fix mapping issue (cas_number parsed as date, but inconsistently)
+            "gw_soc81",
+            "fe_cr_al_oxidation",
+            "matin",
+            "cxidb",
+            "materials_commons",
+            "nist_mml"
             ]
         ingest(all_source_names, batch_size=batch_size, verbose=True)
     else:
