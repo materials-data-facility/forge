@@ -1,5 +1,3 @@
-import json
-
 from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
 from globus_sdk.base import BaseClient, merge_params
 
@@ -7,25 +5,25 @@ from globus_sdk.base import BaseClient, merge_params
 class DataSearchClient(BaseClient):
     allowed_authorizer_types = [AccessTokenAuthorizer, RefreshTokenAuthorizer]
 
-    def __init__(self, base_url, default_search_domain=None, **kwargs):
+    def __init__(self, base_url, default_index=None, **kwargs):
         app_name = kwargs.pop('app_name', 'DataSearch Client v0.1')
         BaseClient.__init__(self, "datasearch", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
         self._headers['Content-Type'] = 'application/json'
-        self.default_search_domain = default_search_domain
+        self.default_index = default_index
 
-    def _resolve_uri(self, base_uri, domain):
-        domain = domain or self.default_search_domain
-        if not domain:
+    def _resolve_uri(self, base_uri, index):
+        index = index or self.default_index
+        if not index:
             raise ValueError(
-                ('You must either pass an explicit search_domain '
+                ('You must either pass an explicit index'
                  'or set a default one at the time that you create '
                  'a DataSearchClient'))
-        return '{}/{}'.format(base_uri, domain)
+        return '{}/{}'.format(base_uri, index)
 
     def search(self, q, limit=None, offset=None, resource_type=None,
-               search_domain=None, **params):
+               index=None, advanced=None, **params):
         """
         Perform a simple ``GET`` based search.
 
@@ -38,9 +36,9 @@ class DataSearchClient(BaseClient):
             The user-query string. Required for simple searches (and most
             advanced searches).
 
-          ``search_domain`` (*string*)
-            Optional unless ``default_search_domain`` was not set.
-            The domain to query.
+          ``index`` (*string*)
+            Optional unless ``default_index`` was not set.
+            The index to query.
 
           ``limit`` (*int*)
             Optional. The number of results to return.
@@ -52,34 +50,42 @@ class DataSearchClient(BaseClient):
             Optional. A resource_type name as defined within the DataSearch
             service.
 
+          ``advanced`` (*bool*)
+            Use simple query parsing vs. advanced query syntax when
+            interpreting ``q``. Defaults to False.
+
           ``params``
             Any aditional query params to pass. For internal use only.
         """
-        uri = self._resolve_uri('/v1/search', search_domain)
+        uri = self._resolve_uri('/v1/search', index)
         merge_params(params, q=q, limit=limit, offset=offset,
-                     resource_type=resource_type)
+                     resource_type=resource_type, advanced=advanced)
         return self.get(uri, params=params)
 
-    def advanced_search(self, data, search_domain=None, **params):
+    def structured_search(self, data, index=None, **params):
         """
-        Perform an advanced, ``POST``-based, search.
+        Perform a structured, ``POST``-based, search.
 
         **Parameters**
 
           ``data`` (*dict*)
             A valid GSearchRequest document to execute.
 
-          ``search_domain`` (*string*)
-            Optional unless ``default_search_domain`` was not set.
-            The domain to query.
+          ``index`` (*string*)
+            Optional unless ``default_index`` was not set.
+            The index to query.
+
+          ``advanced`` (*bool*)
+            Use simple query parsing vs. advanced query syntax when
+            interpreting the query string. Defaults to False.
 
           ``params``
             Any aditional query params to pass. For internal use only.
         """
-        uri = self._resolve_uri('/v1/search', search_domain)
+        uri = self._resolve_uri('/v1/search', index)
         return self.post(uri, json_body=data, params=params)
 
-    def ingest(self, data, search_domain=None, **params):
+    def ingest(self, data, index=None, **params):
         """
         Perform a simple ``POST`` based ingest op.
 
@@ -88,12 +94,12 @@ class DataSearchClient(BaseClient):
           ``data`` (*dict*)
             A valid GIngest document to index.
 
-          ``search_domain`` (*string*)
-            Optional unless ``default_search_domain`` was not set.
-            The search domain to send data into.
+          ``index`` (*string*)
+            Optional unless ``default_index`` was not set.
+            The search index to send data into.
 
           ``params``
             Any aditional query params to pass. For internal use only.
         """
-        uri = self._resolve_uri('/v1/ingest', search_domain)
+        uri = self._resolve_uri('/v1/ingest', index)
         return self.post(uri, json_body=data, params=params)

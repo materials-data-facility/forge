@@ -2,8 +2,8 @@ import os
 import os.path
 import json
 import globus_sdk
-from six.moves import input
-from globus_client import DataSearchClient
+
+from .globus_client import DataSearchClient
 
 
 def prompt(s):
@@ -35,7 +35,7 @@ def _interactive_login():
     return tkn.by_resource_server['datasearch.api.globus.org']
 
 
-def login(base_url, default_search_domain):
+def login(base_url, default_index):
     tok_path = os.path.expanduser('~/.globus_datasearch_client_tokens.json')
 
     def _write_tokfile(tokens):
@@ -63,5 +63,5 @@ def login(base_url, default_search_domain):
         on_refresh=_update_tokfile)
 
     return DataSearchClient(
-        base_url, default_search_domain=default_search_domain,
+        base_url, default_index=default_index,
         authorizer=authorizer)
