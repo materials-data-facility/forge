@@ -3,7 +3,7 @@ import os.path
 import json
 import globus_sdk
 
-from .globus_client import DataSearchClient
+from globus_client import DataSearchClient
 
 
 def prompt(s):

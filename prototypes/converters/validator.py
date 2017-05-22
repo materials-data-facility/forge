@@ -11,6 +11,8 @@ DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Ame
 MAX_KEYS = 20
 MAX_LIST = 5
 
+QUOTE_SAFE = ":/?="
+
 #Validator class holds data about a dataset while writing to feedstock
 class Validator:
     #init takes dataset metadata to start processing and save another function call
@@ -123,10 +125,10 @@ class Validator:
         record["mdf_node_type"] = "record"
         record["mdf_source_name"] = self.__mdf_source_name
 
-        record["globus_subject"] = quote(record["globus_subject"], safe=":/")
+        record["globus_subject"] = quote(record["globus_subject"], safe=QUOTE_SAFE)
 
         if record.get("dc.identifier", None):
-            record["dc.identifier"] = quote(record["dc.identifier"], safe=":/")
+            record["dc.identifier"] = quote(record["dc.identifier"], safe=QUOTE_SAFE)
 
         if not record.get("cite_as", None):
             record["cite_as"] = self.__cite_as
@@ -177,7 +179,7 @@ class Validator:
                 if key == "files":
                     new_files = {}
                     for fkey, fvalue in record["data"].pop("files").items():
-                        new_files[fkey] = quote(fvalue, safe=":/")
+                        new_files[fkey] = quote(fvalue, safe=QUOTE_SAFE)
                 else:
                     new_data[key] = record["data"].pop(key)
         for key, value in record.get("data", {}).items():
