@@ -165,7 +165,8 @@ if __name__ == "__main__":
             "cxidb",
             "materials_commons",
             "nist_mml",
-            "nist_xps_db"
+            "nist_xps_db",
+            "amcs"
             ]
         ingest(all_source_names, batch_size=batch_size, verbose=True)
     else:

@@ -1,5 +1,5 @@
 from validator import Validator
-from parsers.ase_parser import parse_ase
+from parsers.pymatgen_parser import parse_pymatgen
 from parsers.utils import find_files
 
 import os
@@ -33,28 +33,40 @@ def convert(input_path, verbose=False):
     
     #Make a Validator to help write the feedstock
     #You can pass the metadata to the constructor
-    dataset_validator = Validator(dataset_metadata)
+    dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     #Get the data
     for cif in tqdm(find_files(root=input_path, file_pattern=".cif", verbose=verbose), desc="Processing files", disable= not verbose):
-        #TODO:FIX
-            cif_data = parse_ase(file_path=os.path.join(cif["path"], cif["filename"]), data_format="cif", verbose=False)
+        cif_data = parse_pymatgen(os.path.join(cif["path"], cif["filename"]))["structure"]
         if cif_data:
             #Each record also needs its own metadata
+            with open(os.path.join(cif["path"], cif["filename"])) as cif_file:
+                cif_file.readline()
+                mineral_name = cif_file.readline().split("'")[1]
+            link = "http://rruff.geo.arizona.edu/AMS/minerals/" + mineral_name
+            clink = "http://rruff.geo.arizona.edu/AMS/xtal_data/CIFfiles/" + cif["filename"]
+            dlink = "http://rruff.geo.arizona.edu/AMS/xtal_data/DIFfiles/" + cif["filename"].replace(".cif", ".txt")
             record_metadata = {
-                "mdf_source_name" : "amcs",
-                "dc.title" : "AMCS - " + cif_data["chemical_formula"],
-                "dc.creator" : "The American Mineralogist Crystal Structure Database",
-                "dc.contributor.author" : ["Downs, R.T.", "Hall-Wallace, M."],
-                "dc.identifier" : "http://rruff.geo.arizona.edu/AMS/minerals/" + cif_data["_chemical_name_mineral"],
+                "globus_subject": clink,
+                "acl": ["public"],
+#                "mdf_source_name" : "amcs",
+                "dc.title" : "AMCS - " + mineral_name,
+#                "dc.creator" : "The American Mineralogist Crystal Structure Database",
+#                "dc.contributor.author" : ["Downs, R.T.", "Hall-Wallace, M."],
+                "dc.identifier" : link,
 #               "dc.subject" : [],
 #               "dc.description" : "",
 #               "dc.relatedidentifier" : [],
-                "dc.year" : 2003,
-                "mdf-base.material_composition" : cif_data["chemical_formula"],
-                "mdf-publish.publication.collection" : "AMCS",
-                "data" : cif_data #This is important: the actual record data (any fields not already here) go here
+#                "dc.year" : 2003,
+                "mdf-base.material_composition" : cif_data["material_composition"],
+#                "mdf-publish.publication.collection" : "AMCS",
+                "data" : {
+                    "files": {
+                        "cif": clink,
+                        "dif": dlink
+                        }
+                    }
                 }
             
             #Pass each individual record to the Validator
@@ -64,6 +76,7 @@ def convert(input_path, verbose=False):
             #If the Validator returns "success" == True, the record was written successfully
             if result["success"] != True:
                 print("Error:", result["message"], ":", result.get("invalid_metadata", ""))
+                raise Exception()
 
     if verbose:
         print("Finished converting")

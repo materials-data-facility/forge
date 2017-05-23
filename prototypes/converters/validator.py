@@ -180,6 +180,7 @@ class Validator:
                     new_files = {}
                     for fkey, fvalue in record["data"].pop("files").items():
                         new_files[fkey] = quote(fvalue, safe=QUOTE_SAFE)
+                    new_data["files"] = new_files
                 else:
                     new_data[key] = record["data"].pop(key)
         for key, value in record.get("data", {}).items():

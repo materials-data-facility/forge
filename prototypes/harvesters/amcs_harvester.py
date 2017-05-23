@@ -46,13 +46,13 @@ def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
             dif_res = None
         cif_res = requests.get(cif_url + str(i).zfill(5) + cif_ext)
         if cif_res.status_code != 200:
-            print("Error", dif_res.status_code, "with diffraction harvest on ID", i)
+            print("Error", dif_res.status_code, "with CIF harvest on ID", i)
             cif_res = None
 
-        if dif_res != None:
+        if dif_res != None and "Can't open file for reading" not in dif_res.text:
             with open(os.path.join(out_dir, str(i).zfill(5) + dif_ext), 'w') as dif_out:
                 dif_out.write(dif_res.text)
-        if cif_res != None:
+        if cif_res != None and "Can't open file for reading" not in cif_res.text:
             with open(os.path.join(out_dir, str(i).zfill(5) + cif_ext), 'w') as cif_out:
                 cif_out.write(cif_res.text)
 
@@ -61,8 +61,4 @@ def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
 
 
 if __name__ == "__main__":
-    amcs_harvest(paths.datasets+"amcs", existing_dir=1, start_id=1, stop_id=101, verbose=True)
-
-
-
-
+    amcs_harvest(paths.datasets+"amcs", existing_dir=-1, start_id=1, stop_id=1000, verbose=True)
