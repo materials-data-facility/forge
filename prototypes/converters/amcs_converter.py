@@ -64,7 +64,8 @@ def convert(input_path, verbose=False):
                 "data" : {
                     "files": {
                         "cif": clink,
-                        "dif": dlink
+                        "dif": dlink,
+                        "web": link
                         }
                     }
                 }

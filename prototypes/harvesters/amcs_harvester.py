@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 import paths
 
+start_num = 1
+end_num = 20001
 base_url = "http://rruff.geo.arizona.edu/AMS/xtal_data/"
 dif_url = base_url + "DIFfiles/"
 dif_ext = ".txt"
@@ -27,6 +29,7 @@ cif_ext = ".cif"
 def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
     if verbose:
         print("Begin harvesting")
+        print("Harvesting IDs ", start_id, "-", stop_id, sep="")
     if os.path.exists(out_dir):
         if existing_dir == 0:
             exit("Directory '" + out_dir + "' exists")
@@ -39,6 +42,10 @@ def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
         os.mkdir(out_dir)
 
     #Fetch records
+    num_cif_fail = 0
+    num_cif_save = 0
+    num_dif_fail = 0
+    num_dif_save = 0
     for i in tqdm(range(start_id, stop_id), desc="Fetching records", disable= not verbose):
         dif_res = requests.get(dif_url + str(i).zfill(5) + dif_ext) #IDs for AMCS are always 5 digits
         if dif_res.status_code != 200:
@@ -49,16 +56,24 @@ def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
             print("Error", dif_res.status_code, "with CIF harvest on ID", i)
             cif_res = None
 
-        if dif_res != None and "Can't open file for reading" not in dif_res.text:
+        if dif_res and "Can't open file for reading" not in dif_res.text:
             with open(os.path.join(out_dir, str(i).zfill(5) + dif_ext), 'w') as dif_out:
                 dif_out.write(dif_res.text)
-        if cif_res != None and "Can't open file for reading" not in cif_res.text:
+            num_dif_save += 1
+        else:
+            num_dif_fail += 1
+        if cif_res and "Can't open file for reading" not in cif_res.text:
             with open(os.path.join(out_dir, str(i).zfill(5) + cif_ext), 'w') as cif_out:
                 cif_out.write(cif_res.text)
+            num_cif_save += 1
+        else:
+            num_cif_fail += 1
 
     if verbose:
         print("End harvesting")
+        print("CIFs:", num_cif_save, "saved,", num_cif_fail, "failed.")
+        print("DIFs:", num_dif_save, "saved,", num_dif_fail, "failed.")
 
 
 if __name__ == "__main__":
-    amcs_harvest(paths.datasets+"amcs", existing_dir=-1, start_id=1, stop_id=1000, verbose=True)
+    amcs_harvest(paths.datasets+"amcs", existing_dir=-1, start_id=start_num, stop_id=end_num, verbose=True)
