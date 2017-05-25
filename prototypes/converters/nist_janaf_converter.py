@@ -64,8 +64,8 @@ def convert(input_path, verbose=False):
             "data": {
 #                "raw": ,
 #                "files": 
-                'state': "".join([data["state definitions"][st] + ", " for st in data['identifiers']['state'].split(",")]),
-                'cas': data['identifiers']['cas registry number']
+                'state': "".join([data["state definitions"][st] + ", " for st in data['identifiers']['state'].split(",")])
+#                'cas': data['identifiers']['cas registry number']
                 }
             }
 

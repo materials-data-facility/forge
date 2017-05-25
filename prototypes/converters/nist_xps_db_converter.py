@@ -85,8 +85,8 @@ def convert(input_path, metadata=None, verbose=False):
 #            "dc.year": ,
 
             "data": {
-                "raw": json.dumps(record),
-                "cas_number": record["CAS Registry No"]
+                "raw": json.dumps(record)
+#                "cas_number": record["CAS Registry No"]
 #                "files": 
                 }
             }

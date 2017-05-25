@@ -1,9 +1,9 @@
+import os
+from tqdm import tqdm
 from validator import Validator
 from parsers.pymatgen_parser import parse_pymatgen
 from parsers.utils import find_files
 
-import os
-from tqdm import tqdm
 
 #This is a converter for the American Mineralogist Crystal Structure Database
 #Arguments:

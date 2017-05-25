@@ -10,7 +10,7 @@ from tqdm import tqdm
 import paths
 
 start_num = 1
-end_num = 20001
+end_num = 20573
 base_url = "http://rruff.geo.arizona.edu/AMS/xtal_data/"
 dif_url = base_url + "DIFfiles/"
 dif_ext = ".txt"
