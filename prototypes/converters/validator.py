@@ -11,7 +11,7 @@ DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Ame
 MAX_KEYS = 20
 MAX_LIST = 5
 
-QUOTE_SAFE = ":/?="
+QUOTE_SAFE = ":/?=#"
 
 #Validator class holds data about a dataset while writing to feedstock
 class Validator:
