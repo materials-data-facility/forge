@@ -153,6 +153,7 @@ if __name__ == "__main__":
             'matin',
             'nanomine',
             'nist_atom_weight_iso_comp',
+            'nist_heat_transmission',
             'nist_ip',
             'nist_janaf',
             'nist_mml',
