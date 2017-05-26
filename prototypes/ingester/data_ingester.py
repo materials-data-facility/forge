@@ -157,6 +157,7 @@ if __name__ == "__main__":
             'nist_ip',
             'nist_janaf',
             'nist_mml',
+            'nist_th_ar_lamp_spectrum',
             'nist_xps_db',
             'nist_xray_tran_en_db',
             'nrel_pv',
