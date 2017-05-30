@@ -1,14 +1,13 @@
 *.pyc
 *.swp
+*.swo
 *_json.pickle
 *.json
 *.ipynb_checkpoints
 Untitled*.ipynb
 
-prototypes/feedstock/*
-prototypes/feedstock
-prototypes/datasets/*
-prototypes/datasets
+feedstock/*
+feedstock
+datasets/*
+datasets
 
-
-*.swo

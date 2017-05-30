@@ -2,6 +2,7 @@ import json
 import sys
 from validator import Validator
 
+# VERSION 0.1.0
 
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
@@ -29,6 +30,7 @@ def convert(input_path, metadata=None, verbose=False):
 
 #            "cite_as": ,                             # REQ list of strings: Complete citation(s) for this dataset.
 #            "license": ,                             # RCM string: License to use the dataset (preferrably a link to the actual license).
+#            "mdf_version": ,                         # REQ string: The metadata version in use (see VERSION above).
 
 #            "dc.title": ,                            # REQ string: Title of dataset
 #            "dc.creator": ,                          # REQ string: Owner of dataset

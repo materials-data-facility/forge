@@ -280,6 +280,11 @@ def validate_metadata(metadata, entry_type, strict=False):
                 "req": False,
                 "type": str
                 },
+            "mdf_version": {
+#                "req": True,
+                "req": False,
+                "type": str
+                },
             "dc.title": {
                 "req": True,
                 "type": str
