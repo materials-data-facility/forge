@@ -1,6 +1,6 @@
 import mysql.connector
 from sys import exit
-from json import load
+import json
 from tqdm import tqdm
 from chemspipy import ChemSpider
 from validator import Validator
@@ -44,7 +44,7 @@ def convert(login_file, verbose=False):
     query = "SELECT r.doi, r.type, r.temperature, r.tempunit, r.chinumber, r.chierror, r.chia, r.chiaerror, r.chib, r.chiberror, r.chic, r.chicerror, r.notes, r.indirect, r.reference, r.compound1, r.compound2, p.authors, p.date, r.id FROM reviewed_chis r JOIN papers p ON p.doi = r.doi"
 
     with open(login_file) as login_in:
-        login = load(login_in)
+        login = json.load(login_in)
     try:
         conn = mysql.connector.connect(user=login["user"], password=login["password"], database=login["database"])
     except Exception as e:
@@ -96,7 +96,7 @@ def convert(login_file, verbose=False):
         record_metadata = {
             "globus_subject": "http://pppdb.uchicago.edu&id="+str(record["pppdb_id"]),
             "acl": ["public"],
-            "mdf-publish.publication.collection": "Polymer Property Predictor and Database",
+#            "mdf-publish.publication.collection": "Polymer Property Predictor and Database",
 #            "mdf_data_class": ,
             "mdf-base.material_composition": chem1 + " " + chem2,
 
@@ -110,7 +110,7 @@ def convert(login_file, verbose=False):
             "dc.year": int(str(record["date"])[-4:]),
 
             "data": {
-#                "raw": ,
+                "raw": json.dumps(record),
 #                "files": {}
                 }
             }
