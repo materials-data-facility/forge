@@ -21,7 +21,7 @@ class Validator:
         self.__dataset_id = None
         self.__mdf_source_name = None
         self.__uris = []
-
+        self.__scroll_id = 0
         self.__strict = strict
 
         res = self.__write_metadata(metadata)
@@ -87,10 +87,10 @@ class Validator:
                 "warnings": md_val.get("warnings", [])
                 }
 
-        except:
+        except Exception as e:
             return {
                 "success": False,
-                "message": "Error: Bad metadata"
+                "message": "Error: Bad metadata: " + repr(e)
                 }
 
     #Output single record to feedstock
@@ -120,6 +120,8 @@ class Validator:
             self.__uris.append(record["globus_subject"])
 
         # Copy/set non-user-settable metadata and dataset defaults
+        record["globus_scroll_id"] = self.__scroll_id
+        self.__scroll_id += 1
         record["mdf_id"] = str(ObjectId())
         record["parent_id"] = self.__dataset_id
         record["mdf_node_type"] = "record"
@@ -184,7 +186,7 @@ class Validator:
                 else:
                     new_data[key] = record["data"].pop(key)
         for key, value in record.get("data", {}).items():
-            new_data[self.__mdf_source_name + ":" + key] = value
+            new_data[self.__mdf_source_name + "-" + key] = value
         if new_data:
             record["data"] = new_data
 

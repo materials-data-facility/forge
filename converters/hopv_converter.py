@@ -126,7 +126,8 @@ def convert(input_path, verbose=False):
 #                "dc.year": ,
 
                 "data": {
-#                    "raw": str(molecule),
+#                    "raw": json.dumps(molecule),
+                    "experimental_data": json.dumps(molecule["experimental_data"]),
                     "files": {
                         "molecule": uri,
                         "original": "https://data.materialsdatafacility.org/collections/hopv/HOPV_15_revised_2.data"
