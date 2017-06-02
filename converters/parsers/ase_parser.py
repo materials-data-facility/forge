@@ -439,9 +439,53 @@ def parse_ase(file_path, data_format=None, verbose=False):
 
 
 if __name__ == "__main__":
+    import json
+    ase_template = {
+#       "constraints" : None,
+        "all_distances" : None,
+        "angular_momentum" : None,
+        "atomic_numbers" : None,
+        "cell" : None,
+        "cell_lengths_and_angles" : None,
+        "celldisp" : None,
+        "center_of_mass" : None,
+        "charges" : None,
+        "chemical_formula" : None,
+        "chemical_symbols" : None,
+        "dipole_moment" : None,
+        "forces" : None,
+#       "forces_raw" : None,
+        "initial_charges" : None,
+        "initial_magnetic_moments" : None,
+        "kinetic_energy" : None,
+        "magnetic_moment" : None,
+        "magnetic_moments" : None,
+        "masses" : None,
+        "momenta" : None,
+        "moments_of_inertia" : None,
+        "number_of_atoms" : None,
+        "pbc" : None,
+        "positions" : None,
+        "potential_energies" : None,
+        "potential_energy" : None,
+#       "potential_energy_raw" : None,
+        "reciprocal_cell" : None,
+        "scaled_positions" : None,
+        "stress" : None,
+        "stresses" : None,
+        "tags" : None,
+        "temperature" : None,
+        "total_energy" : None,
+        "velocities" : None,
+        "volume" : None,
+        }
     print("\nThis is the parser for ASE-readable data.")
     print("USAGE:\n\nparse_ase(file_path, data_format=None, verbose=False)")
     print("Arguments:\n\tfile_path: Path to the data file (or directory for VASP)")
     print("\tdata_format: Type of data found at the end of the path. If None, ASE will attempt to guess the format. Default None")
     print("\tverbose: Print status messages? Default False\n")
+    print("\nReturns:\n\tIf VASP format data: {'frames': a_list_of_ase_dicts}")
+    print("\tIf another format: A single ASE dict.")
+    print("\tAn ASE dictionary can contain the following keys (but is not guaranteed to):")
+    print(json.dumps(list(ase_template.keys()), sort_keys=True, indent=4, separators=(',', ': ')))
 

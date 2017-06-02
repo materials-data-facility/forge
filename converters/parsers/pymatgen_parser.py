@@ -37,5 +37,6 @@ if __name__ == "__main__":
     print("\tstructure: Try to parse as a Structure? Default True.")
     print("\tmolecule: Try to parse as a Molecule? Default True.")
     print("Returns: A dictionary containing the parsed data in the form {'structure': structure_data, 'molecule': molecule_data}.")
+    print("\tThe data for both types is currently as follows: {'material_composition': composition}")
     print("\tThe return dictionary will always have exactly the parse arguments that are True.")
     print("\tIf the file cannot parse as a given type, the value will be an empty dictionary.")
