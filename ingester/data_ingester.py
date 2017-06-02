@@ -139,6 +139,7 @@ if __name__ == "__main__":
             'amcs',
             'cip',
             'core_mof',
+            'cp_complexes',
             'cxidb',
             'doak_strain_energies',
             'fe_cr_al_oxidation',
