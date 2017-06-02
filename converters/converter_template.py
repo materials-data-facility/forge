@@ -7,7 +7,7 @@ from validator import Validator
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
-#   metadata (string or dict): The path to the JSON dataset metadata file, a dict containing the dataset metadata, or None to specify the metadata here. Default None.
+#   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata, or None to specify the metadata here. Default None.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
 #       NOTE: The converter should have NO output if verbose is False, unless there is an error.
 def convert(input_path, metadata=None, verbose=False):
@@ -43,10 +43,13 @@ def convert(input_path, metadata=None, verbose=False):
             }
     elif type(metadata) is str:
         try:
-            with open(metadata, 'r') as metadata_file:
-                dataset_metadata = json.load(metadata_file)
-        except Exception as e:
-            sys.exit("Error: Unable to read metadata: " + repr(e))
+            dataset_metadata = json.loads(metadata)
+        except Exception:
+            try:
+                with open(metadata, 'r') as metadata_file:
+                    dataset_metadata = json.load(metadata_file)
+            except Exception as e:
+                sys.exit("Error: Unable to read metadata: " + repr(e))
     elif type(metadata) is dict:
         dataset_metadata = metadata
     else:

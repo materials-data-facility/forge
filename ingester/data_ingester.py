@@ -170,6 +170,7 @@ if __name__ == "__main__":
             'ti_o_fitting_db',
             'ti_o_meam_model',
             'trinkle_elastic_fe_bcc',
+            'uci_steel_annealing', #Metadata only
             'xafs_sl'
             ]
         ingest(all_source_names, batch_size=batch_size, verbose=True)
