@@ -11,3 +11,5 @@ feedstock
 datasets/*
 datasets
 
+!*schema.json
+
