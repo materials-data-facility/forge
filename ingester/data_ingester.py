@@ -165,6 +165,7 @@ if __name__ == "__main__":
             'oqmd',
             'oxygen_interstitials_deformation',
             'pppdb',
+            'quinary_alloys',
             'qm_mdt_c',
             'sluschi',
             'strain_effects_oxygen',
