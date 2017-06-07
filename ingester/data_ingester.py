@@ -76,8 +76,8 @@ def format_gmeta(data):
         gmeta = {
             "@datatype": "GMetaEntry",
             "@version": "2016-11-09",
-            "subject": data.pop("globus_subject"),
-            "visible_to": data.pop("acl"),
+            "subject": data["mdf-links"]["mdf-landing_page"],
+            "visible_to": data.pop("mdf-acl"),
             "content": data
             }
 
