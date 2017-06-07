@@ -220,7 +220,7 @@ class Validator:
         # Fields requiring special processing
         # mdf-tags (combine dataset and record)
         if self.__tags:
-            record["mdf-tags"] = record.get("mdf-tags", []) + self.__tags
+            record["mdf-tags"] = list(set(record.get("mdf-tags", []) + self.__tags))
 
         # mdf-links
         record_links = self.__links or {}
@@ -228,6 +228,8 @@ class Validator:
         # mdf-parent_id
         record_links["mdf-parent_id"] = self.__parent_id
         # mdf-landing_page
+        if not record_links.get("mdf-landing_page", None):
+            record_links["mdf-landing_page"] = self.__landing_pages[0]
         if record_links.get("mdf-landing_page") in self.__landing_pages:
             record_links["mdf-landing_page"] += str(self.__scroll_id)
         self.__landing_pages.append(record_links.get("mdf-landing_page"))
