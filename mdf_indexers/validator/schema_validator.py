@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 import jsonschema
 from bson import ObjectId
-import paths
+from ..utils import paths
 
 ##################
 VERSION = "0.2.0"
@@ -28,9 +28,9 @@ class Validator:
 
         self.__schemas = {}
         try:
-            for item in os.listdir(paths.schemas):
-                if os.path.isfile(os.path.join(paths.schemas, item)) and item.endswith(".json"):
-                    self.__schemas[item.replace(".json", "")] = json.load(os.path.join(paths.schemas, item))
+            for item in os.listdir(paths.to_schemas):
+                if os.path.isfile(os.path.join(paths.to_schemas, item)) and item.endswith(".json"):
+                    self.__schemas[item.replace(".json", "")] = json.load(os.path.join(paths.to_schemas, item))
         except Exception as e:
             raise
 

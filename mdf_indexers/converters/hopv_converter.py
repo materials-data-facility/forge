@@ -1,9 +1,8 @@
 import json
-from validator import Validator
+from ..validator.schema_validator import Validator
 
-import paths
+from ..utils import paths
 
-base_file = paths.datasets+"hopv/"
 
 # This is the converter for the Harvard Organic Photovoltaic Database.
 # Arguments:
@@ -152,10 +151,3 @@ def convert(input_path, verbose=False):
 
     if verbose:
         print("Finished converting")
-
-
-# Optionally, you can have a default call here for testing
-# The convert function may not be called in this way, so code here is primarily for testing
-if __name__ == "__main__":
-    import paths
-    convert(paths.datasets + "hopv/HOPV_15_revised_2.data", True)

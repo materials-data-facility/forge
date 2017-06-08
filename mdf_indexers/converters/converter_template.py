@@ -88,10 +88,8 @@ def convert(input_path, metadata=None, verbose=False):
     #    Each record should be exactly one dictionary
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
-
-    # Each record also needs its own metadata
+    #    Each record also needs its own metadata
     for record in your_records:
-        # TODO: Fill in these dictionary fields for each record
         # Fields can be:
         #    REQ (Required, must be present)
         #    RCM (Recommended, should be present if possible)
