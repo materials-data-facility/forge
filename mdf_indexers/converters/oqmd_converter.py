@@ -65,7 +65,6 @@ def convert(input_path, metadata=None, verbose=False):
             if len(pair) > 1:
                 lookup[pair[0]] = pair[1]
 
-    count = 1
     for filename in tqdm(os.listdir(os.path.join(input_path, "metadata-files")), desc="Processing files", disable= not verbose):
         full_path = os.path.join(input_path, "metadata-files", filename)
         if os.path.isfile(full_path):
@@ -74,7 +73,6 @@ def convert(input_path, metadata=None, verbose=False):
             metadata_path = lookup.get(filename.split(".")[0], "None").replace("//", "/").strip()
             outcar_path = os.path.join(os.path.dirname(metadata_path)) if metadata_path != "None" else "Unavailable"
             record_metadata = {
-                "scroll_id": count,
                 "globus_subject": record["url"],
                 "acl": ["public"],
 #                "mdf-publish.publication.collection": ,
@@ -101,20 +99,20 @@ def convert(input_path, metadata=None, verbose=False):
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "https_server": "https://data.materialsdatafacility.org"
                         },
-                    "band gap": record["band_gap"],
+                    "band gap": record["band_gap"]["value"],
                     "configuration": record["configuration"],
-                    "converged": record["converged"]
+                    "converged": record["converged"],
+                    "stability": record["stability_data"]["stability"]["value"],
+                    "crossreference": record["crossreference"]
                     }
                 }
             # Enter values that may be missing
             if record.get("magnetic moment", None):
                 record_metadata["data"]["magnetic moment"] = record["magnetic moment"]
-            if record.get("stability_data", None):
-                record_metadata["data"]["stability_data"] = record["stability_data"]
+#            if record.get("stability_data", None):
+#                record_metadata["data"]["stability_data"] = record["stability_data"]
             if record.get("total energy", None):
                 record_metadata["data"]["total energy"] = record["total energy"]
-
-            count += 1
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)
