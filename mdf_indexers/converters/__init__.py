@@ -1,1 +1,0 @@
-PATH_DATASETS = "../datasets/"

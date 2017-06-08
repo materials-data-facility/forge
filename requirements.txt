@@ -1,6 +1,17 @@
-ase>=3.13.0
+# General framework requirements
 globus-sdk>=0.5.1
 jsonschema>=2.6.0
-pymatgen>=4.7.3
 pymongo>=3.4.0
 tqdm>=4.11.2
+
+# Requirements specifically for harvesters, converters, and parsers
+ase>=3.13.0
+beautifulsoup4>=4.6.0
+chemspipy>=1.0.5
+mysql.connector>=2.1.4
+psycopg2>=2.7.1
+pymatgen>=4.7.3
+requests>=2.13.0
+xlrd>=1.0.0
+xmltodict>=0.10.2
+
