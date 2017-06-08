@@ -1,0 +1,6 @@
+ase>=3.13.0
+globus-sdk>=0.5.1
+jsonschema>=2.6.0
+pymatgen>=4.7.3
+pymongo>=3.4.0
+tqdm>=4.11.2
