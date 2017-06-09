@@ -76,7 +76,7 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable=not verbose):
         data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp")
         if data:
-            uri = "https://data.materialsdatafacility.org/collections/" + data_file["no_root_path"] + "/" + data_file["filename"]
+            uri = "https://data.materialsdatafacility.org/collections/" + "bfcc-13/bfcc-13/" + data_file["no_root_path"] + "/" + data_file["filename"]
             # Fields can be:
             #    REQ (Required, must be present)
             #    RCM (Recommended, should be present if possible)
