@@ -4,10 +4,14 @@ import re
 from datetime import datetime
 import jsonschema
 from bson import ObjectId
+
 from ..utils import paths
 
+PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
+PATH_SCHEMAS = paths.get_path(__file__, "schemas")
+
 ##################
-VERSION = "0.2.0"
+VALIDATOR_VERSION = "0.2.0"
 ##################
 
 DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Americium": "Am", "Argon": "Ar", "Arsenic": "As", "Astatine": "At", "Gold": "Au", "Boron": "B", "Barium": "Ba", "Beryllium": "Be", "Bohrium": "Bh", "Bismuth": "Bi", "Berkelium": "Bk", "Bromine": "Br", "Carbon": "C", "Calcium": "Ca", "Cadmium": "Cd", "Cerium": "Ce", "Californium": "Cf", "Chlorine": "Cl", "Curium": "Cm", "Copernicium": "Cn", "Cobalt": "Co", "Chromium": "Cr", "Cesium": "Cs", "Copper": "Cu", "Dubnium": "Db", "Darmstadtium": "Ds", "Dysprosium": "Dy", "Erbium": "Er", "Einsteinium": "Es", "Europium": "Eu", "Fluorine": "F", "Iron": "Fe", "Flerovium": "Fl", "Fermium": "Fm", "Francium": "Fr", "Gallium": "Ga", "Gadolinium": "Gd", "Germanium": "Ge", "Hydrogen": "H", "Helium": "He", "Hafnium": "Hf", "Mercury": "Hg", "Holmium": "Ho", "Hassium": "Hs", "Iodine": "I", "Indium": "In", "Iridium": "Ir", "Potassium": "K", "Krypton": "Kr", "Lanthanum": "La", "Lithium": "Li", "Lawrencium": "Lr", "Lutetium": "Lu", "Livermorium": "Lv", "Mendelevium": "Md", "Magnesium": "Mg", "Manganese": "Mn", "Molybdenum": "Mo", "Meitnerium": "Mt", "Nitrogen": "N", "Sodium": "Na", "Niobium": "Nb", "Neodymium": "Nd", "Neon": "Ne", "Nickel": "Ni", "Nobelium": "No", "Neptunium": "Np", "Oxygen": "O", "Osmium": "Os", "Phosphorus": "P", "Protactinium": "Pa", "Lead": "Pb", "Palladium": "Pd", "Promethium": "Pm", "Polonium": "Po", "Praseodymium": "Pr", "Platinum": "Pt", "Plutonium": "Pu", "Radium": "Ra", "Rubidium": "Rb", "Rhenium": "Re", "Rutherfordium": "Rf", "Roentgenium": "Rg", "Rhodium": "Rh", "Radon": "Rn", "Ruthenium": "Ru", "Sulfur": "S", "Antimony": "Sb", "Scandium": "Sc", "Selenium": "Se", "Seaborgium": "Sg", "Silicon": "Si", "Samarium": "Sm", "Tin": "Sn", "Strontium": "Sr", "Tantalum": "Ta", "Terbium": "Tb", "Technetium": "Tc", "Tellurium": "Te", "Thorium": "Th", "Titanium": "Ti", "Thallium": "Tl", "Thulium": "Tm", "Uranium": "U", "Ununoctium": "Uuo", "Ununpentium": "Uup", "Ununseptium": "Uus", "Ununtrium": "Uut", "Vanadium": "V", "Tungsten": "W", "Xenon": "Xe", "Yttrium": "Y", "Ytterbium": "Yb", "Zinc": "Zn", "Zirconium": "Zr"}
@@ -19,18 +23,23 @@ MAX_LIST = 5
 #Validator class holds data about a dataset while writing to feedstock
 class Validator:
     #init takes dataset metadata to start processing and save another function call
-    def __init__(self, metadata, node_type="dataset", strict=False):
+    def __init__(self, metadata=None, node_type="dataset", version=VALIDATOR_VERSION):
+        if not metadata:
+            raise ValueError("You must specify the metadata for this " + node_type)
+        if version != VALIDATOR_VERSION:
+            print("Caution: You are using the", VALIDATOR_VERSION, "version of the Validator for metadata in version", version, "which could cause errors.")
         self.__initialized = False
         self.__landing_pages = []
-        self.__strict = strict
+        self.__version = version
 ################################
         self.__scroll_id = 0
 
         self.__schemas = {}
         try:
-            for item in os.listdir(paths.to_schemas):
-                if os.path.isfile(os.path.join(paths.to_schemas, item)) and item.endswith(".json"):
-                    self.__schemas[item.replace(".json", "")] = json.load(os.path.join(paths.to_schemas, item))
+            for item in os.listdir(PATH_SCHEMAS):
+                if os.path.isfile(os.path.join(PATH_SCHEMAS, item)) and item.endswith(".schema") and version in item:
+                    with open(os.path.join(PATH_SCHEMAS, item)) as in_schema:
+                        self.__schemas[item.split("_")[0]] = json.load(in_schema)
         except Exception as e:
             raise
 
@@ -71,7 +80,7 @@ class Validator:
         metadata["mdf-node_type"] = node_type
 
         # mdf-metadata_version
-        metadata["mdf-metadata_version"] = VERSION
+        metadata["mdf-metadata_version"] = self.__version
 
         # mdf-ingest_date
         metadata["mdf-ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
@@ -80,10 +89,11 @@ class Validator:
         # Validate metadata
         try:
             jsonschema.validate(metadata, self.__schemas[node_type])
-        except ValidationError as e:
+        except jsonschema.ValidationError as e:
            return {
                 "success": False,
-                "message": "Invalid metadata: " + e
+                "message": "Invalid metadata: " + str(e).split("\n")[0],
+                "details": str(e)
                 }
 
 
@@ -130,7 +140,7 @@ class Validator:
 
 
         # Open feedstock file for the first time and write metadata entry
-        feedstock_path = paths.feedstock + metadata["mdf_source_name"] + "_all.json"
+        feedstock_path = os.path.join(PATH_FEEDSTOCK,  self.__source_name + "_all.json")
         try:
             self.__feedstock = open(feedstock_path, 'w')
             json.dump(metadata, self.__feedstock)
@@ -170,7 +180,7 @@ class Validator:
         record["mdf-node_type"] = node_type
 
         # mdf-metadata_version
-        record["mdf-metadata_version"] = VERSION
+        record["mdf-metadata_version"] = self.__version
 
         # mdf-ingest_date
         record["mdf-ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
@@ -261,10 +271,11 @@ class Validator:
         # Validate metadata
         try:
             jsonschema.validate(record, self.__schemas[node_type])
-        except ValidationError as e:
+        except jsonschema.ValidationError as e:
            return {
                 "success": False,
-                "message": "Invalid metadata: " + e
+                "message": "Invalid metadata: " + str(e).split("\n")[0],
+                "details": str(e)
                 }
 
 
