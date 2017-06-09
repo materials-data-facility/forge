@@ -22,11 +22,11 @@ def convert(input_path, metadata=None, verbose=False):
     #    RCM (Recommended, should be present if possible)
     #    OPT (Optional, can be present if useful)
     if not metadata:
-        # BEGIN DATASET METADATA
+        ## Metadata:Dataset
         dataset_metadata = {
             #
             }
-        # END DATASET METADATA
+        ## End metadata
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -63,9 +63,11 @@ def convert(input_path, metadata=None, verbose=False):
         #    REQ (Required, must be present)
         #    RCM (Recommended, should be present if possible)
         #    OPT (Optional, can be present if useful)
+        ## Metadata:Record
         record_metadata = {
             #
             }
+        ## End metadata
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
