@@ -19,16 +19,12 @@ def convert(input_path, metadata=None, verbose=False):
         print("Begin converting")
 
     # Collect the metadata
-    # Fields can be:
-    #    REQ (Required, must be present)
-    #    RCM (Recommended, should be present if possible)
-    #    OPT (Optional, can be present if useful)
     if not metadata:
         dataset_metadata = {
             "globus_subject": "http://qmml.org/datasets.html#gdb9-14",
             "acl": ["public"],
             "mdf_source_name": "gdb9-14",
-            "mdf-publish.publication.collection": "134k small organic molecules, in their ground states, with energetic, electronic and thermodynamic properties",
+            "mdf-publish.publication.collection": "gdb9-14",
 #            "mdf_data_class": ,
 
             "cite_as": ["Raghunathan Ramakrishnan, Pavlo Dral, Matthias Rupp, O. Anatole von Lilienfeld: Quantum Chemistry Structures and Properties of 134 kilo Molecules, Scientific Data 1: 140022, 2014."],
@@ -63,9 +59,9 @@ def convert(input_path, metadata=None, verbose=False):
     # Make a Validator to help write the feedstock
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
-    dataset_validator = Validator(dataset_metadata, strict=False)
+    #dataset_validator = Validator(dataset_metadata, strict=False)
     # You can also force the Validator to treat warnings as errors with strict=True
-    #dataset_validator = Validator(dataset_metadata, strict=True)
+    dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     # Get the data
@@ -76,17 +72,17 @@ def convert(input_path, metadata=None, verbose=False):
     # Each record also needs its own metadata
     for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
         record = parse_pymatgen(os.path.join(data_file["path"], data_file["filename"]))
-        # Fields can be:
-        #    REQ (Required, must be present)
-        #    RCM (Recommended, should be present if possible)
-        #    OPT (Optional, can be present if useful)
-        uri = "https://data.materialsdatafacility.org/collections/" + data_file["no_root_path"] + "/" + data_file["filename"]
+        if record["structure"]:
+            comp = record["structure"]["material_composition"]
+        elif record["molecule"]:
+            comp = record["molecule"]["material_composition"]
+        uri = "https://data.materialsdatafacility.org/collections/" + "gdb9-14/" + data_file["no_root_path"] + "/" + data_file["filename"]
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
 #            "mdf-publish.publication.collection": ,
 #            "mdf_data_class": ,
-#            "mdf-base.material_composition": ,
+            "mdf-base.material_composition": comp,
 
 #            "cite_as": ,
 #            "license": ,
