@@ -18,16 +18,12 @@ def convert(input_path, metadata=None, verbose=False):
         print("Begin converting")
 
     # Collect the metadata
-    # Fields can be:
-    #    REQ (Required, must be present)
-    #    RCM (Recommended, should be present if possible)
-    #    OPT (Optional, can be present if useful)
     if not metadata:
         dataset_metadata = {
             "globus_subject": "https://doi.org/10.5281/zenodo.6951",
             "acl": ["public"],
             "mdf_source_name": "mpi_mainz",
-            "mdf-publish.publication.collection": "The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules",
+            "mdf-publish.publication.collection": "UV/VIS Spectral Atlas",
             "mdf_data_class": "UV/VIS",
 
             "cite_as": ["Keller-Rudek, H. M.-P. I. for C. M. G., Moortgat, G. K. M.-P. I. for C. M. G., Sander, R. M.-P. I. for C. M. G., & Sörensen, R. M.-P. I. for C. M. G. (2013). The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules [Data set]. Zenodo. http://doi.org/10.5281/zenodo.6951,"],                             # REQ list of strings: Complete citation(s) for this dataset.
@@ -62,9 +58,9 @@ def convert(input_path, metadata=None, verbose=False):
     # Make a Validator to help write the feedstock
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
-    dataset_validator = Validator(dataset_metadata, strict=False)
+    #dataset_validator = Validator(dataset_metadata, strict=False)
     # You can also force the Validator to treat warnings as errors with strict=True
-    #dataset_validator = Validator(dataset_metadata, strict=True)
+    dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     # Get the data
@@ -73,17 +69,21 @@ def convert(input_path, metadata=None, verbose=False):
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
 
     # Each record also needs its own metadata
-    for file_data in tqdm(find_files(input_path, ".txt"), desc="Processing files", disable=not verbose):
-        with open(os.path.join(file_data["path"], file_data["filename"]), 'r', errors='ignore') as raw_in:
+    for data_file in tqdm(find_files(input_path, ".txt"), desc="Processing files", disable=not verbose):
+        with open(os.path.join(data_file["path"], data_file["filename"]), 'r', errors='ignore') as raw_in:
             record = raw_in.read()
-        in1 = file_data["filename"].find("_")
-        comp = file_data["filename"][:in1]
-        # Fields can be:
-        #    REQ (Required, must be present)
-        #    RCM (Recommended, should be present if possible)
-        #    OPT (Optional, can be present if useful)
+        #Get the composition
+        in1 = data_file["filename"].find("_")
+        comp = data_file["filename"][:in1]
+        #Get the temperature
+        later = data_file["filename"][in1+1:]
+        second = later.find("_")
+        last = later[second+1:]
+        third = last.find("_")
+        temp = last[:third-1]
+        uri = "https://data.materialsdatafacility.org/collections/" + "mpi_mainz/" + data_file["no_root_path"] + "/" + data_file["filename"]
         record_metadata = {
-            "globus_subject": "https://doi.org/10.5281/zenodo.6951#" + file_data["filename"],
+            "globus_subject": uri,
             "acl": ["public"],
 #            "mdf-publish.publication.collection": ,
 #            "mdf_data_class": ,
@@ -92,7 +92,7 @@ def convert(input_path, metadata=None, verbose=False):
 #            "cite_as": ,
 #            "license": ,
 
-            "dc.title": "mpi_mainz - " + file_data["filename"],
+            "dc.title": "mpi_mainz - " + data_file["filename"],
 #            "dc.creator": ,
 #            "dc.identifier": ,
 #            "dc.contributor.author": ,
@@ -102,10 +102,12 @@ def convert(input_path, metadata=None, verbose=False):
 #            "dc.year": ,
 
             "data": {
-                "raw": record,
+#                "raw": record,
 #                "files": ,
-
-                # other
+                "temperature": {
+                    "value": temp,
+                    "unit" : "K"
+                }
                 }
             }
 
@@ -136,4 +138,4 @@ def convert(input_path, metadata=None, verbose=False):
 # The convert function may not be called in this way, so code here is primarily for testing
 if __name__ == "__main__":
     import paths
-    convert(paths.datasets+"uv-vis-spectral-atlas-2013-06-24", verbose=True)
+    convert(paths.datasets+"mpi_mainz", verbose=True)

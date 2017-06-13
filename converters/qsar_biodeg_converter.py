@@ -17,16 +17,12 @@ def convert(input_path, metadata=None, verbose=False):
         print("Begin converting")
 
     # Collect the metadata
-    # Fields can be:
-    #    REQ (Required, must be present)
-    #    RCM (Recommended, should be present if possible)
-    #    OPT (Optional, can be present if useful)
     if not metadata:
         dataset_metadata = {
             "globus_subject": "https://archive.ics.uci.edu/ml/datasets/QSAR+biodegradation",
             "acl": ["public"],
             "mdf_source_name": "qsar_biodeg",
-            "mdf-publish.publication.collection": "QSAR biodegradation Data Set",
+            "mdf-publish.publication.collection": "QSAR Biodegradation Data Set",
             "mdf_data_class": "csv",
 
             "cite_as": ["Mansouri, K., Ringsted, T., Ballabio, D., Todeschini, R., Consonni, V. (2013). Quantitative Structure - Activity Relationship models for ready biodegradability of chemicals. Journal of Chemical Information and Modeling, 53, 867-878", "Lichman, M. (2013). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science."],
@@ -61,16 +57,16 @@ def convert(input_path, metadata=None, verbose=False):
     # Make a Validator to help write the feedstock
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
-    dataset_validator = Validator(dataset_metadata, strict=False)
+    #dataset_validator = Validator(dataset_metadata, strict=False)
     # You can also force the Validator to treat warnings as errors with strict=True
-    #dataset_validator = Validator(dataset_metadata, strict=True)
+    dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     # Get the data
     #    Each record should be exactly one dictionary
     #    It is recommended that you convert your records one at a time, but it is possible to put them all into one big list (see below)
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
-    i=0
+    i=1
     headers = ["SpMax_L", "J_Dz(e)", "nHM", "F01[N-N]", "F04[C-N]", "NssssC", "nCb-", "C%", "nCp", "nO", "F03[C-N]", "SdssC", "HyWi_B(m)", "LOC", " SM6_L", "F03[C-O]", "Me", "Mi", "nN-N", "nArNO2", "nCRX3", "SpPosA_B(p)", "nCIR", "B01[C-Br]", "B03[C-Cl]", "N-073", "SpMax_A", "Psi_i_1d", "B04[C-Br]", "SdO", "TI2_L", "nCrt", "C-026", "F02[C-N]", "nHDon", "SpMax_B(m)", "Psi_i_A", "nN", "SM6_B(m)", " nArCOOR", "nX", "experimental class"]
     # Each record also needs its own metadata sep=";"
     with open(input_path, 'r') as raw_in:
@@ -78,12 +74,9 @@ def convert(input_path, metadata=None, verbose=False):
             record = []
             for key, value in row_data.items():
                 record.append(key+": "+value)
-            # Fields can be:
-            #    REQ (Required, must be present)
-            #    RCM (Recommended, should be present if possible)
-            #    OPT (Optional, can be present if useful)
+            uri = "https://data.materialsdatafacility.org/collections/" + "qsar_biodeg/biodeg.csv"
             record_metadata = {
-                "globus_subject": "https://archive.ics.uci.edu/ml/machine-learning-databases/00254/#"+str(i),
+                "globus_subject": uri + "#" + str(i),
                 "acl": ["public"],
     #            "mdf-publish.publication.collection": ,
     #            "mdf_data_class": ,
@@ -92,7 +85,7 @@ def convert(input_path, metadata=None, verbose=False):
     #            "cite_as": ,
     #            "license": ,
     
-                "dc.title": "qsar_biodeg - " + str(i),
+                "dc.title": "qsar_biodeg - " + "record: " + str(i),
     #            "dc.creator": ,
     #            "dc.identifier": ,
     #            "dc.contributor.author": ,
