@@ -1,7 +1,10 @@
 from importlib import import_module
 
 
-def call_harvester(source_name, verbose=False, **kwargs):
+VERBOSE = True
+
+
+def call_harvester(source_name, verbose=VERBOSE, **kwargs):
     if verbose:
         print("HARVESTING", source_name)
     harvester = import_module("mdf_indexers.harvesters." + source_name + "_harvester")
@@ -10,7 +13,7 @@ def call_harvester(source_name, verbose=False, **kwargs):
         print("HARVESTING COMPLETE")
 
 
-def call_converter(sources, input_path=None, metadata=None, verbose=False):
+def call_converter(sources, input_path=None, metadata=None, verbose=VERBOSE):
     if type(sources) is not list:
         sources = [sources]
     if verbose:
@@ -28,15 +31,33 @@ def call_converter(sources, input_path=None, metadata=None, verbose=False):
         print("\nALL CONVERTING COMPLETE")
 
 
-def call_ingester(sources, batch_size=100, verbose=False):
+def call_ingester(sources, batch_size=100, verbose=VERBOSE):
     ingester = import_module("mdf_indexers.ingester.data_ingester")
     ingester.ingest(sources, batch_size=batch_size, verbose=verbose)
 
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) > 1:
-        call_converter(*sys.argv[1:])
+    harvest = ["h", "harvester", "harvest"]
+    convert = ["c", "converter", "convert"]
+    ingest = ["i", "ingester", "ingest"]
+    if len(sys.argv) < 3:
+        print("Usage statement coming soon")
+
+    elif sys.argv[1].strip(" -").lower() in harvest:
+        call_harvester(sys.argv[2])
+
+    elif sys.argv[1].strip(" -").lower() in convert:
+        call_converter(*sys.argv[2:])
+
+    elif sys.argv[1].strip(" -").lower() in ingest:
+        if sys.argv[2] == "--batch-size":
+            sys.argv.pop(2)
+            batch_size = int(sys.argv.pop(2))
+        else:
+            batch_size=100
+        call_ingester(sources=sys.argv[2:], batch_size=batch_size)
+
     else:
-        call_converter()
+        print("Invalid option")
 
