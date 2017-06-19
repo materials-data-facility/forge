@@ -3,11 +3,12 @@ import sys
 import os
 from tqdm import tqdm
 from parsers.utils import find_files
+from parsers.pymatgen_parser import parse_pymatgen
 from validator import Validator
 
 # VERSION 0.1.0
 
-# This is the converter for The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules dataset
+# This is the gdb9-14 dataset of the Quantum chemistry structures and properties of 134 kilo molecules
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata, or None to specify the metadata here. Default None.
@@ -20,24 +21,24 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "globus_subject": "https://doi.org/10.5281/zenodo.6951",
+            "globus_subject": "http://qmml.org/datasets.html#gdb9-14",
             "acl": ["public"],
-            "mdf_source_name": "mpi_mainz",
-            "mdf-publish.publication.collection": "UV/VIS Spectral Atlas",
-            "mdf_data_class": "UV/VIS",
+            "mdf_source_name": "gdb9-14",
+            "mdf-publish.publication.collection": "gdb9-14",
+#            "mdf_data_class": ,
 
-            "cite_as": ["Keller-Rudek, H. M.-P. I. for C. M. G., Moortgat, G. K. M.-P. I. for C. M. G., Sander, R. M.-P. I. for C. M. G., & Sörensen, R. M.-P. I. for C. M. G. (2013). The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules [Data set]. Zenodo. http://doi.org/10.5281/zenodo.6951,"],                             # REQ list of strings: Complete citation(s) for this dataset.
-            "license": "https://creativecommons.org/licenses/by/4.0/",
+            "cite_as": ["Raghunathan Ramakrishnan, Pavlo Dral, Matthias Rupp, O. Anatole von Lilienfeld: Quantum Chemistry Structures and Properties of 134 kilo Molecules, Scientific Data 1: 140022, 2014."],
+            "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
             "mdf_version": "0.1.0",
 
-            "dc.title": "The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules",
-            "dc.creator": "Max-Planck Institute for Chemistry, Mainz, Germany",
-            "dc.identifier": "https://doi.org/10.5281/zenodo.6951",
-            "dc.contributor.author": ["Keller-Rudek", "Moortgat, Geert K.", "Sander", "Sörensen"],
-            "dc.subject": ["cross sections", "quantum yields"],
-            "dc.description": "This archive contains a frozen snapshot of all cross section and quantum yield data files from the MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules.",                      # RCM string: Description of dataset contents
-#            "dc.relatedidentifier": ,
-            "dc.year": 2013
+            "dc.title": "Quantum Chemistry Structures and Properties of 134 kilo Molecules",
+            "dc.creator": "Ramakrishnan, R., Dral, P. O., Rupp, M. & von lilienfeld, O. A",
+            "dc.identifier": "http://qmml.org/datasets.html#gdb9-14",
+            "dc.contributor.author": ["Raghunathan Ramakrishnan", "Pavlo Dral", "Matthias Rupp", "O. Anatole von Lilienfeld"],
+            "dc.subject": ["Computational chemistry", "Density functional theory", "Quantum chemistry"],
+            "dc.description": "133,885 small organic molecules with up to 9 C, O, N, F atoms, saturated with H. Geometries, harmonic frequencies, dipole moments, polarizabilities, energies, enthalpies, and free energies of atomization at the DFT/B3LYP/6-31G(2df,p) level of theory. For a subset of 6,095 constitutional isomers of C7H10O2, energies, enthalpies, and free energies of atomization are provided at the G4MP2 level of theory.",
+            "dc.relatedidentifier": ["http://dx.doi.org/10.1038/sdata.2014.22"],
+            "dc.year": 2014
             }
     elif type(metadata) is str:
         try:
@@ -69,19 +70,13 @@ def convert(input_path, metadata=None, verbose=False):
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
 
     # Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, ".txt"), desc="Processing files", disable=not verbose):
-        with open(os.path.join(data_file["path"], data_file["filename"]), 'r', errors='ignore') as raw_in:
-            record = raw_in.read()
-        #Get the composition
-        in1 = data_file["filename"].find("_")
-        comp = data_file["filename"][:in1]
-        #Get the temperature
-        later = data_file["filename"][in1+1:]
-        second = later.find("_")
-        last = later[second+1:]
-        third = last.find("_")
-        temp = last[:third-1]
-        uri = "https://data.materialsdatafacility.org/collections/" + "mpi_mainz/" + data_file["no_root_path"] + "/" + data_file["filename"]
+    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
+        record = parse_pymatgen(os.path.join(data_file["path"], data_file["filename"]))
+        if record["structure"]:
+            comp = record["structure"]["material_composition"]
+        elif record["molecule"]:
+            comp = record["molecule"]["material_composition"]
+        uri = "https://data.materialsdatafacility.org/collections/" + "gdb9-14/" + data_file["no_root_path"] + "/" + data_file["filename"]
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
@@ -92,23 +87,19 @@ def convert(input_path, metadata=None, verbose=False):
 #            "cite_as": ,
 #            "license": ,
 
-            "dc.title": "mpi_mainz - " + data_file["filename"],
+            "dc.title": "gdb9-14 - " + data_file["filename"],
 #            "dc.creator": ,
-#            "dc.identifier": ,
+            "dc.identifier": uri,
 #            "dc.contributor.author": ,
 #            "dc.subject": ,
 #            "dc.description": ,
 #            "dc.relatedidentifier": ,
 #            "dc.year": ,
 
-            "data": {
-#                "raw": record,
+#            "data": {
+#                "raw": ,
 #                "files": ,
-                "temperature": {
-                    "value": temp,
-                    "unit" : "K"
-                }
-                }
+#                }
             }
 
         # Pass each individual record to the Validator
@@ -138,4 +129,4 @@ def convert(input_path, metadata=None, verbose=False):
 # The convert function may not be called in this way, so code here is primarily for testing
 if __name__ == "__main__":
     import paths
-    convert(paths.datasets+"mpi_mainz", verbose=True)
+    convert(paths.datasets + "gdb9-14", verbose=True)

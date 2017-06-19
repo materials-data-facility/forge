@@ -8,7 +8,7 @@ from validator import Validator
 
 # VERSION 0.1.0
 
-# This is the converter for the BFCC-13 dataset
+# This is the converter for the BFCC-13 dataset: Cluster expansion made easy with Bayesian compressive sensing
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata, or None to specify the metadata here. Default None.
@@ -18,17 +18,12 @@ def convert(input_path, metadata=None, verbose=False):
     if verbose:
         print("Begin converting")
 
-    # Collect the metadata
-    # Fields can be:
-    #    REQ (Required, must be present)
-    #    RCM (Recommended, should be present if possible)
-    #    OPT (Optional, can be present if useful)
     if not metadata:
         dataset_metadata = {
             "globus_subject": "http://qmml.org/datasets.html#bfcc-13",
             "acl": ["public"],
             "mdf_source_name": "bfcc13",
-            "mdf-publish.publication.collection": "4k DFT calculations for solid AgPd, CuPt and AgPt FCC superstructures",
+            "mdf-publish.publication.collection": "bfcc13",
             "mdf_data_class": "vasp",
 
             "cite_as": ["Lance J. Nelson, Vidvuds Ozoliņš, C. Shane Reese, Fei Zhou, Gus L.W. Hart: Cluster expansion made easy with Bayesian compressive sensing, Physical Review B 88(15): 155105, 2013."],
@@ -36,7 +31,7 @@ def convert(input_path, metadata=None, verbose=False):
             "mdf_version": "0.1.0",
 
             "dc.title": "Cluster expansion made easy with Bayesian compressive sensing",
-            "dc.creator": "American Physical Society",
+            "dc.creator": "Brigham Young University, University of California Los Angeles, Lawrence Livermore National Laboratory",
             "dc.identifier": "http://qmml.org/datasets.html",
             "dc.contributor.author": ["Lance J. Nelson", "Vidvuds Ozoliņš", "C. Shane Reese", "Fei Zhou", "Gus L.W. Hart"],
 #            "dc.subject": ,
@@ -63,9 +58,9 @@ def convert(input_path, metadata=None, verbose=False):
     # Make a Validator to help write the feedstock
     # You must pass the metadata to the constructor
     # Each Validator instance can only be used for a single dataset
-    dataset_validator = Validator(dataset_metadata, strict=False)
+    #dataset_validator = Validator(dataset_metadata, strict=False)
     # You can also force the Validator to treat warnings as errors with strict=True
-    #dataset_validator = Validator(dataset_metadata, strict=True)
+    dataset_validator = Validator(dataset_metadata, strict=True)
 
 
     # Get the data
@@ -76,11 +71,7 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable=not verbose):
         data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp")
         if data:
-            uri = "https://data.materialsdatafacility.org/collections/" + data_file["no_root_path"] + "/" + data_file["filename"]
-            # Fields can be:
-            #    REQ (Required, must be present)
-            #    RCM (Recommended, should be present if possible)
-            #    OPT (Optional, can be present if useful)
+            uri = "https://data.materialsdatafacility.org/collections/" + "bfcc-13/bfcc-13/" + data_file["no_root_path"] + "/" + data_file["filename"]
             record_metadata = {
                 "globus_subject": uri,
                 "acl": ["public"],

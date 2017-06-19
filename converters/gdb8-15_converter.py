@@ -2,12 +2,12 @@ import json
 import sys
 import os
 from tqdm import tqdm
-from parsers.utils import find_files
+from parsers.tab_parser import parse_tab
 from validator import Validator
 
 # VERSION 0.1.0
 
-# This is the converter for The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules dataset
+# This is the converter for the gdb8-15 dataset: Electronic Spectra from TDDFT and Machine Learning in Chemical Space
 # Arguments:
 #   input_path (string): The file or directory where the data resides. This should not be hard-coded in the function, for portability.
 #   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata, or None to specify the metadata here. Default None.
@@ -20,24 +20,24 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "globus_subject": "https://doi.org/10.5281/zenodo.6951",
+            "globus_subject": "http://qmml.org/datasets.html#gdb8-15",
             "acl": ["public"],
-            "mdf_source_name": "mpi_mainz",
-            "mdf-publish.publication.collection": "UV/VIS Spectral Atlas",
-            "mdf_data_class": "UV/VIS",
+            "mdf_source_name": "gdb8-15",
+            "mdf-publish.publication.collection": "gdb8-15",
+            "mdf_data_class": "txt",
 
-            "cite_as": ["Keller-Rudek, H. M.-P. I. for C. M. G., Moortgat, G. K. M.-P. I. for C. M. G., Sander, R. M.-P. I. for C. M. G., & Sörensen, R. M.-P. I. for C. M. G. (2013). The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules [Data set]. Zenodo. http://doi.org/10.5281/zenodo.6951,"],                             # REQ list of strings: Complete citation(s) for this dataset.
-            "license": "https://creativecommons.org/licenses/by/4.0/",
+            "cite_as": ["Electronic spectra of 22k molecules Raghunathan Ramakrishnan, Mia Hartmann, Enrico Tapavicza, O. Anatole von Lilienfeld, J. Chem. Phys. submitted (2015)", "Structures of 22k molecules Raghunathan Ramakrishnan, Pavlo Dral, Matthias Rupp, O. Anatole von Lilienfeld Scientific Data 1, Article number: 140022 (2014). doi:10.1038/sdata.2014.22"],
+#            "license": ,
             "mdf_version": "0.1.0",
 
-            "dc.title": "The MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules",
-            "dc.creator": "Max-Planck Institute for Chemistry, Mainz, Germany",
-            "dc.identifier": "https://doi.org/10.5281/zenodo.6951",
-            "dc.contributor.author": ["Keller-Rudek", "Moortgat, Geert K.", "Sander", "Sörensen"],
-            "dc.subject": ["cross sections", "quantum yields"],
-            "dc.description": "This archive contains a frozen snapshot of all cross section and quantum yield data files from the MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules.",                      # RCM string: Description of dataset contents
-#            "dc.relatedidentifier": ,
-            "dc.year": 2013
+            "dc.title": "Electronic spectra from TDDFT and machine learning in chemical space",
+            "dc.creator": "University of Basel, California State University, Argonnne National Labratory",
+            "dc.identifier": "http://aip.scitation.org/doi/suppl/10.1063/1.4928757",
+            "dc.contributor.author": ["Raghunathan Ramakrishnan", "Mia Hartmann", "Enrico Tapavicza", "O. Anatole von Lilienfeld"],
+            "dc.subject": ["Density functional theory, Excitation energies, Computer modeling, Oscillators, Molecular spectra"],
+            "dc.description": "Due to its favorable computational efficiency, time-dependent (TD) density functional theory (DFT) enables the prediction of electronic spectra in a high-throughput manner across chemical space. Its predictions, however, can be quite inaccurate. We resolve this issue with machine learning models trained on deviations of reference second-order approximate coupled-cluster (CC2) singles and doubles spectra from TDDFT counterparts, or even from DFT gap. We applied this approach to low-lying singlet-singlet vertical electronic spectra of over 20 000 synthetically feasible small organic molecules with up to eight CONF atoms.",
+            "dc.relatedidentifier": ["http://dx.doi.org/10.1063/1.4928757http://dx.doi.org/10.1063/1.4928757"],
+            "dc.year": 2015
             }
     elif type(metadata) is str:
         try:
@@ -67,21 +67,26 @@ def convert(input_path, metadata=None, verbose=False):
     #    Each record should be exactly one dictionary
     #    It is recommended that you convert your records one at a time, but it is possible to put them all into one big list (see below)
     #    It is also recommended that you use a parser to help with this process if one is available for your datatype
-
+    headers = ["Index", "E1-CC2", "E2-CC2", "f1-CC2", "f2-CC2", "E1-PBE0", "E2-PBE0", "f1-PBE0", "f2-PBE0", "E1-PBE0", "E2-PBE0", "f1-PBE0", "f2-PBE0", "E1-CAM", "E2-CAM", "f1-CAM", "f2-CAM"]
     # Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, ".txt"), desc="Processing files", disable=not verbose):
-        with open(os.path.join(data_file["path"], data_file["filename"]), 'r', errors='ignore') as raw_in:
-            record = raw_in.read()
-        #Get the composition
-        in1 = data_file["filename"].find("_")
-        comp = data_file["filename"][:in1]
-        #Get the temperature
-        later = data_file["filename"][in1+1:]
-        second = later.find("_")
-        last = later[second+1:]
-        third = last.find("_")
-        temp = last[:third-1]
-        uri = "https://data.materialsdatafacility.org/collections/" + "mpi_mainz/" + data_file["no_root_path"] + "/" + data_file["filename"]
+    with open(input_path, 'r') as raw_in:
+        data = raw_in.read()
+    #Start at line 29 for data
+    starter = data.find("       1      0.43295186     0.43295958")
+    #Remove the spaces before the index column
+    decomp = data[starter:].split("\n")
+    stripped_decomp = []
+    for line in decomp:
+        stripped_decomp.append(line.strip())
+    #Open gdb9-14 feedstock to get chemical composition
+    with open(os.path.join(paths.feedstock, "gdb9-14_all.json"), 'r') as json_file:
+        lines = json_file.readlines()
+        full_json_data = [json.loads(line) for line in lines]
+        #Composition needed doesn't begin until after record 6095
+        json_data = full_json_data[6095:]
+    for record in tqdm(parse_tab("\n".join(stripped_decomp), headers=headers, sep="     "), desc="Processing files", disable=not verbose):
+        comp = json_data[int(record["Index"])]["mdf-base.material_composition"]
+        uri = "https://data.materialsdatafacility.org/collections/gdb-8-15/gdb8_22k_elec_spec.txt#" + record["Index"]
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
@@ -92,9 +97,9 @@ def convert(input_path, metadata=None, verbose=False):
 #            "cite_as": ,
 #            "license": ,
 
-            "dc.title": "mpi_mainz - " + data_file["filename"],
+            "dc.title": "gdb8-15 - " + "record: " + record["Index"],
 #            "dc.creator": ,
-#            "dc.identifier": ,
+            "dc.identifier": uri,
 #            "dc.contributor.author": ,
 #            "dc.subject": ,
 #            "dc.description": ,
@@ -102,15 +107,10 @@ def convert(input_path, metadata=None, verbose=False):
 #            "dc.year": ,
 
             "data": {
-#                "raw": record,
+                "raw": json.dumps(record),
 #                "files": ,
-                "temperature": {
-                    "value": temp,
-                    "unit" : "K"
-                }
                 }
             }
-
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
 
@@ -138,4 +138,4 @@ def convert(input_path, metadata=None, verbose=False):
 # The convert function may not be called in this way, so code here is primarily for testing
 if __name__ == "__main__":
     import paths
-    convert(paths.datasets+"mpi_mainz", verbose=True)
+    convert(paths.datasets + "gdb8-15/gdb8_22k_elec_spec.txt", verbose=True)
