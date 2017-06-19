@@ -9,10 +9,7 @@ from ..utils import paths
 from ..utils.gmeta_utils import format_gmeta, add_namespace
 
 PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
-
-#globus_url = "https://datasearch.api.demo.globus.org/"
 globus_url = "https://search.api.globus.org/"
-globus_domain = "globus_search"
 
 namespaces = {
     "dc." : "http://datacite.org/schema/kernel-3#",
@@ -22,7 +19,7 @@ namespaces = {
 default_namespace = "http://materialsdatafacility.org/#"
 
 
-def ingest(mdf_source_names, batch_size=100, verbose=False):
+def ingest(mdf_source_names,globus_index="globus_search", batch_size=100, verbose=False):
     ''' Ingests feedstock from file.
         Arguments:
             mdf_source_names (str or list of str): Dataset name(s) to ingest.
@@ -32,7 +29,7 @@ def ingest(mdf_source_names, batch_size=100, verbose=False):
     if verbose:
         print("\nStarting ingest of:\n", mdf_source_names, "\nBatch size:", batch_size, "\n")
 
-    globus_client = ingest_client.IngestClient(globus_url, globus_domain)
+    globus_client = ingest_client.IngestClient(globus_url, globus_index)
 
     if type(mdf_source_names) is str:
         mdf_source_names = [mdf_source_names]

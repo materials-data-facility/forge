@@ -31,7 +31,7 @@ def call_converter(sources, input_path=None, metadata=None, verbose=VERBOSE):
         print("\nALL CONVERTING COMPLETE")
 
 
-def call_ingester(sources, batch_size=100, verbose=VERBOSE):
+def call_ingester(sources, globus_index="globus_search", batch_size=100, verbose=VERBOSE):
     ingester = import_module("mdf_indexers.ingester.data_ingester")
     ingester.ingest(sources, batch_size=batch_size, verbose=verbose)
 
@@ -51,12 +51,18 @@ if __name__ == "__main__":
         call_converter(*sys.argv[2:])
 
     elif sys.argv[1].strip(" -").lower() in ingest:
+        if sys.argv[2] == "--index" or sys.argv[2] == "--globus-index":
+            sys.argv.pop(2)
+            globus_index = sys.argv.pop(2)
+        else:
+            globus_index = "globus_search"
+
         if sys.argv[2] == "--batch-size":
             sys.argv.pop(2)
             batch_size = int(sys.argv.pop(2))
         else:
-            batch_size=100
-        call_ingester(sources=sys.argv[2:], batch_size=batch_size)
+            batch_size = 100
+        call_ingester(sources=sys.argv[2:], globus_index=globus_index, batch_size=batch_size)
 
     else:
         print("Invalid option")
