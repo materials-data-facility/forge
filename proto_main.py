@@ -1,9 +1,13 @@
 from importlib import import_module
 
 
-def call_harvester(source_name, **kwargs):
-   harvester = import_module("mdf_indexers.harvesters." + source_name + "_harvester")
-   harvester.harvest(**kwargs)
+def call_harvester(source_name, verbose=False, **kwargs):
+    if verbose:
+        print("HARVESTING", source_name)
+    harvester = import_module("mdf_indexers.harvesters." + source_name + "_harvester")
+    harvester.harvest(verbose=verbose, **kwargs)
+    if verbose:
+        print("HARVESTING COMPLETE")
 
 
 def call_converter(sources, input_path=None, metadata=None, verbose=False):
@@ -22,6 +26,11 @@ def call_converter(sources, input_path=None, metadata=None, verbose=False):
         converter.convert(input_path=input_path, metadata=metadata, verbose=verbose)
     if verbose:
         print("\nALL CONVERTING COMPLETE")
+
+
+def call_ingester(sources, batch_size=100, verbose=False):
+    ingester = import_module("mdf_indexers.ingester.data_ingester")
+    ingester.ingest(sources, batch_size=batch_size, verbose=verbose)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,11 @@ import os
 
 from tqdm import tqdm
 
-import globus_auth
-import paths
+from . import ingest_client
+from ..utils import paths
+from ..utils.gmeta_utils import format_gmeta, add_namespace
+
+PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
 
 #globus_url = "https://datasearch.api.demo.globus.org/"
 globus_url = "https://search.api.globus.org/"
@@ -29,7 +32,7 @@ def ingest(mdf_source_names, batch_size=100, verbose=False):
     if verbose:
         print("\nStarting ingest of:\n", mdf_source_names, "\nBatch size:", batch_size, "\n")
 
-    globus_client = globus_auth.login(globus_url, globus_domain)
+    globus_client = ingest_client.IngestClient(globus_url, globus_domain)
 
     if type(mdf_source_names) is str:
         mdf_source_names = [mdf_source_names]
@@ -38,7 +41,7 @@ def ingest(mdf_source_names, batch_size=100, verbose=False):
         list_ingestables = []
         count_ingestables = 0
         count_batches = 0
-        with open(os.path.join(paths.feedstock, source_name+"_all.json"), 'r') as feedstock:
+        with open(os.path.join(PATH_FEEDSTOCK, source_name+"_all.json"), 'r') as feedstock:
             for json_record in tqdm(feedstock, desc="Ingesting " + source_name, disable= not verbose):
                 record = format_gmeta(json.loads(json_record))
                 record["content"] = add_namespace(record["content"])
@@ -59,61 +62,45 @@ def ingest(mdf_source_names, batch_size=100, verbose=False):
         if verbose:
             print("Ingested", count_ingestables, "records in", count_batches, "batches, from", source_name, "\n")
 
-
-if __name__ == "__main__":
-    # Remove script name
-    sys.argv.pop(0)
-    if len(sys.argv) >= 1:
-        if sys.argv[0] == "--batch-size":
-            sys.argv.pop(0)
-            batch_size = int(sys.argv.pop(0))
-        else:
-            batch_size = 100
-    if len(sys.argv) == 0:
-        print("\nPlease specify what mdf_source_name(s) to ingest, or 'all'\n")
-    elif sys.argv[0] == "all":
-        all_source_names = [
-            'ab_initio_solute_database',
-            'amcs',
-            'cip',
-            'core_mof',
-            'cp_complexes',
-            'cxidb',
-            'doak_strain_energies',
-            'fe_cr_al_oxidation',
-            'gw100',
-            'gw_soc81',
-            'hopv',
-            'jcap_benchmarking_db',
-            'jcap_xps_spectral_db',
-            'khazana_polymer',
-            'khazana_vasp',
-            'materials_commons',
-            'matin',
-            'nanomine',
-            'nist_atom_weight_iso_comp',
-            'nist_heat_transmission',
-            'nist_ip',
-            'nist_janaf',
-            'nist_mml',
-            'nist_th_ar_lamp_spectrum',
-            'nist_xps_db',
-            'nist_xray_tran_en_db',
-            'nrel_pv',
-            'oqmd',
-            'oxygen_interstitials_deformation',
-            'pppdb',
-            'quinary_alloys',
-            'qm_mdt_c',
-            'sluschi',
-            'strain_effects_oxygen',
-            'ti_o_fitting_db',
-            'ti_o_meam_model',
-            'trinkle_elastic_fe_bcc',
-            'uci_steel_annealing', #Metadata only
-            'xafs_sl'
-            ]
-        ingest(all_source_names, batch_size=batch_size, verbose=True)
-    else:
-        ingest(sys.argv, batch_size=batch_size, verbose=True)
+'''
+    'ab_initio_solute_database',
+    'amcs',
+    'cip',
+    'core_mof',
+    'cp_complexes',
+    'cxidb',
+    'doak_strain_energies',
+    'fe_cr_al_oxidation',
+    'gw100',
+    'gw_soc81',
+    'hopv',
+    'jcap_benchmarking_db',
+    'jcap_xps_spectral_db',
+    'khazana_polymer',
+    'khazana_vasp',
+    'materials_commons',
+    'matin',
+    'nanomine',
+    'nist_atom_weight_iso_comp',
+    'nist_heat_transmission',
+    'nist_ip',
+    'nist_janaf',
+    'nist_mml',
+    'nist_th_ar_lamp_spectrum',
+    'nist_xps_db',
+    'nist_xray_tran_en_db',
+    'nrel_pv',
+    'oqmd',
+    'oxygen_interstitials_deformation',
+    'pppdb',
+    'quinary_alloys',
+    'qm_mdt_c',
+    'sluschi',
+    'strain_effects_oxygen',
+    'ti_o_fitting_db',
+    'ti_o_meam_model',
+    'trinkle_elastic_fe_bcc',
+    'uci_steel_annealing', #Metadata only
+    'xafs_sl'
+'''
 

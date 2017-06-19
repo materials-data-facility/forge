@@ -1,13 +1,30 @@
-from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
+import json
+import sys
+import os
+
+from globus_sdk import ConfidentialAppAuthClient, AccessTokenAuthorizer, RefreshTokenAuthorizer
 from globus_sdk.base import BaseClient, merge_params
 
+VERSION = "0.2.0"
 
-class DataSearchClient(BaseClient):
+class IngestClient(BaseClient):
     allowed_authorizer_types = [AccessTokenAuthorizer, RefreshTokenAuthorizer]
 
     def __init__(self, base_url, default_index=None, **kwargs):
-        app_name = kwargs.pop('app_name', 'DataSearch Client v0.1')
-        BaseClient.__init__(self, "datasearch", app_name=app_name, **kwargs)
+        app_name = kwargs.pop('app_name', 'Ingester Client v'+VERSION)
+
+        # Auth
+        try:
+            with open(os.path.join(os.path.dirname(__file__), "ingester_login.json")) as cred_file:
+                creds = json.load(cred_file)
+        except IOError as e:
+            sys.exit("Error opening credentials file: " + repr(e))
+        auth_client = ConfidentialAppAuthClient(creds["client_id"], creds["client_secret"])
+        token_response = auth_client.oauth2_client_credentials_tokens(requested_scopes=creds["scopes"])
+        token = token_response.by_resource_server['datasearch.api.globus.org']["access_token"]
+        authorizer = AccessTokenAuthorizer(token)
+
+        BaseClient.__init__(self, "datasearch", app_name=app_name, authorizer=authorizer, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
         self._headers['Content-Type'] = 'application/json'
