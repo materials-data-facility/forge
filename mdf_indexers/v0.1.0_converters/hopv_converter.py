@@ -1,8 +1,6 @@
 import json
 from ..validator.schema_validator import Validator
 
-from ..utils import paths
-
 
 # This is the converter for the Harvard Organic Photovoltaic Database.
 # Arguments:
