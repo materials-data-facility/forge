@@ -77,6 +77,10 @@ def convert(input_path, metadata=None, verbose=False):
         elif record["molecule"]:
             comp = record["molecule"]["material_composition"]
         uri = "https://data.materialsdatafacility.org/collections/" + "gdb9-14/" + data_file["no_root_path"] + "/" + data_file["filename"]
+        index = ""
+        if data_file["no_root_path"] == "dsgdb9nsd.xyz":
+            start = data_file["filename"].find('_')
+            index = int(data_file["filename"][start+1:-4])
         record_metadata = {
             "globus_subject": uri,
             "acl": ["public"],
@@ -96,10 +100,11 @@ def convert(input_path, metadata=None, verbose=False):
 #            "dc.relatedidentifier": ,
 #            "dc.year": ,
 
-#            "data": {
+            "data": {
 #                "raw": ,
 #                "files": ,
-#                }
+                "index": index
+                }
             }
 
         # Pass each individual record to the Validator
