@@ -12,7 +12,7 @@ PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
 globus_url = "https://search.api.globus.org/"
 
 
-def ingest(mdf_source_names, globus_index="globus_search", batch_size=100, verbose=False):
+def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
     ''' Ingests feedstock from file.
         Arguments:
             mdf_source_names (str or list of str): Dataset name(s) to ingest.

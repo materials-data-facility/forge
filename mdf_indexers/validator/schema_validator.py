@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from copy import deepcopy
 from datetime import datetime
 import jsonschema
 from bson import ObjectId
@@ -240,7 +241,7 @@ class Validator:
             record["mdf-tags"] = list(set(record.get("mdf-tags", []) + self.__tags))
 
         # mdf-links
-        record_links = self.__links or {}
+        record_links = deepcopy(self.__links) or {}
         record_links.update(record.get("mdf-links", {}))
         # mdf-parent_id
         record_links["mdf-parent_id"] = self.__parent_id

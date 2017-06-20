@@ -1,5 +1,6 @@
 import json
 import sys
+
 from ..validator.schema_validator import Validator
 
 # VERSION 0.2.0
@@ -74,6 +75,7 @@ def convert(input_path, metadata=None, verbose=False):
 
             "mdf-data_contributor": # OPT list of dictionaries: The person/people contributing the tools (harvester, this converter) to ingest the dataset (i.e. you)
                                         # Same fields as mdf-data_contact
+                                        # It is strongly recommended that you include your GitHub username as an ID
             }
     elif type(metadata) is str:
         try:

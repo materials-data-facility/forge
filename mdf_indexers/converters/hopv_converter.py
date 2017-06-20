@@ -77,7 +77,8 @@ def convert(input_path, metadata=None, verbose=False):
                 "family_name": "Gaff",
 
                 "email": "jgaff@uchicago.edu",
-                "institution": "The University of Chicago"
+                "institution": "The University of Chicago",
+                "github": "jgaff"
                 }]
             }
     elif type(metadata) is str:

@@ -10,7 +10,7 @@ from ..utils.file_utils import find_files
 
 # VERSION 0.2.0
 
-# This is the converter for
+# This is the converter for AMCS
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter. The converter should be portable.
@@ -89,7 +89,8 @@ def convert(input_path, metadata=None, verbose=False):
                 "family_name": "Gaff",
 
                 "email": "jgaff@uchicago.edu",
-                "institution": "The University of Chicago"
+                "institution": "The University of Chicago",
+                "github": "jgaff"
                 }]
             }
     elif type(metadata) is str:
