@@ -11,15 +11,8 @@ from ..utils.gmeta_utils import format_gmeta, add_namespace
 PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
 globus_url = "https://search.api.globus.org/"
 
-namespaces = {
-    "dc." : "http://datacite.org/schema/kernel-3#",
-    "mdf-base." : "http://globus.org/publication-schemas/mdf-base/0.1#",
-    "mdf-publish." : "http://globus.org/publish-terms/#"
-    }
-default_namespace = "http://materialsdatafacility.org/#"
 
-
-def ingest(mdf_source_names,globus_index="globus_search", batch_size=100, verbose=False):
+def ingest(mdf_source_names, globus_index="globus_search", batch_size=100, verbose=False):
     ''' Ingests feedstock from file.
         Arguments:
             mdf_source_names (str or list of str): Dataset name(s) to ingest.

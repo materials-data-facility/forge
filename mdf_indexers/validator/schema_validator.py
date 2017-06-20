@@ -46,7 +46,7 @@ class Validator:
 
         res = self.__write_metadata(metadata, node_type)
         if not res["success"]:
-            raise ValueError("Invalid metadata: '" + res["message"] + "' " + str(res.get("invalid_metadata", "")))
+            raise ValueError("Invalid metadata: '" + res["message"] + "'\n" + res["details"])
         else:
             self.__initialized = True
 
@@ -138,6 +138,9 @@ class Validator:
         # mdf-year
         self.__year = metadata.get("mdf-year", None)
 
+        # mdf-data_contributor
+        self.__data_contributor = metadata.get("mdf-data_contributor", None)
+
 
         # Open feedstock file for the first time and write metadata entry
         feedstock_path = os.path.join(PATH_FEEDSTOCK,  self.__source_name + "_all.json")
@@ -187,6 +190,10 @@ class Validator:
 
         # mdf-source_name
         record["mdf-source_name"] = self.__source_name
+
+        # mdf-data_contributor
+        if self.__data_contributor:
+            record["mdf-data_contributor"] = self.__data_contributor
 
 
         # Copy missing fields

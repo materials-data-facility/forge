@@ -1,13 +1,13 @@
 import json
 import sys
-from validation.validator import Validator
+from ..validator.schema_validator import Validator
 
 # VERSION 0.2.0
 
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
-#       NOTE: Do not hard-code the path to the data in the converter, so that the converter is portable.
+#       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
 #   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata, or None to specify the metadata here. Default None.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
 #       NOTE: The converter should have NO output if verbose is False, unless there is an error.
@@ -27,9 +27,20 @@ def convert(input_path, metadata=None, verbose=False):
             "mdf-acl": ,            # REQ list of strings: The UUIDs allowed to view this dataset, or ['public']
             "mdf-source_name": ,    # REQ string: A short version of the dataset name, for quick reference, with underscores instead of spaces
             "mdf-citation": ,       # REQ list of strings: The full bibliographic citation(s) for the dataset
-            "mdf-data_contact": ,   # REQ string: The contact person/steward/custodian for the dataset
+            "mdf-data_contact": {   # REQ dictionary: The contact person/steward/custodian for the dataset
 
-            "mdf-author": ,         # RCM list of strings: The author(s) of the dataset
+                "given_name": ,         # REQ string: The person's given (or first) name
+                "family_name": ,        # REQ string: The person's family (or last) name
+
+                "email": ,              # RCM string: The person's email address
+                "institution": ,        # RCM string: The primary affiliation for the person
+
+                # IDs                   # RCM strings: IDs for the person, with the ID type as the field name (ex. "ORCID": "12345")
+                },
+
+            "mdf-author": ,         # RCM list of dictionaries: The author(s) of the dataset
+                                        # Same fields as mdf-data_contact
+
             "mdf-license": ,        # RCM string: A link to the license for distribution of this dataset
 
             "mdf-collection": ,     # RCM string: The collection for the dataset, commonly a portion of the title
@@ -51,6 +62,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 # data links: {         # RCM dictionary: A link to a raw data file from the dataset (the key should be the file type, ex. 'tiff')
                                             # Required fields are only required if a data link is present
+
                     #"globus_endpoint": ,   # REQ string: The ID of the Globus Endpoint hosting the file
                     #"http_host": ,         # RCM string: The fully-qualified HTTP hostname, including protocol, but without the path (ex. 'https://data.materialsdatafacility.org')
 
@@ -58,7 +70,10 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-            "mdf-mrr":              # OPT dictionary: Fields relating to the NIST Materials Resource Registry system
+            "mdf-mrr": ,            # OPT dictionary: Fields relating to the NIST Materials Resource Registry system
+
+            "mdf-data_contributor": # OPT list of dictionaries: The person/people contributing the tools (harvester, this converter) to ingest the dataset (i.e. you)
+                                        # Same fields as mdf-data_contact
             }
     elif type(metadata) is str:
         try:
@@ -121,8 +136,20 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
 
             "mdf-citation": ,       # OPT list of strings: Record citation(s), if different from the dataset
-            "mdf-data_contact": ,   # OPT string: Record contact person/steward/custodian, if different from the dataset
-            "mdf-author": ,         # OPT list of strings: Record author(s), if different from the dataset
+            "mdf-data_contact": {   # OPT dictionary: Record contact person/steward/custodian, if different from the dataset
+                                        # As usual, required fields are only required if the parent field is present
+
+                "given_name": ,         # REQ string: The person's given (or first) name
+                "family_name": ,        # REQ string: The person's family (or last) name
+
+                "email": ,              # RCM string: The person's email address
+                "institution":,         # RCM string: The primary affiliation for the person
+
+                # IDs                   # RCM strings: IDs for the person, with the ID type as the field name (ex. "ORCID": "12345")
+            },
+
+            "mdf-author": ,         # OPT list of dictionaries: Record author(s), if different from the dataset
+                                        # Same fields as mdf-data_contact
             "mdf-license": ,        # OPT string: Record license, if different from the dataset
             "mdf-collection": ,     # OPT string: Record collection, if different from the dataset
             "mdf-data_format": ,    # OPT list of strings: Record file format, if different from the dataset
@@ -148,10 +175,3 @@ def convert(input_path, metadata=None, verbose=False):
     # You're done!
     if verbose:
         print("Finished converting")
-
-
-# Optionally, you can have a default call here for testing
-# It is not guaranteed that this is the way the converter will be called in actual use
-# This is why the 'input_path' should not be hard-coded, and the script should have no output if 'verbose' is False
-if __name__ == "__main__":
-    convert()

@@ -43,6 +43,13 @@ def format_gmeta(data):
 
 def add_namespace(data):
     ''' Adds or expands namespaces as appropriate. '''
+    namespaces = {
+        "dc." : "http://datacite.org/schema/kernel-3#",
+        "mdf-base." : "http://globus.org/publication-schemas/mdf-base/0.1#",
+        "mdf-publish." : "http://globus.org/publish-terms/#"
+        }
+    default_namespace = "http://materialsdatafacility.org/#"
+
     if type(data) is list:
         return [add_namespace(elem) for elem in data]
     elif type(data) is dict:
