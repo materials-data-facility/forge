@@ -87,6 +87,32 @@ class Validator:
         metadata["mdf-ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
 
 
+        # Convenience processing
+        # mdf-citation
+        if type(metadata.get("mdf-citation", [])) is str:
+            metadata["mdf-citation"] = [metadata["mdf-citation"]]
+
+        # mdf-author
+        if type(metadata.get("mdf-author", None)) is dict:
+            metadata["mdf-author"] = [metadata["mdf-author"]]
+
+        # mdf-data_format
+        if type(metadata.get("mdf-data_format", None)) is str:
+            metadata["mdf-data_format"] = [metadata["mdf-data_format"]]
+
+        # mdf-data_type
+        if type(metadata.get("mdf-data_type", None)) is str:
+            metadata["mdf-data_type"] = [metadata["mdf-data_type"]]
+
+        # mdf-tags
+        if type(metadata.get("mdf-tags", None)) is str:
+            metadata["mdf-tags"] = [metadata["mdf-tags"].split(",")]
+
+        # mdf-data_contributor
+        if type(metadata.get("mdf-data_contributor", [])) is dict:
+            metadata["mdf-data_contributor"] = [metadata["mdf-data_contributor"]]
+
+
         # Validate metadata
         try:
             jsonschema.validate(metadata, self.__schemas[node_type])
@@ -195,6 +221,28 @@ class Validator:
         # mdf-data_contributor
         if self.__data_contributor:
             record["mdf-data_contributor"] = self.__data_contributor
+
+
+        # Convenience processing
+        # mdf-citation
+        if type(record.get("mdf-citation", [])) is str:
+            record["mdf-citation"] = [record["mdf-citation"]]
+
+        # mdf-author
+        if type(record.get("mdf-author", None)) is dict:
+            record["mdf-author"] = [record["mdf-author"]]
+
+        # mdf-data_format
+        if type(record.get("mdf-data_format", None)) is str:
+            record["mdf-data_format"] = [record["mdf-data_format"]]
+
+        # mdf-data_type
+        if type(record.get("mdf-data_type", None)) is str:
+            record["mdf-data_type"] = [record["mdf-data_type"]]
+
+        # mdf-tags
+        if type(record.get("mdf-tags", None)) is str:
+            record["mdf-tags"] = [record["mdf-tags"].split(",")]
 
 
         # Copy missing fields
