@@ -136,6 +136,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                     #"path": ,              # REQ string: The full path to the data file on the host (ex. '/data/file.txt')
                     #},
+                },
 
             "mdf-citation": ,       # OPT list of strings: Record citation(s), if different from the dataset
             "mdf-data_contact": {   # OPT dictionary: Record contact person/steward/custodian, if different from the dataset
@@ -148,7 +149,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution":,         # RCM string: The primary affiliation for the person
 
                 # IDs                   # RCM strings: IDs for the person, with the ID type as the field name (ex. "ORCID": "12345")
-            },
+                },
 
             "mdf-author": ,         # OPT list of dictionaries: Record author(s), if different from the dataset
                                         # Same fields as mdf-data_contact

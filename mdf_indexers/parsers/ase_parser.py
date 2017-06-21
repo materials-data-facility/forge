@@ -1,6 +1,6 @@
 import os
 from tqdm import tqdm
-import ase
+import ase.io
 
 '''
 from ase.io import read
@@ -387,8 +387,8 @@ def parse_ase(file_path, data_format=None, verbose=False):
             else:
                 none_keys.append(key)
 
-        for key in none_keys:
-            ase_dict.pop(key)
+    for key in none_keys:
+        ase_dict.pop(key)
 
     #Print results
     if verbose:
