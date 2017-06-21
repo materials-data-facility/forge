@@ -88,8 +88,12 @@ class Validator:
 
 
         # Convenience processing
+        # mdf-acl
+        if metadata.get("mdf-acl", None) == "public":
+            metadata["mdf-acl"] = ["public"]
+
         # mdf-citation
-        if type(metadata.get("mdf-citation", [])) is str:
+        if type(metadata.get("mdf-citation", None)) is str:
             metadata["mdf-citation"] = [metadata["mdf-citation"]]
 
         # mdf-author
@@ -108,8 +112,16 @@ class Validator:
         if type(metadata.get("mdf-tags", None)) is str:
             metadata["mdf-tags"] = [metadata["mdf-tags"].split(",")]
 
+        # mdf-publication
+        if type(metadata.get("mdf-links", {}).get("mdf-publication", None)) is str:
+            metadata["mdf-links"]["mdf-publication"] = [metadata["mdf-links"]["mdf-publication"]]
+
+        # mdf-related_id
+        if type(metadata.get("mdf-links", {}).get("mdf-related_id", None)) is str:
+            metadata["mdf-links"]["mdf-related_id"] = [metadata["mdf-links"]["mdf-related_id"]]
+
         # mdf-data_contributor
-        if type(metadata.get("mdf-data_contributor", [])) is dict:
+        if type(metadata.get("mdf-data_contributor", None)) is dict:
             metadata["mdf-data_contributor"] = [metadata["mdf-data_contributor"]]
 
 
@@ -224,6 +236,10 @@ class Validator:
 
 
         # Convenience processing
+        # mdf-acl
+        if record.get("mdf-acl", None) == "public":
+            record["mdf-acl"] = ["public"]
+
         # mdf-citation
         if type(record.get("mdf-citation", [])) is str:
             record["mdf-citation"] = [record["mdf-citation"]]
@@ -243,6 +259,14 @@ class Validator:
         # mdf-tags
         if type(record.get("mdf-tags", None)) is str:
             record["mdf-tags"] = [record["mdf-tags"].split(",")]
+
+        # mdf-publication
+        if type(record.get("mdf-links", {}).get("mdf-publication", None)) is str:
+            record["mdf-links"]["mdf-publication"] = [record["mdf-links"]["mdf-publication"]]
+
+        # mdf-related_id
+        if type(record.get("mdf-links", {}).get("mdf-related_id", None)) is str:
+            record["mdf-links"]["mdf-related_id"] = [record["mdf-links"]["mdf-related_id"]]
 
 
         # Copy missing fields
