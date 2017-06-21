@@ -16,9 +16,14 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
     ''' Ingests feedstock from file.
         Arguments:
             mdf_source_names (str or list of str): Dataset name(s) to ingest.
+                Special value "all" will ingest all feedstock in the feedstock directory.
             batch_size (int): Max size of a single ingest operation. -1 for unlimited. Default 100.
             verbose (bool): Print status messages? Default False.
         '''
+
+    if "all" in mdf_source_names:
+        mdf_source_names = [feed.replace("_all.json", "") for feed in os.listdir(PATH_FEEDSTOCK) if feed.endswith("_all.json")]
+
     if verbose:
         print("\nStarting ingest of:\n", mdf_source_names, "\nBatch size:", batch_size, "\n")
 
