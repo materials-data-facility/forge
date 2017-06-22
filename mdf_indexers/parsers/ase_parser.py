@@ -280,7 +280,7 @@ def __read_vasp_out(filename=None, index=slice(0), force_consistent=False):
 def parse_ase(file_path, data_format=None, verbose=False):
     ase_template = {
 #       "constraints" : None,
-        "all_distances" : None,
+#        "all_distances" : None, # Causes performance issues with large numbers of atoms
         "angular_momentum" : None,
         "atomic_numbers" : None,
         "cell" : None,
@@ -326,6 +326,8 @@ def parse_ase(file_path, data_format=None, verbose=False):
     success_count = 0
     none_count = 0
     for key in ase_dict.keys():
+        if verbose:
+            print("Fetching", key)
         total_count += 1
         try:
             ase_dict[key] = eval("result.get_" + key + "()")
