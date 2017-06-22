@@ -64,8 +64,9 @@ def convert(input_path, metadata=None, verbose=False):
                 # data links: {         # RCM dictionary: A link to a raw data file from the dataset (the key should be the file type, ex. 'tiff')
                                             # Required fields are only required if a data link is present
 
-                    #"globus_endpoint": ,   # REQ string: The ID of the Globus Endpoint hosting the file
+                    #"globus_endpoint": ,   # RCM string: The ID of the Globus Endpoint hosting the file
                     #"http_host": ,         # RCM string: The fully-qualified HTTP hostname, including protocol, but without the path (ex. 'https://data.materialsdatafacility.org')
+                                                # REQ: One of globus_endpoint or http_host
 
                     #"path": ,              # REQ string: The full path to the data file on the host (ex. '/data/file.txt')
                     #}
