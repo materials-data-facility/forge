@@ -127,7 +127,11 @@ def convert(input_path, metadata=None, verbose=False):
 
     # Get the data
     for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR$", verbose=verbose), desc="Processing data files", disable= not verbose):
-        file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="vasp-out", verbose=False)
+        try:
+            file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="vasp-out", verbose=False)
+        except Exception as e:
+            print("Error:", repr(e))
+            file_data = None
         if file_data:
             record_metadata = {
                 "mdf-title": "High-throughput Ab-initio Dilute Solute Diffusion Database - " + file_data["chemical_formula"],
