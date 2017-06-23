@@ -38,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
             "mdf-author": [{
                 
                 "given_name": "O. Anatole",
-                "family_name": "von Lilienfel",
+                "family_name": "von Lilienfeld",
                 
                 "email": "anatole@alcf.anl.gov",
                 "instituition": "Argonne National Laboratory"
