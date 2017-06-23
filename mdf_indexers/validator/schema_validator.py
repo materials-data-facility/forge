@@ -110,7 +110,7 @@ class Validator:
 
         # mdf-tags
         if type(metadata.get("mdf-tags", None)) is str:
-            metadata["mdf-tags"] = [metadata["mdf-tags"].split(",")]
+            metadata["mdf-tags"] = [metadata["mdf-tags"]]
 
         # mdf-publication
         if type(metadata.get("mdf-links", {}).get("mdf-publication", None)) is str:
@@ -258,7 +258,7 @@ class Validator:
 
         # mdf-tags
         if type(record.get("mdf-tags", None)) is str:
-            record["mdf-tags"] = [record["mdf-tags"].split(",")]
+            record["mdf-tags"] = [record["mdf-tags"]]
 
         # mdf-publication
         if type(record.get("mdf-links", {}).get("mdf-publication", None)) is str:
