@@ -33,7 +33,7 @@ class Validator:
         self.__landing_pages = []
         self.__version = version
 ################################
-        self.__scroll_id = 0
+        self.__scroll_id = 1
 
         self.__schemas = {}
         try:
