@@ -5,11 +5,12 @@ import os
 from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
+from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
 # VERSION 0.2.0
 
-# This is the converter for the JCAP Benchmarking database
+# This is the converter for the Ti-O EAM Model dataset.
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter. The converter should be portable.
@@ -23,69 +24,66 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "JCAP Benchmarking Database",
+            "mdf-title": "A Modified Embedded Atom Method Potential for the Titanium-Oxygen System",
             "mdf-acl": ["public"],
-            "mdf-source_name": "jcap_benchmarking_db",
-            "mdf-citation": ["McCrory, C. C. L., Jung, S. H., Peters, J. C. & Jaramillo, T. F. Benchmarking Heterogeneous Electrocatalysts for the Oxygen Evolution Reaction. Journal of the American Chemical Society 135, 16977-16987, DOI: 10.1021/ja407115p (2013)", "McCrory, C. C. L. et al. Benchmarking HER and OER Electrocatalysts for Solar Water Splitting Devices. Journal of the American Chemical Society, 137, 4347–4357, DOI: 10.1021/ja510442p (2015)"],
+            "mdf-source_name": "ti_o_meam_model",
+            "mdf-citation": ['W.J. Joost, S. Ankem, M.M. Kuklja "A modified embedded atom method potential for the titanium-oxygen system" Modelling and Simulation in Materials Science and Engineering Vol. 23, pp. 015006 (2015) doi:10.1088/0965-0393/23/1/015006'],
             "mdf-data_contact": {
 
-                "given_name": "Charles",
-                "family_name": "McCrory",
+                "given_name": "William",
+                "family_name": "Joost",
 
-                "email": "info@solarfuelshub.org",
-                "institution": "Joint Center for Artificial Photosynthesis",
+                "email": "wjoost@umd.edu",
+                "institution": "University of Maryland",
 
                 },
 
             "mdf-author": [{
 
-                "given_name": "Charles",
-                "family_name": "McCrory",
+                "given_name": "William",
+                "family_name": "Joost",
 
-                "institution": "Joint Center for Artificial Photosynthesis",
-
-                },
-                {
-
-                "given_name": "Suho",
-                "family_name": "Jung",
-
-                "institution": "Joint Center for Artificial Photosynthesis",
+                "email": "wjoost@umd.edu",
+                "institution": "University of Maryland",
 
                 },
                 {
 
-                "given_name": "Jonas",
-                "family_name": "Peters",
+                "given_name": "Sreeramamurthy",
+                "family_name": "Ankem",
 
-                "institution": "Joint Center for Artificial Photosynthesis",
+                "institution": "University of Maryland",
 
                 },
                 {
 
-                "given_name": "Thomas",
-                "family_name": "Jaramillo",
+                "given_name": "Maija",
+                "family_name": "Kuklja",
 
-                "institution": "Joint Center for Artificial Photosynthesis",
+                "institution": "University of Maryland",
 
                 }],
 
 #            "mdf-license": ,
 
-            "mdf-collection": "JCAP Benchmarking DB",
-            "mdf-data_format": "txt",
-            "mdf-data_type": "Benchmarking",
-            "mdf-tags": ["benchmarking", "catalyst"],
+            "mdf-collection": "Ti-O MEAM Model",
+            "mdf-data_format": "vasp",
+            "mdf-data_type": "dft",
+            "mdf-tags": ["dft", "atom-scale simulation"],
 
-            "mdf-description": "The JCAP Benchmarking scientists developed and implemented uniform methods and protocols for characterizing the activities of electrocatalysts under standard operating conditions for water-splitting devices. They have determined standard measurement protocols that reproducibly quantify catalytic activity and stability. Data for several catalysts studied are made available in this database.",
-            "mdf-year": 2013,
+            "mdf-description": '''The files included here are:
+             1) LAMMPS and VASP input files describing the structures specified in the article.
+              2) LAMMPS and VASP output files describing the calculation results and the output structures.
+               3) A Python script used in this study to perform a brute force search of the parameter space for the Ti-O MEAM potential. Further details are provided in the article, and in the script.
+                4) The Ti, O and Ti-O potential files in LAMMPS MEAM format''',
+            "mdf-year": 2014,
 
             "mdf-links": {
 
-                "mdf-landing_page": "http://solarfuelshub.org/benchmarking-database",
+                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11115/244",
 
-                "mdf-publication": ["https://dx.doi.org/10.1021/ja407115p", "https://dx.doi.org/10.1021/ja510442p"],
-#                "mdf-dataset_doi": ,
+                "mdf-publication": "https:/dx.doi.org/10.1088/0965-0393/23/1/015006",
+                "mdf-dataset_doi": "http://hdl.handle.net/11115/244",
 
 #                "mdf-related_id": ,
 
@@ -127,44 +125,36 @@ def convert(input_path, metadata=None, verbose=False):
 
 
     # Get the data
-    for data_file in tqdm(find_files(input_path, ".txt"), desc="Processing files", disable= not verbose):
-        with open(os.path.join(data_file["path"], data_file["filename"])) as in_file:
-            record = {}
-            key = ""
-            for line in in_file:
-                clean_line = line.strip()
-                if clean_line.endswith(":"):
-                    key = clean_line.strip(": ").lower().replace(" ", "_")
-                else:
-                    record[key] = clean_line
+    for file_data in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable= not verbose):
+        record = parse_ase(os.path.join(file_data["path"], file_data["filename"]), "vasp-out")
         record_metadata = {
-            "mdf-title": "JCAP Benchmark - " + record["catalyst"],
+            "mdf-title": "Ti-O MEAM Model - " + record["chemical_formula"],
             "mdf-acl": ["public"],
 
 #            "mdf-tags": ,
 #            "mdf-description": ,
             
-            "mdf-composition": record["catalyst"],
+            "mdf-composition": record["chemical_formula"],
 #            "mdf-raw": ,
 
             "mdf-links": {
-                "mdf-landing_page": "https://internal.solarfuelshub.org/jcapresources/benchmarking/catalysts_for_iframe/view/jcapbench_catalyst/" + data_file["filename"][:-4],
+#                "mdf-landing_page": ,
 
 #                "mdf-publication": ,
 #                "mdf-dataset_doi": ,
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "outcar": {
  
-                    #"globus_endpoint": ,
-                    #"http_host": ,
+                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                    "http_host": "https://data.materialsdatafacility.org",
 
-                    #"path": ,
-                    #},
+                    "path": "/collections/" + file_data["no_root_path"] + "/" + file_data["filename"],
+                    },
                 },
 
-            "mdf-citation": record["publication"],
+#            "mdf-citation": ,
 #            "mdf-data_contact": {
 
 #                "given_name": ,
@@ -182,14 +172,13 @@ def convert(input_path, metadata=None, verbose=False):
 #            "mdf-collection": ,
 #            "mdf-data_format": ,
 #            "mdf-data_type": ,
-            "mdf-year": int(record["release_date"][:4]),
+#            "mdf-year": ,
 
 #            "mdf-mrr":
 
 #            "mdf-processing": ,
 #            "mdf-structure":,
             }
-        record_metadata.update(record)
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
