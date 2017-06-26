@@ -181,6 +181,11 @@ class Validator:
         self.__data_contributor = metadata.get("mdf-data_contributor", None)
 
 
+        # Namespace user-supplied fields
+        for field in [f for f in metadata.keys() if not f.startswith("mdf")]:
+            metadata[self.__source_name + "-" + field] = metadata.pop(field)
+
+
         # Open feedstock file for the first time and write metadata entry
         feedstock_path = os.path.join(PATH_FEEDSTOCK,  self.__source_name + "_all.json")
         try:
@@ -357,6 +362,11 @@ class Validator:
                 "message": "Invalid metadata: " + str(e).split("\n")[0],
                 "details": str(e)
                 }
+
+
+        # Namespace user-supplied fields
+        for field in [f for f in record.keys() if not f.startswith("mdf")]:
+            record[self.__source_name + "-" + field] = record.pop(field)
 
 
         # Write new record to feedstock
