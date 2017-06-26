@@ -129,7 +129,7 @@ def convert(input_path, metadata=None, verbose=False):
 #            "mdf-raw": ,
 
             "mdf-links": {
-                "mdf-landing_page": uri,
+#                "mdf-landing_page": uri,
 
 #                "mdf-publication": ,
 #                "mdf-dataset_doi": ,
