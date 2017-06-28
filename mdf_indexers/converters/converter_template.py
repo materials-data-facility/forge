@@ -22,62 +22,136 @@ def convert(input_path, metadata=None, verbose=False):
     #    REQ (Required, must be present)
     #    RCM (Recommended, should be present if possible)
     #    OPT (Optional, can be present if useful)
+    # NOTE: For fields that represent people (e.g. mdf-data_contact), other IDs can be added (ex. "github": jgaff).
+    #    It is recommended that all people listed in mdf-data_contributor have a github username listed.
     if not metadata:
+        ## Metadata:dataset
         dataset_metadata = {
-            "mdf-title": ,          # REQ string: The title of the dataset
-            "mdf-acl": ,            # REQ list of strings: The UUIDs allowed to view this dataset, or ['public']
-            "mdf-source_name": ,    # REQ string: A short version of the dataset name, for quick reference, with underscores instead of spaces
-            "mdf-citation": ,       # REQ list of strings: The full bibliographic citation(s) for the dataset
-            "mdf-data_contact": {   # REQ dictionary: The contact person/steward/custodian for the dataset
+            # REQ string: The title of the dataset
+            "mdf-title": ,
 
-                "given_name": ,         # REQ string: The person's given (or first) name
-                "family_name": ,        # REQ string: The person's family (or last) name
+            # REQ list of strings: The UUIDs allowed to view this metadata, or 'public'
+            "mdf-acl": ,
 
-                "email": ,              # RCM string: The person's email address
-                "institution": ,        # RCM string: The primary affiliation for the person
+            # REQ string: A short version of the dataset name, for quick reference, with underscores instead of spaces
+            "mdf-source_name": ,
 
-                # IDs                   # RCM strings: IDs for the person, with the ID type as the field name (ex. "ORCID": "12345")
+            # REQ list of strings: The full bibliographic citation(s) for the dataset
+            "mdf-citation": ,
+
+            # REQ dictionary: The contact person/steward/custodian for the dataset
+            "mdf-data_contact": {
+
+                # REQ string: The person's given (or first) name
+                "given_name": ,
+
+                # REQ string: The person's family (or last) name
+                "family_name": ,
+
+                # RCM string: The person's email address
+                "email": ,
+
+                # RCM string: The primary affiliation for the person
+                "institution": ,
+
+            },
+
+            # RCM list of dictionaries: A list of the authors of this dataset
+            "mdf-author": [{
+
+                # REQ string: The person's given (or first) name
+                "given_name": ,
+
+                # REQ string: The person's family (or last) name
+                "family_name": ,
+
+                # RCM string: The person's email address
+                "email": ,
+
+                # RCM string: The primary affiliation for the person
+                "institution": ,
+
+
+            }],
+
+            # RCM string: A link to the license for distribution of the dataset
+            "mdf-license": ,
+
+            # RCM string: The collection for the dataset, commonly a portion of the title
+            "mdf-collection": ,
+
+            # RCM list of strings: The file format(s) of the data (for example, 'OUTCAR')
+            "mdf-data_format": ,
+
+            # RCM list of strings: The broad categorization(s) of the data (for example, 'DFT')
+            "mdf-data_type": ,
+
+            # RCM list of strings: Tags, keywords, or other general descriptors for the dataset
+            "mdf-tags": ,
+
+            # RCM string: A description of the dataset
+            "mdf-description": ,
+
+            # RCM integer: The year of dataset creation
+            "mdf-year": ,
+
+            # REQ dictionary: Links relating to the dataset
+            "mdf-links": {
+
+                # REQ string: The human-friendly landing page for the dataset
+                "mdf-landing_page": ,
+
+                # RCM list of strings: The DOI(s) (in link form, ex. 'https://dx.doi.org/10.12345') for publications connected to the dataset
+                "mdf-publication": ,
+
+                # RCM string: The DOI of the dataset itself (in link form)
+                "mdf-dataset_doi": ,
+
+                # OPT list of strings: The mdf-id(s) of related entries, not including records from this dataset
+                "mdf-related_id": ,
+
+                # RCM dictionary: Links to raw data files from the dataset (multiple allowed, field name should be data type)
+                "data_link": {
+
+                    # RCM string: The ID of the Globus Endpoint hosting the file
+                    "globus_endpoint": ,
+
+                    # RCM string: The fully-qualified HTTP hostname, including protocol, but without the path (for example, 'https://data.materialsdatafacility.org')
+                    "http_host": ,
+
+                    # REQ string: The full path to the data file on the host
+                    "path": ,
+
                 },
 
-            "mdf-author": ,         # RCM list of dictionaries: The author(s) of the dataset
-                                        # Same fields as mdf-data_contact
+            },
 
-            "mdf-license": ,        # RCM string: A link to the license for distribution of this dataset
+            # OPT dictionary: Fields relating the the NIST Materials Resource Registry system
+            "mdf-mrr": {
 
-            "mdf-collection": ,     # RCM string: The collection for the dataset, commonly a portion of the title
-            "mdf-data_format": ,    # RCM list of strings: The file format(s) of the data (ex. 'OUTCAR')
-            "mdf-data_type": ,      # RCM list of strings: The broad categorization(s) of the data (ex. DFT)
-            "mdf-tags": ,           # RCM list of strings: Tags, keywords, or other general descriptors for the dataset
+            },
 
-            "mdf-description": ,    # RCM string: A description of the dataset
-            "mdf-year": ,           # RCM integer: The year of dataset creation
+            # OPT list of dictionaries: The person/people contributing the tools (harvester, this converter) to ingest the dataset (i.e. you)
+            "mdf-data_contributor": [{
 
-            "mdf-links": {          # REQ dictionary: Links relating to the dataset
+                # REQ string: The person's given (or first) name
+                "given_name": ,
 
-                "mdf-landing_page": ,   # REQ string: The human-friendly landing page for the dataset
+                # REQ string: The person's family (or last) name
+                "family_name": ,
 
-                "mdf-publication": ,    # RCM list of strings: The DOI(s) (in link form, ex. 'https://dx.doi.org/10.12345') for publications connected to the dataset
-                "mdf-dataset_doi": ,    # RCM string: The DOI of the dataset itself, in link form
+                # RCM string: The person's email address
+                "email": ,
 
-                "mdf-related_id": ,     # OPT list of strings: The mdf-id(s) of related entries, not including records from this dataset
+                # RCM string: The primary affiliation for the person
+                "institution": ,
 
-                # data links: {         # RCM dictionary: A link to a raw data file from the dataset (the key should be the file type, ex. 'tiff')
-                                            # Required fields are only required if a data link is present
 
-                    #"globus_endpoint": ,   # RCM string: The ID of the Globus Endpoint hosting the file
-                    #"http_host": ,         # RCM string: The fully-qualified HTTP hostname, including protocol, but without the path (ex. 'https://data.materialsdatafacility.org')
-                                                # REQ: One of globus_endpoint or http_host
+            }],
 
-                    #"path": ,              # REQ string: The full path to the data file on the host (ex. '/data/file.txt')
-                    #}
-                },
 
-            "mdf-mrr": ,            # OPT dictionary: Fields relating to the NIST Materials Resource Registry system
-
-            "mdf-data_contributor": # OPT list of dictionaries: The person/people contributing the tools (harvester, this converter) to ingest the dataset (i.e. you)
-                                        # Same fields as mdf-data_contact
-                                        # It is strongly recommended that you include your GitHub username as an ID
-            }
+        }
+        ## End metadata
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -112,59 +186,121 @@ def convert(input_path, metadata=None, verbose=False):
         #    REQ (Required, must be present)
         #    RCM (Recommended, should be present if possible)
         #    OPT (Optional, can be present if useful)
+        ## Metadata:record
         record_metadata = {
-            "mdf-title": ,          # REQ string: The title of the record
-            "mdf-acl": ,            # RCM list of strings: The UUIDs allowed to view this record, or ['public'] (default is dataset setting)
+            # REQ string: The title of the record
+            "mdf-title": ,
 
-            "mdf-tags": ,           # RCM list of strings: Tags, keywords, or other general descriptors for the record, separate from the dataset tags
-            "mdf-description": ,    # RCM string: A description of the record
-            
-            "mdf-composition": ,    # RCM string: Subject material composition, expressed in a chemical formula (ex. Bi2S3)
-            "mdf-raw": ,            # RCM string: The record, converted to JSON, in a string (see json.dumps())
+            # RCM list of strings: The UUIDs allowed to view this metadata, or 'public'. Defaults to the dataset ACL.
+            "mdf-acl": ,
 
-            "mdf-links": {          # REQ dictionary: Links relating to the record
-                "mdf-landing_page": ,   # RCM string: The human-friendly landing page for the record (default is dataset page)
+            # RCM list of strings: Tags, keywords, or other specific descriptors for the record not in the dataset tags
+            "mdf-tags": ,
 
-                "mdf-publication": ,    # OPT list of strings: The DOI link(s) of record-connected publications, if different from the dataset
-                "mdf-dataset_doi": ,    # OPT string: The DOI of the dataset itself, in link form
+            # RCM string: A description of the record
+            "mdf-description": ,
 
-                "mdf-related_id": ,     # OPT list of strings: The mdf-id(s) of related entries, not including the parent dataset
+            # RCM string: Subject material composition, expressed in a chemical formula (ex. Bi2S3)
+            "mdf-composition": ,
 
-                # data links: {         # RCM dictionary: A link to a raw data file from the dataset (the key should be the file type, ex. 'tiff')
-                                            # Required fields are only required if a data link is present
-                    #"globus_endpoint": ,   # REQ string: The ID of the Globus Endpoint hosting the file
-                    #"http_host": ,         # RCM string: The fully-qualified HTTP hostname, including protocol, but without the path (ex. 'https://data.materialsdatafacility.org')
+            # RCM string: The record as a JSON string (see json.dumps())
+            "mdf-raw": ,
 
-                    #"path": ,              # REQ string: The full path to the data file on the host (ex. '/data/file.txt')
-                    #},
+            # REQ dictionary: Links relating to the record
+            "mdf-links": {
+
+                # RCM string: The human-friendly landing page for the record
+                "mdf-landing_page": ,
+
+                # OPT list of strings: The DOI(s) (in link form, ex. 'https://dx.doi.org/10.12345') for publications connected to the record, if different from the dataset
+                "mdf-publication": ,
+
+                # OPT string: The DOI of the record itself (in link form), if separate from the dataset
+                "mdf-dataset_doi": ,
+
+                # OPT string: The mdf-id of this record's dataset
+                "mdf-parent_id": ,
+
+                # OPT list of strings: The mdf-id(s) of related entries
+                "mdf-related_id": ,
+
+                # RCM dictionary: Links to raw data files from the dataset (multiple allowed, field name should be data type)
+                "data_link": {
+
+                    # RCM string: The ID of the Globus Endpoint hosting the file
+                    "globus_endpoint": ,
+
+                    # RCM string: The fully-qualified HTTP hostname, including protocol, but without the path (for example, 'https://data.materialsdatafacility.org')
+                    "http_host": ,
+
+                    # REQ string: The full path to the data file on the host
+                    "path": ,
+
                 },
 
-            "mdf-citation": ,       # OPT list of strings: Record citation(s), if different from the dataset
-            "mdf-data_contact": {   # OPT dictionary: Record contact person/steward/custodian, if different from the dataset
-                                        # As usual, required fields are only required if the parent field is present
+            },
 
-                "given_name": ,         # REQ string: The person's given (or first) name
-                "family_name": ,        # REQ string: The person's family (or last) name
+            # OPT list of strings: The full bibliographic citation(s) for the record, if different from the dataset
+            "mdf-citation": ,
 
-                "email": ,              # RCM string: The person's email address
-                "institution":,         # RCM string: The primary affiliation for the person
+            # OPT dictionary: The contact person/steward/custodian for the record, if different from the dataset
+            "mdf-data_contact": {
 
-                # IDs                   # RCM strings: IDs for the person, with the ID type as the field name (ex. "ORCID": "12345")
-                },
+                # REQ string: The person's given (or first) name
+                "given_name": ,
 
-            "mdf-author": ,         # OPT list of dictionaries: Record author(s), if different from the dataset
-                                        # Same fields as mdf-data_contact
-            "mdf-license": ,        # OPT string: Record license, if different from the dataset
-            "mdf-collection": ,     # OPT string: Record collection, if different from the dataset
-            "mdf-data_format": ,    # OPT list of strings: Record file format, if different from the dataset
-            "mdf-data_type": ,      # OPT list of strings: Record data type, if different from the dataset
-            "mdf-year": ,           # OPT integer: Record creation year, if different from the dataset
+                # REQ string: The person's family (or last) name
+                "family_name": ,
 
-            "mdf-mrr":              # OPT dictionary: Fields relating to the NIST Materials Resource Registry system
+                # RCM string: The person's email address
+                "email": ,
 
-#            "mdf-processing": ,     # OPT undefined: Processing information
-#            "mdf-structure":,       # OPT undefined: Structure information
-            }
+                # RCM string: The primary affiliation for the person
+                "institution": ,
+
+            },
+
+            # OPT list of dictionaries: A list of the authors of this record, if different from the dataset
+            "mdf-author": [{
+
+                # REQ string: The person's given (or first) name
+                "given_name": ,
+
+                # REQ string: The person's family (or last) name
+                "family_name": ,
+
+                # RCM string: The person's email address
+                "email": ,
+
+                # RCM string: The primary affiliation for the person
+                "institution": ,
+
+
+            }],
+
+            # OPT string: A link to the license for distribution of the record, if different from the dataset
+            "mdf-license": ,
+
+            # OPT string: The collection for the record, if different from the dataset
+            "mdf-collection": ,
+
+            # OPT list of strings: The file format(s) of the data (for example, 'vasp'), if different from the dataset
+            "mdf-data_format": ,
+
+            # OPT list of strings: The broad categorization(s) of the data (for example, DFT), if different from the dataset
+            "mdf-data_type": ,
+
+            # OPT integer: The year of record creation, if different from the dataset
+            "mdf-year": ,
+
+            # OPT dictionary: Fields relating the the NIST Materials Resource Registry system
+            "mdf-mrr": {
+
+            },
+
+
+        }
+        ## End metadata
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
