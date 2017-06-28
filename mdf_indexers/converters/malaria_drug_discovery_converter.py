@@ -1,13 +1,13 @@
 import json
 import sys
 import os
-from ..utils.file_utils import find_files
+from ..parsers.tab_parser import parse_tab
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
 # VERSION 0.2.0
 
-# This is the converter for Statistical behavior of the tensile properties of natural fiber composites
+# This is the converter The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -21,48 +21,89 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Statistical behavior of the tensile properties of natural fibre composites",
+            "mdf-title": "The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases",
             "mdf-acl": ['public'],
-            "mdf-source_name": "natural_fiber_composite_tensile",
-            "mdf-citation": ["Torres, Juan Pablo (2017), “Statistical behavior of the tensile properties of natural fibre composites”, Mendeley Data, v1 http://dx.doi.org/10.17632/v25pzywt5c.1"],
+            "mdf-source_name": "malaria_drug_discovery",
+            "mdf-citation": ["Spangenberg T, Burrows JN, Kowalczyk P, McDonald S, Wells TNC, Willis P (2013) The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases. PLoS ONE 8(6): e62906. https://doi.org/10.1371/journal.pone.0062906"],
             "mdf-data_contact": {
 
-                "given_name": "Juan Pablo",
-                "family_name": "Torres",
+                "given_name": "Thomas",
+                "family_name": "Spangenberg",
                 
-                "email": "juan.torres@uq.edu.au",
-                "instituition": "University of Queensland"
+                "email": "spangenbergt@mmv.org",
+                "instituition": "Medicines for Malaria Venture"
 
                 },
 
             "mdf-author": [{
                 
-                "given_name": "Juan Pablo",
-                "family_name": "Torres",
+                "given_name": "Thomas",
+                "family_name": "Spangenberg",
                 
-                "email": "juan.torres@uq.edu.au",
-                "instituition": "University of Queensland"
+                "email": "spangenbergt@mmv.org",
+                "instituition": "Medicines for Malaria Venture"
+                
+                },
+                {
+                
+                "given_name": "Jeremy N.",
+                "family_name": "Burrows",
+                
+                "instituition": "Medicines for Malaria Venture"
+                
+                },
+                {
+                
+                "given_name": "Paul",
+                "family_name": "Kowalczyk",
+                
+                "instituition": "SCYNEXIS Inc."
+                
+                },
+                {
+                
+                "given_name": "Simon",
+                "family_name": "McDonald",
+                
+                "instituition": "Medicines for Malaria Venture"
+                
+                },
+                {
+                
+                "given_name": "Timothy N. C.",
+                "family_name": "Wells",
+                
+                "instituition": "Medicines for Malaria Venture"
+                
+                },
+                {
+                
+                "given_name": "Paul",
+                "family_name": "Willis",
+                
+                "email": "willisp@mmv.org",
+                "instituition": "Medicines for Malaria Venture"
                 
                 }],
 
-            "mdf-license": "http://creativecommons.org/licenses/by/4.0",
+            "mdf-license": "https://creativecommons.org/licenses/by/4.0/",
 
-            "mdf-collection": "Natural Fiber Tensile Properties",
+            "mdf-collection": "Open Access Malaria Box",
             "mdf-data_format": ["csv"],
- #           "mdf-data_type": ,
-            "mdf-tags": ["Laminates", "Mechanical Property", "Natural Fiber Composite"],
+           # "mdf-data_type": ,
+            "mdf-tags": ["Malaria", "Malarial parasites", "Antimalarials", "Plasmodium", "Parasitic diseases", "Drug discovery", "Plasmodium falciparum"],
 
-            "mdf-description": "This article features raw stress–strain tensile data for approximately 500 specimens corresponding to different natural fibre reinforced composite laminates. In addition, we provide here the calculated elastic modulus, strength and failure strain values for each specimen.",
-            "mdf-year": 2017,
+            "mdf-description": "In most cases it is a prerequisite to be able to obtain physical samples of the chemical compounds for further study, and the groups responsible for screening did not originally plan to provide these molecules. In addition, many of the biological systems in which these compounds would be tested are not suitable for testing such large numbers of compounds. There needs to therefore be some simplification of the collection. To overcome these barriers, a diverse collection of anti-malarial compounds has been designed and assembled.",
+            "mdf-year": 2013,
 
             "mdf-links": {
 
-                "mdf-landing_page": "http://dx.doi.org/10.17632/v25pzywt5c.1",
+                "mdf-landing_page": "https://doi.org/10.1371/journal.pone.0062906",
 
-                "mdf-publication": ["http://www.sciencedirect.com/science/article/pii/S1359835X17301136", "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5397101/"],
-                "mdf-dataset_doi": "https://data.mendeley.com/datasets/v25pzywt5c/1/files/4d9a86e4-f523-4e27-b308-ca9d519da028",
+              #  "mdf-publication": ,
+                "mdf-dataset_doi": "https://ndownloader.figshare.com/files/1090667",
 
-                "mdf-related_id": "orcid.org/0000-0002-0301-4374",
+             #   "mdf-related_id": ,
 
                 # data links: {
                 
@@ -112,24 +153,21 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, "csv"), desc="Processing files", disable=not verbose):
-        with open(os.path.join(input_path, data_file["no_root_path"], data_file["filename"])) as raw_in:
-            record = raw_in.readlines()
-        #Get Composition from filename
-        comp = data_file["filename"].split("_")[0]
-        uri = "https://data.materialsdatafacility.org/collections/natural_fiber_composite_tensile/" + data_file["no_root_path"] + '/' + data_file["filename"]
+    with open(os.path.join(input_path, "Table_S1.csv"), 'r') as raw_in:
+        data_records = raw_in.read()
+    for record in tqdm(parse_tab(data_records), desc="Processing Data", disable=not verbose):
         record_metadata = {
-            "mdf-title": "Natural Fiber Tensile Properties - " + comp,
+            "mdf-title": "Malaria Drug Discovery - " + record["Smiles"],
             "mdf-acl": ['public'],
 
 #            "mdf-tags": ,
 #            "mdf-description": ,
             
-            "mdf-composition": comp,
+            "mdf-composition": record["Smiles"],
 #            "mdf-raw": ,
 
             "mdf-links": {
-#                "mdf-landing_page": uri,
+#                "mdf-landing_page": ,
 
 #                "mdf-publication": ,
 #                "mdf-dataset_doi": ,
@@ -140,7 +178,7 @@ def convert(input_path, metadata=None, verbose=False):
                     "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                     "http_host": "https://data.materialsdatafacility.org",
 
-                    "path": "/collections/natural_fiber_composite_tensile/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                    "path": "/collections/malaria_drug_discovery/Table_S1.csv",
                     },
                 },
 
@@ -167,12 +205,6 @@ def convert(input_path, metadata=None, verbose=False):
 
 #            "mdf-processing": ,
 #            "mdf-structure":,
-            "Modulus (Segment 0.001 mm/mm - 0.008 mm/mm) (MPa)": record[0].split(',')[1] + record[0].split(',')[2], #Combine 1 and 2 because Modulus is in the thousands
-            "Poisson's ratio (Least squares fit)": record[1].split(',')[1],
-            "Gauge length (mm)": record[2].split(',')[1],
-            "Gauge length transverse (mm)": record[3].split(',')[1],
-            "Thickness (mm)": record[4].split(',')[1],
-            "Width (mm)": record[5].split(',')[1]
             }
 
         # Pass each individual record to the Validator
