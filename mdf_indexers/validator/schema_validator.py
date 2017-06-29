@@ -12,7 +12,7 @@ PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
 PATH_SCHEMAS = paths.get_path(__file__, "schemas")
 
 ##################
-VALIDATOR_VERSION = "0.2.0"
+VALIDATOR_VERSION = "0.2.x"
 ##################
 
 DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Americium": "Am", "Argon": "Ar", "Arsenic": "As", "Astatine": "At", "Gold": "Au", "Boron": "B", "Barium": "Ba", "Beryllium": "Be", "Bohrium": "Bh", "Bismuth": "Bi", "Berkelium": "Bk", "Bromine": "Br", "Carbon": "C", "Calcium": "Ca", "Cadmium": "Cd", "Cerium": "Ce", "Californium": "Cf", "Chlorine": "Cl", "Curium": "Cm", "Copernicium": "Cn", "Cobalt": "Co", "Chromium": "Cr", "Cesium": "Cs", "Copper": "Cu", "Dubnium": "Db", "Darmstadtium": "Ds", "Dysprosium": "Dy", "Erbium": "Er", "Einsteinium": "Es", "Europium": "Eu", "Fluorine": "F", "Iron": "Fe", "Flerovium": "Fl", "Fermium": "Fm", "Francium": "Fr", "Gallium": "Ga", "Gadolinium": "Gd", "Germanium": "Ge", "Hydrogen": "H", "Helium": "He", "Hafnium": "Hf", "Mercury": "Hg", "Holmium": "Ho", "Hassium": "Hs", "Iodine": "I", "Indium": "In", "Iridium": "Ir", "Potassium": "K", "Krypton": "Kr", "Lanthanum": "La", "Lithium": "Li", "Lawrencium": "Lr", "Lutetium": "Lu", "Livermorium": "Lv", "Mendelevium": "Md", "Magnesium": "Mg", "Manganese": "Mn", "Molybdenum": "Mo", "Meitnerium": "Mt", "Nitrogen": "N", "Sodium": "Na", "Niobium": "Nb", "Neodymium": "Nd", "Neon": "Ne", "Nickel": "Ni", "Nobelium": "No", "Neptunium": "Np", "Oxygen": "O", "Osmium": "Os", "Phosphorus": "P", "Protactinium": "Pa", "Lead": "Pb", "Palladium": "Pd", "Promethium": "Pm", "Polonium": "Po", "Praseodymium": "Pr", "Platinum": "Pt", "Plutonium": "Pu", "Radium": "Ra", "Rubidium": "Rb", "Rhenium": "Re", "Rutherfordium": "Rf", "Roentgenium": "Rg", "Rhodium": "Rh", "Radon": "Rn", "Ruthenium": "Ru", "Sulfur": "S", "Antimony": "Sb", "Scandium": "Sc", "Selenium": "Se", "Seaborgium": "Sg", "Silicon": "Si", "Samarium": "Sm", "Tin": "Sn", "Strontium": "Sr", "Tantalum": "Ta", "Terbium": "Tb", "Technetium": "Tc", "Tellurium": "Te", "Thorium": "Th", "Titanium": "Ti", "Thallium": "Tl", "Thulium": "Tm", "Uranium": "U", "Ununoctium": "Uuo", "Ununpentium": "Uup", "Ununseptium": "Uus", "Ununtrium": "Uut", "Vanadium": "V", "Tungsten": "W", "Xenon": "Xe", "Yttrium": "Y", "Ytterbium": "Yb", "Zinc": "Zn", "Zirconium": "Zr"}
@@ -27,27 +27,43 @@ class Validator:
     def __init__(self, metadata=None, node_type="dataset", version=VALIDATOR_VERSION):
         if not metadata:
             raise ValueError("You must specify the metadata for this " + node_type)
-        if version != VALIDATOR_VERSION:
+        if not version.startswith(VALIDATOR_VERSION.replace(".x", "")):
             print("Caution: You are using the", VALIDATOR_VERSION, "version of the Validator for metadata in version", version, "which could cause errors.")
         self.__initialized = False
         self.__landing_pages = []
-        self.__version = version
 ################################
         self.__scroll_id = 1
 
         self.__schemas = {}
+        schema_items = []
         try:
             for item in os.listdir(PATH_SCHEMAS):
-                if os.path.isfile(os.path.join(PATH_SCHEMAS, item)) and item.endswith(".schema") and version in item:
-                    with open(os.path.join(PATH_SCHEMAS, item)) as in_schema:
-                        self.__schemas[item.split("_")[0]] = json.load(in_schema)
+                # Save all schemas in schema dir
+                if os.path.isfile(os.path.join(PATH_SCHEMAS, item)) and item.endswith(".schema"):
+                    schema_items.append(item)
         except Exception as e:
             raise
 
+        # If version was not specified in call, use highest available that matches validator version
+        if "x" in version:
+            base_ver = version.replace(".x", "")
+            poss_vers = [ver.split("_")[0].replace(base_ver, "").strip(".") for ver in schema_items if ver.startswith(base_ver)]
+            high_ver = max([int(ver) for ver in poss_vers])
+            version = version.replace("x", str(high_ver))
+
+        self.__version = version
+        print(self.__version)
+
+        try:
+            for schema in [s for s in schema_items if s.startswith(version)]:
+                with open(os.path.join(PATH_SCHEMAS, schema)) as in_schema:
+                    self.__schemas[schema.split("_")[1].replace(".schema", "")] = json.load(in_schema)
+        except Exception as e:
+            raise
 
         res = self.__write_metadata(metadata, node_type)
         if not res["success"]:
-            raise ValueError("Invalid metadata: '" + res["message"] + "'\n" + res["details"])
+            raise ValueError("Invalid metadata: '" + res["message"] + "'\n" + res.get("details", ""))
         else:
             self.__initialized = True
 

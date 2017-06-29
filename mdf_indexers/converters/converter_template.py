@@ -3,7 +3,7 @@ import sys
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.2.1
 
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
