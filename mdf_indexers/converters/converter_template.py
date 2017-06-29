@@ -22,7 +22,7 @@ def convert(input_path, metadata=None, verbose=False):
     #    REQ (Required, must be present)
     #    RCM (Recommended, should be present if possible)
     #    OPT (Optional, can be present if useful)
-    # NOTE: For fields that represent people (e.g. mdf-data_contact), other IDs can be added (ex. "github": jgaff).
+    # NOTE: For fields that represent people (e.g. mdf-data_contact), other IDs can be added (ex. "github": "jgaff").
     #    It is recommended that all people listed in mdf-data_contributor have a github username listed.
     if not metadata:
         ## Metadata:dataset

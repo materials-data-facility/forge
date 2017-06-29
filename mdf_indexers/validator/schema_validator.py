@@ -52,7 +52,6 @@ class Validator:
             version = version.replace("x", str(high_ver))
 
         self.__version = version
-        print(self.__version)
 
         try:
             for schema in [s for s in schema_items if s.startswith(version)]:
