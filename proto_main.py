@@ -36,12 +36,24 @@ def call_ingester(sources, globus_index="mdf", batch_size=100, verbose=VERBOSE):
     ingester.ingest(sources, globus_index=globus_index, batch_size=batch_size, verbose=verbose)
 
 
+def call_acceptor(sources="all", strict=True, remove_old=True, verbose=VERBOSE):
+    acceptor = import_module("mdf_indexers.acceptor.feedstock_acceptor")
+    if "all" in sources:
+        acceptor.accept_all(strict=strict, remove_old=remove_old, verbose=verbose)
+    else:
+        if type(sources) is not list:
+            sources = [sources]
+        for src in sources:
+            acceptor.accept_feedstock("mdf_indexers/acceptor/acceptor_inbox/" + src + "all.json", strict=strict, remove_old=remove_old, verbose=verbose)
+
+
 if __name__ == "__main__":
     import sys
     harvest = ["h", "harvester", "harvest"]
     convert = ["c", "converter", "convert"]
     ingest = ["i", "ingester", "ingest"]
-    if len(sys.argv) < 3:
+    accept = ["a", "acceptor", "accept"]
+    if len(sys.argv) < 2:
         print("Usage statement coming soon")
 
     elif sys.argv[1].strip(" -").lower() in harvest:
@@ -63,6 +75,13 @@ if __name__ == "__main__":
         else:
             batch_size = 100
         call_ingester(sources=sys.argv[2:], globus_index=globus_index, batch_size=batch_size)
+
+    elif sys.argv[1].strip(" -").lower() in accept:
+        if len(sys.argv) > 2 and sys.argv[2] == "--save_old":
+            remove_old = False
+        else:
+            remove_old = True
+        call_acceptor(sys.argv[3:] or "all", remove_old=remove_old)
 
     else:
         print("Invalid option")
