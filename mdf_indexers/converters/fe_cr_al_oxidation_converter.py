@@ -172,7 +172,8 @@ def convert(input_path, metadata=None, verbose=False):
         # Check if the Validator accepted the record, and print a message if it didn't
         # If the Validator returns "success" == True, the record was written successfully
         if result["success"] is not True:
-            print("Error:", result["message"])
+            dataset_validator.cancel_validation()
+            raise ValueError(result["message"] + "\n" + result.get("details", ""))
 
 
     if verbose:

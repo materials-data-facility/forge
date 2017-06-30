@@ -221,7 +221,7 @@ class Validator:
     # Output single record to feedstock
     def write_record(self, record):
         node_type = "record"
-        if not self.__initialized: #Metadata not set
+        if not self.__initialized or self.__feedstock.closed: #Metadata not set, or cancelled
             return {
                 "success": False,
                 "message": "Metadata not written for this dataset"
@@ -396,6 +396,42 @@ class Validator:
                 "success": False,
                 "message": "Error: Bad record: " + repr(e)
                 }
+
+
+    # Cancels validation and cleans up partial feedstock file
+    def cancel_validation(self):
+        if not self.__initialized:
+            return {
+                "success": False,
+                "message": "Validator not initialized"
+                }
+        elif self.__feedstock.closed:
+            return {
+                "success": False,
+                "message": "Validation already cancelled"
+                }
+        try:
+            self.__feedstock.close()
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "Unable to close feedstock file",
+                "details": repr(e)
+                }
+        try:
+            feedstock_path = os.path.join(PATH_FEEDSTOCK,  self.__source_name + "_all.json")
+            if not os.path.isfile(feedstock_path):
+                raise IOError("Feedstock file is missing or corrupted.")
+            os.remove(feedstock_path)
+        except Exception as e:
+            return {
+                "success": False,
+                "message": "Failed to delete feedstock file",
+                "details": repr(e)
+                }
+        return {
+            "success": True
+            }
 
 
     @property
