@@ -36,15 +36,19 @@ def call_ingester(sources, globus_index="mdf", batch_size=100, verbose=VERBOSE):
     ingester.ingest(sources, globus_index=globus_index, batch_size=batch_size, verbose=verbose)
 
 
-def call_acceptor(sources="all", strict=True, remove_old=True, verbose=VERBOSE):
+def call_acceptor(sources="all", remove_old=True, verbose=VERBOSE):
     acceptor = import_module("mdf_indexers.acceptor.feedstock_acceptor")
     if "all" in sources:
-        acceptor.accept_all(strict=strict, remove_old=remove_old, verbose=verbose)
+        res = acceptor.accept_all(remove_old=remove_old, verbose=verbose)
+        if verbose:
+            print(res)
     else:
         if type(sources) is not list:
             sources = [sources]
         for src in sources:
-            acceptor.accept_feedstock("mdf_indexers/acceptor/acceptor_inbox/" + src + "all.json", strict=strict, remove_old=remove_old, verbose=verbose)
+            res = acceptor.accept_feedstock("mdf_indexers/submissions/" + src + "all.json", remove_old=remove_old, verbose=verbose)
+            if verbose:
+                print(res)
 
 
 if __name__ == "__main__":
@@ -77,10 +81,10 @@ if __name__ == "__main__":
         call_ingester(sources=sys.argv[2:], globus_index=globus_index, batch_size=batch_size)
 
     elif sys.argv[1].strip(" -").lower() in accept:
-        if len(sys.argv) > 2 and sys.argv[2] == "--save_old":
-            remove_old = False
-        else:
+        if len(sys.argv) > 2 and sys.argv[2] == "--remove_old":
             remove_old = True
+        else:
+            remove_old = False
         call_acceptor(sys.argv[3:] or "all", remove_old=remove_old)
 
     else:
