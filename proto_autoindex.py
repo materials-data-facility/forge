@@ -9,7 +9,8 @@ DEFAULT_GEN_CONV = "metadata_only"
 
 
 def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedstock=True, default_converter=DEFAULT_GEN_CONV, verbose=False):
-    converter_dir = "mdf_indexers/converters"
+    converter_dir = os.path.join("mdf_indexers", "converters")
+    feedstock_dir = os.path.join("mdf_indexers", "feedstock")
     if verbose:
         print("Indexing dataset")
     if type(dataset_metadata) is dict:
@@ -58,7 +59,7 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
     else:
         converter_path = os.path.join(converter_dir, selected_converter + "_converter").strip(".")
         # Transform: '../part/of/path' => '..part.of.path'
-        converter = import_module(converter_path.replace("..", ".").replace("/", "."))
+        converter = import_module(converter_path.replace("..", ".").replace(os.sep, "."))
 
     if verbose:
         print("Converting dataset")
@@ -68,11 +69,15 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
     if verbose:
         print("Dataset converted")
 
-    feedstock_path = 
+    feedstock_path = os.path.join(feedstock_dir, metadata.get("mdf-source_name", "") + "_all.json")
 
     if review_feedstock:
         print("Please review the following to ensure that the dataset was converted correctly:")
-        
+        with open(feedstock_path) as feedstock:
+            num_entries = len(feedstock.readlines())
+            feedstock.seek(0)
+#            ds_entry = json.dumps
+#            print(json.dumps(sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def cli():
