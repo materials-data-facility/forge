@@ -80,7 +80,7 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
             ds_entry = json.loads(feedstock.readline())
             if num_records:  # If num_records is 0, cannot print any records
                 # Discard random number of record entries
-                [feedstock.readline() for i in random.randint(0, num_records-1)]
+                [feedstock.readline() for i in range(random.randint(0, num_records-1))]
                 # Save next record entry to display
                 rc_entry = json.loads(feedstock.readline())
             else:
@@ -88,9 +88,11 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
 
         # Prompt user
         print("Please review the following feedstock to ensure that the dataset was converted correctly:")
+        print("*"*50)
         print("DATASET entry:")
         print(json.dumps(ds_entry, sort_keys=True, indent=4, separators=(',', ': ')))
         if rc_entry:
+            print("*"*50)
             print("\nRECORD entry:")
             print(json.dumps(rc_entry, sort_keys=True, indent=4, separators=(',', ': ')))
         print("Please review the above feedstock to ensure that the dataset was converted correctly.")
@@ -103,13 +105,13 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
         if correct.strip().lower() not in yes_inputs:
             print("The feedstock will not be submitted. Please correct any errors and try again, or contact MDF for help.")
             submit_feedstock = False
-        print("Thank you for reviewing the feedstock.")
+        print("Thank you for reviewing the feedstock.\n")
 
     # If submission should proceed, call submitter
     if submit_feedstock:
         if verbose:
             print("Submitting feedstock to MDF")
-        submitter = import_module(submitter_path)
+        submitter = import_module(submitter_path.replace("..", ".").replace(os.sep, "."))
         submitter.submit_feedstock(feedstock_path, verbose)
         if verbose:
             print("Feedstock submitted to MDF")
@@ -129,7 +131,7 @@ def cli():
     parser.add_argument("-v", "--verbose", action="store_true", help="Print status messages.")
     args = parser.parse_args()
 
-    autoindex(dataset_metadata=parser.md, data_path=parser.data_path, submit_feedstock=not parser.no_submit, review_feedstock=not parser.no_review, default_converter=parser.default_converter, verbose=parser.verbose)
+    autoindex(dataset_metadata=args.md, data_path=args.data_path, submit_feedstock=not args.no_submit, review_feedstock=not args.no_review, default_converter=args.default_converter, verbose=args.verbose)
 
 
 if __name__ == "__main__":
