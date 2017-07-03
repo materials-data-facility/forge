@@ -8,7 +8,8 @@ from importlib import import_module
 DEFAULT_GEN_CONV = "metadata_only"
 
 
-def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedstock=True, default_converter=DEFAULT_GEN_CONV, verbose=False):
+def autoindex(dataset_metadata, data_path, submit_feedstock=True, 
+              review_feedstock=True, default_converter=DEFAULT_GEN_CONV, verbose=False):
     converter_dir = os.path.join("mdf_indexers", "converters")
     feedstock_dir = os.path.join("mdf_indexers", "feedstock")
     if verbose:
@@ -36,11 +37,15 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
             print("Unable to detect data type")
 
     # Gather list of available converters
-    all_converters = [c.replace("_converter.py", "") for c in os.listdir(converter_dir) if c.endswith("_converter.py")]
+    all_converters = [c.replace("_converter.py", "") for c in os.listdir(converter_dir) 
+                                                         if c.endswith("_converter.py")]
     # Choose converter
+    #
+    # If a converter of the same name exists in converter dir, use that converter
     # mdf-source_name
     if metadata.get("mdf-source_name", "") in all_converters:
         selected_converter = metadata.get("mdf-source_name", "")
+    # If a converter for the specified data type exists, use that converter
     # mdf-data_type
     elif metadata.get("mdf-data_type", "") in all_converters:
         selected_converter = metadata.get("mdf-data_type", "")
@@ -71,6 +76,7 @@ def autoindex(dataset_metadata, data_path, submit_feedstock=True, review_feedsto
 
     feedstock_path = os.path.join(feedstock_dir, metadata.get("mdf-source_name", "") + "_all.json")
 
+    # If review_feedstock is True: print the dataset record and a random record
     if review_feedstock:
         print("Please review the following to ensure that the dataset was converted correctly:")
         with open(feedstock_path) as feedstock:
