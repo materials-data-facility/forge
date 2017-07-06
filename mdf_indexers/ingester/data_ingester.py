@@ -4,9 +4,9 @@ import os
 
 from tqdm import tqdm
 
-from . import ingest_client
+from . import search_client
 from ..utils import paths
-from ..utils.gmeta_utils import format_gmeta, add_namespace
+from ..utils.gmeta_utils import format_gmeta
 
 PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
 globus_url = "https://search.api.globus.org/"
@@ -25,9 +25,9 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
         mdf_source_names = [feed.replace("_all.json", "") for feed in os.listdir(PATH_FEEDSTOCK) if feed.endswith("_all.json")]
 
     if verbose:
-        print("\nStarting ingest of:\n", mdf_source_names, "\nBatch size:", batch_size, "\n")
+        print("\nStarting ingest of:\n", mdf_source_names, "\nIndex:", globus_index, "\nBatch size:", batch_size, "\n")
 
-    globus_client = ingest_client.IngestClient(globus_url, globus_index)
+    ingest_client = search_client.SearchClient(globus_url, globus_index)
 
     if type(mdf_source_names) is str:
         mdf_source_names = [mdf_source_names]
@@ -39,18 +39,17 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
         with open(os.path.join(PATH_FEEDSTOCK, source_name+"_all.json"), 'r') as feedstock:
             for json_record in tqdm(feedstock, desc="Ingesting " + source_name, disable= not verbose):
                 record = format_gmeta(json.loads(json_record))
-                record["content"] = add_namespace(record["content"])
                 list_ingestables.append(record)
                 count_ingestables += 1
 
                 if batch_size > 0 and len(list_ingestables) >= batch_size:
-                    globus_client.ingest(format_gmeta(list_ingestables))
+                    ingest_client.ingest(format_gmeta(list_ingestables))                           
                     list_ingestables.clear()
                     count_batches += 1
 
         # Check for partial batch to ingest
         if list_ingestables:
-            globus_client.ingest(format_gmeta(list_ingestables))
+            ingest_client.ingest(format_gmeta(list_ingestables))
             list_ingestables.clear()
             count_batches += 1
 

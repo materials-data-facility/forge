@@ -14,7 +14,7 @@ def format_gmeta(data):
             Valid list of GMetaEntrys
     '''
     if type(data) is dict:
-        data["mdf-publish.publication.community"] = "Materials Data Facility"  # Community for filtering
+#        data["mdf-publish.publication.community"] = "Materials Data Facility"  # Community for filtering
         gmeta = {
             "@datatype": "GMetaEntry",
             "@version": "2016-11-09",
@@ -40,7 +40,8 @@ def format_gmeta(data):
 
     return gmeta
 
-
+"""
+# Obsolete
 def add_namespace(data):
     ''' Adds or expands namespaces as appropriate. '''
     namespaces = {
@@ -69,13 +70,14 @@ def add_namespace(data):
         return new_dict
     else:
         return data
+"""
 
 
 # Removes GMeta wrapping
 # Args:
 #   gmeta: Dict (or GlobusHTTPResponse, or JSON str) to unwrap
-#   clean_namespaces: Should the script clean the URL namespaces from dict keys? Default False.
-def gmeta_pop(gmeta, clean_namespaces=False):
+# Obsolete #   clean_namespaces: Should the script clean the URL namespaces from dict keys? Default False.
+def gmeta_pop(gmeta): #, clean_namespaces=False):
     if type(gmeta) is str:
         gmeta = json.loads(gmeta)
     elif type(gmeta) is GlobusHTTPResponse:
@@ -86,11 +88,13 @@ def gmeta_pop(gmeta, clean_namespaces=False):
     for res in gmeta["gmeta"]:
         for con in res["content"]:
             results.append(con)
-    if clean_namespaces:
-        results = remove_namespace(results)
+#    if clean_namespaces:
+#        results = remove_namespace(results)
     return results
 
 
+"""
+# Obsolete
 # Removes the namespaces from dict keys
 # Same thing as add_namespace, but in reverse
 def remove_namespace(data):
@@ -105,5 +109,5 @@ def remove_namespace(data):
         return new_dict
     else:
         return data
-
+"""
 
