@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for polymer data from Khazana.
 # Arguments:
@@ -24,90 +24,90 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Khazana (Polymer)",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "khazana_polymer",
-            "mdf-citation": ["T. D. Huan, A. Mannodi-Kanakkithodi, C. Kim, V. Sharma, G. Pilania, R. Ramprasad\nA polymer dataset for accelerated property prediction and design Sci. Data, 3, 160012 (2016).", "A. Mannodi-Kanakkithodi, G. M. Treich, T. D. Huan, R. Ma, M. Tefferi, Y. Cao, G A. Sotzing, R. Ramprasad\nRational Co-Design of Polymer Dielectrics for Energy Storage Adv. Mater., 28, 6277 (2016).", "T. D. Huan, A. Mannodi-Kanakkithodi, R. Ramprasad\nAccelerated materials property predictions and design using motif-based fingerprints Phys. Rev. B, 92, 014106 (2015).", "A. Mannodi-Kanakkithodi, G. Pilania, T. D. Huan, T. Lookman, R. Ramprasad\nMachine learning strategy for accelerated design of polymer dielectrics Sci. Rep., 6, 20952 (2016)."],
-            "mdf-data_contact": {
+            "mdf": {
+                "title": "Khazana (Polymer)",
+                "acl": ["public"],
+                "source_name": "khazana_polymer",
+                "citation": ["T. D. Huan, A. Mannodi-Kanakkithodi, C. Kim, V. Sharma, G. Pilania, R. Ramprasad\nA polymer dataset for accelerated property prediction and design Sci. Data, 3, 160012 (2016).", "A. Mannodi-Kanakkithodi, G. M. Treich, T. D. Huan, R. Ma, M. Tefferi, Y. Cao, G A. Sotzing, R. Ramprasad\nRational Co-Design of Polymer Dielectrics for Energy Storage Adv. Mater., 28, 6277 (2016).", "T. D. Huan, A. Mannodi-Kanakkithodi, R. Ramprasad\nAccelerated materials property predictions and design using motif-based fingerprints Phys. Rev. B, 92, 014106 (2015).", "A. Mannodi-Kanakkithodi, G. Pilania, T. D. Huan, T. Lookman, R. Ramprasad\nMachine learning strategy for accelerated design of polymer dielectrics Sci. Rep., 6, 20952 (2016)."],
+                "data_contact": {
 
-                "given_name": "Rampi",
-                "family_name": "Ramprasad",
+                    "given_name": "Rampi",
+                    "family_name": "Ramprasad",
 
-                "email": "rampi.ramprasad@uconn.edu",
-                "institution": "University of Connecticut",
+                    "email": "rampi.ramprasad@uconn.edu",
+                    "institution": "University of Connecticut",
 
-                },
+                    },
 
-            "mdf-author": [{
+                "author": [{
 
-                "given_name": "Rampi",
-                "family_name": "Ramprasad",
+                    "given_name": "Rampi",
+                    "family_name": "Ramprasad",
 
-                "email": "rampi.ramprasad@uconn.edu",
-                "institution": "University of Connecticut",
+                    "email": "rampi.ramprasad@uconn.edu",
+                    "institution": "University of Connecticut",
 
-                },
-                {
+                    },
+                    {
 
-                "given_name": "Chiho",
-                "family_name": "Kim",
+                    "given_name": "Chiho",
+                    "family_name": "Kim",
 
-                "institution": "University of Connecticut",
+                    "institution": "University of Connecticut",
 
-                },
-                {
+                    },
+                    {
 
-                "given_name": "Huan",
-                "family_name": "Tran",
+                    "given_name": "Huan",
+                    "family_name": "Tran",
 
-                "institution": "University of Connecticut",
+                    "institution": "University of Connecticut",
 
-                },
-                {
+                    },
+                    {
 
-                "given_name": "Arun",
-                "family_name": "Mannodi-Kanakkithodi",
+                    "given_name": "Arun",
+                    "family_name": "Mannodi-Kanakkithodi",
 
-                "institution": "University of Connecticut",
+                    "institution": "University of Connecticut",
 
-                }],
+                    }],
 
-#            "mdf-license": ,
+    #            "mdf-license": ,
 
-            "mdf-collection": "Khazana",
-            "mdf-data_format": "cif",
-            "mdf-data_type": "Polymers",
-            "mdf-tags": ["polymer"],
+                "collection": "Khazana",
+                "tags": ["polymer"],
 
-            "mdf-description": "Polymer Genome is a recommendation engine for the rapid design and discovery of polymer dielectrics, powered by quantum mechanical computations, experimental data and machine learning based models. Polymer Genome is designed to provide efficient pathways for estimating essential properties of existing/hypothetical polymers and recommending polymer candidates that meet certain property requirements.",
-#            "mdf-year": ,
+                "description": "Polymer Genome is a recommendation engine for the rapid design and discovery of polymer dielectrics, powered by quantum mechanical computations, experimental data and machine learning based models. Polymer Genome is designed to provide efficient pathways for estimating essential properties of existing/hypothetical polymers and recommending polymer candidates that meet certain property requirements.",
+    #            "mdf-year": ,
 
-            "mdf-links": {
+                "links": {
 
-                "mdf-landing_page": "http://khazana.uconn.edu/polymer_genome/index.php",
+                    "landing_page": "http://khazana.uconn.edu/polymer_genome/index.php",
 
-                "mdf-publication": ["https://dx.doi.org/10.1038/sdata.2016.12", "https://dx.doi.org/10.1002/adma.201600377", "https://doi.org/10.1103/PhysRevB.92.014106", "https://dx.doi.org/10.1038/srep20952"],
-#                "mdf-dataset_doi": ,
+                    "publication": ["https://dx.doi.org/10.1038/sdata.2016.12", "https://dx.doi.org/10.1002/adma.201600377", "https://doi.org/10.1103/PhysRevB.92.014106", "https://dx.doi.org/10.1038/srep20952"],
+    #                "mdf-dataset_doi": ,
 
-#                "mdf-related_id": ,
+    #                "mdf-related_id": ,
 
-                # data links: {
+                    # data links: {
 
-                    #"globus_endpoint": ,
-                    #"http_host": ,
+                        #"globus_endpoint": ,
+                        #"http_host": ,
 
-                    #"path": ,
-                    #}
-                },
+                        #"path": ,
+                        #}
+                    },
 
-#            "mdf-mrr": ,
+    #            "mdf-mrr": ,
 
-            "mdf-data_contributor": {
-                "given_name": "Jonathon",
-                "family_name": "Gaff",
-                "email": "jgaff@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "jgaff"
+                "data_contributor": {
+                    "given_name": "Jonathon",
+                    "family_name": "Gaff",
+                    "email": "jgaff@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "jgaff"
+                    }
                 }
             }
     elif type(metadata) is str:
@@ -132,57 +132,59 @@ def convert(input_path, metadata=None, verbose=False):
     for dir_data in tqdm(find_files(input_path, "\.cif$"), desc="Processing data files", disable= not verbose):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="cif", verbose=False)
         record_metadata = {
-            "mdf-title": "Khazana Polymer - " + file_data["chemical_formula"],
-            "mdf-acl": ["public"],
+            "mdf": {
+                "title": "Khazana Polymer - " + file_data["chemical_formula"],
+                "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": file_data["chemical_formula"],
-#            "mdf-raw": ,
+    #            "mdf-tags": ,
+    #            "mdf-description": ,
+                
+                "composition": file_data["chemical_formula"],
+    #            "mdf-raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "http://khazana.uconn.edu/module_search/material_detail.php?id=" + dir_data["filename"].replace(".cif", ""),
+                "links": {
+                    "landing_page": "http://khazana.uconn.edu/module_search/material_detail.php?id=" + dir_data["filename"].replace(".cif", ""),
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+    #                "mdf-publication": ,
+    #                "mdf-dataset_doi": ,
 
-#                "mdf-related_id": ,
+    #                "mdf-related_id": ,
 
-                # data links: {
- 
-                    #"globus_endpoint": ,
-                    #"http_host": ,
+                    # data links: {
+     
+                        #"globus_endpoint": ,
+                        #"http_host": ,
 
-                    #"path": ,
-                    #},
-                },
+                        #"path": ,
+                        #},
+                    },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+    #            "mdf-citation": ,
+    #            "mdf-data_contact": {
 
-#                "given_name": ,
-#                "family_name": ,
+    #                "given_name": ,
+    #                "family_name": ,
 
-#                "email": ,
-#                "institution":,
+    #                "email": ,
+    #                "institution":,
 
-                # IDs
-#                },
+                    # IDs
+    #                },
 
-#            "mdf-author": ,
+    #            "mdf-author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+    #            "mdf-license": ,
+    #            "mdf-collection": ,
+    #            "mdf-data_format": ,
+    #            "mdf-data_type": ,
+    #            "mdf-year": ,
 
-#            "mdf-mrr":
+    #            "mdf-mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    #            "mdf-processing": ,
+    #            "mdf-structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

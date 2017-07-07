@@ -12,7 +12,7 @@ PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
 PATH_SCHEMAS = paths.get_path(__file__, "schemas")
 
 ##################
-VALIDATOR_VERSION = "0.2.x"
+VALIDATOR_VERSION = "0.3.x"
 ##################
 
 DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Americium": "Am", "Argon": "Ar", "Arsenic": "As", "Astatine": "At", "Gold": "Au", "Boron": "B", "Barium": "Ba", "Beryllium": "Be", "Bohrium": "Bh", "Bismuth": "Bi", "Berkelium": "Bk", "Bromine": "Br", "Carbon": "C", "Calcium": "Ca", "Cadmium": "Cd", "Cerium": "Ce", "Californium": "Cf", "Chlorine": "Cl", "Curium": "Cm", "Copernicium": "Cn", "Cobalt": "Co", "Chromium": "Cr", "Cesium": "Cs", "Copper": "Cu", "Dubnium": "Db", "Darmstadtium": "Ds", "Dysprosium": "Dy", "Erbium": "Er", "Einsteinium": "Es", "Europium": "Eu", "Fluorine": "F", "Iron": "Fe", "Flerovium": "Fl", "Fermium": "Fm", "Francium": "Fr", "Gallium": "Ga", "Gadolinium": "Gd", "Germanium": "Ge", "Hydrogen": "H", "Helium": "He", "Hafnium": "Hf", "Mercury": "Hg", "Holmium": "Ho", "Hassium": "Hs", "Iodine": "I", "Indium": "In", "Iridium": "Ir", "Potassium": "K", "Krypton": "Kr", "Lanthanum": "La", "Lithium": "Li", "Lawrencium": "Lr", "Lutetium": "Lu", "Livermorium": "Lv", "Mendelevium": "Md", "Magnesium": "Mg", "Manganese": "Mn", "Molybdenum": "Mo", "Meitnerium": "Mt", "Nitrogen": "N", "Sodium": "Na", "Niobium": "Nb", "Neodymium": "Nd", "Neon": "Ne", "Nickel": "Ni", "Nobelium": "No", "Neptunium": "Np", "Oxygen": "O", "Osmium": "Os", "Phosphorus": "P", "Protactinium": "Pa", "Lead": "Pb", "Palladium": "Pd", "Promethium": "Pm", "Polonium": "Po", "Praseodymium": "Pr", "Platinum": "Pt", "Plutonium": "Pu", "Radium": "Ra", "Rubidium": "Rb", "Rhenium": "Re", "Rutherfordium": "Rf", "Roentgenium": "Rg", "Rhodium": "Rh", "Radon": "Rn", "Ruthenium": "Ru", "Sulfur": "S", "Antimony": "Sb", "Scandium": "Sc", "Selenium": "Se", "Seaborgium": "Sg", "Silicon": "Si", "Samarium": "Sm", "Tin": "Sn", "Strontium": "Sr", "Tantalum": "Ta", "Terbium": "Tb", "Technetium": "Tc", "Tellurium": "Te", "Thorium": "Th", "Titanium": "Ti", "Thallium": "Tl", "Thulium": "Tm", "Uranium": "U", "Ununoctium": "Uuo", "Ununpentium": "Uup", "Ununseptium": "Uus", "Ununtrium": "Uut", "Vanadium": "V", "Tungsten": "W", "Xenon": "Xe", "Yttrium": "Y", "Ytterbium": "Yb", "Zinc": "Zn", "Zirconium": "Zr"}
@@ -24,9 +24,9 @@ MAX_LIST = 5
 #Validator class holds data about a dataset while writing to feedstock
 class Validator:
     #init takes dataset metadata to start processing and save another function call
-    def __init__(self, metadata=None, node_type="dataset", version=VALIDATOR_VERSION):
+    def __init__(self, metadata=None, resource_type="dataset", version=VALIDATOR_VERSION):
         if not metadata:
-            raise ValueError("You must specify the metadata for this " + node_type)
+            raise ValueError("You must specify the metadata for this " + resource_type)
         if not version.startswith(VALIDATOR_VERSION.replace(".x", "")):
             print("Caution: You are using the", VALIDATOR_VERSION, "version of the Validator for metadata in version", version, "which could cause errors.")
         self.__initialized = False
@@ -48,6 +48,8 @@ class Validator:
         if "x" in version:
             base_ver = version.replace(".x", "")
             poss_vers = [ver.split("_")[0].replace(base_ver, "").strip(".") for ver in schema_items if ver.startswith(base_ver)]
+            if not poss_vers:
+                raise FileNotFoundError("No schemas found for validator version " + version)
             high_ver = max([int(ver) for ver in poss_vers])
             version = version.replace("x", str(high_ver))
 
@@ -60,7 +62,7 @@ class Validator:
         except Exception as e:
             raise
 
-        res = self.__write_metadata(metadata, node_type)
+        res = self.__write_metadata(metadata, resource_type)
         if not res["success"]:
             raise ValueError("Invalid metadata: '" + res["message"] + "'\n" + res.get("details", ""))
         else:
@@ -74,75 +76,130 @@ class Validator:
             pass
 
     #Sets metadata
-    def __write_metadata(self, metadata, node_type):
+    def __write_metadata(self, full_metadata, resource_type):
         if self.__initialized: #Metadata already set; cannot change
             return {
                 "success": False,
-                "message": "Metadata already written for this " + node_type
+                "message": "Metadata already written for this " + resource_type
                 }
 
-        if node_type not in self.__schemas.keys():
+        if resource_type not in self.__schemas.keys():
             return {
                 "success": False,
-                "message": "No validation schema found for '" + node_type
+                "message": "No validation schema found for '" + resource_type
                 }
+
+        metadata = full_metadata.get("mdf", {})
 
         # Validator-added fields
         # mdf-id
         self.__parent_id = str(ObjectId())
         metadata["mdf-id"] = self.__parent_id
 
-        # mdf-node_type
-        metadata["mdf-node_type"] = node_type
+        # resource_type
+        metadata["resource_type"] = resource_type
 
-        # mdf-metadata_version
-        metadata["mdf-metadata_version"] = self.__version
+        # metadata_version
+        metadata["metadata_version"] = self.__version
 
-        # mdf-ingest_date
-        metadata["mdf-ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
+        # ingest_date
+        metadata["ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
 
 
         # Convenience processing
-        # mdf-acl
-        if metadata.get("mdf-acl", None) == "public":
-            metadata["mdf-acl"] = ["public"]
+        # acl
+        if metadata.get("acl", None) == "public":
+            metadata["acl"] = ["public"]
 
-        # mdf-citation
-        if type(metadata.get("mdf-citation", None)) is str:
-            metadata["mdf-citation"] = [metadata["mdf-citation"]]
+        # citation
+        if type(metadata.get("citation", None)) is str:
+            metadata["citation"] = [metadata["citation"]]
 
-        # mdf-author
-        if type(metadata.get("mdf-author", None)) is dict:
-            metadata["mdf-author"] = [metadata["mdf-author"]]
+        # author
+        if type(metadata.get("author", None)) is dict:
+            metadata["author"] = [metadata["author"]]
+        # author.full_name
+        authors = []
+        for auth in metadata.get("author", []):
+            if type(auth) is dict:
+                auth["full_name"] = auth.get("given_name", "") + " " + auth.get("family_name", "")
+                authors.append(auth)
+        if authors:
+            metadata["author"] = authors
 
-        # mdf-data_format
-        if type(metadata.get("mdf-data_format", None)) is str:
-            metadata["mdf-data_format"] = [metadata["mdf-data_format"]]
+        # tags
+        if type(metadata.get("tags", None)) is str:
+            metadata["tags"] = [metadata["tags"]]
+        elif not metadata.get("tags", None):
+            metadata["tags"] = []
+        metadata["tags"] += [fmt for fmt in metadata.get("links", {}).keys() if fmt not in ["landing_page", "publication", "dataset_doi", "related_id"]]
 
-        # mdf-data_type
-        if type(metadata.get("mdf-data_type", None)) is str:
-            metadata["mdf-data_type"] = [metadata["mdf-data_type"]]
+        # publication
+        if type(metadata.get("links", {}).get("publication", None)) is str:
+            metadata["links"]["publication"] = [metadata["links"]["publication"]]
 
-        # mdf-tags
-        if type(metadata.get("mdf-tags", None)) is str:
-            metadata["mdf-tags"] = [metadata["mdf-tags"]]
+        # related_id
+        if type(metadata.get("links", {}).get("related_id", None)) is str:
+            metadata["links"]["related_id"] = [metadata["links"]["related_id"]]
 
-        # mdf-publication
-        if type(metadata.get("mdf-links", {}).get("mdf-publication", None)) is str:
-            metadata["mdf-links"]["mdf-publication"] = [metadata["mdf-links"]["mdf-publication"]]
+        # data_contact
+        if type(metadata.get("data_contact", None)) is dict:
+            metadata["data_contact"]["full_name"] = metadata["data_contact"].get("given_name", "") + " " + metadata["data_contact"].get("family_name", "")
 
-        # mdf-related_id
-        if type(metadata.get("mdf-links", {}).get("mdf-related_id", None)) is str:
-            metadata["mdf-links"]["mdf-related_id"] = [metadata["mdf-links"]["mdf-related_id"]]
+        # data_contributor
+        if type(metadata.get("data_contributor", None)) is dict:
+            metadata["data_contributor"] = [metadata["data_contributor"]]
+        # data_contributor.full_name
+        contribs = []
+        for contrib in metadata.get("data_contributor", []):
+            if type(contrib) is dict:
+                contrib["full_name"] = contrib.get("given_name", "") + " " + contrib.get("family_name", "")
+                contribs.append(contrib)
+        if contribs:
+            metadata["data_contributor"] = contribs
 
-        # mdf-data_contributor
-        if type(metadata.get("mdf-data_contributor", None)) is dict:
-            metadata["mdf-data_contributor"] = [metadata["mdf-data_contributor"]]
+
+        # Log fields to copy to records
+        # source_name
+        src_nm = ""
+        for char in metadata.get("source_name", "").lower().replace(" ", "_").replace("-", "_"):
+            if char.isalnum() or char == "_":
+                src_nm += char
+        self.__source_name = src_nm
+        metadata["source_name"] = self.__source_name
+
+        # acl
+        self.__acl = metadata.get("acl", None)
+
+        # collection
+        self.__collection = metadata.get("collection", None)
+
+        # landing_page
+        self.__landing_pages.append(metadata.get("links", {}).get("landing_page", None))
+
+
+        # Finish mdf processing
+        full_metadata["mdf"] = metadata
+
+
+        # Process other blocks
+        # MRR
+        mrr = full_metadata.get("mrr", {})
+        full_metadata["mrr"] = mrr
+
+
+        # DC
+        dc = full_metadata.get("dc", {})
+        full_metadata["dc"] = dc
 
 
         # Validate metadata
         try:
-            jsonschema.validate(metadata, self.__schemas[node_type])
+            jsonschema.validate(full_metadata, self.__schemas[resource_type])
+            # Validate user-added block
+            # If it exists, the key must be the source_name
+            if len(full_metadata) > 3 and full_metadata.get(self.__source_name, None) is None:
+                raise(jsonschema.ValidationError("The user-defined data block for source name '" + self.__source_name + "' must be named '" + self.__source_name + "'"))
         except jsonschema.ValidationError as e:
            return {
                 "success": False,
@@ -151,61 +208,11 @@ class Validator:
                 }
 
 
-        # Log fields to copy to records
-        # mdf-source_name
-        self.__source_name = metadata.get("mdf-source_name", "").lower().replace(" ", "_")
-        metadata["mdf-source_name"] = self.__source_name
-
-        # mdf-acl
-        self.__acl = metadata.get("mdf-acl", None)
-
-        # mdf-collection
-        self.__collection = metadata.get("mdf-collection", None)
-        
-        # mdf-data_format
-        self.__data_format = metadata.get("mdf-data_format", None)
-        
-        # mdf-data_type
-        self.__data_type = metadata.get("mdf-data_type", None)
-        
-        # mdf-citation
-        self.__citation = metadata.get("mdf-citation", None)
-
-        # mdf-license
-        self.__license = metadata.get("mdf-license", None)
-        
-        # mdf-author
-        self.__author = metadata.get("mdf-author", None)
-        
-        # mdf-data_contact
-        self.__data_contact = metadata.get("mdf-data_contact", None)
-        
-        # mdf-tags
-        self.__tags = metadata.get("mdf-tags", None)
-
-        # mdf-links
-        self.__links = metadata.get("mdf-links", None)
-
-        # mdf-landing_page
-        self.__landing_pages.append(metadata.get("mdf-links", {}).get("mdf-landing_page", None))
-
-        # mdf-year
-        self.__year = metadata.get("mdf-year", None)
-
-        # mdf-data_contributor
-        self.__data_contributor = metadata.get("mdf-data_contributor", None)
-
-
-        # Namespace user-supplied fields
-        for field in [f for f in metadata.keys() if not f.startswith("mdf")]:
-            metadata[self.__source_name + "-" + field] = metadata.pop(field)
-
-
         # Open feedstock file for the first time and write metadata entry
         feedstock_path = os.path.join(PATH_FEEDSTOCK,  self.__source_name + "_all.json")
         try:
             self.__feedstock = open(feedstock_path, 'w')
-            json.dump(metadata, self.__feedstock)
+            json.dump(full_metadata, self.__feedstock)
             self.__feedstock.write("\n")
             return {
                 "success": True
@@ -219,135 +226,101 @@ class Validator:
 
 
     # Output single record to feedstock
-    def write_record(self, record):
-        node_type = "record"
+    def write_record(self, full_record):
+        resource_type = "record"
         if not self.__initialized or self.__feedstock.closed: #Metadata not set, or cancelled
             return {
                 "success": False,
                 "message": "Metadata not written for this dataset"
                 }
 
-        if node_type not in self.__schemas.keys():
+        if resource_type not in self.__schemas.keys():
             return {
                 "success": False,
-                "message": "No validation schema found for '" + node_type
+                "message": "No validation schema found for '" + resource_type
                 }
+
+        record = full_record.get("mdf", {})
 
 
         # Validator-added fields
         # mdf-id
         record["mdf-id"] = str(ObjectId())
 
-        # mdf-node_type
-        record["mdf-node_type"] = node_type
+        # resource_type
+        record["resource_type"] = resource_type
 
-        # mdf-metadata_version
-        record["mdf-metadata_version"] = self.__version
+        # metadata_version
+        record["metadata_version"] = self.__version
 
-        # mdf-ingest_date
-        record["mdf-ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
+        # ingest_date
+        record["ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
 
-        # mdf-source_name
-        record["mdf-source_name"] = self.__source_name
-
-        # mdf-data_contributor
-        if self.__data_contributor:
-            record["mdf-data_contributor"] = self.__data_contributor
+        # source_name
+        record["source_name"] = self.__source_name
 
 
         # Convenience processing
-        # mdf-acl
-        if record.get("mdf-acl", None) == "public":
-            record["mdf-acl"] = ["public"]
+        # acl
+        if record.get("acl", None) == "public":
+            record["acl"] = ["public"]
 
-        # mdf-citation
-        if type(record.get("mdf-citation", [])) is str:
-            record["mdf-citation"] = [record["mdf-citation"]]
+        # citation
+        if type(record.get("citation", [])) is str:
+            record["citation"] = [record["citation"]]
 
-        # mdf-author
-        if type(record.get("mdf-author", None)) is dict:
-            record["mdf-author"] = [record["mdf-author"]]
+        # author
+        if type(record.get("author", None)) is dict:
+            record["author"] = [record["author"]]
+        # author.full_name
+        authors = []
+        for auth in record.get("author", []):
+            if type(auth) is dict:
+                auth["full_name"] = auth.get("given_name", "") + " " + auth.get("family_name", "")
+                authors.append(auth)
+        if authors:
+            record["author"] = authors
 
-        # mdf-data_format
-        if type(record.get("mdf-data_format", None)) is str:
-            record["mdf-data_format"] = [record["mdf-data_format"]]
 
-        # mdf-data_type
-        if type(record.get("mdf-data_type", None)) is str:
-            record["mdf-data_type"] = [record["mdf-data_type"]]
+        # tags
+        if type(record.get("tags", None)) is str:
+            record["tags"] = [record["tags"]]
 
-        # mdf-tags
-        if type(record.get("mdf-tags", None)) is str:
-            record["mdf-tags"] = [record["mdf-tags"]]
+        # publication
+        if type(record.get("links", {}).get("publication", None)) is str:
+            record["links"]["publication"] = [record["links"]["publication"]]
 
-        # mdf-publication
-        if type(record.get("mdf-links", {}).get("mdf-publication", None)) is str:
-            record["mdf-links"]["mdf-publication"] = [record["mdf-links"]["mdf-publication"]]
-
-        # mdf-related_id
-        if type(record.get("mdf-links", {}).get("mdf-related_id", None)) is str:
-            record["mdf-links"]["mdf-related_id"] = [record["mdf-links"]["mdf-related_id"]]
+        # related_id
+        if type(record.get("links", {}).get("related_id", None)) is str:
+            record["links"]["related_id"] = [record["links"]["related_id"]]
 
 
         # Copy missing fields
-        # mdf-acl
-        if not record.get("mdf-acl") and self.__acl:
-            record["mdf-acl"] = self.__acl
+        # acl
+        if not record.get("acl") and self.__acl:
+            record["acl"] = self.__acl
 
-        # mdf-collection
-        if not record.get("mdf-collection") and self.__collection:
-            record["mdf-collection"] = self.__collection
-
-        # mdf-data_format
-        if not record.get("mdf-data_format") and self.__data_format:
-            record["mdf-data_format"] = self.__data_format
-
-        # mdf-data_type
-        if not record.get("mdf-data_type") and self.__data_type:
-            record["mdf-data_type"] = self.__data_type
-
-        # mdf-citation
-        if not record.get("mdf-citation") and self.__citation:
-            record["mdf-citation"] = self.__citation
-
-        # mdf-license
-        if not record.get("mdf-license") and self.__license:
-            record["mdf-license"] = self.__license
-
-        # mdf-author
-        if not record.get("mdf-author") and self.__author:
-            record["mdf-author"] = self.__author
-
-        # mdf-data_contact
-        if not record.get("mdf-data_contact") and self.__data_contact:
-            record["mdf-data_contact"] = self.__data_contact
-
-        # mdf-year
-        if not record.get("mdf-year") and self.__year:
-            record["mdf-year"] = self.__year
+        # collection
+        if not record.get("collection") and self.__collection:
+            record["collection"] = self.__collection
 
 
         # Fields requiring special processing
-        # mdf-tags (combine dataset and record)
-        if self.__tags:
-            record["mdf-tags"] = list(set(record.get("mdf-tags", []) + self.__tags))
+        # links
+        record_links = record.get("links", {})
+        # parent_id
+        record_links["parent_id"] = self.__parent_id
+        # landing_page
+        if not record_links.get("landing_page", None):
+            record_links["landing_page"] = self.__landing_pages[0]
+        if record_links.get("landing_page") in self.__landing_pages:
+            record_links["landing_page"] += "#" + str(self.__scroll_id)
+        self.__landing_pages.append(record_links.get("landing_page"))
+        record["links"] = record_links
 
-        # mdf-links
-        record_links = deepcopy(self.__links) or {}
-        record_links.update(record.get("mdf-links", {}))
-        # mdf-parent_id
-        record_links["mdf-parent_id"] = self.__parent_id
-        # mdf-landing_page
-        if not record_links.get("mdf-landing_page", None):
-            record_links["mdf-landing_page"] = self.__landing_pages[0]
-        if record_links.get("mdf-landing_page") in self.__landing_pages:
-            record_links["mdf-landing_page"] += "#" + str(self.__scroll_id)
-        self.__landing_pages.append(record_links.get("mdf-landing_page"))
-        record["mdf-links"] = record_links or None
-
-        # mdf-elements
-        if record.get("mdf-composition", None):
-            composition = record["mdf-composition"].replace(" and ", "")
+        # elements
+        if record.get("composition", None):
+            composition = record["composition"].replace(" and ", "")
             for element in DICT_OF_ALL_ELEMENTS.keys():
                 composition = re.sub("(?i)"+element, DICT_OF_ALL_ELEMENTS[element], composition)
             str_of_elem = ""
@@ -361,16 +334,30 @@ class Validator:
             list_of_elem = list(set(str_of_elem.split())) #split elements in string (on whitespace), make unique, make JSON-serializable
             # If any "element" isn't in the periodic table, the entire composition is likely not a chemical formula and should not be parsed
             if all([elem in DICT_OF_ALL_ELEMENTS.values() for elem in list_of_elem]):
-                record["mdf-elements"] = list_of_elem
+                record["elements"] = list_of_elem
 
 ################################
-        record["mdf-scroll_id"] = self.__scroll_id
+        record["scroll_id"] = self.__scroll_id
         self.__scroll_id += 1
+
+
+        # Finish mdf processing
+        full_record["mdf"] = record
+
+
+        # Process other blocks
+        # DC
+        dc = full_record.get("dc", {})
+        full_record["dc"] = dc
 
 
         # Validate metadata
         try:
-            jsonschema.validate(record, self.__schemas[node_type])
+            jsonschema.validate(full_record, self.__schemas[resource_type])
+            # Validate user-added block
+            # If it exists, the key must be the source_name
+            if len(full_record) > 2 and full_metadata.get(self.__source_name, None) is None:
+                raise(jsonschema.ValidationError("The user-defined data block for source name '" + self.__source_name + "' must be named '" + self.__source_name + "'"))
         except jsonschema.ValidationError as e:
            return {
                 "success": False,
@@ -379,14 +366,9 @@ class Validator:
                 }
 
 
-        # Namespace user-supplied fields
-        for field in [f for f in record.keys() if not f.startswith("mdf")]:
-            record[self.__source_name + "-" + field] = record.pop(field)
-
-
         # Write new record to feedstock
         try:
-            json.dump(record, self.__feedstock)
+            json.dump(full_record, self.__feedstock)
             self.__feedstock.write("\n")
             return {
                 "success" : True
@@ -440,4 +422,4 @@ class Validator:
 
 if __name__ == "__main__":
     print("\nThis is the Validator. You can use the Validator to write valid, converted data into feedstock.")
-    print("There are in-depth instructions on this process in 'mdf-harvesters/converters/converter_template.py'.")
+    print("There are in-depth instructions on this process in 'forge/mdf-indexers/converters/converter_template.py'.")

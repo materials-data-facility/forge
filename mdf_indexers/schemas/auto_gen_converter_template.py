@@ -32,7 +32,7 @@ def format_md(md, indent=""):
                     clean += format_md(prop_loc["properties"], indent+tab)
 
                     # Process $ref in additionalProperties
-                    if "$ref" in prop_loc.get("additionalProperties", {}).keys():
+                    if type(prop_loc.get("additionalProperties", None)) is dict and "$ref" in prop_loc.get("additionalProperties", {}).keys():
                         add_name = prop_loc["additionalProperties"]["$ref"].rsplit("/", 1)[1]
                         add_def = DEFINITIONS[add_name]
                         add_req_lv, add_desc = add_def["description"].split(":", 1)
