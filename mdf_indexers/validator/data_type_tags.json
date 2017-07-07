@@ -1,0 +1,15 @@
+{
+"incar": ["vasp", "dft"],
+"poscar": ["vasp", "dft"],
+"postgres": ["sql"],
+"outcar": ["vasp", "dft"],
+"cif": [],
+"csv": [],
+"xyz": [],
+"msexcel": [],
+"text": [],
+"mysql": ["sql"],
+"pdf": [],
+"msword": [],
+"json":[]
+}

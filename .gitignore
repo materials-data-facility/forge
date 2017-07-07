@@ -2,7 +2,7 @@
 *.swp
 *.swo
 *_json.pickle
-*.json
+*login*
 *.ipynb_checkpoints
 Untitled*.ipynb
 
@@ -10,6 +10,4 @@ feedstock/*
 feedstock
 datasets/*
 datasets
-
-!*schema.json
 
