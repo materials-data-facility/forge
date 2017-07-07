@@ -93,17 +93,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4510453/",
 
                 "mdf-publication": ["http://www.sciencedirect.com/science/article/pii/S2352340915000797"],
-                "mdf-dataset_doi": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4510453/bin/mmc1.zip",
+                #"mdf-dataset_doi": "",
 
        #         "mdf-related_id": ,
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "https://www.ncbi.nlm.nih.gov",
 
-                    #"path": ,
-                    #}
+                    "path": "/pmc/articles/PMC4510453/bin/mmc1.zip",
+                    }
                 },
 
 #            "mdf-mrr": ,

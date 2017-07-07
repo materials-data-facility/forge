@@ -85,17 +85,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://qmml.org/datasets.html#h2o-13",
 
                 "mdf-publication": ["https://doi.org/10.1103/PhysRevB.88.054104"],
-                "mdf-dataset_doi": "http://qmml.org/Datasets/h2o-13.tar.bz2",
+               # "mdf-dataset_doi": "",
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "tar_bz2": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://qmml.org",
 
-                    #"path": ,
-                    #}
+                    "path": "/Datasets/h2o-13.tar.bz2",
+                    }
                 },
 
 #            "mdf-mrr": ,

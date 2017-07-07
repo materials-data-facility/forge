@@ -68,17 +68,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://datashare.is.ed.ac.uk/handle/10283/2640",
 
                 "mdf-publication": ["http://dx.doi.org/10.1021/acs.analchem.6b04817"],
-                "mdf-dataset_doi": "http://datashare.is.ed.ac.uk/download/10283/2640/Assigned_formula_of_complex_mixture_FT-ICR_MS_datasets.zip",
+               # "mdf-dataset_doi": "",
 
           #      "mdf-related_id": ,
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://datashare.is.ed.ac.uk",
 
-                    #"path": ,
-                    #}
+                    "path": "/download/10283/2640/Assigned_formula_of_complex_mixture_FT-ICR_MS_datasets.zip",
+                    }
                 },
 
 #            "mdf-mrr": ,

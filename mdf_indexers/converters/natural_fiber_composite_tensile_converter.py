@@ -60,17 +60,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://dx.doi.org/10.17632/v25pzywt5c.1",
 
                 "mdf-publication": ["http://www.sciencedirect.com/science/article/pii/S1359835X17301136", "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5397101/"],
-                "mdf-dataset_doi": "https://data.mendeley.com/datasets/v25pzywt5c/1/files/4d9a86e4-f523-4e27-b308-ca9d519da028",
+               # "mdf-dataset_doi": "",
 
                 "mdf-related_id": "orcid.org/0000-0002-0301-4374",
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "https://data.mendeley.com",
 
-                    #"path": ,
-                    #}
+                    "path": "/datasets/v25pzywt5c/1/files/4d9a86e4-f523-4e27-b308-ca9d519da028/Data_in_Brief-Natural_Fibres.zip?dl=1",
+                    }
                 },
 
 #            "mdf-mrr": ,

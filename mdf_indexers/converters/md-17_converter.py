@@ -93,17 +93,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://qmml.org/datasets.html#md-17",
 
                 "mdf-publication": ["http://dx.doi.org/10.1038/ncomms13890", "https://arxiv.org/abs/1611.04678"],
-                "mdf-dataset_doi": "http://quantum-machine.org/data/md_datasets.tar",
+               # "mdf-dataset_doi": "",
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "tar": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://quantum-machine.org",
 
-                    #"path": ,
-                    #}
+                    "path": "/data/md_datasets.tar",
+                    }
                 },
 
 #            "mdf-mrr": ,

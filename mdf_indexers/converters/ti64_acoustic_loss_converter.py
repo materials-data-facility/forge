@@ -91,17 +91,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "https://doi.org/10.17863/CAM.90",
 
                 "mdf-publication": ["https://doi.org/10.1080/14786435.2016.1198054"],
-                "mdf-dataset_doi": "https://www.repository.cam.ac.uk/bitstream/handle/1810/256150/ti64-rawdata.txt?sequence=1&isAllowed=y",
+               # "mdf-dataset_doi": "",
 
                 #"mdf-related_id": ,
 
-                # data links: {
+                "txt": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "https://www.repository.cam.ac.uk",
 
-                    #"path": ,
-                    #}
+                    "path": "/bitstream/handle/1810/256150/ti64-rawdata.txt?sequence=1&isAllowed=y",
+                    }
                 },
 
 #            "mdf-mrr": ,

@@ -77,17 +77,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://qmml.org/datasets.html#w-14",
 
                 "mdf-publication": ["https://doi.org/10.1103/PhysRevB.88.155105"],
-                "mdf-dataset_doi": "http://qmml.org/Datasets/w-14.zip",
+              #  "mdf-dataset_doi": "",
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://qmml.org",
 
-                    #"path": ,
-                    #}
+                    "path": "/Datasets/w-14.zip",
+                    }
                 },
 
 #            "mdf-mrr": ,

@@ -168,7 +168,7 @@ def convert(input_path, metadata=None, verbose=False):
 
 #                "mdf-related_id": ,
 
-                "data_links": {
+                "txt": {
                     "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                     #"http_host": ,
 

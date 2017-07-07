@@ -118,17 +118,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://qmml.org/datasets.html#gdb7-13",
 
                 "mdf-publication": ["http://dx.doi.org/10.1088/1367-2630/15/9/095003"],
-                "mdf-dataset_doi": "http://qmml.org/Datasets/gdb7-13.zip",
+                #"mdf-dataset_doi": "",
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://qmml.org",
 
-                    #"path": ,
-                    #}
+                    "path": "/Datasets/gdb7-13.zip",
+                    }
                 },
 
 #            "mdf-mrr": ,

@@ -85,17 +85,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://qmml.org/datasets.html#gdb8-15",
 
                 "mdf-publication": ["http://dx.doi.org/10.1063/1.4928757http://dx.doi.org/10.1063/1.4928757"],
-                "mdf-dataset_doi": "http://qmml.org/Datasets/gdb8-15.zip",
+                #"mdf-dataset_doi": "",
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://qmml.org",
 
-                    #"path": ,
-                    #}
+                    "path": "/Datasets/gdb8-15.zip",
+                    }
                 },
 
 #            "mdf-mrr": ,

@@ -84,17 +84,17 @@ def convert(input_path, metadata=None, verbose=False):
                 "mdf-landing_page": "http://qmml.org/datasets.html#gdb9-14",
 
                 "mdf-publication": ["http://dx.doi.org/10.1038/sdata.2014.22"],
-                "mdf-dataset_doi": "http://qmml.org/Datasets/gdb9-14.zip",
+               # "mdf-dataset_doi": "",
 
 #                "mdf-related_id": ,
 
-                # data links: {
+                "zip": {
                 
                     #"globus_endpoint": ,
-                    #"http_host": ,
+                    "http_host": "http://qmml.org",
 
-                    #"path": ,
-                    #}
+                    "path": "/Datasets/gdb9-14.zip",
+                    }
                 },
 
 #            "mdf-mrr": ,
