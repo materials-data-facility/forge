@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the NIST Interatomic Potentials dataset.
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST Interatomic Potentials Repository Project",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_ip",
-            "mdf-citation": ['C.A. Becker, et al., "Considerations for choosing and using force fields and interatomic potentials in materials science and engineering," Current Opinion in Solid State and Materials Science, 17, 277-283 (2013). https://www.ctcms.nist.gov/potentials'],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST Interatomic Potentials Repository Project",
+            "acl": ["public"],
+            "source_name": "nist_ip",
+            "citation": ['C.A. Becker, et al., "Considerations for choosing and using force fields and interatomic potentials in materials science and engineering," Current Opinion in Solid State and Materials Science, 17, 277-283 (2013). https://www.ctcms.nist.gov/potentials'],
+            "data_contact": {
 
                 "given_name": "Lucas",
                 "family_name": "Hale",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Lucas",
                 "family_name": "Hale",
@@ -62,24 +63,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NIST Interatomic Potentials",
-            "mdf-data_format": "json",
-            "mdf-data_type": "Interatomic Potential",
-            "mdf-tags": ["interatomic potential", "forcefield"],
+            "collection": "NIST Interatomic Potentials",
+            "tags": ["interatomic potential", "forcefield"],
 
-            "mdf-description": "This repository provides a source for interatomic potentials (force fields), related files, and evaluation tools to help researchers obtain interatomic models and judge their quality and applicability.",
-            "mdf-year": 2013,
+            "description": "This repository provides a source for interatomic potentials (force fields), related files, and evaluation tools to help researchers obtain interatomic models and judge their quality and applicability.",
+            "year": 2013,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://www.ctcms.nist.gov/potentials/",
+                "landing_page": "https://www.ctcms.nist.gov/potentials/",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "data_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -90,9 +89,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -100,6 +99,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -141,22 +141,23 @@ def convert(input_path, metadata=None, verbose=False):
                     link_texts.append(link_text)
 
         record_metadata = {
-            "mdf-title": "NIST Interatomic Potential - " + ", ".join(link_texts),
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "NIST Interatomic Potential - " + ", ".join(link_texts),
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": "".join(ip_data["element"]),
-            "mdf-raw": json.dumps(ip_data),
+            "composition": "".join(ip_data["element"]),
+            "raw": json.dumps(ip_data),
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-                "mdf-publication": url_list,
-#                "mdf-dataset_doi": ,
+                "publication": url_list,
+#                "data_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -167,8 +168,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -179,19 +180,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

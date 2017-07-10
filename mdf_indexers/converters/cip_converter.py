@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for NIST's Classical Interatomic Potentials dataset
 # Arguments:
@@ -22,11 +22,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "cip",
-            "mdf-citation": ["Choudhary K, Congo FYP, Liang T, Becker C, Hennig RG, Tavazza F (2017) Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface. Scientific Data 4: 160125. http://dx.doi.org/10.1038/sdata.2016.125", "Choudhary K, Congo FYP, Liang T, Becker C, Hennig RG, Tavazza F (2017) Data from: Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.dd56c"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface",
+            "acl": ["public"],
+            "source_name": "cip",
+            "citation": ["Choudhary K, Congo FYP, Liang T, Becker C, Hennig RG, Tavazza F (2017) Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface. Scientific Data 4: 160125. http://dx.doi.org/10.1038/sdata.2016.125", "Choudhary K, Congo FYP, Liang T, Becker C, Hennig RG, Tavazza F (2017) Data from: Evaluation and comparison of classical interatomic potentials through a user-friendly interactive web-interface. Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.dd56c"],
+            "data_contact": {
 
                 "given_name": "Kamal",
                 "family_name": "Choudhary",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Kamal",
                 "family_name": "Choudhary",
@@ -93,24 +94,22 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 }],
 
-            "mdf-license": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "license": "https://creativecommons.org/publicdomain/zero/1.0/",
 
-            "mdf-collection": "NIST Classical Interatomic Potentials",
-            "mdf-data_format": "json",
-            "mdf-data_type": "Simulation",
-            "mdf-tags": ["interatomic potentials", "force-fields", "total energy", "energy", "elastic matrix", "structure", "elastic modulus", "JARVIS"],
+            "collection": "NIST Classical Interatomic Potentials",
+            "tags": ["interatomic potentials", "force-fields", "total energy", "energy", "elastic matrix", "structure", "elastic modulus", "JARVIS"],
 
-            "mdf-description": "We computed energetics and elastic properties of variety of materials such as metals and ceramics using a wide range of empirical potentials and compared them to density functional theory (DFT) as well as to experimental data, where available.",
-            "mdf-year": 2017,
+            "description": "We computed energetics and elastic properties of variety of materials such as metals and ceramics using a wide range of empirical potentials and compared them to density functional theory (DFT) as well as to experimental data, where available.",
+            "year": 2017,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://www.ctcms.nist.gov/~knc6/periodic.html",
+                "landing_page": "https://www.ctcms.nist.gov/~knc6/periodic.html",
 
-                "mdf-publication": "http://dx.doi.org/10.1038/sdata.2016.125",
-                "mdf-dataset_doi": "http://dx.doi.org/10.5061/dryad.dd56c",
+                "publication": "http://dx.doi.org/10.1038/sdata.2016.125",
+                "data_doi": "http://dx.doi.org/10.5061/dryad.dd56c",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -121,9 +120,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -131,6 +130,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -153,22 +153,23 @@ def convert(input_path, metadata=None, verbose=False):
     with open(os.path.join(input_path, "classical_interatomic_potentials.json")) as in_file:
         for record in tqdm(json.load(in_file), desc="Converting data", disable= not verbose):
             record_metadata = {
-                "mdf-title": "NIST Classical Interatomic Potential - " + record["forcefield"] + ", " + record["composition"],
-                "mdf-acl": ["public"],
+            "mdf": {
+                "title": "NIST Classical Interatomic Potential - " + record["forcefield"] + ", " + record["composition"],
+                "acl": ["public"],
 
-#                "mdf-tags": ,
-#                "mdf-description": ,
+#                "tags": ,
+#                "description": ,
                 
-                "mdf-composition": record["composition"],
-                "mdf-raw": json.dumps(record),
+                "composition": record["composition"],
+                "raw": json.dumps(record),
 
-                "mdf-links": {
-#                    "mdf-landing_page": ,
+                "links": {
+#                    "landing_page": ,
 
-#                    "mdf-publication": ,
-#                    "mdf-dataset_doi": ,
+#                    "publication": ,
+#                    "dataset_doi": ,
 
-#                    "mdf-related_id": ,
+#                    "related_id": ,
 
                     # data links: {
      
@@ -179,8 +180,8 @@ def convert(input_path, metadata=None, verbose=False):
                         #},
                     },
 
-#                "mdf-citation": ,
-#                "mdf-data_contact": {
+#                "citation": ,
+#                "data_contact": {
 
 #                    "given_name": ,
 #                    "family_name": ,
@@ -191,19 +192,20 @@ def convert(input_path, metadata=None, verbose=False):
                     # IDs
 #                    },
 
-#                "mdf-author": ,
+#                "author": ,
 
-#                "mdf-license": ,
-#                "mdf-collection": ,
-#                "mdf-data_format": ,
-#                "mdf-data_type": ,
-#                "mdf-year": ,
+#                "license": ,
+#                "collection": ,
+#                "data_format": ,
+#                "data_type": ,
+#                "year": ,
 
-#                "mdf-mrr":
+#                "mrr":
 
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
+    #            "processing": ,
+    #            "structure":,
                 }
+            }
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)
