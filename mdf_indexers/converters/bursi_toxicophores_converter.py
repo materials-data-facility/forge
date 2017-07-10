@@ -6,7 +6,7 @@ from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: Derivation and Validation of Toxicophores for Mutagenicity Prediction
 # Arguments:
@@ -22,83 +22,83 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Derivation and Validation of Toxicophores for Mutagenicity Prediction",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "bursi_toxicophores",
-            "mdf-citation": ["Bursi, Roberta (2005/01/01). Derivation and Validation of Toxicophores for Mutagenicity Prediction. Journal of Medicinal Chemistry, 48, 312-320. doi: 10.1021/jm040835a"],
-            "mdf-data_contact": {
-
-                "given_name": "Roberta",
-                "family_name": "Bursi",
-                
-                "email": "roberta.bursi@organon.com",
-                "instituition": "Molecular Design & Informatics Department, N.V. Organon"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Roberta",
-                "family_name": "Bursi",
-                
-                "email": "roberta.bursi@organon.com",
-                "instituition": "Molecular Design & Informatics Department, N.V. Organon"
-                
-                },
-                {
-                
-                "given_name": "Ross",
-                "family_name": "McGuire",
-                
-                "instituition": "Molecular Design & Informatics Department, N.V. Organon"
-                
-                },
-                {
-                
-                "given_name": "Jeroen",
-                "family_name": "Kazius",
-                
-                "instituition": "Universiteit Leiden"
-                
-                }],
-
-            #"mdf-license": "",
-
-            "mdf-collection": "Toxicophores for Mutagenicity Prediction",
-            "mdf-data_format": ["sdf"],
-            #"mdf-data_type": ,
-            #"mdf-tags": ,
-
-            "mdf-description": "Mutagenicity is one of the numerous adverse properties of a compound that hampers its potential to become a marketable drug. Toxic properties can often be related to chemical structure, more specifically, to particular substructures, which are generally identified as toxicophores. A number of toxicophores have already been identified in the literature. This study aims at increasing the current degree of reliability and accuracy of mutagenicity predictions by identifying novel toxicophores from the application of new criteria for toxicophore rule derivation and validation to a considerably sized mutagenicity dataset.",
-            "mdf-year": 2005,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://pubs.acs.org/doi/full/10.1021/jm040835a",
-
-                #"mdf-publication": [""],
-                #"mdf-dataset_doi": ,
-
-                #"mdf-related_id": ,
-
-                "sdf": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "ftp://ftp.ics.uci.edu",
-
-                    "path": "/pub/baldig/learning/Bursi/source/cas_4337.sdf",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "Derivation and Validation of Toxicophores for Mutagenicity Prediction",
+                "acl": ['public'],
+                "source_name": "bursi_toxicophores",
+                "citation": ["Bursi, Roberta (2005/01/01). Derivation and Validation of Toxicophores for Mutagenicity Prediction. Journal of Medicinal Chemistry, 48, 312-320. doi: 10.1021/jm040835a"],
+                "data_contact": {
+    
+                    "given_name": "Roberta",
+                    "family_name": "Bursi",
+                    
+                    "email": "roberta.bursi@organon.com",
+                    "instituition": "Molecular Design & Informatics Department, N.V. Organon"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Roberta",
+                    "family_name": "Bursi",
+                    
+                    "email": "roberta.bursi@organon.com",
+                    "instituition": "Molecular Design & Informatics Department, N.V. Organon"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Ross",
+                    "family_name": "McGuire",
+                    
+                    "instituition": "Molecular Design & Informatics Department, N.V. Organon"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Jeroen",
+                    "family_name": "Kazius",
+                    
+                    "instituition": "Universiteit Leiden"
+                    
+                    }],
+    
+                #"license": "",
+    
+                "collection": "Toxicophores for Mutagenicity Prediction",
+                #"tags": ,
+    
+                "description": "Mutagenicity is one of the numerous adverse properties of a compound that hampers its potential to become a marketable drug. Toxic properties can often be related to chemical structure, more specifically, to particular substructures, which are generally identified as toxicophores. A number of toxicophores have already been identified in the literature. This study aims at increasing the current degree of reliability and accuracy of mutagenicity predictions by identifying novel toxicophores from the application of new criteria for toxicophore rule derivation and validation to a considerably sized mutagenicity dataset.",
+                "year": 2005,
+    
+                "links": {
+    
+                    "landing_page": "http://pubs.acs.org/doi/full/10.1021/jm040835a",
+    
+                    #"publication": [""],
+                    #"data_doi": ,
+    
+                    #"related_id": ,
+    
+                    "sdf": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "ftp://ftp.ics.uci.edu",
+    
+                        "path": "/pub/baldig/learning/Bursi/source/cas_4337.sdf",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -131,54 +131,54 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "sdf"), desc="Processing files", disable=not verbose):
         record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "sdf")
         record_metadata = {
-            "mdf-title": "Bursi Toxicophores - " + record["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["chemical_formula"],
-#            "mdf-raw": ,
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "sdf": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/bursi_toxicophores/" + data_file["filename"],
+            "mdf": {
+                "title": "Bursi Toxicophores - " + record["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["chemical_formula"],
+    #            "raw": ,
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "sdf": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/bursi_toxicophores/" + data_file["filename"],
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

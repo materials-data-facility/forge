@@ -6,7 +6,7 @@ from ..parsers.ase_parser import parse_ase
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: Unraveling the Planar-Globular Transition in Gold Nanoclusters through Evolutionary Search
 # Arguments:
@@ -22,115 +22,115 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Unraveling the Planar-Globular Transition in Gold Nanoclusters through Evolutionary Search",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "au_nanoclusters_dft",
-            "mdf-citation": ["Kinaci, Alper, Badri Narayanan, Fatih G. Sen, Michael J. Davis, Stephen K. Gray, Subramanian K. R. S. Sankaranarayanan, and Maria K. Y. Chan. \"Unraveling the Planar-Globular Transition in Gold Nanoclusters through Evolutionary Search.\" Nature News. Nature Publishing Group, 28 Nov. 2016. Web. 30 June 2017."],
-            "mdf-data_contact": {
-
-                "given_name": "Maria K. Y.",
-                "family_name": "Chan",
-                
-                "email": "mchan@anl.gov",
-                "instituition": "Argonne National Laboratory"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Alper",
-                "family_name": "Kinaci",
-                
-                "instituition": "Argonne National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Badri",
-                "family_name": "Narayanan",
-                
-                "instituition": "Argonne National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Fatih G.",
-                "family_name": "Sen",
-                
-                "instituition": "Argonne National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Stephen K.",
-                "family_name": "Gray",
-                
-                "instituition": "Argonne National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Subramanian K. R. S.",
-                "family_name": "Sankaranarayanan",
-                
-                "instituition": "Argonne National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Maria K. Y.",
-                "family_name": "Chan",
-                
-                "email": "mchan@anl.gov",
-                "instituition": "Argonne National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Michael J.",
-                "family_name": "Davis",
-                
-                "instituition": "Argonne National Laboratory"
-                
-                }],
-
-            "mdf-license": "http://creativecommons.org/licenses/by/4.0/",
-
-            "mdf-collection": "Au Nanoclusters DFT",
-            "mdf-data_format": ["xyz"],
-            "mdf-data_type": ["DFT"],
-            "mdf-tags": ["Atomistic models", "Evolution", "Nanoparticles", "Structure prediction"],
-
-            "mdf-description": "Au nanoclusters are of technological relevance for catalysis, photonics, sensors, and of fundamental scientific interest owing to planar to globular structural transformation at an anomalously high number of atoms i.e. in the range 12–14. The nature and causes of this transition remain a mystery. In order to unravel this conundrum, high throughput density functional theory (DFT) calculations, coupled with a global structural optimization scheme based on a modified genetic algorithm (GA) are conducted.",
-            "mdf-year": 2016,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "https://www.nature.com/articles/srep34974#abstract",
-
-               # "mdf-publication": ,
-                #"mdf-dataset_doi": ,
-
-               # "mdf-related_id": ,
-
-                # data links: {
-                
-                    #"globus_endpoint": ,
-                    #"http_host": ,
-
-                    #"path": ,
-                    #}
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "Unraveling the Planar-Globular Transition in Gold Nanoclusters through Evolutionary Search",
+                "acl": ['public'],
+                "source_name": "au_nanoclusters_dft",
+                "citation": ["Kinaci, Alper, Badri Narayanan, Fatih G. Sen, Michael J. Davis, Stephen K. Gray, Subramanian K. R. S. Sankaranarayanan, and Maria K. Y. Chan. \"Unraveling the Planar-Globular Transition in Gold Nanoclusters through Evolutionary Search.\" Nature News. Nature Publishing Group, 28 Nov. 2016. Web. 30 June 2017."],
+                "data_contact": {
+    
+                    "given_name": "Maria K. Y.",
+                    "family_name": "Chan",
+                    
+                    "email": "mchan@anl.gov",
+                    "instituition": "Argonne National Laboratory"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Alper",
+                    "family_name": "Kinaci",
+                    
+                    "instituition": "Argonne National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Badri",
+                    "family_name": "Narayanan",
+                    
+                    "instituition": "Argonne National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Fatih G.",
+                    "family_name": "Sen",
+                    
+                    "instituition": "Argonne National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Stephen K.",
+                    "family_name": "Gray",
+                    
+                    "instituition": "Argonne National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Subramanian K. R. S.",
+                    "family_name": "Sankaranarayanan",
+                    
+                    "instituition": "Argonne National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Maria K. Y.",
+                    "family_name": "Chan",
+                    
+                    "email": "mchan@anl.gov",
+                    "instituition": "Argonne National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Michael J.",
+                    "family_name": "Davis",
+                    
+                    "instituition": "Argonne National Laboratory"
+                    
+                    }],
+    
+                "license": "http://creativecommons.org/licenses/by/4.0/",
+    
+                "collection": "Au Nanoclusters DFT",
+                "tags": ["Atomistic models", "Evolution", "Nanoparticles", "Structure prediction"],
+    
+                "description": "Au nanoclusters are of technological relevance for catalysis, photonics, sensors, and of fundamental scientific interest owing to planar to globular structural transformation at an anomalously high number of atoms i.e. in the range 12–14. The nature and causes of this transition remain a mystery. In order to unravel this conundrum, high throughput density functional theory (DFT) calculations, coupled with a global structural optimization scheme based on a modified genetic algorithm (GA) are conducted.",
+                "year": 2016,
+    
+                "links": {
+    
+                    "landing_page": "https://www.nature.com/articles/srep34974#abstract",
+    
+                   # "publication": ,
+                    #"data_doi": ,
+    
+                   # "related_id": ,
+    
+                    # data links: {
+                    
+                        #"globus_endpoint": ,
+                        #"http_host": ,
+    
+                        #"path": ,
+                        #}
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -164,54 +164,54 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
         record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
         record_metadata = {
-            "mdf-title": "Au Nanoclusters DFT - " + record["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["chemical_formula"],
-#            "mdf-raw": ,
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "xyz": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/au_nanoclusters_dft/" + data_file["filename"],
+            "mdf": {
+                "title": "Au Nanoclusters DFT - " + record["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["chemical_formula"],
+    #            "raw": ,
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "xyz": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/au_nanoclusters_dft/" + data_file["filename"],
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

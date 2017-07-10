@@ -5,7 +5,7 @@ from ..parsers.tab_parser import parse_tab
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases
 # Arguments:
@@ -21,108 +21,108 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "malaria_drug_discovery",
-            "mdf-citation": ["Spangenberg T, Burrows JN, Kowalczyk P, McDonald S, Wells TNC, Willis P (2013) The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases. PLoS ONE 8(6): e62906. https://doi.org/10.1371/journal.pone.0062906"],
-            "mdf-data_contact": {
-
-                "given_name": "Thomas",
-                "family_name": "Spangenberg",
-                
-                "email": "spangenbergt@mmv.org",
-                "instituition": "Medicines for Malaria Venture"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Thomas",
-                "family_name": "Spangenberg",
-                
-                "email": "spangenbergt@mmv.org",
-                "instituition": "Medicines for Malaria Venture"
-                
-                },
-                {
-                
-                "given_name": "Jeremy N.",
-                "family_name": "Burrows",
-                
-                "instituition": "Medicines for Malaria Venture"
-                
-                },
-                {
-                
-                "given_name": "Paul",
-                "family_name": "Kowalczyk",
-                
-                "instituition": "SCYNEXIS Inc."
-                
-                },
-                {
-                
-                "given_name": "Simon",
-                "family_name": "McDonald",
-                
-                "instituition": "Medicines for Malaria Venture"
-                
-                },
-                {
-                
-                "given_name": "Timothy N. C.",
-                "family_name": "Wells",
-                
-                "instituition": "Medicines for Malaria Venture"
-                
-                },
-                {
-                
-                "given_name": "Paul",
-                "family_name": "Willis",
-                
-                "email": "willisp@mmv.org",
-                "instituition": "Medicines for Malaria Venture"
-                
-                }],
-
-            "mdf-license": "https://creativecommons.org/licenses/by/4.0/",
-
-            "mdf-collection": "Open Access Malaria Box",
-            "mdf-data_format": ["csv"],
-           # "mdf-data_type": ,
-            "mdf-tags": ["Malaria", "Malarial parasites", "Antimalarials", "Plasmodium", "Parasitic diseases", "Drug discovery", "Plasmodium falciparum"],
-
-            "mdf-description": "In most cases it is a prerequisite to be able to obtain physical samples of the chemical compounds for further study, and the groups responsible for screening did not originally plan to provide these molecules. In addition, many of the biological systems in which these compounds would be tested are not suitable for testing such large numbers of compounds. There needs to therefore be some simplification of the collection. To overcome these barriers, a diverse collection of anti-malarial compounds has been designed and assembled.",
-            "mdf-year": 2013,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "https://doi.org/10.1371/journal.pone.0062906",
-
-              #  "mdf-publication": ,
-                "mdf-dataset_doi": "https://ndownloader.figshare.com/files/1090667",
-
-             #   "mdf-related_id": ,
-
-                # data links: {
-                
-                    #"globus_endpoint": ,
-                    #"http_host": ,
-
-                    #"path": ,
-                    #}
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases",
+                "acl": ['public'],
+                "source_name": "malaria_drug_discovery",
+                "citation": ["Spangenberg T, Burrows JN, Kowalczyk P, McDonald S, Wells TNC, Willis P (2013) The Open Access Malaria Box: A Drug Discovery Catalyst for Neglected Diseases. PLoS ONE 8(6): e62906. https://doi.org/10.1371/journal.pone.0062906"],
+                "data_contact": {
+    
+                    "given_name": "Thomas",
+                    "family_name": "Spangenberg",
+                    
+                    "email": "spangenbergt@mmv.org",
+                    "instituition": "Medicines for Malaria Venture"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Thomas",
+                    "family_name": "Spangenberg",
+                    
+                    "email": "spangenbergt@mmv.org",
+                    "instituition": "Medicines for Malaria Venture"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Jeremy N.",
+                    "family_name": "Burrows",
+                    
+                    "instituition": "Medicines for Malaria Venture"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Paul",
+                    "family_name": "Kowalczyk",
+                    
+                    "instituition": "SCYNEXIS Inc."
+                    
+                    },
+                    {
+                    
+                    "given_name": "Simon",
+                    "family_name": "McDonald",
+                    
+                    "instituition": "Medicines for Malaria Venture"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Timothy N. C.",
+                    "family_name": "Wells",
+                    
+                    "instituition": "Medicines for Malaria Venture"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Paul",
+                    "family_name": "Willis",
+                    
+                    "email": "willisp@mmv.org",
+                    "instituition": "Medicines for Malaria Venture"
+                    
+                    }],
+    
+                "license": "https://creativecommons.org/licenses/by/4.0/",
+    
+                "collection": "Open Access Malaria Box",
+                "tags": ["Malaria", "Malarial parasites", "Antimalarials", "Plasmodium", "Parasitic diseases", "Drug discovery", "Plasmodium falciparum"],
+    
+                "description": "In most cases it is a prerequisite to be able to obtain physical samples of the chemical compounds for further study, and the groups responsible for screening did not originally plan to provide these molecules. In addition, many of the biological systems in which these compounds would be tested are not suitable for testing such large numbers of compounds. There needs to therefore be some simplification of the collection. To overcome these barriers, a diverse collection of anti-malarial compounds has been designed and assembled.",
+                "year": 2013,
+    
+                "links": {
+    
+                    "landing_page": "https://doi.org/10.1371/journal.pone.0062906",
+    
+                  #  "publication": ,
+                    "data_doi": "https://ndownloader.figshare.com/files/1090667",
+    
+                 #   "related_id": ,
+    
+                    # data links: {
+                    
+                        #"globus_endpoint": ,
+                        #"http_host": ,
+    
+                        #"path": ,
+                        #}
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -157,54 +157,54 @@ def convert(input_path, metadata=None, verbose=False):
         data_records = raw_in.read()
     for record in tqdm(parse_tab(data_records), desc="Processing Data", disable=not verbose):
         record_metadata = {
-            "mdf-title": "Malaria Drug Discovery - " + record["Smiles"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["Smiles"],
-#            "mdf-raw": ,
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "csv": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/malaria_drug_discovery/Table_S1.csv",
+            "mdf": {
+                "title": "Malaria Drug Discovery - " + record["Smiles"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["Smiles"],
+    #            "raw": ,
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "csv": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/malaria_drug_discovery/Table_S1.csv",
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

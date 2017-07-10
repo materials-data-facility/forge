@@ -5,7 +5,7 @@ from ..parsers.tab_parser import parse_tab
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: Assigned formula of complex mixture FT-ICR MS datasets
 # Arguments:
@@ -21,75 +21,75 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Assigned formula of complex mixture FT-ICR MS datasets",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "ft-icr-ms",
-            "mdf-citation": ["Blackburn, John; Uhrin, Dusan. (2017). Assigned formula of complex mixture FT-ICR MS datasets, [dataset]. University of Edinburgh. School of Chemistry. http://dx.doi.org/10.7488/ds/1984"],
-            "mdf-data_contact": {
-
-                "given_name": "Dusan",
-                "family_name": "Uhrin",
-                
-                "email": "dusan.uhrin@ed.ac.uk",
-                "instituition": "University of Edinburgh"
-
-                },
-
-            "mdf-author": [{
-
-                "given_name": "John",
-                "family_name": "Blackburn",
-                
-                "instituition": "University of Edinburgh"
-                
-                },
-                {
-                
-                "given_name": "Dusan",
-                "family_name": "Uhrin",
-                
-                "email": "dusan.uhrin@ed.ac.uk",
-                "instituition": "University of Edinburgh"
-                
-                }],
-
-            "mdf-license": "http://creativecommons.org/licenses/by/4.0/legalcode",
-
-            "mdf-collection": "FT-ICR MS Datasets Assigned Formula",
-            "mdf-data_format": ["txt"],
-        #    "mdf-data_type": ,
-            "mdf-tags": ["ESI", "MALDI", "LDI"],
-
-            "mdf-description": "The dataset included is of formula assigned from FT-ICR MS data for samples of Suwannee River fulvic acid (SRFA) and Suwannee River natural organic matter (SRNOM) (both are standards from the International Humic Substances Society) using a variety of ionisation sources. This includes electrospray ionisation (ESI), matrix assisted laser desorption/ionisation (MALDI) and matrix free laser desorption/ionisation (LDI).",
-            "mdf-year": 2017,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://datashare.is.ed.ac.uk/handle/10283/2640",
-
-                "mdf-publication": ["http://dx.doi.org/10.1021/acs.analchem.6b04817"],
-               # "mdf-dataset_doi": "",
-
-          #      "mdf-related_id": ,
-
-                "zip": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "http://datashare.is.ed.ac.uk",
-
-                    "path": "/download/10283/2640/Assigned_formula_of_complex_mixture_FT-ICR_MS_datasets.zip",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "Assigned formula of complex mixture FT-ICR MS datasets",
+                "acl": ['public'],
+                "source_name": "ft-icr-ms",
+                "citation": ["Blackburn, John; Uhrin, Dusan. (2017). Assigned formula of complex mixture FT-ICR MS datasets, [dataset]. University of Edinburgh. School of Chemistry. http://dx.doi.org/10.7488/ds/1984"],
+                "data_contact": {
+    
+                    "given_name": "Dusan",
+                    "family_name": "Uhrin",
+                    
+                    "email": "dusan.uhrin@ed.ac.uk",
+                    "instituition": "University of Edinburgh"
+    
+                    },
+    
+                "author": [{
+    
+                    "given_name": "John",
+                    "family_name": "Blackburn",
+                    
+                    "instituition": "University of Edinburgh"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Dusan",
+                    "family_name": "Uhrin",
+                    
+                    "email": "dusan.uhrin@ed.ac.uk",
+                    "instituition": "University of Edinburgh"
+                    
+                    }],
+    
+                "license": "http://creativecommons.org/licenses/by/4.0/legalcode",
+    
+                "collection": "FT-ICR MS Datasets Assigned Formula",
+                "tags": ["ESI", "MALDI", "LDI"],
+    
+                "description": "The dataset included is of formula assigned from FT-ICR MS data for samples of Suwannee River fulvic acid (SRFA) and Suwannee River natural organic matter (SRNOM) (both are standards from the International Humic Substances Society) using a variety of ionisation sources. This includes electrospray ionisation (ESI), matrix assisted laser desorption/ionisation (MALDI) and matrix free laser desorption/ionisation (LDI).",
+                "year": 2017,
+    
+                "links": {
+    
+                    "landing_page": "http://datashare.is.ed.ac.uk/handle/10283/2640",
+    
+                    "publication": ["http://dx.doi.org/10.1021/acs.analchem.6b04817"],
+                   # "data_doi": "",
+    
+              #      "related_id": ,
+    
+                    "zip": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "http://datashare.is.ed.ac.uk",
+    
+                        "path": "/download/10283/2640/Assigned_formula_of_complex_mixture_FT-ICR_MS_datasets.zip",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -124,54 +124,54 @@ def convert(input_path, metadata=None, verbose=False):
         all_data = raw_in.read()
     for record in tqdm(parse_tab(all_data, sep=";"), desc="Processing files", disable=not verbose):
         record_metadata = {
-            "mdf-title": "FT-ICR-MS " + record["Molecular Formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["Molecular Formula"],
-            "mdf-raw": json.dumps(record),
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "txt": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/ft-icr-ms/ft-icr-ms_data.txt",
+            "mdf": {
+                "title": "FT-ICR-MS " + record["Molecular Formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["Molecular Formula"],
+                "raw": json.dumps(record),
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "txt": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/ft-icr-ms/ft-icr-ms_data.txt",
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

@@ -6,7 +6,7 @@ from ..parsers.ase_parser import parse_ase
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the H2O-13 dataset: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water
 # Arguments:
@@ -22,91 +22,91 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "h2o-13",
-            "mdf-citation": ["Albert P. Bartók, Michael J. Gillan, Frederick R. Manby, Gábor Csányi: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water, Physical Review B 88(5): 054104, 2013. http://dx.doi.org/10.1103/PhysRevB.88.054104"],
-            "mdf-data_contact": {
-
-                "given_name": "Albert P.",
-                "family_name": "Bartók",
-                
-                "email": "ab686@eng.cam.ac.uk",
-                "instituition": "University of Cambridge"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Albert P.",
-                "family_name": "Bartók",
-                
-                "email": "ab686@eng.cam.ac.uk",
-                "instituition": "University of Cambridge"
-                
-                },
-                {
+            "mdf": {
+                "title": "Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water",
+                "acl": ['public'],
+                "source_name": "h2o-13",
+                "citation": ["Albert P. Bartók, Michael J. Gillan, Frederick R. Manby, Gábor Csányi: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water, Physical Review B 88(5): 054104, 2013. http://dx.doi.org/10.1103/PhysRevB.88.054104"],
+                "data_contact": {
+    
+                    "given_name": "Albert P.",
+                    "family_name": "Bartók",
                     
-                "given_name": "Michael J.",
-                "family_name": "Gillan",
-                
-                "institution": "University College London"
-                
-                },
-                {
-                
-                "given_name": "Frederick R.",
-                "family_name": "Manby",
-                
-                "instituition": "University of Bristol",
-                
-                },
-                {
-                
-                "given_name": "Gábor",
-                "family_name": "Csányi",
-                
-                "instituition": "University of Cambridge",
-                
-                }],
-
-#            "mdf-license": "",
-
-            "mdf-collection": "h2o-13",
-            "mdf-data_format": ["xyz"],
-            "mdf-data_type": ["DFT", "PBE"],
-#            "mdf-tags": ,
-
-            "mdf-description": "Water monomer and dimer geometries, with calculations at DFT, MP2 and CCSD(T) level of theory. 7k water monomer geometries corresponding to a grid, with energies and forces at DFT / BLYP, PBE, PBE0 with AV5Z basis set",
-            "mdf-year": 2013,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://qmml.org/datasets.html#h2o-13",
-
-                "mdf-publication": ["https://doi.org/10.1103/PhysRevB.88.054104"],
-               # "mdf-dataset_doi": "",
-
-#                "mdf-related_id": ,
-
-                "tar_bz2": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "http://qmml.org",
-
-                    "path": "/Datasets/h2o-13.tar.bz2",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+                    "email": "ab686@eng.cam.ac.uk",
+                    "instituition": "University of Cambridge"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Albert P.",
+                    "family_name": "Bartók",
+                    
+                    "email": "ab686@eng.cam.ac.uk",
+                    "instituition": "University of Cambridge"
+                    
+                    },
+                    {
+                        
+                    "given_name": "Michael J.",
+                    "family_name": "Gillan",
+                    
+                    "institution": "University College London"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Frederick R.",
+                    "family_name": "Manby",
+                    
+                    "instituition": "University of Bristol",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Gábor",
+                    "family_name": "Csányi",
+                    
+                    "instituition": "University of Cambridge",
+                    
+                    }],
+    
+    #            "license": "",
+    
+                "collection": "h2o-13",
+    #            "tags": ,
+    
+                "description": "Water monomer and dimer geometries, with calculations at DFT, MP2 and CCSD(T) level of theory. 7k water monomer geometries corresponding to a grid, with energies and forces at DFT / BLYP, PBE, PBE0 with AV5Z basis set",
+                "year": 2013,
+    
+                "links": {
+    
+                    "landing_page": "http://qmml.org/datasets.html#h2o-13",
+    
+                    "publication": ["https://doi.org/10.1103/PhysRevB.88.054104"],
+                   # "data_doi": "",
+    
+    #                "related_id": ,
+    
+                    "tar_bz2": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "http://qmml.org",
+    
+                        "path": "/Datasets/h2o-13.tar.bz2",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -137,58 +137,58 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
+
     for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
         record = parse_ase(os.path.join(data_file["path"], data_file["filename"]))
-        uri = "https://data.materialsdatafacility.org/collections/" + "h2o-13/" + data_file["no_root_path"] + '/' + data_file["filename"]
         record_metadata = {
-            "mdf-title": "H2O-13 - " + record["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["chemical_formula"],
-#            "mdf-raw": ,
-
-            "mdf-links": {
-                "mdf-landing_page": uri,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "data_links": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    #"http_host": ,
-
-                    "path": "/collections/h2o-13/" + data_file["no_root_path"] + "/" + data_file["filename"],
+            "mdf": {
+                "title": "H2O-13 - " + record["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["chemical_formula"],
+    #            "raw": ,
+    
+                "links": {
+                   # "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "xyz": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/h2o-13/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        },
                     },
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
                 },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
             }
 
         # Pass each individual record to the Validator

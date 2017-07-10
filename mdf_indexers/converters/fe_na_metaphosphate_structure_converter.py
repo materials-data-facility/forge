@@ -6,7 +6,7 @@ from ..parsers.ase_parser import parse_ase
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: Synthesis and structural data of a Fe-base sodium metaphosphate compound, NaFe(PO3)3
 # Arguments:
@@ -22,91 +22,91 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Synthesis and structural data of a Fe-base sodium metaphosphate compound, NaFe(PO3)3",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "fe_na_metaphosphate_structure",
-            "mdf-citation": ["Lin, Xinghao et al. “Synthesis and Structural Data of a Fe-Base Sodium Metaphosphate Compound, NaFe(PO3)3.” Data in Brief 4 (2015): 217–221. PMC. Web. 30 June 2017."],
-            "mdf-data_contact": {
-
-                "given_name": "Yanming",
-                "family_name": "Zhao",
-                
-                "email": "nc.ude.tucs@myoahz",
-                "instituition": "South China University of Technology"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Xinghao",
-                "family_name": "Lin",
-                
-                "instituition": "South China University of Technology"
-                
-                },
-                {
-                
-                "given_name": "Yanming",
-                "family_name": "Zhao",
-                
-                "email": "nc.ude.tucs@myoahz",
-                "instituition": "South China University of Technology"
-                
-                },
-                {
-                
-                "given_name": "Youzhong",
-                "family_name": "Dong",
-                
-                "instituition": "South China University of Technology"
-                
-                },
-                {
-                
-                "given_name": "Quan",
-                "family_name": "Kuang",
-                
-                "instituition": "South China University of Technology"
-                
-                }],
-
-            "mdf-license": "http://creativecommons.org/licenses/by/4.0/",
-
-            "mdf-collection": "Fe-base sodium metaphosphate Synthesis and Structure",
-            "mdf-data_format": ["cif"],
-          #  "mdf-data_type": ,
-           # "mdf-tags": ,
-
-            "mdf-description": "In this data article, the synthesized process of this metaphosphate compound and the morphology of the obtained sample will be provided. The high-power XRD Rietveld refinement is applied to determine the crystal structure of this metaphosphate compound and the refinement result including the main refinement parameters, atomic coordinate and some important lattace parameters are stored in the cif file.",
-            "mdf-year": 2015,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4510540/",
-
-              #  "mdf-publication": ,
-               # "mdf-dataset_doi": "",
-
-              #  "mdf-related_id": ,
-
-                "zip": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "https://www.ncbi.nlm.nih.gov",
-
-                    "path": "/pmc/articles/PMC4510540/bin/mmc2.zip",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "Synthesis and structural data of a Fe-base sodium metaphosphate compound, NaFe(PO3)3",
+                "acl": ['public'],
+                "source_name": "fe_na_metaphosphate_structure",
+                "citation": ["Lin, Xinghao et al. “Synthesis and Structural Data of a Fe-Base Sodium Metaphosphate Compound, NaFe(PO3)3.” Data in Brief 4 (2015): 217–221. PMC. Web. 30 June 2017."],
+                "data_contact": {
+    
+                    "given_name": "Yanming",
+                    "family_name": "Zhao",
+                    
+                    "email": "nc.ude.tucs@myoahz",
+                    "instituition": "South China University of Technology"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Xinghao",
+                    "family_name": "Lin",
+                    
+                    "instituition": "South China University of Technology"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Yanming",
+                    "family_name": "Zhao",
+                    
+                    "email": "nc.ude.tucs@myoahz",
+                    "instituition": "South China University of Technology"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Youzhong",
+                    "family_name": "Dong",
+                    
+                    "instituition": "South China University of Technology"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Quan",
+                    "family_name": "Kuang",
+                    
+                    "instituition": "South China University of Technology"
+                    
+                    }],
+    
+                "license": "http://creativecommons.org/licenses/by/4.0/",
+    
+                "collection": "Fe-base sodium metaphosphate Synthesis and Structure",
+               # "mdf-tags": ,
+    
+                "description": "In this data article, the synthesized process of this metaphosphate compound and the morphology of the obtained sample will be provided. The high-power XRD Rietveld refinement is applied to determine the crystal structure of this metaphosphate compound and the refinement result including the main refinement parameters, atomic coordinate and some important lattace parameters are stored in the cif file.",
+                "year": 2015,
+    
+                "links": {
+    
+                    "landing_page": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4510540/",
+    
+                  #  "publication": ,
+                   # "data_doi": "",
+    
+                  #  "related_id": ,
+    
+                    "zip": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "https://www.ncbi.nlm.nih.gov",
+    
+                        "path": "/pmc/articles/PMC4510540/bin/mmc2.zip",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -140,54 +140,54 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "cif"), desc="Processing files", disable=not verbose):
         record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "cif")
         record_metadata = {
-            "mdf-title": "Synthesis and Structure of - " + record["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["chemical_formula"],
-#            "mdf-raw": ,
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "cif": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/fe_na_metaphosphate_structure/" + data_file["filename"],
+            "mdf": {
+                "title": "Synthesis and Structure of - " + record["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "mdescription": ,
+                
+                "composition": record["chemical_formula"],
+    #            "raw": ,
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "cif": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/fe_na_metaphosphate_structure/" + data_file["filename"],
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

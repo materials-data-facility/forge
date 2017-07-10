@@ -4,7 +4,7 @@ import os
 from ..parsers.tab_parser import parse_tab
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: Using Machine Learning To Identify Factors That Govern Amorphization of Irradiated Pyrochlores
 # Arguments:
@@ -20,115 +20,115 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Using Machine Learning To Identify Factors That Govern Amorphization of Irradiated Pyrochlores",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "irradiated_pyrochlores_ml",
-            "mdf-citation": ["Using Machine Learning To Identify Factors That Govern Amorphization of Irradiated Pyrochlores Ghanshyam Pilania, Karl R. Whittle, Chao Jiang, Robin W. Grimes, Christopher R. Stanek, Kurt E. Sickafus, and Blas Pedro Uberuaga Chemistry of Materials 2017 29 (6), 2574-2583 DOI: 10.1021/acs.chemmater.6b04666"],
-            "mdf-data_contact": {
-
-                "given_name": "Blas Pedro",
-                "family_name": "Uberuaga",
-                
-                "email": "blas@lanl.gov",
-                "instituition": "Los Alamos National Laboratory"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Blas Pedro",
-                "family_name": "Uberuaga",
-                
-                "email": "blas@lanl.gov",
-                "instituition": "Los Alamos National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Ghanshyam",
-                "family_name": "Pilania",
-                
-                "instituition": "Los Alamos National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Karl R.",
-                "family_name": "Whittle",
-                
-                "instituition": "University of Liverpool"
-                
-                },
-                {
-                
-                "given_name": "Chao",
-                "family_name": "Jiang",
-                
-                "instituition": "Idaho National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Robin W.",
-                "family_name": "Grimes",
-                
-                "instituition": "Imperial College London"
-                
-                },
-                {
-                
-                "given_name": "Christopher R.",
-                "family_name": "Stanek",
-                
-                "instituition": "Los Alamos National Laboratory"
-                
-                },
-                {
-                
-                "given_name": "Kurt E.",
-                "family_name": "Sickafus",
-                
-                "instituition": "University of Tennessee"
-                
-                }],
-
-            "mdf-license": "http://pubs.acs.org/page/policy/authorchoice_ccby_termsofuse.html",
-
-            "mdf-collection": "ML for Amorphization of Irradiated Pyrochlores",
-            "mdf-data_format": ["txt"],
-            "mdf-data_type": ["ML"],
-            "mdf-tags": ["ML"],
-
-            "mdf-description": "Here, we use a machine learning model to examine the factors that govern amorphization resistance in the complex oxide pyrochlore (A2B2O7) in a regime in which amorphization occurs as a consequence of defect accumulation. We examine the fidelity of predictions based on cation radii and electronegativities, the oxygen positional parameter, and the energetics of disordering and amorphizing the material.",
-            "mdf-year": 2017,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://pubs.acs.org/doi/full/10.1021/acs.chemmater.6b04666#showFigures",
-
-             #   "mdf-publication": ,
-                #"mdf-dataset_doi": "",
-
-            #    "mdf-related_id": ,
-
-                "pdf": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "http://pubs.acs.org",
-
-                    "path": "/doi/suppl/10.1021/acs.chemmater.6b04666/suppl_file/cm6b04666_si_001.pdf",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "Using Machine Learning To Identify Factors That Govern Amorphization of Irradiated Pyrochlores",
+                "acl": ['public'],
+                "source_name": "irradiated_pyrochlores_ml",
+                "citation": ["Using Machine Learning To Identify Factors That Govern Amorphization of Irradiated Pyrochlores Ghanshyam Pilania, Karl R. Whittle, Chao Jiang, Robin W. Grimes, Christopher R. Stanek, Kurt E. Sickafus, and Blas Pedro Uberuaga Chemistry of Materials 2017 29 (6), 2574-2583 DOI: 10.1021/acs.chemmater.6b04666"],
+                "data_contact": {
+    
+                    "given_name": "Blas Pedro",
+                    "family_name": "Uberuaga",
+                    
+                    "email": "blas@lanl.gov",
+                    "instituition": "Los Alamos National Laboratory"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Blas Pedro",
+                    "family_name": "Uberuaga",
+                    
+                    "email": "blas@lanl.gov",
+                    "instituition": "Los Alamos National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Ghanshyam",
+                    "family_name": "Pilania",
+                    
+                    "instituition": "Los Alamos National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Karl R.",
+                    "family_name": "Whittle",
+                    
+                    "instituition": "University of Liverpool"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Chao",
+                    "family_name": "Jiang",
+                    
+                    "instituition": "Idaho National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Robin W.",
+                    "family_name": "Grimes",
+                    
+                    "instituition": "Imperial College London"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Christopher R.",
+                    "family_name": "Stanek",
+                    
+                    "instituition": "Los Alamos National Laboratory"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Kurt E.",
+                    "family_name": "Sickafus",
+                    
+                    "instituition": "University of Tennessee"
+                    
+                    }],
+    
+                "license": "http://pubs.acs.org/page/policy/authorchoice_ccby_termsofuse.html",
+    
+                "collection": "ML for Amorphization of Irradiated Pyrochlores",
+                "tags": ["ML"],
+    
+                "description": "Here, we use a machine learning model to examine the factors that govern amorphization resistance in the complex oxide pyrochlore (A2B2O7) in a regime in which amorphization occurs as a consequence of defect accumulation. We examine the fidelity of predictions based on cation radii and electronegativities, the oxygen positional parameter, and the energetics of disordering and amorphizing the material.",
+                "year": 2017,
+    
+                "links": {
+    
+                    "landing_page": "http://pubs.acs.org/doi/full/10.1021/acs.chemmater.6b04666#showFigures",
+    
+                 #   "publication": ,
+                    #"data_doi": "",
+    
+                #    "related_id": ,
+    
+                    "pdf": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "http://pubs.acs.org",
+    
+                        "path": "/doi/suppl/10.1021/acs.chemmater.6b04666/suppl_file/cm6b04666_si_001.pdf",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -163,54 +163,54 @@ def convert(input_path, metadata=None, verbose=False):
         headers = raw_in.readline().split("; ")
         for record in parse_tab(raw_in.read(), headers=headers, sep=" "):
             record_metadata = {
-                "mdf-title": "ML for Amorphization of Irradiated Pyrochlores - " + record["Compound"],
-                "mdf-acl": ['public'],
-    
-    #            "mdf-tags": ,
-    #            "mdf-description": ,
-                
-                "mdf-composition": record["Compound"],
-    #            "mdf-raw": ,
-    
-                "mdf-links": {
-    #                "mdf-landing_page": ,
-    
-    #                "mdf-publication": ,
-    #                "mdf-dataset_doi": ,
-    
-    #                "mdf-related_id": ,
-    
-                    "txt": {
-                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                        "http_host": "https://data.materialsdatafacility.org",
-    
-                        "path": "/collections/irradiated_pyrochlores_ml/irradiated_pyrochlores_ml_data.txt",
+                "mdf": {
+                    "title": "ML for Amorphization of Irradiated Pyrochlores - " + record["Compound"],
+                    "acl": ['public'],
+        
+        #            "tags": ,
+        #            "description": ,
+                    
+                    "composition": record["Compound"],
+        #            "raw": ,
+        
+                    "links": {
+        #                "landing_page": ,
+        
+        #                "publication": ,
+        #                "data_doi": ,
+        
+        #                "related_id": ,
+        
+                        "txt": {
+                            "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                            "http_host": "https://data.materialsdatafacility.org",
+        
+                            "path": "/collections/irradiated_pyrochlores_ml/irradiated_pyrochlores_ml_data.txt",
+                            },
                         },
-                    },
-    
-    #            "mdf-citation": ,
-    #            "mdf-data_contact": {
-    
-    #                "given_name": ,
-    #                "family_name": ,
-    
-    #                "email": ,
-    #                "institution":,
-    
-    #                },
-    
-    #            "mdf-author": ,
-    
-    #            "mdf-license": ,
-    #            "mdf-collection": ,
-    #            "mdf-data_format": ,
-    #            "mdf-data_type": ,
-    #            "mdf-year": ,
-    
-    #            "mdf-mrr":
-    
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
+        
+        #            "citation": ,
+        #            "data_contact": {
+        
+        #                "given_name": ,
+        #                "family_name": ,
+        
+        #                "email": ,
+        #                "institution":,
+        
+        #                },
+        
+        #            "author": ,
+        
+        #            "license": ,
+        #            "collection": ,
+        #            "year": ,
+        
+        #            "mrr":
+        
+        #            "processing": ,
+        #            "structure":,
+                    }
                 }
     
             # Pass each individual record to the Validator

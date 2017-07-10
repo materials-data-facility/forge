@@ -6,7 +6,7 @@ from ..utils.file_utils import find_files
 from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the bfcc-13 dataset: Cluster expansion made easy with Bayesian compressive sensing
 # Arguments:
@@ -22,98 +22,98 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Cluster expansion made easy with Bayesian compressive sensing",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "bfcc13",
-            "mdf-citation": ["Lance J. Nelson, Vidvuds Ozoliņš, C. Shane Reese, Fei Zhou, Gus L.W. Hart: Cluster expansion made easy with Bayesian compressive sensing, Physical Review B 88(15): 155105, 2013."],
-            "mdf-data_contact": {
-
-                "given_name": "Gus",
-                "family_name": "Hart",
-
-                "email": "gus.hart@gmail.com",
-                "institution": "Brigham Young University",
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Gus",
-                "family_name": "Hart",
-                
-                "email": "gus.hart@gmail.com",
-                "instituition": "Brigham Young University"
-                
-                },
-                {
+            "mdf": {
+                "title": "Cluster expansion made easy with Bayesian compressive sensing",
+                "acl": ['public'],
+                "source_name": "bfcc13",
+                "citation": ["Lance J. Nelson, Vidvuds Ozoliņš, C. Shane Reese, Fei Zhou, Gus L.W. Hart: Cluster expansion made easy with Bayesian compressive sensing, Physical Review B 88(15): 155105, 2013."],
+                "data_contact": {
+    
+                    "given_name": "Gus",
+                    "family_name": "Hart",
+    
+                    "email": "gus.hart@gmail.com",
+                    "institution": "Brigham Young University",
+                    },
+    
+                "author": [{
                     
-                "given_name": "Lance",
-                "family_name": "Nelson",
-                
-                "institution": "Brigham Young University"
-                
-                },
-                {
-                
-                "given_name": "Vidvuds",
-                "family_name": "Ozoliņš",
-                
-                "instituition": "University of California Los Angeles",
-                
-                },
-                {
-                
-                "given_name": "Shane",
-                "family_name": "Reese",
-                
-                "instituition": "Brigham Young University",
-                
-                },
-                {
-                
-                "given_name": "Fei",
-                "family_name": "Zhou",
-                
-                "instituition": "Lawrence Livermore National Laboratory",
-                
-                }],
-
-#            "mdf-license": ,
-
-            "mdf-collection": "bfcc13",
-            "mdf-data_format": ["vasp"],
-            "mdf-data_type": ["DFT"],
-#            "mdf-tags": ,
-
-            "mdf-description": "4k DFT calculations for solid AgPd, CuPt and AgPt FCC superstructures. DFT/PBE energy, forces and stresses for cell sizes 1-16 across all compositions including primitive cells.",
-            "mdf-year": 2013,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://qmml.org/datasets.html#bfcc-13",
-
-                "mdf-publication": ["https://journals.aps.org/prb/abstract/10.1103/PhysRevB.88.155105"],
-               # "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "tar_bz2": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "http://qmml.org",
-
-                    "path": "/Datasets/bfcc-13.tar.bz2",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+                    "given_name": "Gus",
+                    "family_name": "Hart",
+                    
+                    "email": "gus.hart@gmail.com",
+                    "instituition": "Brigham Young University"
+                    
+                    },
+                    {
+                        
+                    "given_name": "Lance",
+                    "family_name": "Nelson",
+                    
+                    "institution": "Brigham Young University"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Vidvuds",
+                    "family_name": "Ozoliņš",
+                    
+                    "instituition": "University of California Los Angeles",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Shane",
+                    "family_name": "Reese",
+                    
+                    "instituition": "Brigham Young University",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Fei",
+                    "family_name": "Zhou",
+                    
+                    "instituition": "Lawrence Livermore National Laboratory",
+                    
+                    }],
+    
+    #            "license": ,
+    
+                "collection": "bfcc13",
+    #            "tags": ,
+    
+                "description": "4k DFT calculations for solid AgPd, CuPt and AgPt FCC superstructures. DFT/PBE energy, forces and stresses for cell sizes 1-16 across all compositions including primitive cells.",
+                "year": 2013,
+    
+                "links": {
+    
+                    "landing_page": "http://qmml.org/datasets.html#bfcc-13",
+    
+                    "publication": ["https://journals.aps.org/prb/abstract/10.1103/PhysRevB.88.155105"],
+                   # "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "tar_bz2": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "http://qmml.org",
+    
+                        "path": "/Datasets/bfcc-13.tar.bz2",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -154,54 +154,54 @@ def convert(input_path, metadata=None, verbose=False):
         if data:
             uri = "https://data.materialsdatafacility.org/collections/" + "bfcc-13/bfcc-13/" + data_file["no_root_path"] + "/" + data_file["filename"]
         record_metadata = {
-            "mdf-title": "bfcc13 - " + data["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": data["chemical_formula"],
-#            "mdf-raw": ,
-
-            "mdf-links": {
-                "mdf-landing_page": uri,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "data_links": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    #"http_host": ,
-
-                    "path": "/collections/bfcc-13/bfcc-13/" + data_file["no_root_path"] + '/' + data_file["filename"],
+            "mdf": {
+                "title": "bfcc13 - " + data["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": data["chemical_formula"],
+    #            "raw": ,
+    
+                "links": {
+                    "landing_page": uri,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "data_links": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        #"http_host": ,
+    
+                        "path": "/collections/bfcc-13/bfcc-13/" + data_file["no_root_path"] + '/' + data_file["filename"],
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
