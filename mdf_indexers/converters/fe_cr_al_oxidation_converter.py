@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.tab_parser import parse_tab
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Fe-Cr-Al Oxidation Studies dataset
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "High-throughput Diffraction and Spectroscopic Data for Fe-Cr-Al Oxidation Studies",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "fe_cr_al_oxidation",
-            "mdf-citation": ["Bunn, Jonathan K.; Fang, Randy L.; Albing, Mark R.; Mehta, Apurva; Kramer, Matt J.; Besser, Matt F.; Hattrick-Simpers, Jason R High-throughput Diffraction and Spectroscopic Data for Fe-Cr-Al Oxidation Studies (2015-06-28)"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "High-throughput Diffraction and Spectroscopic Data for Fe-Cr-Al Oxidation Studies",
+            "acl": ["public"],
+            "source_name": "fe_cr_al_oxidation",
+            "citation": ["Bunn, Jonathan K.; Fang, Randy L.; Albing, Mark R.; Mehta, Apurva; Kramer, Matt J.; Besser, Matt F.; Hattrick-Simpers, Jason R High-throughput Diffraction and Spectroscopic Data for Fe-Cr-Al Oxidation Studies (2015-06-28)"],
+            "data_contact": {
 
                 "given_name": "Jason",
                 "family_name": "Hattrick-Simpers",
@@ -38,26 +39,24 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Fe-Cr-Al Oxidation Studies",
-            "mdf-data_format": "csv",
-            "mdf-data_type": "Text",
-#            "mdf-tags": ,
+            "collection": "Fe-Cr-Al Oxidation Studies",
+#            "tags": ,
 
-            "mdf-description": "The data set was used to evaluate a Fe-Cr-Al thin film samples in a narrow composition region centered on known bulk compositions. The data are composed of two individual studies. The first set of data is a low temperature oxidation study on composition spread sampled performed at SLAC Beamline 1-5. Only the integrated and background subtracted 1-D spectra are included, the 2-D data and calibrations are available upon request. The second set of data was taken during high temperature oxidation of selected samples. These data are exclusively Raman data with values taken as a function of total oxidation time.",
-            "mdf-year": 2015,
+            "description": "The data set was used to evaluate a Fe-Cr-Al thin film samples in a narrow composition region centered on known bulk compositions. The data are composed of two individual studies. The first set of data is a low temperature oxidation study on composition spread sampled performed at SLAC Beamline 1-5. Only the integrated and background subtracted 1-D spectra are included, the 2-D data and calibrations are available upon request. The second set of data was taken during high temperature oxidation of selected samples. These data are exclusively Raman data with values taken as a function of total oxidation time.",
+            "year": 2015,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/836",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/836",
 
-                "mdf-publication": "http://dx.doi.org/10.1088/0957-4484/26/27/274003",
-                "mdf-dataset_doi": "http://hdl.handle.net/11256/836",
+                "publication": "http://dx.doi.org/10.1088/0957-4484/26/27/274003",
+                "data_doi": "http://hdl.handle.net/11256/836",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -68,9 +67,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -78,6 +77,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -107,22 +107,23 @@ def convert(input_path, metadata=None, verbose=False):
         temp_k = data_file["filename"].split(" ")[0]
         point_num = int(data_file["filename"].replace("_", " ").split(" ")[-1].split(".")[0])
         record_metadata = {
-            "mdf-title": "Fe-Cr-Al Oxidation - " + data_file["filename"].split(".")[0],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Fe-Cr-Al Oxidation - " + data_file["filename"].split(".")[0],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": "FeCrAl",
-#            "mdf-raw": ,
+            "composition": "FeCrAl",
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "csv": {
  
@@ -133,8 +134,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -145,26 +146,29 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
 
+            },
+        "fe_cr_al_oxidation": {
             "temperature_k": temp_k,
             "atomic_composition_percent": {
                 "Fe": compositions[point_num]["Fe at. %"],
                 "Cr": compositions[point_num]["Cr at. %"],
                 "Al": compositions[point_num]["Al at. %"]
                 }
-            }
+        }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
