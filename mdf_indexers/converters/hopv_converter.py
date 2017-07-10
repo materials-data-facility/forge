@@ -3,7 +3,7 @@ import sys
 import os
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for
 # Arguments:
@@ -19,11 +19,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Harvard Organic Photovoltaic Dataset",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "hopv",
-            "mdf-citation": ["Aspuru-Guzik, Alan (2016): The Harvard Organic Photovoltaics 2015 (HOPV) dataset: An experiment-theory calibration resource.. Figshare. https://doi.org/10.6084/m9.figshare.1610063.v4"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Harvard Organic Photovoltaic Dataset",
+            "acl": ["public"],
+            "source_name": "hopv",
+            "citation": ["Aspuru-Guzik, Alan (2016): The Harvard Organic Photovoltaics 2015 (HOPV) dataset: An experiment-theory calibration resource.. Figshare. https://doi.org/10.6084/m9.figshare.1610063.v4"],
+            "data_contact": {
 
                 "given_name": "Alan",
                 "family_name": "Aspuru-Guzik",
@@ -32,7 +33,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Harvard University"
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Alan",
                 "family_name": "Aspuru-Guzik",
@@ -41,24 +42,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Harvard University"
                 }],
 
-            "mdf-license": "https://creativecommons.org/licenses/by/4.0/",
+            "license": "https://creativecommons.org/licenses/by/4.0/",
 
-            "mdf-collection": "Harvard Organic Photovoltaic Dataset",
-            "mdf-data_format": ["text"],
-            "mdf-data_type": ["DFT", "experimental"],
-            "mdf-tags": ["Organic Photovoltaic Cells", "quantum chemistry", "density functional theory", "calibration"],
+            "collection": "Harvard Organic Photovoltaic Dataset",
+            "tags": ["Organic Photovoltaic Cells", "quantum chemistry", "density functional theory", "calibration"],
 
-            "mdf-description": "The Harvard Organic Photovoltaic Dataset (HOPV15) presented in this work is a collation of experimental photovoltaic data from the literature, and corresponding quantum-chemical calculations performed over a range of geometries, each with quantum chemical results using a variety of density functionals and basis sets.",
-            "mdf-year": 2016,
+            "description": "The Harvard Organic Photovoltaic Dataset (HOPV15) presented in this work is a collation of experimental photovoltaic data from the literature, and corresponding quantum-chemical calculations performed over a range of geometries, each with quantum chemical results using a variety of density functionals and basis sets.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://figshare.com/articles/HOPV15_Dataset/1610063/4",
+                "landing_page": "https://figshare.com/articles/HOPV15_Dataset/1610063/4",
 
-                "mdf-publication": ["https://dx.doi.org/10.1038/sdata.2016.86"],
-                "mdf-dataset_doi": "https://dx.doi.org/10.6084/m9.figshare.1610063.v4"
+                "publication": ["https://dx.doi.org/10.1038/sdata.2016.86"],
+                "data_doi": "https://dx.doi.org/10.6084/m9.figshare.1610063.v4"
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -69,9 +68,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
 
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
@@ -81,6 +80,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -170,22 +170,23 @@ def convert(input_path, metadata=None, verbose=False):
             uri = "/collections/hopv/" + filename
 
             record_metadata = {
-                "mdf-title": "HOPV - " + molecule["smiles"],
-                "mdf-acl": ["public"],
+            "mdf": {
+                "title": "HOPV - " + molecule["smiles"],
+                "acl": ["public"],
 
-#                "mdf-tags": ,
-#                "mdf-description": ,
+#                "tags": ,
+#                "description": ,
                 
-                "mdf-composition": molecule["smiles"],
-#                "mdf-raw": ,
+                "composition": molecule["smiles"],
+#                "raw": ,
 
-                "mdf-links": {
-#                    "mdf-landing_page": ,
+                "links": {
+#                    "landing_page": ,
 
-#                    "mdf-publication": ,
-#                    "mdf-dataset_doi": ,
+#                    "publication": ,
+#                    "dataset_doi": ,
 
-#                    "mdf-related_id": ,
+#                    "related_id": ,
 
                      "molecule": {
      
@@ -202,8 +203,8 @@ def convert(input_path, metadata=None, verbose=False):
                         }
                     }
 
-#                "mdf-citation": ,
-#                "mdf-data_contact": {
+#                "citation": ,
+#                "data_contact": {
 
 #                    "given_name": ,
 #                    "family_name": ,
@@ -214,19 +215,23 @@ def convert(input_path, metadata=None, verbose=False):
                     # IDs
 #                },
 
-#                "mdf-author": ,
+#                "author": ,
 
-#                "mdf-license": ,
-#                "mdf-collection": ,
-#                "mdf-data_format": ,
-#                "mdf-data_type": ,
-#                "mdf-year": ,
+#                "license": ,
+#                "collection": ,
+#                "data_format": ,
+#                "data_type": ,
+#                "year": ,
 
-#                "mdf-mrr":
+#                "mrr":
 
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
-                }
+    #            "processing": ,
+    #            "structure":,
+                },
+            "hopv": {
+                "experimental_data": molecule["experimental_data"]
+            }
+            }
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)

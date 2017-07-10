@@ -356,7 +356,7 @@ class Validator:
             jsonschema.validate(full_record, self.__schemas[resource_type])
             # Validate user-added block
             # If it exists, the key must be the source_name
-            if len(full_record) > 2 and full_metadata.get(self.__source_name, None) is None:
+            if len(full_record) > 2 and full_record.get(self.__source_name, None) is None:
                 raise(jsonschema.ValidationError("The user-defined data block for source name '" + self.__source_name + "' must be named '" + self.__source_name + "'"))
         except jsonschema.ValidationError as e:
            return {

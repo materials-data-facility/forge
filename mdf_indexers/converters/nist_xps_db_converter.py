@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..utils.file_utils import find_files
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the NIST XPS database
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST X-ray Photoelectron Spectroscopy Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_xps_db",
-            "mdf-citation": ["NIST X-ray Photoelectron Spectroscopy Database, Version 4.1 (National Institute of Standards and Technology, Gaithersburg, 2012); http://srdata.nist.gov/xps/."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST X-ray Photoelectron Spectroscopy Database",
+            "acl": ["public"],
+            "source_name": "nist_xps_db",
+            "citation": ["NIST X-ray Photoelectron Spectroscopy Database, Version 4.1 (National Institute of Standards and Technology, Gaithersburg, 2012); http://srdata.nist.gov/xps/."],
+            "data_contact": {
 
                 "given_name": "Cedric",
                 "family_name": "Powell",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Cedric",
                 "family_name": "Powell",
@@ -75,24 +76,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "family_name": "Wagner"
                 }],
 
-            "mdf-license": "©2012 copyright by the U.S. Secretary of Commerce on behalf of the United States of America. All rights reserved.",
+            "license": "©2012 copyright by the U.S. Secretary of Commerce on behalf of the United States of America. All rights reserved.",
 
-            "mdf-collection": "NIST XPS DB",
-            "mdf-data_format": "text",
-            "mdf-data_type": "xps",
-            "mdf-tags": ["xps", "nist", "srd"],
+            "collection": "NIST XPS DB",
+            "tags": ["xps", "nist", "srd"],
 
-            "mdf-description": "NIST Standard Reference Database 20",
-            "mdf-year": 2000,
+            "description": "NIST Standard Reference Database 20",
+            "year": 2000,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://srdata.nist.gov/xps/Default.aspx",
+                "landing_page": "https://srdata.nist.gov/xps/Default.aspx",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 #: {
 
@@ -103,9 +102,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -113,6 +112,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -138,22 +138,23 @@ def convert(input_path, metadata=None, verbose=False):
         id_num = file_data["filename"].rsplit("_", 1)[1].split(".", 1)[0]
         link = "https://srdata.nist.gov/xps/XPSDetailPage.aspx?AllDataNo=" + id_num
         record_metadata = {
-            "mdf-title": "NIST XPS DB - " + record["Name"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "NIST XPS DB - " + record["Name"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-            "mdf-description": record.get("Notes"),
+#            "tags": ,
+            "description": record.get("Notes"),
             
-            "mdf-composition": record["Formula"],
-            "mdf-raw": json.dumps(record),
+            "composition": record["Formula"],
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-                "mdf-landing_page": link,
+            "links": {
+                "landing_page": link,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -164,8 +165,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-            "mdf-citation": record.get("Citation", None),
-#            "mdf-data_contact": {
+#            "citation": record.get("Citation", None),
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -176,19 +177,22 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
+        if record.get("Citation", None):
+            record_metadata["mdf"]["citation"] = record["Citation"]
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

@@ -5,7 +5,7 @@ import os
 from globus_sdk import ConfidentialAppAuthClient, AccessTokenAuthorizer, RefreshTokenAuthorizer
 from globus_sdk.base import BaseClient, merge_params
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 class SearchClient(BaseClient):
     allowed_authorizer_types = [AccessTokenAuthorizer, RefreshTokenAuthorizer]

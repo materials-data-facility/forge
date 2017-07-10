@@ -8,7 +8,7 @@ from chemspipy import ChemSpider
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the PPPDB
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Polymer Property Predictor and Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "pppdb",
-            "mdf-citation": ["Publication pending"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Polymer Property Predictor and Database",
+            "acl": ["public"],
+            "source_name": "pppdb",
+            "citation": ["Publication pending"],
+            "data_contact": {
 
                 "given_name": "Roselyne",
                 "family_name": "Tchoua",
@@ -39,7 +40,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Roselyne",
                 "family_name": "Tchoua",
@@ -62,24 +63,23 @@ def convert(input_path, metadata=None, verbose=False):
                 }
                 ],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "PPPDB",
-            "mdf-data_format": ["sql"],
-#            "mdf-data_type": ,
-            "mdf-tags": ["chi", "tg"],
+            "collection": "PPPDB",
+#            "data_type": ,
+            "tags": ["chi", "tg"],
 
-            "mdf-description": "Polymer Property Predictor and Database",
-            "mdf-year": 2017,
+            "description": "Polymer Property Predictor and Database",
+            "year": 2017,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://pppdb.uchicago.edu/",
+                "landing_page": "http://pppdb.uchicago.edu/",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "data_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -90,9 +90,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -100,6 +100,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -172,22 +173,23 @@ def convert(input_path, metadata=None, verbose=False):
         chem2 = (''.join([ch for ch in comp2[0].molecular_formula if ch.isalnum()])) if len(comp2) == 1 else ""
 
         record_metadata = {
-            "mdf-title": "PPPDB - Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "PPPDB - Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
+            "acl": ["public"],
 
-            "mdf-tags": [record["compound1"] , record["compound2"]],
-            "mdf-description": str(record["notes"]) if record["notes"] else "Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
+            "tags": [record["compound1"] , record["compound2"]],
+            "description": str(record["notes"]) if record["notes"] else "Chi Parameter for " +  record["compound1"] + " and " + record["compound2"],
             
-            "mdf-composition": chem1 + " " + chem2,
-            "mdf-raw": json.dumps(record),
+            "composition": chem1 + " " + chem2,
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-                "mdf-landing_page": "http://pppdb.uchicago.edu?&id="+str(record["pppdb_id"]),
+            "links": {
+                "landing_page": "http://pppdb.uchicago.edu?&id="+str(record["pppdb_id"]),
 
-                "mdf-publication": [str(record.pop("doi"))],
-#                "mdf-dataset_doi": ,
+                "publication": [str(record.pop("doi"))],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -197,8 +199,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #"path": ,
                     #},
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -209,20 +211,21 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
             },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-            "mdf-year": int(str(record["date"])[-4:]),
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+            "year": int(str(record["date"])[-4:]),
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
-        record_metadata.update(record)
+        }
+        record_metadata["pppdb"] = record
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
