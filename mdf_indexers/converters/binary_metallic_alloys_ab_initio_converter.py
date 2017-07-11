@@ -1,9 +1,9 @@
 import json
 import sys
 import os
+from tqdm import tqdm
 from ..utils.file_utils import find_files
 from ..parsers.tab_parser import parse_tab
-from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
@@ -25,7 +25,7 @@ def convert(input_path, metadata=None, verbose=False):
             "mdf": {
                 "title": "A compilation of ab-initio calculations of embrittling potencies in binary metallic alloys",
                 "acl": ['public'],
-                "source_name": "binary_metallic_alloys_ab-initio",
+                "source_name": "binary_metallic_alloys_ab_initio",
                 "citation": ["Gibson, Michael A., and Christopher A. Schuh. “A Compilation of Ab-Initio Calculations of Embrittling Potencies in Binary Metallic Alloys.” Data in Brief 6 (2016): 143–148. PMC. Web. 29 June 2017."],
                 "data_contact": {
     
@@ -151,7 +151,7 @@ def convert(input_path, metadata=None, verbose=False):
                             "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                             "http_host": "https://data.materialsdatafacility.org",
         
-                            "path": "/collections/binary_metallic_alloys_ab-initio/" + data_file["filename"],
+                            "path": "/collections/binary_metallic_alloys_ab_initio/" + data_file["filename"],
                             },
                         },
         
