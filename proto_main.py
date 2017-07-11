@@ -4,11 +4,12 @@ from importlib import import_module
 VERBOSE = True
 
 
-def call_harvester(source_name, verbose=VERBOSE, **kwargs):
+def call_harvester(source_name, existing_dir=-1, verbose=VERBOSE, **kwargs):
     if verbose:
         print("HARVESTING", source_name)
     harvester = import_module("mdf_indexers.harvesters." + source_name + "_harvester")
-    harvester.harvest(verbose=verbose, **kwargs)
+    output_path = "mdf_indexers/datasets/" + source_name + "/"
+    harvester.harvest(out_dir=output_path, existing_dir=existing_dir,  verbose=verbose, **kwargs)
     if verbose:
         print("HARVESTING COMPLETE")
 

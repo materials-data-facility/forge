@@ -80,7 +80,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                # REQ list of strings: The full bibliographic citation(s) for the dataset
+                # RCM list of strings: The full bibliographic citation(s) for the dataset
                 "citation": ,
 
                 # RCM list of dictionaries: A list of the authors of this dataset
