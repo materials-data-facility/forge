@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Oxygen Interstitials and Deformation Twins in alpha-Titanium dataset
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Interaction Between Oxygen Interstitials and Deformation Twins in alpha-Titanium",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "oxygen_interstitials_deformation",
-            "mdf-citation": ["Interaction Between Oxygen Interstitials and Deformation Twins in alpha-Titanium, Acta Materialia v. 105 (2016), pp. 44 - 51 http://dx.doi.org/10.1016/j.actamat.2015.12.019"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Interaction Between Oxygen Interstitials and Deformation Twins in alpha-Titanium",
+            "acl": ["public"],
+            "source_name": "oxygen_interstitials_deformation",
+            "citation": ["Interaction Between Oxygen Interstitials and Deformation Twins in alpha-Titanium, Acta Materialia v. 105 (2016), pp. 44 - 51 http://dx.doi.org/10.1016/j.actamat.2015.12.019"],
+            "data_contact": {
 
                 "given_name": "William",
                 "family_name": "Joost",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "William",
                 "family_name": "Joost",
@@ -64,24 +65,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-            "mdf-license": "http://creativecommons.org/licenses/by/3.0/us/",
+            "license": "http://creativecommons.org/licenses/by/3.0/us/",
 
-            "mdf-collection": "Oxygen Interstitials and Deformation Twins in alpha-Titanium",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dft", "interstitials"],
+            "collection": "Oxygen Interstitials and Deformation Twins in alpha-Titanium",
+            "tags": ["dft", "interstitials"],
 
-            "mdf-description": "In this study we interrogate the behavior of oxygen (O) interstitials near a (10-12) twin boundary using a combination of density functional theory (DFT) and modified embedded atom method (MEAM) calculations.",
-            "mdf-year": 2016,
+            "description": "In this study we interrogate the behavior of oxygen (O) interstitials near a (10-12) twin boundary using a combination of density functional theory (DFT) and modified embedded atom method (MEAM) calculations.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/272",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/272",
 
-                "mdf-publication": "http://dx.doi.org/10.1016/j.actamat.2015.12.019",
-                "mdf-dataset_doi": "http://hdl.handle.net/11256/272",
+                "publication": "http://dx.doi.org/10.1016/j.actamat.2015.12.019",
+                "data_doi": "http://hdl.handle.net/11256/272",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -92,9 +91,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -102,6 +101,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -124,22 +124,23 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable= not verbose):
         data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp-out")
         record_metadata = {
-            "mdf-title": "Oxygen Interstitials and Deformation Twins - " + data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Oxygen Interstitials and Deformation Twins - " + data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -150,8 +151,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -162,19 +163,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
-            }
+#            "processing": ,
+#            "structure":,
+           }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

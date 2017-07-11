@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for NIST Standard Reference Database 144
 # Arguments:
@@ -22,11 +22,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST Atomic Weights and Isotopic Compositions with Relative Atomic Masses",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_atom_weight_iso_comp",
-            "mdf-citation": ["NIST Standard Reference Database 144"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST Atomic Weights and Isotopic Compositions with Relative Atomic Masses",
+            "acl": ["public"],
+            "source_name": "nist_atom_weight_iso_comp",
+            "citation": ["NIST Standard Reference Database 144"],
+            "data_contact": {
 
                 "given_name": "Karen",
                 "family_name": "Olsen",
@@ -36,26 +37,24 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NIST Atomic Weights and Isotopic Compositions",
-            "mdf-data_format": "txt",
-            "mdf-data_type": "Tabular",
-            "mdf-tags": ["atomic weight", "isotopic composition"],
+            "collection": "NIST Atomic Weights and Isotopic Compositions",
+            "tags": ["atomic weight", "isotopic composition"],
 
-            "mdf-description": "The atomic weights are available for elements 1 through 118 and isotopic compositions or abundances are given when appropriate.",
-            "mdf-year": 1999,
+            "description": "The atomic weights are available for elements 1 through 118 and isotopic compositions or abundances are given when appropriate.",
+            "year": 1999,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses",
+                "landing_page": "https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses",
 
-                "mdf-publication": ["http://www.ciaaw.org/atomic-weights.htm", "http://www.iupac.org/publications/pac/83/2/0397/", "http://amdc.impcas.ac.cn/evaluation/data2012/ame.html"],
-#                "mdf-dataset_doi": ,
+                "publication": ["http://www.ciaaw.org/atomic-weights.htm", "http://www.iupac.org/publications/pac/83/2/0397/", "http://amdc.impcas.ac.cn/evaluation/data2012/ame.html"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -66,9 +65,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
- #           "mdf-mrr": ,
+ #           "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -76,6 +75,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -109,22 +109,23 @@ def convert(input_path, metadata=None, verbose=False):
                 record[data_list[0].strip().lower().replace(" ", "_")] = data_list[1].strip()
 
         record_metadata = {
-            "mdf-title": "NIST Atomic Weights - " + record["atomic_symbol"] + record["mass_number"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "NIST Atomic Weights - " + record["atomic_symbol"] + record["mass_number"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-            "mdf-description": ",".join([note_lookup[n] for n in record.get("notes", "").split(",") if record.get("notes", "")]),
+#            "tags": ,
+            "description": ",".join([note_lookup[n] for n in record.get("notes", "").split(",") if record.get("notes", "")]),
 
-            "mdf-composition": record["atomic_symbol"],
-            "mdf-raw": json.dumps(record),
+            "composition": record["atomic_symbol"],
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -135,8 +136,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -147,19 +148,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

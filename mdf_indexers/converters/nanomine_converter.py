@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for Nanomine.
 # Arguments:
@@ -22,11 +22,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NanoMine",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nanomine",
-            "mdf-citation": ["Publication pending"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NanoMine",
+            "acl": ["public"],
+            "source_name": "nanomine",
+            "citation": ["Publication pending"],
+            "data_contact": {
 
                 "given_name": "L. Catherine",
                 "family_name": "Brinson",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": {
+            "author": {
                 "given_name": "Yixing",
                 "family_name": "Wang",
 
@@ -45,24 +46,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Northwestern University"
                 },
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NanoMine",
-            "mdf-data_format": "json",
-            "mdf-data_type": "text",
-            "mdf-tags": ["polymer", "nanocomposites"],
+            "collection": "NanoMine",
+            "tags": ["polymer", "nanocomposites"],
 
-            "mdf-description": "Material Informatics for Polymer Nanocomposites",
-            "mdf-year": 2014,
+            "description": "Material Informatics for Polymer Nanocomposites",
+            "year": 2014,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://nanomine.northwestern.edu:8000/",
+                "landing_page": "http://nanomine.northwestern.edu:8000/",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -73,9 +72,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -83,6 +82,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -110,22 +110,23 @@ def convert(input_path, metadata=None, verbose=False):
                 citation = record["content"]["PolymerNanocomposite"]["DATA_SOURCE"]["Citation"]["CommonFields"] # Shortcut
                 uri = "http://nanomine.northwestern.edu:8000/explore/detail_result_keyword?id=" + record["_id"]["$oid"]
                 record_metadata = {
-                    "mdf-title": citation["Title"],
-                    "mdf-acl": ["public"],
+                "mdf": {
+                    "title": citation["Title"],
+                    "acl": ["public"],
 
-#                    "mdf-tags": ,
-#                    "mdf-description": ,
+#                    "tags": ,
+#                    "description": ,
                     
-#                    "mdf-composition": ,
-                    "mdf-raw": json.dumps(record),
+#                    "composition": ,
+                    "raw": json.dumps(record),
 
-                    "mdf-links": {
-                        "mdf-landing_page": uri,
+                    "links": {
+                        "landing_page": uri,
 
-#                        "mdf-publication": ,
-#                        "mdf-dataset_doi": ,
+#                        "publication": ,
+#                        "dataset_doi": ,
 
-#                        "mdf-related_id": ,
+#                        "related_id": ,
 
                         # data links: {
          
@@ -136,8 +137,8 @@ def convert(input_path, metadata=None, verbose=False):
                             #},
                         },
 
-#                    "mdf-citation": ,
-#                    "mdf-data_contact": {
+#                    "citation": ,
+#                    "data_contact": {
 
 #                        "given_name": ,
 #                        "family_name": ,
@@ -148,19 +149,20 @@ def convert(input_path, metadata=None, verbose=False):
                         # IDs
                     #    },
 
-#                    "mdf-author": ,
+#                    "author": ,
 
-#                    "mdf-license": ,
-#                    "mdf-collection": ,
-#                    "mdf-data_format": ,
-#                    "mdf-data_type": ,
-#                    "mdf-year": ,
+#                    "license": ,
+#                    "collection": ,
+#                    "data_format": ,
+#                    "data_type": ,
+#                    "year": ,
 
-#                    "mdf-mrr":
+#                    "mrr":
 
-        #            "mdf-processing": ,
-        #            "mdf-structure":,
+        #            "processing": ,
+        #            "structure":,
                     }
+                }
             except Exception as e:
                 # Something required failed. Skip record.
 #                print(repr(e))
@@ -170,7 +172,7 @@ def convert(input_path, metadata=None, verbose=False):
             # Material composition
             mat_comp = get_nanomine_materials(record)
             if mat_comp:
-                record_metadata["mdf-composition"] = mat_comp
+                record_metadata["mdf"]["composition"] = mat_comp
 
             # Related identifiers (DOI, URL, and image links)
             image_list = record["content"]["PolymerNanocomposite"].get("MICROSTRUCTURE", {}).get("ImageFile", [])
@@ -178,12 +180,12 @@ def convert(input_path, metadata=None, verbose=False):
                 image_list = [image_list]
             related_list = [citation.get("DOI", "").replace("doi:", "http://dx.doi.org/"), citation.get("URL", "")] + [image["File"] for image in image_list if image.get("File", None)]
             if related_list:
-                record_metadata["mdf-links"]["mdf-publication"] = [rel for rel in related_list if rel]
+                record_metadata["mdf"]["links"]["publication"] = [rel for rel in related_list if rel]
 
             # Year
             year = citation.get("PublicationYear")
             if year:
-                record_metadata["mdf-year"] = int(year)
+                record_metadata["mdf"]["year"] = int(year)
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)

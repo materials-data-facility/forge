@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the NIST-JANAF Thermochemical tables.
 # Arguments:
@@ -23,11 +23,22 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST-JANAF Thermochemical Tables",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_janaf",
-            "mdf-citation": ["M. W. Chase, Jr., JANAF Thermochemical Tables Third Edition, J. Phys. Chem. Ref. Data, Vol. 14, Suppl. 1, 1985."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST-JANAF Thermochemical Tables",
+            "acl": ["public"],
+            "source_name": "nist_janaf",
+            "citation": ["M. W. Chase, Jr., JANAF Thermochemical Tables Third Edition, J. Phys. Chem. Ref. Data, Vol. 14, Suppl. 1, 1985."],
+            "data_contact": {
+
+                "given_name": "Evelyn",
+                "family_name": "Brown",
+
+                "email": "evelyn.brown@nist.gov",
+                "institution": "National Institute of Standards and Technology",
+
+                },
+
+            "author": {
 
                 "given_name": "Malcolm",
                 "family_name": "Chase, Jr.",
@@ -37,34 +48,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": {
+            "license": "Copyright 1986 by the U.S. Department of Commerce on behalf of the United States. All rights reserved.",
 
-                "given_name": "Malcolm",
-                "family_name": "Chase, Jr.",
+            "collection": "NIST-JANAF",
+            "tags": "Thermochemical",
 
-#                "email": ,
-                "institution": "National Institute of Standards and Technology",
+            "description": "DISCLAIMER: NIST uses its best efforts to deliver a high quality copy of the Database and to verify that the data contained therein have been selected on the basis of sound scientific judgement. However, NIST makes no warranties to that effect, and NIST shall not be liable for any damage that may result from errors or omissions in the Database.",
+            "year": 1985,
 
-                },
+            "links": {
 
-            "mdf-license": "Copyright 1986 by the U.S. Department of Commerce on behalf of the United States. All rights reserved.",
+                "landing_page": "http://kinetics.nist.gov/janaf/",
 
-            "mdf-collection": "NIST-JANAF",
-            "mdf-data_format": "json",
-            "mdf-data_type": "thermochemical",
-            "mdf-tags": "Thermochemical",
+#                "publication": ,
+#                "dataset_doi": ,
 
-            "mdf-description": "DISCLAIMER: NIST uses its best efforts to deliver a high quality copy of the Database and to verify that the data contained therein have been selected on the basis of sound scientific judgement. However, NIST makes no warranties to that effect, and NIST shall not be liable for any damage that may result from errors or omissions in the Database.",
-            "mdf-year": 1985,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://kinetics.nist.gov/janaf/",
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -75,9 +74,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -85,6 +84,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -108,22 +108,23 @@ def convert(input_path, metadata=None, verbose=False):
         with open(os.path.join(entry["path"], entry["filename"])) as in_file:
             data = json.load(in_file)
         record_metadata = {
-            "mdf-title": "NIST-JANAF - " + data['identifiers']['chemical formula'] + " " + data['identifiers']['state'],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "NIST-JANAF - " + data['identifiers']['chemical formula'] + " " + data['identifiers']['state'],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data['identifiers']['molecular formula'],
-#            "mdf-raw": ,
+            "composition": data['identifiers']['molecular formula'],
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "http://kinetics.nist.gov/janaf/html/" + entry["filename"].replace("srd13_", "").replace(".json", ".html"),
+            "links": {
+                "landing_page": "http://kinetics.nist.gov/janaf/html/" + entry["filename"].replace("srd13_", "").replace(".json", ".html"),
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -134,8 +135,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -146,20 +147,23 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
- #           "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+ #           "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
+        },
+        "nist_janaf": {
             "state": "".join([data["state definitions"][st] + ", " for st in data['identifiers']['state'].split(",")])
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

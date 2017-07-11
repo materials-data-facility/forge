@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for Materials Commons.
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Materials Commons Data",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "materials_commons",
-            "mdf-citation": ["Puchala, B., Tarcea, G., Marquis, E.A. et al. JOM (2016) 68: 2035. doi:10.1007/s11837-016-1998-7"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Materials Commons Data",
+            "acl": ["public"],
+            "source_name": "materials_commons",
+            "citation": ["Puchala, B., Tarcea, G., Marquis, E.A. et al. JOM (2016) 68: 2035. doi:10.1007/s11837-016-1998-7"],
+            "data_contact": {
 
                 "given_name": "Brian",
                 "family_name": "Puchala",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Brian",
                 "family_name": "Puchala",
@@ -89,24 +90,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Materials Commons",
-            "mdf-data_format": "json",
-            "mdf-data_type": "metadata",
-            "mdf-tags": ["materials"],
+            "collection": "Materials Commons",
+            "tags": ["materials"],
 
-            "mdf-description": "A platform for sharing research data.",
-            "mdf-year": 2016,
+            "description": "A platform for sharing research data.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialscommons.org/mcpub/",
+                "landing_page": "https://materialscommons.org/mcpub/",
 
-                "mdf-publication": "https://dx.doi.org/10.1007/s11837-016-1998-7",
-#                "mdf-dataset_doi": ,
+                "publication": "https://dx.doi.org/10.1007/s11837-016-1998-7",
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -117,9 +116,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -127,6 +126,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -150,22 +150,23 @@ def convert(input_path, metadata=None, verbose=False):
         with open(os.path.join(dir_data["path"], dir_data["filename"])) as file_data:
             mc_data = json.load(file_data)
         record_metadata = {
-            "mdf-title": mc_data["title"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": mc_data["title"],
+            "acl": ["public"],
 
-            "mdf-tags": mc_data["keywords"],
-            "mdf-description": mc_data["description"],
+            "tags": mc_data["keywords"],
+            "description": mc_data["description"],
             
-#            "mdf-composition": ,
-#            "mdf-raw": ,
+#            "composition": ,
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "https://materialscommons.org/mcpub/#/details/" + mc_data["id"],
+            "links": {
+                "landing_page": "https://materialscommons.org/mcpub/#/details/" + mc_data["id"],
 
-                "mdf-publication": mc_data["doi"],
-#                "mdf-dataset_doi": ,
+                "publication": mc_data["doi"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -176,8 +177,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -188,19 +189,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-            "mdf-license": mc_data["license"]["link"],
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-            "mdf-year": int(mc_data.get("published_date", "0000")[:4]),
+#            "license": mc_data["license"]["link"],
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+            "year": int(mc_data.get("published_date", "0000")[:4]),
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

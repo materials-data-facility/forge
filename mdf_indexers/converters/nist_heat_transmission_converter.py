@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for NIST SRD 81
 # Arguments:
@@ -22,11 +22,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST Heat Transmission Properties of Insulating and Building Materials",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_heat_transmission",
-            "mdf-citation": ["Robert R. Zarr, Josue A. Chavez, Angela Y. Lee, Geraldine Dalton, and Shari L. Young, NIST Heat Transmission Properties of Insulating and Building Materials, NIST Standard Reference Database Number 81, National Institute of Standards and Technology, Gaithersburg MD, 20899, http://srdata.nist.gov/Insulation/."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST Heat Transmission Properties of Insulating and Building Materials",
+            "acl": ["public"],
+            "source_name": "nist_heat_transmission",
+            "citation": ["Robert R. Zarr, Josue A. Chavez, Angela Y. Lee, Geraldine Dalton, and Shari L. Young, NIST Heat Transmission Properties of Insulating and Building Materials, NIST Standard Reference Database Number 81, National Institute of Standards and Technology, Gaithersburg MD, 20899, http://srdata.nist.gov/Insulation/."],
+            "data_contact": {
 
                 "given_name": "Robert",
                 "family_name": "Zarr",
@@ -36,7 +37,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": {
+            "author": {
 
                 "given_name": "Robert",
                 "family_name": "Zarr",
@@ -46,24 +47,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NIST Heat Transmission Materials",
-            "mdf-data_format": "json",
-            "mdf-data_type": "text",
-            "mdf-tags": ["heat conductivity", "insulation"],
+            "collection": "NIST Heat Transmission Materials",
+            "tags": ["heat conductivity", "insulation"],
 
-            "mdf-description": "The NIST Database on Heat Conductivity of Building Materials provides a valuable reference for building designers, material manufacturers, and researchers in the thermal design of building components and equipment. NIST has accumulated a valuable and comprehensive collection of thermal conductivity data from measurements performed with a 200-mm square guarded-hot-plate apparatus (from 1933 to 1983). The guarded-hot-plate test method is arguably the most accurate and popular method for determination of thermal transmission properties of flat, homogeneous specimens under steady state conditions.",
-            "mdf-year": 2015,
+            "description": "The NIST Database on Heat Conductivity of Building Materials provides a valuable reference for building designers, material manufacturers, and researchers in the thermal design of building components and equipment. NIST has accumulated a valuable and comprehensive collection of thermal conductivity data from measurements performed with a 200-mm square guarded-hot-plate apparatus (from 1933 to 1983). The guarded-hot-plate test method is arguably the most accurate and popular method for determination of thermal transmission properties of flat, homogeneous specimens under steady state conditions.",
+            "year": 2015,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://srdata.nist.gov/insulation/home/index",
+                "landing_page": "https://srdata.nist.gov/insulation/home/index",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -74,9 +73,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -84,6 +83,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -107,22 +107,23 @@ def convert(input_path, metadata=None, verbose=False):
         dataset = json.load(in_file)
     for record in tqdm(dataset, desc="Processing data", disable= not verbose):
         record_metadata = {
-            "mdf-title": "Heat Transmission Properties - " + (record.get("Material") or record.get("tradename") or record.get("manufacturer", "") + str(record["ID"])),
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Heat Transmission Properties - " + (record.get("Material") or record.get("tradename") or record.get("manufacturer", "") + str(record["ID"])),
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record.get("Material"),
-            "mdf-raw": json.dumps(record),
+            "composition": record.get("Material"),
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-                "mdf-landing_page": "https://srdata.nist.gov/insulation/Search/detail/" + str(record["ID"]),
+            "links": {
+                "landing_page": "https://srdata.nist.gov/insulation/Search/detail/" + str(record["ID"]),
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -133,8 +134,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -145,19 +146,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
         desc = ""
         if record.get("tradename"):
             desc += record.get("tradename")
@@ -166,7 +168,7 @@ def convert(input_path, metadata=None, verbose=False):
                 desc += " by "
             desc += record.get("manufacturer")
         if desc:
-            record_metadata["mdf-description"] = desc
+            record_metadata["mdf"]["description"] = desc
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

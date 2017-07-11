@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..parsers.tab_parser import parse_tab
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for NIST SRD 161
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST Spectrum of Th-Ar Hollow Cathode Lamps",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_th_ar_lamp_spectrum",
-            "mdf-citation": ["NIST SRD 161"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST Spectrum of Th-Ar Hollow Cathode Lamps",
+            "acl": ["public"],
+            "source_name": "nist_th_ar_lamp_spectrum",
+            "citation": ["NIST SRD 161"],
+            "data_contact": {
 
                 "given_name": "Gillian",
                 "family_name": "Nave",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Gillian",
                 "family_name": "Nave",
@@ -63,24 +64,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NIST Spectrum of Th-Ar Hollow Cathode Lamps",
-            "mdf-data_format": "txt",
-            "mdf-data_type": "tabular",
-            "mdf-tags": ["Spectroscopy", "Reference data"],
+            "collection": "NIST Spectrum of Th-Ar Hollow Cathode Lamps",
+            "tags": ["Spectroscopy", "Reference data"],
 
-            "mdf-description": "This atlas presents observations of the infra-red (IR) spectrum of a low current Th-Ar hollow cathode lamp with the 2-m Fourier transform spectrometer (FTS) at the National Institute of Standards and Technology. These observations establish more than 2400 lines that are suitable for use as wavelength standards in the range 691 nm to 5804 nm.",
-            "mdf-year": 2009,
+            "description": "This atlas presents observations of the infra-red (IR) spectrum of a low current Th-Ar hollow cathode lamp with the 2-m Fourier transform spectrometer (FTS) at the National Institute of Standards and Technology. These observations establish more than 2400 lines that are suitable for use as wavelength standards in the range 691 nm to 5804 nm.",
+            "year": 2009,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://www.nist.gov/pml/spectrum-th-ar-hollow-cathode-lamps",
+                "landing_page": "https://www.nist.gov/pml/spectrum-th-ar-hollow-cathode-lamps",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -91,9 +90,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -101,6 +100,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -127,22 +127,23 @@ def convert(input_path, metadata=None, verbose=False):
         raw = raw.replace("  ", " ")
     for record in tqdm(parse_tab(raw, headers=headers, sep=" "), desc="Processing records", disable= not verbose):
         record_metadata = {
-            "mdf-title": "Hollow Cathode Lamp Spectrum - " + record["wavenumber"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Hollow Cathode Lamp Spectrum - " + record["wavenumber"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["species"],
-            "mdf-raw": json.dumps(record),
+            "composition": record["species"],
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-                "mdf-landing_page": "http://physics.nist.gov/PhysRefData/ThArLampAtlas/node9.html",
+            "links": {
+                "landing_page": "http://physics.nist.gov/PhysRefData/ThArLampAtlas/node9.html",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -153,8 +154,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -165,19 +166,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

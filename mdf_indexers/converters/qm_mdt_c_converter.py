@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the QM MD Trajectories of C7O2H10 dataset
 # Arguments:
@@ -24,12 +24,13 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Quantum Machine - MD Trajectories of C7O2H10",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "qm_mdt_c",
-            "mdf-citation": ["S. Chmiela, A. Tkatchenko, H. E. Sauceda, I. Poltavsky, K. T. Schütt, K.-R. Müller Machine Learning of Accurate Energy-Conserving Molecular Force Fields, 2017.", "K. T. Schütt, F. Arbabzadah, S. Chmiela, K.-R. Müller, A. Tkatchenko Quantum-Chemical Insights from Deep Tensor Neural Networks, Nat. Commun. 8, 13890, 2017."],
+        "mdf": {
+            "title": "Quantum Machine - MD Trajectories of C7O2H10",
+            "acl": ["public"],
+            "source_name": "qm_mdt_c",
+            "citation": ["S. Chmiela, A. Tkatchenko, H. E. Sauceda, I. Poltavsky, K. T. Schütt, K.-R. Müller Machine Learning of Accurate Energy-Conserving Molecular Force Fields, 2017.", "K. T. Schütt, F. Arbabzadah, S. Chmiela, K.-R. Müller, A. Tkatchenko Quantum-Chemical Insights from Deep Tensor Neural Networks, Nat. Commun. 8, 13890, 2017."],
 
-            "mdf-data_contact": {
+            "data_contact": {
 
                 "given_name": "Alexandre",
                 "family_name": "Tkatchenko",
@@ -40,7 +41,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Alexandre",
                 "family_name": "Tkatchenko",
@@ -84,24 +85,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Technical University of Berlin"
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Quantum Machine",
-            "mdf-data_format": "xyz",
-            "mdf-data_type": "Molecular dynamic simulation",
-            "mdf-tags": ["molecular", "dynamics", "trajectories", "DFT", "density functional theory", "PBE", "exchange", "simulation"],
+            "collection": "Quantum Machine",
+            "tags": ["molecular", "dynamics", "trajectories", "DFT", "density functional theory", "PBE", "exchange", "simulation"],
 
-            "mdf-description": "This data set consists of molecular dynamics trajectories of 113 randomly selected C7O2H10 isomers calculated at a temperature of 500 K and resolution of 1fs using density functional theory with the PBE exchange-correlation potential.",
-            "mdf-year": 2016,
+            "description": "This data set consists of molecular dynamics trajectories of 113 randomly selected C7O2H10 isomers calculated at a temperature of 500 K and resolution of 1fs using density functional theory with the PBE exchange-correlation potential.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://quantum-machine.org/datasets/#C7O2H10",
+                "landing_page": "http://quantum-machine.org/datasets/#C7O2H10",
 
-                "mdf-publication": ["https://dx.doi.org/10.1038/ncomms13890"],
-#                "mdf-dataset_doi": ,
+                "publication": ["https://dx.doi.org/10.1038/ncomms13890"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "tar_gz": {
 
@@ -112,9 +111,9 @@ def convert(input_path, metadata=None, verbose=False):
                     }
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -122,6 +121,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -145,22 +145,23 @@ def convert(input_path, metadata=None, verbose=False):
         file_path = os.path.join(file_data["path"], file_data["filename"])
         record = parse_ase(file_path, "xyz")
         record_metadata = {
-            "mdf-title": "MD Trajectories of C7O2H10 - " + record.get("chemical_formula", "") + " - " + file_data["filename"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "MD Trajectories of C7O2H10 - " + record.get("chemical_formula", "") + " - " + file_data["filename"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record.get("chemical_formula", ""),
-#            "mdf-raw": ,
+            "composition": record.get("chemical_formula", ""),
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["no_root_path"] + "/" if file_data["no_root_path"] else "" + file_data["filename"],
+            "links": {
+                "landing_page": "https://data.materialsdatafacility.org/collections/test/md_trajectories_of_c7o2h10/c7o2h10_md/" + file_data["no_root_path"] + "/" if file_data["no_root_path"] else "" + file_data["filename"],
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "xyz": {
  
@@ -177,8 +178,8 @@ def convert(input_path, metadata=None, verbose=False):
                     }
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -189,18 +190,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
+            },
+            "qm_mdt_c": {
             "temperature" : {
                 "value": 500,
                 "unit": "kelvin"
@@ -210,6 +213,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "unit" : "femtosecond"
                 }
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

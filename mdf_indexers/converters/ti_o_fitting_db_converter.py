@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Ti-O Fitting Database.
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Fitting database entries for a modified embedded atom method potential for interstitial oxygen in titanium",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "ti_o_fitting_db",
-            "mdf-citation": ["Trinkle, Dallas R.; Zhang, Pinchao Fitting database entries for a modified embedded atom method potential for interstitial oxygen in titanium (2016-07-25) http://hdl.handle.net/11256/782"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Fitting database entries for a modified embedded atom method potential for interstitial oxygen in titanium",
+            "acl": ["public"],
+            "source_name": "ti_o_fitting_db",
+            "citation": ["Trinkle, Dallas R.; Zhang, Pinchao Fitting database entries for a modified embedded atom method potential for interstitial oxygen in titanium (2016-07-25) http://hdl.handle.net/11256/782"],
+            "data_contact": {
 
                 "given_name": "Dallas",
                 "family_name": "Trinkle",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Dallas",
                 "family_name": "Trinkle",
@@ -56,24 +57,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-            "mdf-license": "http://creativecommons.org/licenses/by/3.0/us/",
+            "license": "http://creativecommons.org/licenses/by/3.0/us/",
 
-            "mdf-collection": "Ti-O Fitting Database",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dft", "atom potential"],
+            "collection": "Ti-O Fitting Database",
+            "tags": ["dft", "atom potential"],
 
-            "mdf-description": "Modeling oxygen interstitials in titanium requires a new empirical potential. We optimize potential parameters using a fitting database of first-principle oxygen interstitial energies and forces. A new database optimization algorithm based on Bayesian sampling is applied to obtain an optimal potential for a specific testing set of density functional data. A parallel genetic algorithm minimizes the sum of logistic function evaluations of the testing set predictions. We test the transferability of the potential model against oxygen interstitials in HCP titanium, transition barriers between oxygen interstitial sites, oxygen in the titanium prismatic stacking fault. The potential is applicable to oxygen interaction with the titanium screw dislocation, and predicts that the interactions between oxygen and the dislocation core is weak and short-ranged.",
-            "mdf-year": 2016,
+            "description": "Modeling oxygen interstitials in titanium requires a new empirical potential. We optimize potential parameters using a fitting database of first-principle oxygen interstitial energies and forces. A new database optimization algorithm based on Bayesian sampling is applied to obtain an optimal potential for a specific testing set of density functional data. A parallel genetic algorithm minimizes the sum of logistic function evaluations of the testing set predictions. We test the transferability of the potential model against oxygen interstitials in HCP titanium, transition barriers between oxygen interstitial sites, oxygen in the titanium prismatic stacking fault. The potential is applicable to oxygen interaction with the titanium screw dislocation, and predicts that the interactions between oxygen and the dislocation core is weak and short-ranged.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/782",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/782",
 
-#                "mdf-publication": ,
-                "mdf-dataset_doi": "http://hdl.handle.net/11256/782",
+#                "publication": ,
+                "data_doi": "http://hdl.handle.net/11256/782",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -84,9 +83,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -94,6 +93,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -122,22 +122,23 @@ def convert(input_path, metadata=None, verbose=False):
             i +=1
             continue
         record_metadata = {
-            "mdf-title": "Ti-O Fitting Database - " + data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Ti-O Fitting Database - " + data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -148,8 +149,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -160,19 +161,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

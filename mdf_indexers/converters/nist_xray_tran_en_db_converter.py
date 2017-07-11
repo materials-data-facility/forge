@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..parsers.tab_parser import parse_tab
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the NIST X-Ray Transition Energies Database
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST X-Ray Transition Energies Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_xray_tran_en_db",
-            "mdf-citation": ["http://physics.nist.gov/PhysRefData/XrayTrans/Html/refs.html"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST X-Ray Transition Energies Database",
+            "acl": ["public"],
+            "source_name": "nist_xray_tran_en_db",
+            "citation": ["http://physics.nist.gov/PhysRefData/XrayTrans/Html/refs.html"],
+            "data_contact": {
 
                 "given_name": "Lawrence",
                 "family_name": "Hudson",
@@ -37,26 +38,24 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NIST X-Ray Transition Energies",
-            "mdf-data_format": "txt",
-            "mdf-data_type": "Transition energies",
-            "mdf-tags": ["Radiation", "Spectroscopy", "Reference data"],
+            "collection": "NIST X-Ray Transition Energies",
+            "tags": ["Radiation", "Spectroscopy", "Reference data"],
 
-            "mdf-description": "This x-ray transition table provides the energies for K transitions connecting the K shell (n = 1) to the shells with principal quantum numbers n = 2 to 4 and L transitions connecting the L1, L2, and L3 shells (n = 2) to the shells with principal quantum numbers n = 3 and 4. The elements covered include Z = 10, neon to Z = 100, fermium. There are two unique features of this database: (1) all experimental values are on a scale consistent with the International System of measurement (the SI) and the numerical values are determined using constants from the Recommended Values of the Fundamental Physical Constants: 1998 [115] and (2) accurate theoretical estimates are included for all transitions. The user will find that for many of the transitions, the experimental and theoretical values are very consistent. It is our hope that the theoretical values will provide a useful estimate for missing or poorly measured experimental values.",
-            "mdf-year": 2003,
+            "description": "This x-ray transition table provides the energies for K transitions connecting the K shell (n = 1) to the shells with principal quantum numbers n = 2 to 4 and L transitions connecting the L1, L2, and L3 shells (n = 2) to the shells with principal quantum numbers n = 3 and 4. The elements covered include Z = 10, neon to Z = 100, fermium. There are two unique features of this database: (1) all experimental values are on a scale consistent with the International System of measurement (the SI) and the numerical values are determined using constants from the Recommended Values of the Fundamental Physical Constants: 1998 [115] and (2) accurate theoretical estimates are included for all transitions. The user will find that for many of the transitions, the experimental and theoretical values are very consistent. It is our hope that the theoretical values will provide a useful estimate for missing or poorly measured experimental values.",
+            "year": 2003,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://www.nist.gov/pml/x-ray-transition-energies-database",
+                "landing_page": "https://www.nist.gov/pml/x-ray-transition-energies-database",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -67,9 +66,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -77,6 +76,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -101,22 +101,23 @@ def convert(input_path, metadata=None, verbose=False):
         raw_data = in_file.read()
     for record in tqdm(parse_tab(raw_data, sep="\t", headers=headers), desc="Processing data", disable= not verbose):
         record_metadata = {
-            "mdf-title": "X-Ray Transition - " + record["element"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "X-Ray Transition - " + record["element"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["element"],
-            "mdf-raw": json.dumps(record),
+            "composition": record["element"],
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-                "mdf-landing_page": "http://physics.nist.gov/PhysRefData/XrayTrans/Html/search.html",
+            "links": {
+                "landing_page": "http://physics.nist.gov/PhysRefData/XrayTrans/Html/search.html",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -127,8 +128,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -139,19 +140,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

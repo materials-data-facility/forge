@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Ti-O EAM Model dataset.
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "A Modified Embedded Atom Method Potential for the Titanium-Oxygen System",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "ti_o_meam_model",
-            "mdf-citation": ['W.J. Joost, S. Ankem, M.M. Kuklja "A modified embedded atom method potential for the titanium-oxygen system" Modelling and Simulation in Materials Science and Engineering Vol. 23, pp. 015006 (2015) doi:10.1088/0965-0393/23/1/015006'],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "A Modified Embedded Atom Method Potential for the Titanium-Oxygen System",
+            "acl": ["public"],
+            "source_name": "ti_o_meam_model",
+            "citation": ['W.J. Joost, S. Ankem, M.M. Kuklja "A modified embedded atom method potential for the titanium-oxygen system" Modelling and Simulation in Materials Science and Engineering Vol. 23, pp. 015006 (2015) doi:10.1088/0965-0393/23/1/015006'],
+            "data_contact": {
 
                 "given_name": "William",
                 "family_name": "Joost",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "William",
                 "family_name": "Joost",
@@ -64,28 +65,26 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Ti-O MEAM Model",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dft", "atom-scale simulation"],
+            "collection": "Ti-O MEAM Model",
+            "tags": ["dft", "atom-scale simulation"],
 
-            "mdf-description": '''The files included here are:
+            "description": '''The files included here are:
              1) LAMMPS and VASP input files describing the structures specified in the article.
               2) LAMMPS and VASP output files describing the calculation results and the output structures.
                3) A Python script used in this study to perform a brute force search of the parameter space for the Ti-O MEAM potential. Further details are provided in the article, and in the script.
                 4) The Ti, O and Ti-O potential files in LAMMPS MEAM format''',
-            "mdf-year": 2014,
+            "year": 2014,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11115/244",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11115/244",
 
-                "mdf-publication": "https:/dx.doi.org/10.1088/0965-0393/23/1/015006",
-                "mdf-dataset_doi": "http://hdl.handle.net/11115/244",
+                "publication": "https:/dx.doi.org/10.1088/0965-0393/23/1/015006",
+                "data_doi": "http://hdl.handle.net/11115/244",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -96,9 +95,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -106,6 +105,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -128,22 +128,23 @@ def convert(input_path, metadata=None, verbose=False):
     for file_data in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable= not verbose):
         record = parse_ase(os.path.join(file_data["path"], file_data["filename"]), "vasp-out")
         record_metadata = {
-            "mdf-title": "Ti-O MEAM Model - " + record["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Ti-O MEAM Model - " + record["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": record["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -154,8 +155,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -166,19 +167,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

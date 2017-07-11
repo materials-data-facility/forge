@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..parsers.tab_parser import parse_tab
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "National Renewable Energy Laboratory Organic Photovoltaic Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nrel_pv",
-            "mdf-citation": ["Gaussian 09, (Revisions B.01, C.01 and D.01), M. J. Frisch, et al., Gaussian, Inc., Wallingford CT, 2009. See gaussian.com", "Ross E. Larsen, J. Phys. Chem. C, 120, 9650-9660 (2016). DOI: 10.1021/acs .jpcc.6b02138"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "National Renewable Energy Laboratory Organic Photovoltaic Database",
+            "acl": ["public"],
+            "source_name": "nrel_pv",
+            "citation": ["Gaussian 09, (Revisions B.01, C.01 and D.01), M. J. Frisch, et al., Gaussian, Inc., Wallingford CT, 2009. See gaussian.com", "Ross E. Larsen, J. Phys. Chem. C, 120, 9650-9660 (2016). DOI: 10.1021/acs .jpcc.6b02138"],
+            "data_contact": {
 
                 "given_name": "Ross",
                 "family_name": "Larsen",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": {
+            "author": {
 
                 "given_name": "Ross",
                 "family_name": "Larsen",
@@ -49,24 +50,22 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NREL Organic Photovoltaic Database",
-            "mdf-data_format": "csv",
-            "mdf-data_type": "Simulation",
-            "mdf-tags": ["dft", "simulation", "organic photovoltaics"],
+            "collection": "NREL Organic Photovoltaic Database",
+            "tags": ["dft", "simulation", "organic photovoltaics"],
 
-            "mdf-description": "Welcome to the National Renewable Energy Laboratory materials discovery database for organic electronic materials. The focus is on materials for organic photovoltaic (OPV) absorber materials but materials suitable for other applications may be found here as well.",
-#            "mdf-year": ,
+            "description": "Welcome to the National Renewable Energy Laboratory materials discovery database for organic electronic materials. The focus is on materials for organic photovoltaic (OPV) absorber materials but materials suitable for other applications may be found here as well.",
+#            "year": ,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://organicelectronics.nrel.gov",
+                "landing_page": "https://organicelectronics.nrel.gov",
 
-                "mdf-publication": ["https://dx.doi.org/10.1021/acs.jpcc.6b02138"],
-#                "mdf-dataset_doi": ,
+                "publication": ["https://dx.doi.org/10.1021/acs.jpcc.6b02138"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -77,9 +76,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -87,6 +86,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -109,22 +109,23 @@ def convert(input_path, metadata=None, verbose=False):
     with open(os.path.join(input_path, "polymer_export_0501179397151.csv"), 'r') as raw_in:
         for record in tqdm(parse_tab(raw_in.read()), desc="Processing files", disable= not verbose):
             record_metadata = {
-                "mdf-title": "NREL OPV - " + record["common_tag"],
-                "mdf-acl": ["public"],
+            "mdf": {
+                "title": "NREL OPV - " + record["common_tag"],
+                "acl": ["public"],
 
-#                "mdf-tags": ,
-#                "mdf-description": ,
+#                "tags": ,
+#                "description": ,
 
-                "mdf-composition": record["common_tag"],
-                "mdf-raw": json.dumps(record),
+                "composition": record["common_tag"],
+                "raw": json.dumps(record),
 
-                "mdf-links": {
-                    "mdf-landing_page": record["URL"],
+                "links": {
+                    "landing_page": record["URL"],
 
-#                    "mdf-publication": ,
-#                    "mdf-dataset_doi": ,
+#                    "publication": ,
+#                    "dataset_doi": ,
 
-#                    "mdf-related_id": ,
+#                    "related_id": ,
 
                     # data links: {
      
@@ -135,8 +136,8 @@ def convert(input_path, metadata=None, verbose=False):
                         #},
                     },
 
-#                "mdf-citation": ,
-#                "mdf-data_contact": {
+#                "citation": ,
+#                "data_contact": {
 
 #                    "given_name": ,
 #                    "family_name": ,
@@ -147,19 +148,20 @@ def convert(input_path, metadata=None, verbose=False):
                     # IDs
 #                    },
 
-#                "mdf-author": ,
+#                "author": ,
 
-#                "mdf-license": ,
-#                "mdf-collection": ,
-#                "mdf-data_format": ,
-#                "mdf-data_type": ,
-#                "mdf-year": ,
+#                "license": ,
+#                "collection": ,
+#                "data_format": ,
+#                "data_type": ,
+#                "year": ,
 
-#                "mdf-mrr":
+#                "mrr":
 
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
+    #            "processing": ,
+    #            "structure":,
                 }
+            }
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)

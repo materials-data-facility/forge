@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Cp Complexes dataset.
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Synthesis, Characterization, and Some Properties of Cp*W(NO)(H)(η3‑allyl) Complexes",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "cp_complexes",
-            "mdf-citation": ["Baillie, Rhett A.; Holmes, Aaron S.; Lefèvre, Guillaume P.; Patrick, Brian O.; Shree, Monica V.; Wakeham, Russell J.; Legzdins, Peter; Rosenfeld, Devon C. (2015): Synthesis, Characterization, and Some Properties of Cp*W(NO)(H)(η3‑allyl) Complexes. ACS Publications. https://doi.org/10.1021/acs.inorgchem.5b00747.s002"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Synthesis, Characterization, and Some Properties of Cp*W(NO)(H)(η3‑allyl) Complexes",
+            "acl": ["public"],
+            "source_name": "cp_complexes",
+            "citation": ["Baillie, Rhett A.; Holmes, Aaron S.; Lefèvre, Guillaume P.; Patrick, Brian O.; Shree, Monica V.; Wakeham, Russell J.; Legzdins, Peter; Rosenfeld, Devon C. (2015): Synthesis, Characterization, and Some Properties of Cp*W(NO)(H)(η3‑allyl) Complexes. ACS Publications. https://doi.org/10.1021/acs.inorgchem.5b00747.s002"],
+            "data_contact": {
 
                 "given_name": "Rhett",
                 "family_name": "Baillie",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "University of California, Berkeley"
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Rhett",
                 "family_name": "Baillie",
@@ -91,24 +92,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-            "mdf-license": "https://creativecommons.org/licenses/by-nc/4.0/",
+            "license": "https://creativecommons.org/licenses/by-nc/4.0/",
 
-            "mdf-collection": "Cp*W(NO)(H)(η3‑allyl) Complexes",
-            "mdf-data_format": "cif",
-            "mdf-data_type": "Crystal structure",
-            "mdf-tags": ["THF", "DFT", "18 e PMe 3 adducts", "complex", "coordination isomers", "magnesium allyl reagent"],
+            "collection": "Cp*W(NO)(H)(η3‑allyl) Complexes",
+            "tags": ["THF", "DFT", "18 e PMe 3 adducts", "complex", "coordination isomers", "magnesium allyl reagent"],
 
-            "mdf-description": "Sequential treatment at low temperatures of Cp*W­(NO)­Cl2 in THF with 1 equiv of a binary magnesium allyl reagent, followed by an excess of LiBH4, affords three new Cp*W­(NO)­(H)­(η3-allyl) complexes, namely, Cp*W­(NO)­(H)­(η3-CH2CHCMe2) (1), Cp*W­(NO)­(H)­(η3-CH2CHCHPh) (2), and Cp*W­(NO)­(H)­(η3-CH2CHCHMe) (3).",
-            "mdf-year": 2015,
+            "description": "Sequential treatment at low temperatures of Cp*W­(NO)­Cl2 in THF with 1 equiv of a binary magnesium allyl reagent, followed by an excess of LiBH4, affords three new Cp*W­(NO)­(H)­(η3-allyl) complexes, namely, Cp*W­(NO)­(H)­(η3-CH2CHCMe2) (1), Cp*W­(NO)­(H)­(η3-CH2CHCHPh) (2), and Cp*W­(NO)­(H)­(η3-CH2CHCHMe) (3).",
+            "year": 2015,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://figshare.com/articles/Synthesis_Characterization_and_Some_Properties_of_Cp_W_NO_H_sup_3_sup_allyl_Complexes/2158483",
+                "landing_page": "https://figshare.com/articles/Synthesis_Characterization_and_Some_Properties_of_Cp_W_NO_H_sup_3_sup_allyl_Complexes/2158483",
 
-                "mdf-publication": "https://doi.org/10.1021/acs.inorgchem.5b00747",
-#                "mdf-dataset_doi": "https://doi.org/10.1021/acs.inorgchem.5b00747.s002", # Bad link
+                "publication": "https://doi.org/10.1021/acs.inorgchem.5b00747",
+#                "data_doi": "https://doi.org/10.1021/acs.inorgchem.5b00747.s002", # Bad link
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -119,9 +118,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -129,6 +128,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -151,22 +151,23 @@ def convert(input_path, metadata=None, verbose=False):
     for file_data in tqdm(find_files(input_path, ".cif"), desc="Processing data", disable= not verbose):
         record = parse_ase(os.path.join(file_data["path"], file_data["filename"]), data_format="cif")
         record_metadata = {
-            "mdf-title": "Cp Complexes - " + record["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Cp Complexes - " + record["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": record["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -177,8 +178,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -189,19 +190,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

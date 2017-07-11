@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for CoRE-MOF
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Computation-Ready Experimental Metal-Organic Frameworks Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "core_mof",
-            "mdf-citation": ['D. Nazarian, J. Camp, D.S. Sholl, "A Comprehensive Set of High-Quality Point Charges for Simulations of Metal-Organic Frameworks," Chemistry of Materials, 2016, 28 (3), pp 785–793'],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Computation-Ready Experimental Metal-Organic Frameworks Database",
+            "acl": ["public"],
+            "source_name": "core_mof",
+            "citation": ['D. Nazarian, J. Camp, D.S. Sholl, "A Comprehensive Set of High-Quality Point Charges for Simulations of Metal-Organic Frameworks," Chemistry of Materials, 2016, 28 (3), pp 785–793'],
+            "data_contact": {
 
                 "given_name": "Yongchul",
                 "family_name": "Chung",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Pusan National University"
                 },
 
-            "mdf-author": [{
+            "author": [{
                 "given_name": "Dalar",
                 "family_name": "Nazarian",
                 "institution": "Georgia Institute of Technology"
@@ -54,24 +55,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Georgia Institute of Technology"
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "CoRE-MOF",
-            "mdf-data_format": ["cif"],
-            "mdf-data_type": ["simulation"],
-            "mdf-tags": ["simulation", "metallic-organic", "framework"],
+            "collection": "CoRE-MOF",
+            "tags": ["simulation", "metallic-organic", "framework"],
 
-            "mdf-description": "High-throughput computational screening of metal-organic frameworks rely on the availability of disorder-free atomic coordinate files which can be used as input to simulation software packages. We have created CoRE MOF database and its variants which contains almost all MOFs that have been reported in the literature.",
-            "mdf-year": 2014,
+            "description": "High-throughput computational screening of metal-organic frameworks rely on the availability of disorder-free atomic coordinate files which can be used as input to simulation software packages. We have created CoRE MOF database and its variants which contains almost all MOFs that have been reported in the literature.",
+            "year": 2014,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://gregchung.github.io/CoRE-MOFs/",
+                "landing_page": "http://gregchung.github.io/CoRE-MOFs/",
 
-                "mdf-publication": ["https://dx.doi.org/10.1021/acs.chemmater.5b03836", "https://dx.doi.org/10.1021/cm502594j"],
-#                "mdf-dataset_doi": ,
+                "publication": ["https://dx.doi.org/10.1021/acs.chemmater.5b03836", "https://dx.doi.org/10.1021/cm502594j"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -82,9 +81,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -92,6 +91,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -128,22 +128,23 @@ def convert(input_path, metadata=None, verbose=False):
             file_data = parse_ase(file_path=cif_in, data_format="cif", verbose=False)
 
         record_metadata = {
-            "mdf-title": "CoRE-MOF - " + file_data["chemical_formula"] + " (" + cif["filename"].split("_")[0] + ")",
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "CoRE-MOF - " + file_data["chemical_formula"] + " (" + cif["filename"].split("_")[0] + ")",
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": file_data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": file_data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "https://github.com/gregchung/gregchung.github.io/blob/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
+            "links": {
+                "landing_page": "https://github.com/gregchung/gregchung.github.io/blob/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "cif": {
  
@@ -153,8 +154,8 @@ def convert(input_path, metadata=None, verbose=False):
                     "path": "/gregchung/gregchung.github.io/master/CoRE-MOFs/core-mof-v1.0-ddec/" + cif["filename"],
                     },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -165,22 +166,23 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
             },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
         pubs = [doi_dict[key] for key in doi_dict.keys() if cif["filename"].startswith(key)]
         if pubs:
-            record_metadata["mdf-links"]["mdf-publication"] = pubs
+            record_metadata["mdf"]["links"]["publication"] = pubs
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

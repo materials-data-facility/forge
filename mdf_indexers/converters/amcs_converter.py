@@ -8,7 +8,7 @@ from ..parsers.pymatgen_parser import parse_pymatgen
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for AMCS
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "The American Mineralogist Crystal Structure Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "amcs",
-            "mdf-citation": ["Downs, R.T. and Hall-Wallace, M. (2003) The American Mineralogist Crystal Structure Database. American Mineralogist 88, 247-250."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "The American Mineralogist Crystal Structure Database",
+            "acl": ["public"],
+            "source_name": "amcs",
+            "citation": ["Downs, R.T. and Hall-Wallace, M. (2003) The American Mineralogist Crystal Structure Database. American Mineralogist 88, 247-250."],
+            "data_contact": {
 
                 "given_name": "Robert",
                 "family_name": "Downs",
@@ -39,7 +40,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Robert",
                 "family_name": "Downs",
@@ -53,24 +54,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "University of Arizona"
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "AMCS",
-            "mdf-data_format": ["cif"],
-            "mdf-data_type": ["Crystal structure"],
-            "mdf-tags": ["crystal structure", "minerals"],
+            "collection": "AMCS",
+            "tags": ["crystal structure", "minerals"],
 
-            "mdf-description": "A crystal structure database that includes every structure published in the American Mineralogist, The Canadian Mineralogist, European Journal of Mineralogy and Physics and Chemistry of Minerals, as well as selected datasets from other journals.",
-            "mdf-year": 2003,
+            "description": "A crystal structure database that includes every structure published in the American Mineralogist, The Canadian Mineralogist, European Journal of Mineralogy and Physics and Chemistry of Minerals, as well as selected datasets from other journals.",
+            "year": 2003,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://rruff.geo.arizona.edu/AMS/amcsd.php",
+                "landing_page": "http://rruff.geo.arizona.edu/AMS/amcsd.php",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -81,9 +80,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
- #           "mdf-mrr": ,
+ #           "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
 
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
@@ -93,6 +92,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -122,22 +122,23 @@ def convert(input_path, metadata=None, verbose=False):
             clink = "/AMS/xtal_data/CIFfiles/" + cif["filename"]
             dlink = "/AMS/xtal_data/DIFfiles/" + cif["filename"].replace(".cif", ".txt")
             record_metadata = {
-                "mdf-title": "AMCS - " + mineral_name,
-                "mdf-acl": ["public"],
+            "mdf": {
+                "title": "AMCS - " + mineral_name,
+                "acl": ["public"],
 
-                "mdf-tags": [mineral_name],
-#                "mdf-description": ,
+                "tags": [mineral_name],
+#                "description": ,
                 
-                "mdf-composition": cif_data["material_composition"],
-#                "mdf-raw": ,
+                "composition": cif_data["material_composition"],
+#                "raw": ,
 
-                "mdf-links": {
-                    "mdf-landing_page": link,
+                "links": {
+                    "landing_page": link,
 
-#                    "mdf-publication": ,
-#                    "mdf-dataset_doi": ,
+#                    "publication": ,
+#                    "dataset_doi": ,
 
-#                    "mdf-related_id": ,
+#                    "related_id": ,
 
                     "cif": {
                         "http_host": "http://rruff.geo.arizona.edu",
@@ -151,8 +152,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
 
 
-#                "mdf-citation": ,
-#                "mdf-data_contact": {
+#                "citation": ,
+#                "data_contact": {
 
 #                    "given_name": ,
 #                    "family_name": ,
@@ -163,19 +164,20 @@ def convert(input_path, metadata=None, verbose=False):
                     # IDs
 #                },
 
-#                "mdf-author": ,
+#                "author": ,
 
-#                "mdf-license": ,
-#                "mdf-collection": ,
-#                "mdf-data_format": ,
-#                "mdf-data_type": ,
-#                "mdf-year": ,
+#                "license": ,
+#                "collection": ,
+#                "data_format": ,
+#                "data_type": ,
+#                "year": ,
 
-#                "mdf-mrr":
+#                "mrr":
 
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
+    #            "processing": ,
+    #            "structure":,
                 }
+            }
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)
