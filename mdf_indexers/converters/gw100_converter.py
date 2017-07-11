@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..parsers.tab_parser import parse_tab
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the GW100 dataset.
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Benchmark of G0W0 on 100 Molecules",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "gw100",
-            "mdf-citation": ["M.J. van Setten, F. Caruso, S. Sharifzadeh, X. Ren, M. Scheffler, F. Liu, J. Lischner, L. Lin, J.R. Deslippe, S.G. Louie, C. Yang, F. Weigend, J.B. Neaton, F. Evers, and P. Rinke, GW100: Benchmarking G0W0 for Molecular Systems, J. Chem. Theory Comput. 11, 5665 (2015).", "M. Govoni et al., (2016). In preparation.", "P.J. Linstrom and W.G. Mallard, Eds., NIST Chemistry WebBook, NIST Standard Reference Database Number 69, National Institute of Standards and Technology, Gaithersburg MD, 20899, http://webbook.nist.gov."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Benchmark of G0W0 on 100 Molecules",
+            "acl": ["public"],
+            "source_name": "gw100",
+            "citation": ["M.J. van Setten, F. Caruso, S. Sharifzadeh, X. Ren, M. Scheffler, F. Liu, J. Lischner, L. Lin, J.R. Deslippe, S.G. Louie, C. Yang, F. Weigend, J.B. Neaton, F. Evers, and P. Rinke, GW100: Benchmarking G0W0 for Molecular Systems, J. Chem. Theory Comput. 11, 5665 (2015).", "M. Govoni et al., (2016). In preparation.", "P.J. Linstrom and W.G. Mallard, Eds., NIST Chemistry WebBook, NIST Standard Reference Database Number 69, National Institute of Standards and Technology, Gaithersburg MD, 20899, http://webbook.nist.gov."],
+            "data_contact": {
 
                 "given_name": "Michiel",
                 "family_name": "van Setten",
@@ -37,26 +38,24 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-author": 
+#            "author": 
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "GW100",
-            "mdf-data_format": "text",
-            "mdf-data_type": "simulation",
-#            "mdf-tags": ,
+            "collection": "GW100",
+#            "tags": ,
 
-            "mdf-description": "This is a benchmark of G0W0 on 100 molecules.",
-            "mdf-year": 2015,
+            "description": "This is a benchmark of G0W0 on 100 molecules.",
+            "year": 2015,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://www.west-code.org/database/gw100/index.php",
+                "landing_page": "http://www.west-code.org/database/gw100/index.php",
 
-                "mdf-publication": "https://dx.doi.org/10.1021/acs.jctc.5b00453",
-#                "mdf-dataset_doi": ,
+                "publication": "https://dx.doi.org/10.1021/acs.jctc.5b00453",
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -67,9 +66,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -77,6 +76,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -100,22 +100,23 @@ def convert(input_path, metadata=None, verbose=False):
         data = in_file.read()
     for record in tqdm(parse_tab(data), desc="Processing records", disable= not verbose):
         record_metadata = {
-            "mdf-title": "GW100 - " + record["name"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "GW100 - " + record["name"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["formula"],
-#            "mdf-raw": ,
+            "composition": record["formula"],
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "http://www.west-code.org/database/gw100/pag/" + record["cas"] + ".php",
+            "links": {
+                "landing_page": "http://www.west-code.org/database/gw100/pag/" + record["cas"] + ".php",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -126,8 +127,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -138,19 +139,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

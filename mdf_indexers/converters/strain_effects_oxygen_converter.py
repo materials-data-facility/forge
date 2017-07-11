@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Strain Effects on Oxygen Migration dataset
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Strain effects on oxygen migration in perovskites: La[Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Ga]O3",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "strain_effects_oxygen",
-            "mdf-citation": ["Mayeshiba, T. & Morgan, D. Strain effects on oxygen migration in perovskites. Physical chemistry chemical physics : PCCP 17, 2715-2721, doi:10.1039/c4cp05554c (2015).", "Mayeshiba, T. & Morgan, D. Correction: Strain effects on oxygen migration in perovskites. Physical chemistry chemical physics : PCCP, doi:10.1039/c6cp90050j (2016)."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Strain effects on oxygen migration in perovskites: La[Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Ga]O3",
+            "acl": ["public"],
+            "source_name": "strain_effects_oxygen",
+            "citation": ["Mayeshiba, T. & Morgan, D. Strain effects on oxygen migration in perovskites. Physical chemistry chemical physics : PCCP 17, 2715-2721, doi:10.1039/c4cp05554c (2015).", "Mayeshiba, T. & Morgan, D. Correction: Strain effects on oxygen migration in perovskites. Physical chemistry chemical physics : PCCP, doi:10.1039/c6cp90050j (2016)."],
+            "data_contact": {
 
                 "given_name": "Dane",
                 "family_name": "Morgan",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Dane",
                 "family_name": "Morgan",
@@ -56,24 +57,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Strain Effects on Oxygen Migration",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dft", "perovskites"],
+            "collection": "Strain Effects on Oxygen Migration",
+            "tags": ["dft", "perovskites"],
 
-            "mdf-description": "This work reports on an ab initio prediction of strain effects on migration energetics for nine perovskite systems of the form LaBO3, where B = [Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Ga].",
-            "mdf-year": 2016,
+            "description": "This work reports on an ab initio prediction of strain effects on migration energetics for nine perovskite systems of the form LaBO3, where B = [Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Ga].",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/701",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/701",
 
-                "mdf-publication": ["https://dx.doi.org/10.1039/c4cp05554c", "https://dx.doi.org/10.1039/c6cp90050j"],
-                "mdf-dataset_doi": "http://hdl.handle.net/11256/701",
+                "publication": ["https://dx.doi.org/10.1039/c4cp05554c", "https://dx.doi.org/10.1039/c6cp90050j"],
+                "data_doi": "http://hdl.handle.net/11256/701",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -84,9 +83,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -94,6 +93,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -119,22 +119,23 @@ def convert(input_path, metadata=None, verbose=False):
         except Exception as e:
             print("Error on", os.path.join(data_file["path"], data_file["filename"]), ":\n", repr(e))
         record_metadata = {
-            "mdf-title": "Oxygen Migration - " + data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Oxygen Migration - " + data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -144,8 +145,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -156,19 +157,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #},
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the NIST MML
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "NIST Material Measurement Laboratory Data Repository",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "nist_mml",
-            "mdf-citation": ["http://materialsdata.nist.gov/"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "NIST Material Measurement Laboratory Data Repository",
+            "acl": ["public"],
+            "source_name": "nist_mml",
+            "citation": ["http://materialsdata.nist.gov/"],
+            "data_contact": {
 
                 "given_name": "Michael",
                 "family_name": "Fasolka",
@@ -37,26 +38,26 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "NIST Material Measurement Laboratory",
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-            "mdf-tags": ["materials"],
+            "collection": "NIST Material Measurement Laboratory",
+#            "data_format": ,
+#            "data_type": ,
+            "tags": ["materials"],
 
-            "mdf-description": "The laboratory supports the NIST mission by serving as the national reference laboratory for measurements in the chemical, biological and material sciences.",
-            "mdf-year": 2013,
+            "description": "The laboratory supports the NIST mission by serving as the national reference laboratory for measurements in the chemical, biological and material sciences.",
+            "year": 2013,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://materialsdata.nist.gov/",
+                "landing_page": "http://materialsdata.nist.gov/",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -67,9 +68,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -77,6 +78,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -115,22 +117,23 @@ def convert(input_path, metadata=None, verbose=False):
                 nist_data[meta_dict["key"]] = new_list
         uri = nist_data["dc.identifier.uri"][0] if type(nist_data.get("dc.identifier.uri", None)) is list else nist_data.get("dc.identifier.uri", None)
         record_metadata = {
-            "mdf-title": nist_data["dc.title"][0] if type(nist_data.get("dc.title", None)) is list else nist_data.get("dc.title"),
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": nist_data["dc.title"][0] if type(nist_data.get("dc.title", None)) is list else nist_data.get("dc.title"),
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-#            "mdf-composition": ,
-#            "mdf-raw": ,
+#            "composition": ,
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": uri,
+            "links": {
+                "landing_page": uri,
 
-#                "mdf-publication": ,
-                "mdf-dataset_doi": uri,
+#                "publication": ,
+                "data_doi": uri,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -141,8 +144,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -153,30 +156,31 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
         if nist_data.get("dc.subject", None):
             if type(nist_data["dc.subject"]) is not list:
-                record_metadata["mdf-tags"] = [nist_data["dc.subject"]]
+                record_metadata["mdf"]["tags"] = [nist_data["dc.subject"]]
             else:
-                record_metadata["mdf-tags"] = nist_data["dc.subject"]
+                record_metadata["mdf"]["tags"] = nist_data["dc.subject"]
         if nist_data.get("dc.description.abstract", None):
-            record_metadata["mdf-description"] = str(nist_data["dc.description.abstract"])
+            record_metadata["mdf"]["description"] = str(nist_data["dc.description.abstract"])
         if nist_data.get("dc.relation.uri", None):
-            record_metadata["mdf-links"]["mdf-publication"] = nist_data["dc.relation.uri"]
+            record_metadata["mdf"]["links"]["publication"] = nist_data["dc.relation.uri"]
         if nist_data.get("dc.date.issued", None):
-            record_metadata["mdf-year"] = int(nist_data["dc.date.issued"][:4])
+            record_metadata["mdf"]["year"] = int(nist_data["dc.date.issued"][:4])
 
 
         # Pass each individual record to the Validator

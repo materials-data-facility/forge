@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..parsers.tab_parser import parse_tab
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the GW100 dataset
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Benchmark of G0W0 on 81 Molecules with Spin-Orbit Coupling",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "gw_soc81",
-            "mdf-citation": ["P. Scherpelz, M. Govoni, I. Hamada, and G. Galli, Implementation and Validation of Fully-Relativistic GW Calculations: Spin-Orbit Coupling in Molecules, Nanocrystals and Solids, J. Chem. Theory Comput. 12, 3523 (2016).", "P.J. Linstrom and W.G. Mallard, Eds., NIST Chemistry WebBook, NIST Standard Reference Database Number 69, National Institute of Standards and Technology, Gaithersburg MD, 20899, http://webbook.nist.gov."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Benchmark of G0W0 on 81 Molecules with Spin-Orbit Coupling",
+            "acl": ["public"],
+            "source_name": "gw_soc81",
+            "citation": ["P. Scherpelz, M. Govoni, I. Hamada, and G. Galli, Implementation and Validation of Fully-Relativistic GW Calculations: Spin-Orbit Coupling in Molecules, Nanocrystals and Solids, J. Chem. Theory Comput. 12, 3523 (2016).", "P.J. Linstrom and W.G. Mallard, Eds., NIST Chemistry WebBook, NIST Standard Reference Database Number 69, National Institute of Standards and Technology, Gaithersburg MD, 20899, http://webbook.nist.gov."],
+            "data_contact": {
 
                 "given_name": "Peter",
                 "family_name": "Scherpelz",
@@ -36,7 +37,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "The University of Chicago",
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Peter",
                 "family_name": "Scherpelz",
@@ -66,24 +67,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "The University of Chicago",
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "GW-SOC81",
-            "mdf-data_format": "text",
-            "mdf-data_type": "Calculation",
-#            "mdf-tags": ,
+            "collection": "GW-SOC81",
+#            "tags": ,
 
-            "mdf-description": "This is a benchmark of G0W0 on 81 molecules.",
-            "mdf-year": 2016,
+            "description": "This is a benchmark of G0W0 on 81 molecules.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://www.west-code.org/database/gwsoc81/index.php",
+                "landing_page": "http://www.west-code.org/database/gwsoc81/index.php",
 
-                "mdf-publication": "10.1021/acs.jctc.6b00114",
-#                "mdf-dataset_doi": ,
+                "publication": "10.1021/acs.jctc.6b00114",
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -94,9 +93,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -104,6 +103,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -128,22 +128,23 @@ def convert(input_path, metadata=None, verbose=False):
     for record in tqdm(parse_tab(data), desc="Processing records", disable= not verbose):
         link = "http://www.west-code.org/database/gwsoc81/pag/" + record["cas"] + ".php"
         record_metadata = {
-            "mdf-title": "GW-SOC81 - " + record["name"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "GW-SOC81 - " + record["name"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["formula"],
-#            "mdf-raw": ,
+            "composition": record["formula"],
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": "http://www.west-code.org/database/gwsoc81/pag/" + record["cas"] + ".php",
+            "links": {
+                "landing_page": "http://www.west-code.org/database/gwsoc81/pag/" + record["cas"] + ".php",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -154,8 +155,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -166,19 +167,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
  #               },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

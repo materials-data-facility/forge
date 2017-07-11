@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the OQMD
 # Arguments:
@@ -22,11 +22,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "The Open Quantum Materials Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "oqmd",
-            "mdf-citation": ['Saal, J. E., Kirklin, S., Aykol, M., Meredig, B., and Wolverton, C. "Materials Design and Discovery with High-Throughput Density Functional Theory: The Open Quantum Materials Database (OQMD)", JOM 65, 1501-1509 (2013). doi:10.1007/s11837-013-0755-4', 'Kirklin, S., Saal, J.E., Meredig, B., Thompson, A., Doak, J.W., Aykol, M., Rühl, S. and Wolverton, C. "The Open Quantum Materials Database (OQMD): assessing the accuracy of DFT formation energies", npj Computational Materials 1, 15010 (2015). doi:10.1038/npjcompumats.2015.10'],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "The Open Quantum Materials Database",
+            "acl": ["public"],
+            "source_name": "oqmd",
+            "citation": ['Saal, J. E., Kirklin, S., Aykol, M., Meredig, B., and Wolverton, C. "Materials Design and Discovery with High-Throughput Density Functional Theory: The Open Quantum Materials Database (OQMD)", JOM 65, 1501-1509 (2013). doi:10.1007/s11837-013-0755-4', 'Kirklin, S., Saal, J.E., Meredig, B., Thompson, A., Doak, J.W., Aykol, M., Rühl, S. and Wolverton, C. "The Open Quantum Materials Database (OQMD): assessing the accuracy of DFT formation energies", npj Computational Materials 1, 15010 (2015). doi:10.1038/npjcompumats.2015.10'],
+            "data_contact": {
 
                 "given_name": "Chris",
                 "family_name": "Wolverton",
@@ -35,7 +36,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "Northwestern University",
                 },
 
-            "mdf-author": [
+            "author": [
                 {
                 "given_name": "Chris",
                 "family_name": "Wolverton",
@@ -59,24 +60,22 @@ def convert(input_path, metadata=None, verbose=False):
                 }
                 ],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "OQMD",
-            "mdf-data_format": ["vasp"],
-            "mdf-data_type": ["dft"],
-            "mdf-tags": ["dft"],
+            "collection": "OQMD",
+            "tags": ["dft"],
 
-            "mdf-description": "The OQMD is a database of DFT-calculated thermodynamic and structural properties.",
-            "mdf-year": 2013,
+            "description": "The OQMD is a database of DFT-calculated thermodynamic and structural properties.",
+            "year": 2013,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://oqmd.org/",
+                "landing_page": "http://oqmd.org/",
 
-                "mdf-publication": ["http://dx.doi.org/10.1007/s11837-013-0755-4", "http://dx.doi.org/10.1038/npjcompumats.2015.10"],
-#                "mdf-dataset_doi": ,
+                "publication": ["http://dx.doi.org/10.1007/s11837-013-0755-4", "http://dx.doi.org/10.1038/npjcompumats.2015.10"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -87,9 +86,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -97,6 +96,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -134,22 +134,23 @@ def convert(input_path, metadata=None, verbose=False):
             outcar_path = os.path.join(os.path.dirname(metadata_path)) if metadata_path != "None" else "Unavailable"
 
             record_metadata = {
-                "mdf-title": "OQMD - " + record["composition"],
-                "mdf-acl": ["public"],
+            "mdf": {
+                "title": "OQMD - " + record["composition"],
+                "acl": ["public"],
 
-#                "mdf-tags": ,
-#                "mdf-description": ,
+#                "tags": ,
+#                "description": ,
                 
-                "mdf-composition": record["composition"],
-#                "mdf-raw": ,
+                "composition": record["composition"],
+#                "raw": ,
 
-                "mdf-links": {
-                    "mdf-landing_page": record["url"],
+                "links": {
+                    "landing_page": record["url"],
 
-#                    "mdf-publication": ,
-#                    "mdf-dataset_doi": ,
+#                    "publication": ,
+#                    "dataset_doi": ,
 
-#                    "mdf-related_id": ,
+#                    "related_id": ,
 
                     "metadata": {
 
@@ -166,8 +167,8 @@ def convert(input_path, metadata=None, verbose=False):
                         }
                     },
 
-#                "mdf-citation": ,
-#                "mdf-data_contact": {
+#                "citation": ,
+#                "data_contact": {
 
 #                    "given_name": ,
 #                    "family_name": ,
@@ -178,18 +179,20 @@ def convert(input_path, metadata=None, verbose=False):
                     # IDs
 #                },
 
-#                "mdf-author": ,
+#                "author": ,
 
-#                "mdf-license": ,
-#                "mdf-collection": ,
-#                "mdf-data_format": ,
-#                "mdf-data_type": ,
-#                "mdf-year": ,
+#                "license": ,
+#                "collection": ,
+#                "data_format": ,
+#                "data_type": ,
+#                "year": ,
 
-#                "mdf-mrr":
+#                "mrr":
 
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
+    #            "processing": ,
+    #            "structure":,
+                },
+                "oqmd": {
                 "band_gap": record["band gap"]["value"],
                 "configuration": record["configuration"],
                 "converged": record["converged"],
@@ -198,6 +201,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "magnetic_moment": record.get("magnetic moment", None),
                 "total_energy": record.get("total energy", None)
                 }
+            }
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)

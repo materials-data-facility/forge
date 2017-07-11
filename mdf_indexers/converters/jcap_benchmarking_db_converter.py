@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the JCAP Benchmarking database
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "JCAP Benchmarking Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "jcap_benchmarking_db",
-            "mdf-citation": ["McCrory, C. C. L., Jung, S. H., Peters, J. C. & Jaramillo, T. F. Benchmarking Heterogeneous Electrocatalysts for the Oxygen Evolution Reaction. Journal of the American Chemical Society 135, 16977-16987, DOI: 10.1021/ja407115p (2013)", "McCrory, C. C. L. et al. Benchmarking HER and OER Electrocatalysts for Solar Water Splitting Devices. Journal of the American Chemical Society, 137, 4347–4357, DOI: 10.1021/ja510442p (2015)"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "JCAP Benchmarking Database",
+            "acl": ["public"],
+            "source_name": "jcap_benchmarking_db",
+            "citation": ["McCrory, C. C. L., Jung, S. H., Peters, J. C. & Jaramillo, T. F. Benchmarking Heterogeneous Electrocatalysts for the Oxygen Evolution Reaction. Journal of the American Chemical Society 135, 16977-16987, DOI: 10.1021/ja407115p (2013)", "McCrory, C. C. L. et al. Benchmarking HER and OER Electrocatalysts for Solar Water Splitting Devices. Journal of the American Chemical Society, 137, 4347–4357, DOI: 10.1021/ja510442p (2015)"],
+            "data_contact": {
 
                 "given_name": "Charles",
                 "family_name": "McCrory",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Charles",
                 "family_name": "McCrory",
@@ -70,24 +71,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "JCAP Benchmarking DB",
-            "mdf-data_format": "txt",
-            "mdf-data_type": "Benchmarking",
-            "mdf-tags": ["benchmarking", "catalyst"],
+            "collection": "JCAP Benchmarking DB",
+            "tags": ["benchmarking", "catalyst"],
 
-            "mdf-description": "The JCAP Benchmarking scientists developed and implemented uniform methods and protocols for characterizing the activities of electrocatalysts under standard operating conditions for water-splitting devices. They have determined standard measurement protocols that reproducibly quantify catalytic activity and stability. Data for several catalysts studied are made available in this database.",
-            "mdf-year": 2013,
+            "description": "The JCAP Benchmarking scientists developed and implemented uniform methods and protocols for characterizing the activities of electrocatalysts under standard operating conditions for water-splitting devices. They have determined standard measurement protocols that reproducibly quantify catalytic activity and stability. Data for several catalysts studied are made available in this database.",
+            "year": 2013,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://solarfuelshub.org/benchmarking-database",
+                "landing_page": "http://solarfuelshub.org/benchmarking-database",
 
-                "mdf-publication": ["https://dx.doi.org/10.1021/ja407115p", "https://dx.doi.org/10.1021/ja510442p"],
-#                "mdf-dataset_doi": ,
+                "publication": ["https://dx.doi.org/10.1021/ja407115p", "https://dx.doi.org/10.1021/ja510442p"],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -98,9 +97,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -108,6 +107,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -138,22 +138,23 @@ def convert(input_path, metadata=None, verbose=False):
                 else:
                     record[key] = clean_line
         record_metadata = {
-            "mdf-title": "JCAP Benchmark - " + record["catalyst"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "JCAP Benchmark - " + record["catalyst"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": record["catalyst"],
-#            "mdf-raw": ,
+            "composition": record["catalyst"],
+            "raw": json.dumps(record),
 
-            "mdf-links": {
-                "mdf-landing_page": "https://internal.solarfuelshub.org/jcapresources/benchmarking/catalysts_for_iframe/view/jcapbench_catalyst/" + data_file["filename"][:-4],
+            "links": {
+                "landing_page": "https://internal.solarfuelshub.org/jcapresources/benchmarking/catalysts_for_iframe/view/jcapbench_catalyst/" + data_file["filename"][:-4],
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -164,8 +165,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-            "mdf-citation": record["publication"],
-#            "mdf-data_contact": {
+            "citation": record["publication"],
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -176,20 +177,21 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-            "mdf-year": int(record["release_date"][:4]),
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+            "year": int(record["release_date"][:4]),
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
-        record_metadata.update(record)
+        }
+#        record_metadata["jcap_benchmarking_db"] = record
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

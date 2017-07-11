@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Ab initio calculations of the lattice parameter and elastic stiffness coefficients of bcc Fe with solutes",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "trinkle_elastic_fe_bcc",
-            "mdf-citation": ["M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Comp. Mat. Sci. 126, 503 (2017).", "M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Data in Brief 10, 147 (2017)."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Ab initio calculations of the lattice parameter and elastic stiffness coefficients of bcc Fe with solutes",
+            "acl": ["public"],
+            "source_name": "trinkle_elastic_fe_bcc",
+            "citation": ["M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Comp. Mat. Sci. 126, 503 (2017).", "M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Data in Brief 10, 147 (2017)."],
+            "data_contact": {
 
                 "given_name": "Michael",
                 "family_name": "Fellinger",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Michael",
                 "family_name": "Fellinger",
@@ -63,24 +64,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-            "mdf-license": "http://creativecommons.org/publicdomain/zero/1.0/",
+            "license": "http://creativecommons.org/publicdomain/zero/1.0/",
 
-            "mdf-collection": "Elastic Fe BCC",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dft"],
+            "collection": "Elastic Fe BCC",
+            "tags": ["dft"],
 
-            "mdf-description": "We introduce a solute strain misfit tensor that quantifies how solutes change the lattice parameter.",
-            "mdf-year": 2017,
+            "description": "We introduce a solute strain misfit tensor that quantifies how solutes change the lattice parameter.",
+            "year": 2017,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/671",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/671",
 
-                "mdf-publication": ["http://dx.doi.org/10.1016/j.commatsci.2016.09.040", "http://dx.doi.org/10.1016/j.dib.2016.11.092"],
-                "mdf-dataset_doi": "http://hdl.handle.net/11256/671",
+                "publication": ["http://dx.doi.org/10.1016/j.commatsci.2016.09.040", "http://dx.doi.org/10.1016/j.dib.2016.11.092"],
+                "data_doi": "http://hdl.handle.net/11256/671",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -91,9 +90,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -101,6 +100,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -123,22 +123,23 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable= not verbose):
         data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp-out")
         record_metadata = {
-            "mdf-title": "Elastic BCC - " + data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Elastic BCC - " + data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -149,8 +150,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -161,19 +162,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

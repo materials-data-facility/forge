@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.tab_parser import parse_tab
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Ni-Co-Al-Ti-Cr quinary alloys dataset
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": 'Research Data Supporting "The microstructure and hardness of Ni-Co-Al-Ti-Cr quinary alloys"',
-            "mdf-acl": ["public"],
-            "mdf-source_name": "quinary_alloys",
-            "mdf-citation": ['Christofidou, K. A., Jones, N. G., Pickering, E. J., Flacau, R., Hardy, M. C., & Stone, H. J. Research Data Supporting "The microstructure and hardness of Ni-Co-Al-Ti-Cr quinary alloys" [Dataset]. https://doi.org/10.17863/CAM.705'],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": 'Research Data Supporting "The microstructure and hardness of Ni-Co-Al-Ti-Cr quinary alloys"',
+            "acl": ["public"],
+            "source_name": "quinary_alloys",
+            "citation": ['Christofidou, K. A., Jones, N. G., Pickering, E. J., Flacau, R., Hardy, M. C., & Stone, H. J. Research Data Supporting "The microstructure and hardness of Ni-Co-Al-Ti-Cr quinary alloys" [Dataset]. https://doi.org/10.17863/CAM.705'],
+            "data_contact": {
 
                 "given_name": "Howard",
                 "family_name": "Stone",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Howard",
                 "family_name": "Stone",
@@ -89,24 +90,24 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-            "mdf-license": "http://creativecommons.org/licenses/by/4.0/",
+            "license": "http://creativecommons.org/licenses/by/4.0/",
 
-            "mdf-collection": "Ni-Co-Al-Ti-Cr Quinary Alloys",
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-            "mdf-tags": ["alloys"],
+            "collection": "Ni-Co-Al-Ti-Cr Quinary Alloys",
+#            "data_format": ,
+#            "data_type": ,
+            "tags": ["alloys"],
 
-            "mdf-description": "DSC files, neutron diffraction data, hardness measurements, SEM and TEM images and thermodynamic simulations are provided for all alloy compositions studied and presented in this manuscript.",
-            "mdf-year": 2016,
+            "description": "DSC files, neutron diffraction data, hardness measurements, SEM and TEM images and thermodynamic simulations are provided for all alloy compositions studied and presented in this manuscript.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://www.repository.cam.ac.uk/handle/1810/256771",
+                "landing_page": "https://www.repository.cam.ac.uk/handle/1810/256771",
 
-                "mdf-publication": "https://doi.org/10.1016/j.jallcom.2016.07.159",
-                "mdf-dataset_doi": "https://doi.org/10.17863/CAM.705",
+                "publication": "https://doi.org/10.1016/j.jallcom.2016.07.159",
+                "data_doi": "https://doi.org/10.17863/CAM.705",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -117,9 +118,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -127,6 +128,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -163,22 +165,23 @@ def convert(input_path, metadata=None, verbose=False):
             "path": "/collections/quinary_alloys/alloy_data.csv"
             }
         record_metadata = {
-            "mdf-title": "Ni-Co-Al-Ti-Cr Quinary Alloys " + record["Alloy"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Ni-Co-Al-Ti-Cr Quinary Alloys " + record["Alloy"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": "NiCoAlTiCr",
-            "mdf-raw": json.dumps(record),
+            "composition": "NiCoAlTiCr",
+            "raw": json.dumps(record),
 
-            "mdf-links": links, #{
-#                "mdf-landing_page": ,
+            "links": links, #{
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
 #                 "csv": {
  
@@ -189,8 +192,8 @@ def convert(input_path, metadata=None, verbose=False):
 #                    },
 #                },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -201,18 +204,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
+            },
+            "quinary_alloys": {
 
             "atomic_composition_percent": {
                 "Ni": record["Ni"],
@@ -222,6 +227,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "Cr": record["Cr"]
                 }
             }
+        }
 
 
 

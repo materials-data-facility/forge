@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the XAFS Spectra Library
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "XAFS Spectra Library",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "xafs_sl",
-            "mdf-citation": ["http://cars.uchicago.edu/xaslib"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "XAFS Spectra Library",
+            "acl": ["public"],
+            "source_name": "xafs_sl",
+            "citation": ["http://cars.uchicago.edu/xaslib"],
+            "data_contact": {
 
                 "given_name": "Matthew",
                 "family_name": "Newville",
@@ -36,7 +37,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "The University of Chicago"
                 },
 
-            "mdf-author": {
+            "author": {
 
                 "given_name": "Matthew",
                 "family_name": "Newville",
@@ -45,24 +46,22 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "The University of Chicago"
                 },
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "XAFS SL",
-            "mdf-data_format": "postgres",
-            "mdf-data_type": "XAFS",
-            "mdf-tags": ["XAFS", "Spectra"],
+            "collection": "XAFS SL",
+            "tags": ["XAFS", "Spectra"],
 
-            "mdf-description": "This is a collection of X-ray Absorption Spectra. The data here are intended to be of good quality, and on well-characterized samples, but no guarantees are made about either of these intentions.",
-#            "mdf-year": ,
+            "description": "This is a collection of X-ray Absorption Spectra. The data here are intended to be of good quality, and on well-characterized samples, but no guarantees are made about either of these intentions.",
+#            "year": ,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://cars.uchicago.edu/xaslib",
+                "landing_page": "http://cars.uchicago.edu/xaslib",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -73,9 +72,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor":[{
+            "data_contributor":[{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -83,6 +82,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -127,22 +127,23 @@ def convert(input_path, metadata=None, verbose=False):
             #Process each row
             for record in tqdm(cursor, desc="Processing database", disable= not verbose):
                 record_metadata = {
-                    "mdf-title": record[s_name],
-                    "mdf-acl": ["public"],
+                "mdf": {
+                    "title": record[s_name],
+                    "acl": ["public"],
 
-#                    "mdf-tags": ,
-                    "mdf-description": record[s_comments],
+#                    "tags": ,
+                    "description": record[s_comments],
                     
-                    "mdf-composition": record[s1_formula],
-#                    "mdf-raw": ,
+                    "composition": record[s1_formula],
+#                    "raw": ,
 
-                    "mdf-links": {
-                        "mdf-landing_page": quote("http://cars.uchicago.edu/xaslib/spectrum/" + str(record[s_id]), safe="/:"),
+                    "links": {
+                        "landing_page": quote("http://cars.uchicago.edu/xaslib/spectrum/" + str(record[s_id]), safe="/:"),
 
-#                        "mdf-publication": ,
-#                        "mdf-dataset_doi": ,
+#                        "publication": ,
+#                        "dataset_doi": ,
 
-#                        "mdf-related_id": ,
+#                        "related_id": ,
 
                         "xdi": {
                             #"globus_endpoint": ,
@@ -151,8 +152,8 @@ def convert(input_path, metadata=None, verbose=False):
                             },
                         },
 
-#                    "mdf-citation": ,
-#                    "mdf-data_contact": {
+#                    "citation": ,
+#                    "data_contact": {
 
 #                        "given_name": ,
 #                        "family_name": ,
@@ -163,18 +164,20 @@ def convert(input_path, metadata=None, verbose=False):
                         # IDs
 #                        },
 
-#                    "mdf-author": ,
+#                    "author": ,
 
-#                    "mdf-license": ,
-#                    "mdf-collection": ,
-#                    "mdf-data_format": ,
-#                    "mdf-data_type": ,
-#                    "mdf-year": ,
+#                    "license": ,
+#                    "collection": ,
+#                    "data_format": ,
+#                    "data_type": ,
+#                    "year": ,
 
-#                    "mdf-mrr":
+#                    "mrr":
 
-        #            "mdf-processing": ,
-        #            "mdf-structure":,
+        #            "processing": ,
+        #            "structure":,
+                    },
+                    "xafs_sl": {
                     "ratings" : record[s_rating_summary],
                     "absorption_edge" : record[ed_name],
                     "sample_name" : record[s1_name],
@@ -184,9 +187,10 @@ def convert(input_path, metadata=None, verbose=False):
                     "energy_units" : record[en_units],
                     "d_spacing" : record[s_d_spacing],
                     "date_measured" : str(record[s_collection_date]),
-                    "date_uploaded" : str(record[s_submission_date]),
+#                    "date_uploaded" : str(record[s_submission_date]),
                     "user_comments" : record[s_comments]
                     }
+                }
 
                 # Pass each individual record to the Validator
                 result = dataset_validator.write_record(record_metadata)

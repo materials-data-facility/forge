@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for CXIDB.
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "The Coherent X-ray Imaging Data Bank",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "cxidb",
-            "mdf-citation": ["Maia, F. R. N. C. The Coherent X-ray Imaging Data Bank. Nat. Methods 9, 854–855 (2012)."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "The Coherent X-ray Imaging Data Bank",
+            "acl": ["public"],
+            "source_name": "cxidb",
+            "citation": ["Maia, F. R. N. C. The Coherent X-ray Imaging Data Bank. Nat. Methods 9, 854–855 (2012)."],
+            "data_contact": {
 
                 "given_name": "Filipe",
                 "family_name": "Maia",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": {
+            "author": {
 
                 "given_name": "Filipe",
                 "family_name": "Maia",
@@ -48,24 +49,22 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "CXIDB",
-            "mdf-data_format": "json",
-            "mdf-data_type": "X-ray imaging",
-            "mdf-tags": ["x-ray", "coherent"],
+            "collection": "CXIDB",
+            "tags": ["x-ray", "coherent"],
 
-            "mdf-description": "A new database which offers scientists from all over the world a unique opportunity to access data from Coherent X-ray Imaging (CXI) experiments.",
-            "mdf-year": 2012,
+            "description": "A new database which offers scientists from all over the world a unique opportunity to access data from Coherent X-ray Imaging (CXI) experiments.",
+            "year": 2012,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://www.cxidb.org/",
+                "landing_page": "http://www.cxidb.org/",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -76,9 +75,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -86,6 +85,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -109,22 +109,23 @@ def convert(input_path, metadata=None, verbose=False):
         with open(os.path.join(dir_data["path"], dir_data["filename"])) as file_data:
             cxidb_data = json.load(file_data)
         record_metadata = {
-            "mdf-title": cxidb_data["citation_title"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": cxidb_data["citation_title"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-#            "mdf-composition": ,
-            "mdf-raw": json.dumps(cxidb_data),
+#            "composition": ,
+            "raw": json.dumps(cxidb_data),
 
-            "mdf-links": {
-                "mdf-landing_page": cxidb_data["url"],
+            "links": {
+                "landing_page": cxidb_data["url"],
 
-                "mdf-publication": [cxidb_data.get("citation_DOI", None), cxidb_data.get("entry_DOI", None)],
-#                "mdf-dataset_doi": ,
+                "publication": [cxidb_data.get("citation_DOI", None), cxidb_data.get("entry_DOI", None)],
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -135,8 +136,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -147,19 +148,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

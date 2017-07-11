@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for MATIN
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "MATerials Innovation Network",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "matin",
-            "mdf-citation": ["https://matin.gatech.edu/"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "MATerials Innovation Network",
+            "acl": ["public"],
+            "source_name": "matin",
+            "citation": ["https://matin.gatech.edu/"],
+            "data_contact": {
 
                 "given_name": "Aleksandr",
                 "family_name": "Blekh",
@@ -37,7 +38,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": {
+            "author": {
 
                 "given_name": "Aleksandr",
                 "family_name": "Blekh",
@@ -47,24 +48,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "MATIN",
-            "mdf-data_format": "json",
-            "mdf-data_type": "metadata",
-            "mdf-tags": "materials",
+            "collection": "MATIN",
+            "tags": "materials",
 
-            "mdf-description": "An e-collaboration platform for accelerating materials innovation",
-#            "mdf-year": ,
+            "description": "An e-collaboration platform for accelerating materials innovation",
+#            "year": ,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://matin.gatech.edu/",
+                "landing_page": "https://matin.gatech.edu/",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -75,9 +74,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -85,6 +84,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -109,22 +109,23 @@ def convert(input_path, metadata=None, verbose=False):
             full_record = json.load(file_data)
         matin_data = full_record["metadata"]["oai_dc:dc"]
         record_metadata = {
-            "mdf-title": matin_data.get("dc.title", "MATIN Entry " + dir_data["filename"].split("_")[0]),
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": matin_data.get("dc.title", "MATIN Entry " + dir_data["filename"].split("_")[0]),
+            "acl": ["public"],
 
-            "mdf-tags": matin_data.get("dc:subject", []),
-            "mdf-description": matin_data.get("dc:description", ""),
+            "tags": matin_data.get("dc:subject", []),
+            "description": matin_data.get("dc:description", ""),
             
-#            "mdf-composition": ,
-            "mdf-raw": json.dumps(full_record),
+#            "composition": ,
+            "raw": json.dumps(full_record),
 
-            "mdf-links": {
-                "mdf-landing_page": matin_data.get("dc.identifier", full_record["header"]["identifier"]),
+            "links": {
+                "landing_page": matin_data.get("dc.identifier", full_record["header"]["identifier"]),
 
-                "mdf-publication": matin_data.get("dc:relation", []),
-#                "mdf-dataset_doi": ,
+                "publication": matin_data.get("dc:relation", []),
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -135,8 +136,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -147,19 +148,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

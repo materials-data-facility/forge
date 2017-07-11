@@ -3,7 +3,7 @@ import sys
 
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for datasets that cannot be meaningfully deeply indexed.
 # Arguments:
@@ -17,58 +17,7 @@ def convert(input_path, metadata=None, verbose=False):
         print("Begin converting")
 
     # Collect the metadata
-    if not metadata:
-        dataset_metadata = {
-            "mdf-title": ,
-            "mdf-acl": ,
-            "mdf-source_name": ,
-            "mdf-citation": ,
-            "mdf-data_contact": {
-
-                "given_name": ,
-                "family_name": ,
-
-                "email": ,
-                "institution": ,
-
-                # IDs
-                },
-
-            "mdf-author": ,
-
-            "mdf-license": ,
-
-            "mdf-collection": ,
-            "mdf-data_format": ,
-            "mdf-data_type": ,
-            "mdf-tags": ,
-
-            "mdf-description": ,
-            "mdf-year": ,
-
-            "mdf-links": {
-
-                "mdf-landing_page": ,
-
-                "mdf-publication": ,
-                "mdf-dataset_doi": ,
-
-                "mdf-related_id": ,
-
-                # data links: {
-
-                    #"globus_endpoint": ,
-                    #"http_host": ,
-
-                    #"path": ,
-                    #}
-                },
-
-            "mdf-mrr": ,
-
-            "mdf-data_contributor":
-            }
-    elif type(metadata) is str:
+    if type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
         except Exception:

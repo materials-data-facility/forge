@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the JCAP XPS Spectral Database
 # Arguments:
@@ -23,11 +23,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "JCAP XPS Spectral Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "jcap_xps_spectral_db",
-            "mdf-citation": ["http://solarfuelshub.org/xps-spectral-database"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "JCAP XPS Spectral Database",
+            "acl": ["public"],
+            "source_name": "jcap_xps_spectral_db",
+            "citation": ["http://solarfuelshub.org/xps-spectral-database"],
+            "data_contact": {
 
                 "given_name": "Harry",
                 "family_name": "Atwater",
@@ -37,26 +38,24 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "JCAP XPS Spectral DB",
-            "mdf-data_format": "json",
-            "mdf-data_type": "XPS",
-            "mdf-tags": ["xps", "spectra"],
+            "collection": "JCAP XPS Spectral DB",
+            "tags": ["xps", "spectra"],
 
-            "mdf-description": "The JCAP High Throughput Experimentation research team uses combinatorial methods to quickly identify promising light absorbers and catalysts for solar-fuel devices. Pure-phase materials — including metal oxides, nitrides, sulfides, oxinitrides, and other single- and mixed-metal materials — are prepared using multiple deposition techniques (e.g., physical vapor deposition, inkjet printing, and micro-fabrication) on various substrates. High-resolution X-ray photoelectron spectroscopy (XPS) spectra for materials that have been characterized to date are made available here as part of JCAP's Materials Characterization Standards (MatChS) database.",
-#            "mdf-year": ,
+            "description": "The JCAP High Throughput Experimentation research team uses combinatorial methods to quickly identify promising light absorbers and catalysts for solar-fuel devices. Pure-phase materials — including metal oxides, nitrides, sulfides, oxinitrides, and other single- and mixed-metal materials — are prepared using multiple deposition techniques (e.g., physical vapor deposition, inkjet printing, and micro-fabrication) on various substrates. High-resolution X-ray photoelectron spectroscopy (XPS) spectra for materials that have been characterized to date are made available here as part of JCAP's Materials Characterization Standards (MatChS) database.",
+#            "year": ,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://solarfuelshub.org/xps-spectral-database",
+                "landing_page": "http://solarfuelshub.org/xps-spectral-database",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -67,9 +66,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -77,6 +76,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -100,22 +100,23 @@ def convert(input_path, metadata=None, verbose=False):
         with open(os.path.join(data_file["path"], data_file["filename"])) as in_file:
             data = json.load(in_file)
         record_metadata = {
-            "mdf-title": "JCAP Spectra - " + data["xps_region"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "JCAP Spectra - " + data["xps_region"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data.pop("material"),
-#            "mdf-raw": ,
+            "composition": data.pop("material"),
+#            "raw": ,
 
-            "mdf-links": {
-                "mdf-landing_page": data.pop("link"),
+            "links": {
+                "landing_page": data.pop("link"),
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
  
@@ -126,8 +127,8 @@ def convert(input_path, metadata=None, verbose=False):
                     #},
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -138,21 +139,22 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-            "mdf-year": data.pop("year"),
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+            "year": data.pop("year"),
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
         data.pop("data")
-        record_metadata.update(data)
+        record_metadata["jcap_xps_spectral_db"] = data
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

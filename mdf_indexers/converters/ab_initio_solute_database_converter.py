@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the High-throughput Ab-initio Dilute Solute Diffusion Database dataset from Dane Morgan's research group
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "High-throughput Ab-initio Dilute Solute Diffusion Database",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "ab_initio_solute_database",
-            "mdf-citation": ['Wu, Henry; Mayeshiba, Tam; Morgan, Dane, "Dataset for High-throughput Ab-initio Dilute Solute Diffusion Database," 2016, http://dx.doi.org/doi:10.18126/M2X59R'],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "High-throughput Ab-initio Dilute Solute Diffusion Database",
+            "acl": ["public"],
+            "source_name": "ab_initio_solute_database",
+            "citation": ['Wu, Henry; Mayeshiba, Tam; Morgan, Dane, "Dataset for High-throughput Ab-initio Dilute Solute Diffusion Database," 2016, http://dx.doi.org/doi:10.18126/M2X59R'],
+            "data_contact": {
 
                 "given_name": "Dane",
                 "family_name": "Morgan",
@@ -39,7 +40,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Dane",
                 "family_name": "Morgan",
@@ -69,24 +70,22 @@ def convert(input_path, metadata=None, verbose=False):
                 }
                 ],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dilute", "solute", "DFT", "diffusion"],
+            "collection": "High-Throughput ab-initio Dilute Solute Diffusion Database",
+            "tags": ["dilute", "solute", "DFT", "diffusion"],
 
-            "mdf-description": "We demonstrate automated generation of diffusion databases from high-throughput density functional theory (DFT) calculations. A total of more than 230 dilute solute diffusion systems in Mg, Al, Cu, Ni, Pd, and Pt host lattices have been determined using multi-frequency diffusion models. We apply a correction method for solute diffusion in alloys using experimental and simulated values of host self-diffusivity.",
-            "mdf-year": 2016,
+            "description": "We demonstrate automated generation of diffusion databases from high-throughput density functional theory (DFT) calculations. A total of more than 230 dilute solute diffusion systems in Mg, Al, Cu, Ni, Pd, and Pt host lattices have been determined using multi-frequency diffusion models. We apply a correction method for solute diffusion in alloys using experimental and simulated values of host self-diffusivity.",
+            "year": 2016,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://publish.globus.org/jspui/handle/ITEM/164",
+                "landing_page": "https://publish.globus.org/jspui/handle/ITEM/164",
 
-                "mdf-publication": "http://dx.doi.org/10.1038/sdata.2016.54",
-                "mdf-dataset_doi": "http://dx.doi.org/doi:10.18126/M2X59R",
+                "publication": "http://dx.doi.org/10.1038/sdata.2016.54",
+                "data_doi": "http://dx.doi.org/doi:10.18126/M2X59R",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "dataset": {
 
@@ -97,9 +96,9 @@ def convert(input_path, metadata=None, verbose=False):
                     }
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -107,6 +106,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -134,22 +134,23 @@ def convert(input_path, metadata=None, verbose=False):
             file_data = None
         if file_data:
             record_metadata = {
-                "mdf-title": "High-throughput Ab-initio Dilute Solute Diffusion Database - " + file_data["chemical_formula"],
-                "mdf-acl": ["public"],
+            "mdf": {
+                "title": "High-throughput Ab-initio Dilute Solute Diffusion Database - " + file_data["chemical_formula"],
+                "acl": ["public"],
 
-#                "mdf-tags": ,
-#                "mdf-description": ,
+#                "tags": ,
+#                "description": ,
 
-                "mdf-composition": file_data["chemical_formula"],
-#                "mdf-raw": ,
+                "composition": file_data["chemical_formula"],
+#                "raw": ,
 
-                "mdf-links": {
-#                    "mdf-landing_page": ,
+                "links": {
+#                    "landing_page": ,
 
-#                    "mdf-publication": ,
-#                    "mdf-dataset_doi": ,
+#                    "publication": ,
+#                    "dataset_doi": ,
 
-#                    "mdf-related_id": ,
+#                    "related_id": ,
 
                     "outcar": {
 
@@ -160,8 +161,8 @@ def convert(input_path, metadata=None, verbose=False):
                         },
                     },
 
-#                "mdf-citation": ,
-#                "mdf-data_contact": {
+#                "citation": ,
+#                "data_contact": {
 
 #                    "given_name": ,
 #                    "family_name": ,
@@ -172,19 +173,20 @@ def convert(input_path, metadata=None, verbose=False):
                     # IDs
 #                    },
 
-#                "mdf-author": ,
+#                "author": ,
 
-#                "mdf-license": ,
-#                "mdf-collection": ,
-#                "mdf-data_format": ,
-#                "mdf-data_type": ,
-#                "mdf-year": ,
+#                "license": ,
+#                "collection": ,
+#                "data_format": ,
+#                "data_type": ,
+#                "year": ,
 
-#                "mdf-mrr":
+#                "mrr":
 
-    #            "mdf-processing": ,
-    #            "mdf-structure":,
+    #            "processing": ,
+    #            "structure":,
                 }
+            }
 
             # Pass each individual record to the Validator
             result = dataset_validator.write_record(record_metadata)

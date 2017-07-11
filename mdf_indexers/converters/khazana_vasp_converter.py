@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for Khazana VASP DFT data.
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Khazana (VASP)",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "khazana_vasp",
-            "mdf-citation": ["http://khazana.uconn.edu/module_search/search.php?m=2"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Khazana (VASP)",
+            "acl": ["public"],
+            "source_name": "khazana_vasp",
+            "citation": ["http://khazana.uconn.edu/module_search/search.php?m=2"],
+            "data_contact": {
 
                 "given_name": "Rampi",
                 "family_name": "Ramprasad",
@@ -37,26 +38,24 @@ def convert(input_path, metadata=None, verbose=False):
                 "institution": "University of Connecticut",
                 },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Khazana",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["DFT", "VASP"],
+            "collection": "Khazana",
+            "tags": ["DFT", "VASP"],
 
-            "mdf-description": "A computational materials knowledgebase",
-#            "mdf-year": ,
+            "description": "A computational materials knowledgebase",
+#            "year": ,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://khazana.uconn.edu/module_search/search.php?m=2",
+                "landing_page": "http://khazana.uconn.edu/module_search/search.php?m=2",
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -67,9 +66,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -77,6 +76,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -99,22 +99,23 @@ def convert(input_path, metadata=None, verbose=False):
     for dir_data in tqdm(find_files(root=input_path, file_pattern="^OUTCAR"), desc="Processing data files", disable= not verbose):
         file_data = parse_ase(file_path=os.path.join(dir_data["path"], dir_data["filename"]), data_format="vasp-out", verbose=False)
         record_metadata = {
-            "mdf-title": "Khazana VASP - " + file_data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Khazana VASP - " + file_data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": file_data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": file_data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -125,8 +126,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -137,19 +138,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
- #           "mdf-data_format": ,
- #           "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+ #           "data_format": ,
+ #           "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

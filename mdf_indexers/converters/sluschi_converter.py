@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "sluschi",
-            "mdf-citation": ["Qi-Jun Hong, Axel van de Walle, A user guide for SLUSCHI: Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces, Calphad, Volume 52, March 2016, Pages 88-97, ISSN 0364-5916, http://doi.org/10.1016/j.calphad.2015.12.003."],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces",
+            "acl": ["public"],
+            "source_name": "sluschi",
+            "citation": ["Qi-Jun Hong, Axel van de Walle, A user guide for SLUSCHI: Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces, Calphad, Volume 52, March 2016, Pages 88-97, ISSN 0364-5916, http://doi.org/10.1016/j.calphad.2015.12.003."],
+            "data_contact": {
 
                 "given_name": "Qi-Jun",
                 "family_name": "Hong",
@@ -39,7 +40,7 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Qi-Jun",
                 "family_name": "Hong",
@@ -60,24 +61,22 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "SLUSCHI",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "DFT",
-            "mdf-tags": ["Melting temperature calculation", "Density functional theory", "Automated code"],
+            "collection": "SLUSCHI",
+            "tags": ["Melting temperature calculation", "Density functional theory", "Automated code"],
 
-            "mdf-description": "Although various approaches for melting point calculations from first principles have been proposed and employed for years, their practical implementation has hitherto remained a complex and time-consuming process. The SLUSCHI code (Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces) drastically simplifies this procedure into an automated package, by implementing the recently-developed small-size coexistence method and putting together a series of steps that lead to final melting point evaluation. Based on density functional theory, SLUSCHI employs Born–Oppenheimer molecular dynamics techniques under the isobaric–isothermal (NPT) ensemble, with interface to the first-principles code VASP.",
-            "mdf-year": 2015,
+            "description": "Although various approaches for melting point calculations from first principles have been proposed and employed for years, their practical implementation has hitherto remained a complex and time-consuming process. The SLUSCHI code (Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces) drastically simplifies this procedure into an automated package, by implementing the recently-developed small-size coexistence method and putting together a series of steps that lead to final melting point evaluation. Based on density functional theory, SLUSCHI employs Born–Oppenheimer molecular dynamics techniques under the isobaric–isothermal (NPT) ensemble, with interface to the first-principles code VASP.",
+            "year": 2015,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "http://blogs.brown.edu/qhong/?page_id=102",
+                "landing_page": "http://blogs.brown.edu/qhong/?page_id=102",
 
-                "mdf-publication": "https://doi.org/10.1016/j.calphad.2015.12.003",
-#                "mdf-dataset_doi": ,
+                "publication": "https://doi.org/10.1016/j.calphad.2015.12.003",
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -88,9 +87,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": [{
+            "data_contributor": [{
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -98,6 +97,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }]
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -131,22 +131,23 @@ def convert(input_path, metadata=None, verbose=False):
 
         uri = "/collections/sluschi/" + dir_data["no_root_path"] + "/" + dir_data["filename"]
         record_metadata = {
-            "mdf-title": "SLUSCHI - " + file_data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "SLUSCHI - " + file_data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": file_data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": file_data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": uri,
+            "links": {
+#                "landing_page": uri,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 "outcar": {
  
@@ -157,8 +158,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -169,19 +170,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

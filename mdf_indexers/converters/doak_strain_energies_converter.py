@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for the Doak Strain Energies dataset
 # Arguments:
@@ -24,11 +24,12 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "GeTe-PbTe PbS-PbTe PbSe-PbS PbTe-PbSe PbTe-SnTe SnTe-GeTe mixing and coherency strain energies",
-            "mdf-acl": ["public"],
-            "mdf-source_name": "doak_strain_energies",
-            "mdf-citation": ["Doak JW, Wolverton C (2012) Coherent and incoherent phase stabilities of thermoelectric rocksalt IV-VI semiconductor alloys. Phys. Rev. B 86: 144202 http://dx.doi.org/10.1103/PhysRevB.86.144202"],
-            "mdf-data_contact": {
+        "mdf": {
+            "title": "GeTe-PbTe PbS-PbTe PbSe-PbS PbTe-PbSe PbTe-SnTe SnTe-GeTe mixing and coherency strain energies",
+            "acl": ["public"],
+            "source_name": "doak_strain_energies",
+            "citation": ["Doak JW, Wolverton C (2012) Coherent and incoherent phase stabilities of thermoelectric rocksalt IV-VI semiconductor alloys. Phys. Rev. B 86: 144202 http://dx.doi.org/10.1103/PhysRevB.86.144202"],
+            "data_contact": {
 
                 "given_name": "Chris",
                 "family_name": "Wolverton",
@@ -38,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-            "mdf-author": [{
+            "author": [{
 
                 "given_name": "Chris",
                 "family_name": "Wolverton",
@@ -55,24 +56,22 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-#            "mdf-license": ,
+#            "license": ,
 
-            "mdf-collection": "Doak Strain Energies",
-            "mdf-data_format": "vasp",
-            "mdf-data_type": "dft",
-            "mdf-tags": ["dft"],
+            "collection": "Doak Strain Energies",
+            "tags": ["dft"],
 
-            "mdf-description": "We use density functional theory calculations to investigate the coherent and incoherent phase stability of the IV–VI rocksalt semiconductor alloy systems Pb(S,Te), Pb(Te,Se), Pb(Se,S), (Pb,Sn)Te, (Sn,Ge)Te, and (Ge,Pb)Te.",
-            "mdf-year": 2012,
+            "description": "We use density functional theory calculations to investigate the coherent and incoherent phase stability of the IV–VI rocksalt semiconductor alloy systems Pb(S,Te), Pb(Te,Se), Pb(Se,S), (Pb,Sn)Te, (Sn,Ge)Te, and (Ge,Pb)Te.",
+            "year": 2012,
 
-            "mdf-links": {
+            "links": {
 
-                "mdf-landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/85",
+                "landing_page": "https://materialsdata.nist.gov/dspace/xmlui/handle/11256/85",
 
-                "mdf-publication": "http://dx.doi.org/10.1103/PhysRevB.86.144202",
-                "mdf-dataset_doi": "http://hdl.handle.net/11256/85",
+                "publication": "http://dx.doi.org/10.1103/PhysRevB.86.144202",
+                "data_doi": "http://hdl.handle.net/11256/85",
 
-#                "mdf-related_id": ,
+#                "related_id": ,
 
                 # data links: {
 
@@ -83,9 +82,9 @@ def convert(input_path, metadata=None, verbose=False):
                     #}
                 },
 
-#            "mdf-mrr": ,
+#            "mrr": ,
 
-            "mdf-data_contributor": {
+            "data_contributor": {
                 "given_name": "Jonathon",
                 "family_name": "Gaff",
                 "email": "jgaff@uchicago.edu",
@@ -93,6 +92,7 @@ def convert(input_path, metadata=None, verbose=False):
                 "github": "jgaff"
                 }
             }
+        }
     elif type(metadata) is str:
         try:
             dataset_metadata = json.loads(metadata)
@@ -115,22 +115,23 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable= not verbose):
         data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp-out")
         record_metadata = {
-            "mdf-title": "Strain Energy - " + data["chemical_formula"],
-            "mdf-acl": ["public"],
+        "mdf": {
+            "title": "Strain Energy - " + data["chemical_formula"],
+            "acl": ["public"],
 
-#            "mdf-tags": ,
-#            "mdf-description": ,
+#            "tags": ,
+#            "description": ,
             
-            "mdf-composition": data["chemical_formula"],
-#            "mdf-raw": ,
+            "composition": data["chemical_formula"],
+#            "raw": ,
 
-            "mdf-links": {
-#                "mdf-landing_page": ,
+            "links": {
+#                "landing_page": ,
 
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
+#                "publication": ,
+#                "dataset_doi": ,
 
- #               "mdf-related_id": ,
+ #               "related_id": ,
 
                 "outcar": {
  
@@ -141,8 +142,8 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                 },
 
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
+#            "citation": ,
+#            "data_contact": {
 
 #                "given_name": ,
 #                "family_name": ,
@@ -153,19 +154,20 @@ def convert(input_path, metadata=None, verbose=False):
                 # IDs
 #                },
 
-#            "mdf-author": ,
+#            "author": ,
 
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
+#            "license": ,
+#            "collection": ,
+#            "data_format": ,
+#            "data_type": ,
+#            "year": ,
 
-#            "mdf-mrr":
+#            "mrr":
 
-#            "mdf-processing": ,
-#            "mdf-structure":,
+#            "processing": ,
+#            "structure":,
             }
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
