@@ -2,13 +2,13 @@ import json
 import sys
 import os
 from tqdm import tqdm
-from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
+from ..parsers.ase_parser import parse_ase
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for the bfcc-13 dataset: Cluster expansion made easy with Bayesian compressive sensing
+# This is the GDB7_12(QM7) dataset: 7k small organic molecules, close to their ground states, with DFT atomization energies
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -23,84 +23,77 @@ def convert(input_path, metadata=None, verbose=False):
     if not metadata:
         dataset_metadata = {
             "mdf": {
-                "title": "Cluster expansion made easy with Bayesian compressive sensing",
+                "title": "Fast and Accurate Modeling of Molecular Atomization Energies with Machine Learning",
                 "acl": ['public'],
-                "source_name": "bfcc13",
-                "citation": ["Lance J. Nelson, Vidvuds Ozoliņš, C. Shane Reese, Fei Zhou, Gus L.W. Hart: Cluster expansion made easy with Bayesian compressive sensing, Physical Review B 88(15): 155105, 2013."],
+                "source_name": "gdb7_12",
+                "citation": ["Matthias Rupp, Alexandre Tkatchenko, Klaus-Robert Müller, O. Anatole von Lilienfeld: Fast and Accurate Modeling of Molecular Atomization Energies with Machine Learning, Physical Review Letters 108(5): 058301, 2012. DOI: 10.1103/PhysRevLett.108.058301", "Gr\'egoire Montavon, Katja Hansen, Siamac Fazli, Matthias Rupp, Franziska Biegler, Andreas Ziehe, Alexandre Tkatchenko, O. Anatole von Lilienfeld, Klaus-Robert M\"uller: Learning Invariant Representations of Molecules for Atomization Energy Prediction, Advances in Neural Information Processing Systems 25 (NIPS 2012), Lake Tahoe, Nevada, USA, December 3-6, 2012."],
                 "data_contact": {
     
-                    "given_name": "Gus",
-                    "family_name": "Hart",
+                    "given_name": "O. Anatole",
+                    "family_name": "von Lilienfeld",
     
-                    "email": "gus.hart@gmail.com",
-                    "institution": "Brigham Young University",
+                    "email": "anatole@alcf.anl.gov",
+                    "institution": "Argonne National Laboratory",
                     },
     
                 "author": [{
                     
-                    "given_name": "Gus",
-                    "family_name": "Hart",
+                    "given_name": "O. Anatole",
+                    "family_name": "von Lilienfeld",
                     
-                    "email": "gus.hart@gmail.com",
-                    "instituition": "Brigham Young University"
+                    "email": "anatole@alcf.anl.gov",
+                    "instituition": "Argonne National Laboratory"
                     
                     },
                     {
                         
-                    "given_name": "Lance",
-                    "family_name": "Nelson",
+                    "given_name": "Alexandre",
+                    "family_name": "Tkatchenko",
                     
-                    "institution": "Brigham Young University"
-                    
-                    },
-                    {
-                    
-                    "given_name": "Vidvuds",
-                    "family_name": "Ozoliņš",
-                    
-                    "instituition": "University of California Los Angeles",
+                    "institution": "University of California Los Angeles, Fritz-Haber-Institut der Max-Planck-Gesellschaft"
                     
                     },
                     {
                     
-                    "given_name": "Shane",
-                    "family_name": "Reese",
+                    "given_name": "Matthias",
+                    "family_name": "Rupp",
                     
-                    "instituition": "Brigham Young University",
+                    "instituition": "Technical University of Berlin, University of California Los Angeles",
                     
                     },
                     {
                     
-                    "given_name": "Fei",
-                    "family_name": "Zhou",
+                    "given_name": "Klaus-Robert",
+                    "family_name": "Müller",
                     
-                    "instituition": "Lawrence Livermore National Laboratory",
+                    "email": "klaus-robert.mueller@tu-berlin.de",
+                    "instituition": "Technical University of Berlin, University of California Los Angeles",
                     
                     }],
     
     #            "license": ,
     
-                "collection": "bfcc13",
+                "collection": "gdb7_12",
     #            "tags": ,
     
-                "description": "4k DFT calculations for solid AgPd, CuPt and AgPt FCC superstructures. DFT/PBE energy, forces and stresses for cell sizes 1-16 across all compositions including primitive cells.",
-                "year": 2013,
+                "description": "7k small organic molecules, close to their ground states, with DFT atomization energies. 7,165 small organic molecules composed of H, C, N, O, S, saturated with H, and up to 7 non-H atoms. Molecules relaxed with an empirical potential. Atomization energies calculated using DFT with hybrid PBE0 functional.",
+                "year": 2012,
     
                 "links": {
     
-                    "landing_page": "http://qmml.org/datasets.html#bfcc-13",
+                    "landing_page": "http://qmml.org/datasets.html#gdb7-12",
     
-                    "publication": ["https://journals.aps.org/prb/abstract/10.1103/PhysRevB.88.155105"],
-                   # "data_doi": ,
+                    "publication": ["https://doi.org/10.1103/PhysRevLett.108.058301"],
+                    #"data_doi": "",
     
     #                "related_id": ,
     
-                    "tar_bz2": {
+                    "zip": {
                     
                         #"globus_endpoint": ,
                         "http_host": "http://qmml.org",
     
-                        "path": "/Datasets/bfcc-13.tar.bz2",
+                        "path": "/Datasets/gdb7-12.zip",
                         }
                     },
     
@@ -144,22 +137,17 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    errors = 0
-    for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable=not verbose):
-        try:
-            data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp-out")
-        except Exception as e:
-            #print("error: " + str(e))
-            errors +=1
+    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
         record_metadata = {
             "mdf": {
-                "title": "bfcc13 - " + data["chemical_formula"],
+                "title": "gdb7_12 " + data_file["filename"],
                 "acl": ['public'],
     
     #            "tags": ,
     #            "description": ,
                 
-                "composition": data["chemical_formula"],
+                "composition": record["chemical_formula"],
     #            "raw": ,
     
                 "links": {
@@ -170,11 +158,11 @@ def convert(input_path, metadata=None, verbose=False):
     
     #                "related_id": ,
     
-                    "data_links": {
+                    "xyz": {
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
     
-                        "path": "/collections/bfcc-13/bfcc-13/" + data_file["no_root_path"] + '/' + data_file["filename"],
+                        "path": "/collections/gdb7_12/" + data_file["filename"],
                         },
                     },
     
@@ -201,6 +189,7 @@ def convert(input_path, metadata=None, verbose=False):
     #            "structure":,
                 }
             }
+
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
 
@@ -211,5 +200,4 @@ def convert(input_path, metadata=None, verbose=False):
 
     # You're done!
     if verbose:
-        print("Total errors: " + str(errors))
         print("Finished converting")

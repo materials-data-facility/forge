@@ -2,13 +2,13 @@ import json
 import sys
 import os
 from tqdm import tqdm
-from ..parsers.ase_parser import parse_ase
 from ..utils.file_utils import find_files
+from ..parsers.ase_parser import parse_ase
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for the bfcc-13 dataset: Cluster expansion made easy with Bayesian compressive sensing
+# This is the converter for the H2O-13 dataset: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -23,75 +23,68 @@ def convert(input_path, metadata=None, verbose=False):
     if not metadata:
         dataset_metadata = {
             "mdf": {
-                "title": "Cluster expansion made easy with Bayesian compressive sensing",
+                "title": "Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water",
                 "acl": ['public'],
-                "source_name": "bfcc13",
-                "citation": ["Lance J. Nelson, Vidvuds Ozoliņš, C. Shane Reese, Fei Zhou, Gus L.W. Hart: Cluster expansion made easy with Bayesian compressive sensing, Physical Review B 88(15): 155105, 2013."],
+                "source_name": "h2o_13",
+                "citation": ["Albert P. Bartók, Michael J. Gillan, Frederick R. Manby, Gábor Csányi: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water, Physical Review B 88(5): 054104, 2013. http://dx.doi.org/10.1103/PhysRevB.88.054104"],
                 "data_contact": {
     
-                    "given_name": "Gus",
-                    "family_name": "Hart",
+                    "given_name": "Albert P.",
+                    "family_name": "Bartók",
+                    
+                    "email": "ab686@eng.cam.ac.uk",
+                    "instituition": "University of Cambridge"
     
-                    "email": "gus.hart@gmail.com",
-                    "institution": "Brigham Young University",
                     },
     
                 "author": [{
                     
-                    "given_name": "Gus",
-                    "family_name": "Hart",
+                    "given_name": "Albert P.",
+                    "family_name": "Bartók",
                     
-                    "email": "gus.hart@gmail.com",
-                    "instituition": "Brigham Young University"
+                    "email": "ab686@eng.cam.ac.uk",
+                    "instituition": "University of Cambridge"
                     
                     },
                     {
                         
-                    "given_name": "Lance",
-                    "family_name": "Nelson",
+                    "given_name": "Michael J.",
+                    "family_name": "Gillan",
                     
-                    "institution": "Brigham Young University"
-                    
-                    },
-                    {
-                    
-                    "given_name": "Vidvuds",
-                    "family_name": "Ozoliņš",
-                    
-                    "instituition": "University of California Los Angeles",
+                    "institution": "University College London"
                     
                     },
                     {
                     
-                    "given_name": "Shane",
-                    "family_name": "Reese",
+                    "given_name": "Frederick R.",
+                    "family_name": "Manby",
                     
-                    "instituition": "Brigham Young University",
+                    "instituition": "University of Bristol",
                     
                     },
                     {
                     
-                    "given_name": "Fei",
-                    "family_name": "Zhou",
+                    "given_name": "Gábor",
+                    "family_name": "Csányi",
                     
-                    "instituition": "Lawrence Livermore National Laboratory",
+                    "instituition": "University of Cambridge",
                     
                     }],
     
-    #            "license": ,
+    #            "license": "",
     
-                "collection": "bfcc13",
+                "collection": "h2o_13",
     #            "tags": ,
     
-                "description": "4k DFT calculations for solid AgPd, CuPt and AgPt FCC superstructures. DFT/PBE energy, forces and stresses for cell sizes 1-16 across all compositions including primitive cells.",
+                "description": "Water monomer and dimer geometries, with calculations at DFT, MP2 and CCSD(T) level of theory. 7k water monomer geometries corresponding to a grid, with energies and forces at DFT / BLYP, PBE, PBE0 with AV5Z basis set",
                 "year": 2013,
     
                 "links": {
     
-                    "landing_page": "http://qmml.org/datasets.html#bfcc-13",
+                    "landing_page": "http://qmml.org/datasets.html#h2o-13",
     
-                    "publication": ["https://journals.aps.org/prb/abstract/10.1103/PhysRevB.88.155105"],
-                   # "data_doi": ,
+                    "publication": ["https://doi.org/10.1103/PhysRevB.88.054104"],
+                   # "data_doi": "",
     
     #                "related_id": ,
     
@@ -100,7 +93,7 @@ def convert(input_path, metadata=None, verbose=False):
                         #"globus_endpoint": ,
                         "http_host": "http://qmml.org",
     
-                        "path": "/Datasets/bfcc-13.tar.bz2",
+                        "path": "/Datasets/h2o-13.tar.bz2",
                         }
                     },
     
@@ -144,37 +137,33 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    errors = 0
-    for data_file in tqdm(find_files(input_path, "OUTCAR"), desc="Processing files", disable=not verbose):
-        try:
-            data = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "vasp-out")
-        except Exception as e:
-            #print("error: " + str(e))
-            errors +=1
+
+    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]))
         record_metadata = {
             "mdf": {
-                "title": "bfcc13 - " + data["chemical_formula"],
+                "title": "H2O_13 - " + record["chemical_formula"],
                 "acl": ['public'],
     
     #            "tags": ,
     #            "description": ,
                 
-                "composition": data["chemical_formula"],
+                "composition": record["chemical_formula"],
     #            "raw": ,
     
                 "links": {
-                    #"landing_page": ,
+                   # "landing_page": ,
     
     #                "publication": ,
     #                "data_doi": ,
     
     #                "related_id": ,
     
-                    "data_links": {
+                    "xyz": {
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
     
-                        "path": "/collections/bfcc-13/bfcc-13/" + data_file["no_root_path"] + '/' + data_file["filename"],
+                        "path": "/collections/h2o_13/" + data_file["no_root_path"] + "/" + data_file["filename"],
                         },
                     },
     
@@ -199,8 +188,9 @@ def convert(input_path, metadata=None, verbose=False):
     
     #            "processing": ,
     #            "structure":,
-                }
+                },
             }
+
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
 
@@ -211,5 +201,4 @@ def convert(input_path, metadata=None, verbose=False):
 
     # You're done!
     if verbose:
-        print("Total errors: " + str(errors))
         print("Finished converting")

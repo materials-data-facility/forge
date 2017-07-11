@@ -1,14 +1,14 @@
 import json
 import sys
 import os
-from ..utils.file_utils import find_files
-from ..parsers.ase_parser import parse_ase
 from tqdm import tqdm
+from ..utils.file_utils import find_files
+from ..parsers.pymatgen_parser import parse_pymatgen
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the GDB7-13(QM7b) dataset: Machine learning of molecular electronic properties in chemical compound space
+# This is the converter for the gdb9-14 dataset: The Quantum chemistry structures and properties of 134 kilo molecules
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -23,10 +23,10 @@ def convert(input_path, metadata=None, verbose=False):
     if not metadata:
         dataset_metadata = {
             "mdf": {
-                "title": "Machine learning of molecular electronic properties in chemical compound space",
+                "title": "Quantum Chemistry Structures and Properties of 134 kilo Molecules",
                 "acl": ['public'],
-                "source_name": "gdb7-13",
-                "citation": ["Gr\'egoire Montavon, Matthias Rupp, Vivekanand Gobre, Alvaro Vazquez-Mayagoitia, Katja Hansen, Alexandre Tkatchenko, Klaus-Robert M\"uller, O. Anatole von Lilienfeld: Machine learning of molecular electronic properties in chemical compound space, New Journal of Physics, 15(9): 095003, IOP Publishing, 2013.DOI: 10.1088/1367-2630/15/9/095003"],
+                "source_name": "gdb9_14",
+                "citation": ["Raghunathan Ramakrishnan, Pavlo Dral, Matthias Rupp, O. Anatole von Lilienfeld: Quantum Chemistry Structures and Properties of 134 kilo Molecules, Scientific Data 1: 140022, 2014."],
                 "data_contact": {
     
                     "given_name": "O. Anatole",
@@ -47,10 +47,18 @@ def convert(input_path, metadata=None, verbose=False):
                     },
                     {
                         
-                    "given_name": "Grégoire",
-                    "family_name": "Montavon",
+                    "given_name": "Raghunathan",
+                    "family_name": "Ramakrishnan",
                     
-                    "institution": "Technical University of Berlin"
+                    "institution": "University of Basel"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Pavlo O.",
+                    "family_name": "Dral",
+                    
+                    "instituition": "Max-Planck-Institut für Kohlenforschung, University of Erlangen-Nuremberg",
                     
                     },
                     {
@@ -58,66 +66,24 @@ def convert(input_path, metadata=None, verbose=False):
                     "given_name": "Matthias",
                     "family_name": "Rupp",
                     
-                    "instituition": "Institute of Pharmaceutical Sciences, ETH Zurich",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Vivekanand",
-                    "family_name": "Gobre",
-                    
-                    "instituition": "Fritz-Haber-Institut der Max-Planck-Gesellschaft",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Alvaro",
-                    "family_name": "Vazquez-Mayagoitia",
-                    
-                    "instituition": "Argonne National Laboratory",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Katja",
-                    "family_name": "Hansen",
-                    
-                    "instituition": "Fritz-Haber-Institut der Max-Planck-Gesellschaft",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Alexandre",
-                    "family_name": "Tkatchenko",
-                    
-                    "email": "tkatchen@fhi-berlin.mpg.de",
-                    "instituition": "Fritz-Haber-Institut der Max-Planck-Gesellschaft, Pohang University of Science and Technology",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Klaus-Robert",
-                    "family_name": "Müller",
-                    
-                    "email": "klaus-robert.mueller@tu-berlin.de",
-                    "instituition": "Technical University of Berlin, Korea University",
+                    "instituition": "University of Basel",
                     
                     }],
     
-                "license": "https://creativecommons.org/licenses/by/3.0/",
+                "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
     
-                "collection": "gdb7-13",
-    #            "tags": ,
+                "collection": "gdb9_14",
+                "tags": ["Computational chemistry", "Density functional theory", "Quantum chemistry"],
     
-                "description": "7k small organic molecules, in their ground state, 14 combinations of properties and theory levels. 7,211 small organic molecules composed of H, C, N, O, S, Cl, saturated with H, and up to 7 non-H atoms. Molecules relaxed using DFT with PBE functional. Properties are atomization energy (DFT/PBE0), averaged polarizability (DFT/PBE0, SCS), HOMO and LUMO eigenvalues (GW, DFT/PBE0, ZINDO), and, ionization potential, electron affinity, first excitation energy, frequency of maximal absorption (all ZINDO).",
-                "year": 2013,
+                "description": "133,885 small organic molecules with up to 9 C, O, N, F atoms, saturated with H. Geometries, harmonic frequencies, dipole moments, polarizabilities, energies, enthalpies, and free energies of atomization at the DFT/B3LYP/6-31G(2df,p) level of theory. For a subset of 6,095 constitutional isomers of C7H10O2, energies, enthalpies, and free energies of atomization are provided at the G4MP2 level of theory.",
+                "year": 2014,
     
                 "links": {
     
-                    "landing_page": "http://qmml.org/datasets.html#gdb7-13",
+                    "landing_page": "http://qmml.org/datasets.html#gdb9-14",
     
-                    "publication": ["http://dx.doi.org/10.1088/1367-2630/15/9/095003"],
-                    #"data_doi": "",
+                    "publication": ["http://dx.doi.org/10.1038/sdata.2014.22"],
+                   # "data_doi": "",
     
     #                "related_id": ,
     
@@ -126,7 +92,7 @@ def convert(input_path, metadata=None, verbose=False):
                         #"globus_endpoint": ,
                         "http_host": "http://qmml.org",
     
-                        "path": "/Datasets/gdb7-13.zip",
+                        "path": "/Datasets/gdb9-14.zip",
                         }
                     },
     
@@ -171,21 +137,30 @@ def convert(input_path, metadata=None, verbose=False):
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
     for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
-        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
-        uri = "https://data.materialsdatafacility.org/collections/" + "gdb7-13/gdb7-13_data/" + data_file["filename"]
+        record = parse_pymatgen(os.path.join(data_file["path"], data_file["filename"]))
+        if record["structure"]:
+            comp = record["structure"]["material_composition"]
+        elif record["molecule"]:
+            comp = record["molecule"]["material_composition"]
+        index = ""
+        if data_file["no_root_path"] == "dsgdb9nsd.xyz":
+            start = data_file["filename"].find('_')
+            #index is between the underscore and ".xyz"
+            index = int(data_file["filename"][start+1:-4])
+            
         record_metadata = {
             "mdf": {
-                "title": "gdb7-13 " + data_file["filename"],
+                "title": "gdb9_14 - " + data_file["filename"],
                 "acl": ['public'],
     
     #            "tags": ,
     #            "description": ,
                 
-                "composition": record["chemical_formula"],
+                "composition": comp,
     #            "raw": ,
     
                 "links": {
-                    "landing_page": uri,
+                   # "landing_page": ,
     
     #                "publication": ,
     #                "data_doi": ,
@@ -194,9 +169,9 @@ def convert(input_path, metadata=None, verbose=False):
     
                     "xyz": {
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                        #"http_host": ,
+                        "http_host": "https://data.materialsdatafacility.org",
     
-                        "path": "/collections/gdb7-13/gdb7-13_data/" + data_file["filename"],
+                        "path": "/collections/gdb9_14/" + data_file["no_root_path"] + "/" + data_file["filename"],
                         },
                     },
     
@@ -214,13 +189,15 @@ def convert(input_path, metadata=None, verbose=False):
     #            "author": ,
     
     #            "license": ,
-    #            "collection": ,
     #            "year": ,
     
     #            "mrr":
     
     #            "processing": ,
     #            "structure":,
+                },
+            "gdb9_14": {
+                "index": index,
                 }
             }
 

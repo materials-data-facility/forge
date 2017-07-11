@@ -1,14 +1,13 @@
 import json
 import sys
 import os
-from ..utils.file_utils import find_files
-from ..parsers.ase_parser import parse_ase
 from tqdm import tqdm
+from ..parsers.tab_parser import parse_tab
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for the H2O-13 dataset: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water
+# This is the converter for: Assigned formula of complex mixture FT-ICR MS datasets
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -23,77 +22,61 @@ def convert(input_path, metadata=None, verbose=False):
     if not metadata:
         dataset_metadata = {
             "mdf": {
-                "title": "Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water",
+                "title": "Assigned formula of complex mixture FT-ICR MS datasets",
                 "acl": ['public'],
-                "source_name": "h2o-13",
-                "citation": ["Albert P. Bartók, Michael J. Gillan, Frederick R. Manby, Gábor Csányi: Machine-learning approach for one- and two-body corrections to density functional theory: Applications to molecular and condensed water, Physical Review B 88(5): 054104, 2013. http://dx.doi.org/10.1103/PhysRevB.88.054104"],
+                "source_name": "ft_icr_ms",
+                "citation": ["Blackburn, John; Uhrin, Dusan. (2017). Assigned formula of complex mixture FT-ICR MS datasets, [dataset]. University of Edinburgh. School of Chemistry. http://dx.doi.org/10.7488/ds/1984"],
                 "data_contact": {
     
-                    "given_name": "Albert P.",
-                    "family_name": "Bartók",
+                    "given_name": "Dusan",
+                    "family_name": "Uhrin",
                     
-                    "email": "ab686@eng.cam.ac.uk",
-                    "instituition": "University of Cambridge"
+                    "email": "dusan.uhrin@ed.ac.uk",
+                    "instituition": "University of Edinburgh"
     
                     },
     
                 "author": [{
+    
+                    "given_name": "John",
+                    "family_name": "Blackburn",
                     
-                    "given_name": "Albert P.",
-                    "family_name": "Bartók",
-                    
-                    "email": "ab686@eng.cam.ac.uk",
-                    "instituition": "University of Cambridge"
-                    
-                    },
-                    {
-                        
-                    "given_name": "Michael J.",
-                    "family_name": "Gillan",
-                    
-                    "institution": "University College London"
+                    "instituition": "University of Edinburgh"
                     
                     },
                     {
                     
-                    "given_name": "Frederick R.",
-                    "family_name": "Manby",
+                    "given_name": "Dusan",
+                    "family_name": "Uhrin",
                     
-                    "instituition": "University of Bristol",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Gábor",
-                    "family_name": "Csányi",
-                    
-                    "instituition": "University of Cambridge",
+                    "email": "dusan.uhrin@ed.ac.uk",
+                    "instituition": "University of Edinburgh"
                     
                     }],
     
-    #            "license": "",
+                "license": "http://creativecommons.org/licenses/by/4.0/legalcode",
     
-                "collection": "h2o-13",
-    #            "tags": ,
+                "collection": "FT-ICR MS Complex Mixtures",
+                "tags": ["ESI", "MALDI", "LDI"],
     
-                "description": "Water monomer and dimer geometries, with calculations at DFT, MP2 and CCSD(T) level of theory. 7k water monomer geometries corresponding to a grid, with energies and forces at DFT / BLYP, PBE, PBE0 with AV5Z basis set",
-                "year": 2013,
+                "description": "The dataset included is of formula assigned from FT-ICR MS data for samples of Suwannee River fulvic acid (SRFA) and Suwannee River natural organic matter (SRNOM) (both are standards from the International Humic Substances Society) using a variety of ionisation sources. This includes electrospray ionisation (ESI), matrix assisted laser desorption/ionisation (MALDI) and matrix free laser desorption/ionisation (LDI).",
+                "year": 2017,
     
                 "links": {
     
-                    "landing_page": "http://qmml.org/datasets.html#h2o-13",
+                    "landing_page": "http://datashare.is.ed.ac.uk/handle/10283/2640",
     
-                    "publication": ["https://doi.org/10.1103/PhysRevB.88.054104"],
+                    "publication": ["http://dx.doi.org/10.1021/acs.analchem.6b04817"],
                    # "data_doi": "",
     
-    #                "related_id": ,
+              #      "related_id": ,
     
-                    "tar_bz2": {
+                    "zip": {
                     
                         #"globus_endpoint": ,
-                        "http_host": "http://qmml.org",
+                        "http_host": "http://datashare.is.ed.ac.uk",
     
-                        "path": "/Datasets/h2o-13.tar.bz2",
+                        "path": "/download/10283/2640/Assigned_formula_of_complex_mixture_FT-ICR_MS_datasets.zip",
                         }
                     },
     
@@ -137,33 +120,33 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-
-    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
-        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]))
+    with open(os.path.join(input_path, "ft_icr_ms_data.txt")) as raw_in:
+        all_data = raw_in.read()
+    for record in tqdm(parse_tab(all_data, sep=";"), desc="Processing files", disable=not verbose):
         record_metadata = {
             "mdf": {
-                "title": "H2O-13 - " + record["chemical_formula"],
+                "title": "FT_ICR_MS " + record["Molecular Formula"],
                 "acl": ['public'],
     
     #            "tags": ,
     #            "description": ,
                 
-                "composition": record["chemical_formula"],
-    #            "raw": ,
+                "composition": record["Molecular Formula"],
+                "raw": json.dumps(record),
     
                 "links": {
-                   # "landing_page": ,
+    #                "landing_page": ,
     
     #                "publication": ,
     #                "data_doi": ,
     
     #                "related_id": ,
     
-                    "xyz": {
+                    "txt": {
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
     
-                        "path": "/collections/h2o-13/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        "path": "/collections/ft_icr_ms/ft_icr_ms_data.txt",
                         },
                     },
     
@@ -188,7 +171,7 @@ def convert(input_path, metadata=None, verbose=False):
     
     #            "processing": ,
     #            "structure":,
-                },
+                }
             }
 
         # Pass each individual record to the Validator
