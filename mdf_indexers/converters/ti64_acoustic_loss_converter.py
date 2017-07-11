@@ -1,10 +1,10 @@
 import json
 import sys
-from ..utils.file_utils import find_files
 from tqdm import tqdm
+from ..utils.file_utils import find_files
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: On the effect of hydrogen on the elastic moduli and acoustic loss behaviour of Ti-6Al-4V
 # Arguments:
@@ -20,99 +20,99 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "On the effect of hydrogen on the elastic moduli and acoustic loss behaviour of Ti-6Al-4V",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "ti64_acoustic_loss",
-            "mdf-citation": ["Driver, S. L., Jones, N. G., Stone, H. J., Rugg, D., & Carpenter, M. A. Research Data Supporting \"On the effect of hydrogen on the elastic moduli and acoustic loss behaviour of Ti-6Al-4V\" [Dataset]. https://doi.org/10.17863/CAM.90"],
-            "mdf-data_contact": {
-
-                "given_name": "Sarah L.",
-                "family_name": "Driver",
-                
-                "email": "sld64@cam.ac.uk",
-                "instituition": "University of Cambridge"
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Sarah L.",
-                "family_name": "Driver",
-                
-                "email": "sld64@cam.ac.uk",
-                "instituition": "University of Cambridge"
-                
-                },
-                {
-                
-                "given_name": "Nicholas G.",
-                "family_name": "Jones",
-                
-                "instituition": "University of Cambridge"
-                
-                },
-                {
-                
-                "given_name": "Howard J.",
-                "family_name": "Stone",
-                
-                "instituition": "University of Cambridge"
-                
-                },
-                {
-                
-                "given_name": "David",
-                "family_name": "Rugg",
-                
-                "instituition": "Rolls-Royce plc., Derby, UK"
-                
-                },
-                {
-                
-                "given_name": "Michael A.",
-                "family_name": "Carpenter",
-                
-                "instituition": "University of Cambridge"
-                
-                }],
-
-            "mdf-license": "http://creativecommons.org/licenses/by/4.0/",
-
-            "mdf-collection": "Ti-6Al-4V Acoustic Loss",
-            "mdf-data_format": ["txt"],
-        #    "mdf-data_type": ,
-            "mdf-tags": ["Titanium alloys", "resonant ultrasound spectroscopy", "microstructure", "mobility", "hydrogen in metals", "internal friction"],
-
-            "mdf-description": "Resonant Ultrasound Spectroscopy data of a sample of Ti-6Al-4V alloy. Response of the sample due to applied frequency is recorded at set temperatures.",
-            "mdf-year": 2016,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "https://doi.org/10.17863/CAM.90",
-
-                "mdf-publication": ["https://doi.org/10.1080/14786435.2016.1198054"],
-               # "mdf-dataset_doi": "",
-
-                #"mdf-related_id": ,
-
-                "txt": {
-                
-                    #"globus_endpoint": ,
-                    "http_host": "https://www.repository.cam.ac.uk",
-
-                    "path": "/bitstream/handle/1810/256150/ti64-rawdata.txt?sequence=1&isAllowed=y",
-                    }
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "On the effect of hydrogen on the elastic moduli and acoustic loss behaviour of Ti-6Al-4V",
+                "acl": ['public'],
+                "source_name": "ti64_acoustic_loss",
+                "citation": ["Driver, S. L., Jones, N. G., Stone, H. J., Rugg, D., & Carpenter, M. A. Research Data Supporting \"On the effect of hydrogen on the elastic moduli and acoustic loss behaviour of Ti-6Al-4V\" [Dataset]. https://doi.org/10.17863/CAM.90"],
+                "data_contact": {
+    
+                    "given_name": "Sarah L.",
+                    "family_name": "Driver",
+                    
+                    "email": "sld64@cam.ac.uk",
+                    "instituition": "University of Cambridge"
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Sarah L.",
+                    "family_name": "Driver",
+                    
+                    "email": "sld64@cam.ac.uk",
+                    "instituition": "University of Cambridge"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Nicholas G.",
+                    "family_name": "Jones",
+                    
+                    "instituition": "University of Cambridge"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Howard J.",
+                    "family_name": "Stone",
+                    
+                    "instituition": "University of Cambridge"
+                    
+                    },
+                    {
+                    
+                    "given_name": "David",
+                    "family_name": "Rugg",
+                    
+                    "instituition": "Rolls-Royce plc., Derby, UK"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Michael A.",
+                    "family_name": "Carpenter",
+                    
+                    "instituition": "University of Cambridge"
+                    
+                    }],
+    
+                "license": "http://creativecommons.org/licenses/by/4.0/",
+    
+                "collection": "Ti-6Al-4V Acoustic Loss",
+                "tags": ["Titanium alloys", "resonant ultrasound spectroscopy", "microstructure", "mobility", "hydrogen in metals", "internal friction"],
+    
+                "description": "Resonant Ultrasound Spectroscopy data of a sample of Ti-6Al-4V alloy. Response of the sample due to applied frequency is recorded at set temperatures.",
+                "year": 2016,
+    
+                "links": {
+    
+                    "landing_page": "https://doi.org/10.17863/CAM.90",
+    
+                    "publication": ["https://doi.org/10.1080/14786435.2016.1198054"],
+                   # "data_doi": "",
+    
+                    #"related_id": ,
+    
+                    "txt": {
+                    
+                        #"globus_endpoint": ,
+                        "http_host": "https://www.repository.cam.ac.uk",
+    
+                        "path": "/bitstream/handle/1810/256150/ti64-rawdata.txt?sequence=1&isAllowed=y",
+                        }
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -147,54 +147,54 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "txt"), desc="Processing records", disable=not verbose):
         temperature = data_file["filename"].split("<")[1].split(">")[0]
         record_metadata = {
-            "mdf-title": "Ti64 Acoustic Loss at " + temperature + "K",
-            "mdf-acl": ['public'],
-    
-    #         "mdf-tags": ,
-    #         "mdf-description": ,
-            
-            "mdf-composition": "Ti-6Al-4V",
-    #        "mdf-raw": ,
-    
-            "mdf-links": {
-    #            "mdf-landing_page": ,
-    
-    #            "mdf-publication": ,
-    #            "mdf-dataset_doi": ,
-    
-    #            "mdf-related_id": ,
-    
-                "txt": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-    
-                    "path": "/collections/ti64_acoustic_loss/" + data_file["filename"],
+            "mdf": {
+                "title": "Ti64 Acoustic Loss at " + temperature + "K",
+                "acl": ['public'],
+        
+        #        "tags": ,
+        #        "description": ,
+                
+                "composition": "Ti-6Al-4V",
+        #        "raw": ,
+        
+                "links": {
+        #            "landing_page": ,
+        
+        #            "publication": ,
+        #            "data_doi": ,
+        
+        #            "related_id": ,
+        
+                    "txt": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+        
+                        "path": "/collections/ti64_acoustic_loss/" + data_file["filename"],
+                        },
                     },
-                },
-    
-    #        "mdf-citation": ,
-    #        "mdf-data_contact": {
-    
-    #            "given_name": ,
-    #            "family_name": ,
-    
-    #            "email": ,
-    #            "institution":,
-    
-    #            },
-    
-    #        "mdf-author": ,
-    
-    #        "mdf-license": ,
-    #        "mdf-collection": ,
-    #        "mdf-data_format": ,
-    #        "mdf-data_type": ,
-    #        "mdf-year": ,
-    
-    #        "mdf-mrr":
-    
-    #        "mdf-processing": ,
-    #        "mdf-structure":,
+        
+        #        "citation": ,
+        #        "data_contact": {
+        
+        #            "given_name": ,
+        #            "family_name": ,
+        
+        #            "email": ,
+        #            "institution":,
+        
+        #            },
+        
+        #        "author": ,
+        
+        #        "license": ,
+        #        "collection": ,
+        #        "year": ,
+        
+        #        "mrr":
+        
+        #        "processing": ,
+        #        "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

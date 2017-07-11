@@ -1,13 +1,13 @@
 import json
 import sys
 import os
+from tqdm import tqdm
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
-from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
-
+# VERSION 0.3.0
+"""WARNING: DON'T INGEST UNTIL AFTER ASE PATCH"""
 # This is the Trinkle Mg-X-Diffusion Dataset
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
@@ -22,74 +22,74 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Mg-X-Diffusion",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "trinkle_mg_x_diffusion",
-            "mdf-citation": ["Citation for dataset Mg-X-Diffusion with author(s): Dallas Trinkle, Ravi Agarwal"],
-            "mdf-data_contact": {
-
-                "given_name": "Dallas",
-                "family_name": "Trinkle",
-
-                "email": "dtrinkle@illinois.edu",
-                "institution": "University of Illinois at Urbana-Champaign",
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Dallas",
-                "family_name": "Trinkle",
-                
-                "email": "dtrinkle@illinois.edu",
-                "instituition": "University of Illinois at Urbana-Champaign"
-                
-                },
-                {
+            "mdf": {
+                "title": "Mg-X-Diffusion",
+                "acl": ['public'],
+                "source_name": "trinkle_mg_x_diffusion",
+                "citation": ["Citation for dataset Mg-X-Diffusion with author(s): Dallas Trinkle, Ravi Agarwal"],
+                "data_contact": {
+    
+                    "given_name": "Dallas",
+                    "family_name": "Trinkle",
+    
+                    "email": "dtrinkle@illinois.edu",
+                    "institution": "University of Illinois at Urbana-Champaign",
+                    },
+    
+                "author": [{
                     
-                "given_name": "Ravi",
-                "family_name": "Agarwal",
-                
-                "institution": "University of Illinois at Urbana-Champaign"
-                
-                }],
-
-            #"mdf-license": "",
-
-            "mdf-collection": "Mg-X Diffusion Dataset",
-            "mdf-data_format": ["vasp"],
-            #"mdf-data_type": [],
-#            "mdf-tags": ,
-
-            #"mdf-description": ,
-            "mdf-year": 2017,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "https://data.materialsdatafacility.org/published/#trinkle_mg_x_diffusion",
-
-               # "mdf-publication": [""],
-                #"mdf-dataset_doi": "",
-
-#                "mdf-related_id": ,
-
-                # data links: {
-                
-                    #"globus_endpoint": ,
-                    #"http_host": ,
-
-                    #"path": ,
-                    #}
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+                    "given_name": "Dallas",
+                    "family_name": "Trinkle",
+                    
+                    "email": "dtrinkle@illinois.edu",
+                    "instituition": "University of Illinois at Urbana-Champaign"
+                    
+                    },
+                    {
+                        
+                    "given_name": "Ravi",
+                    "family_name": "Agarwal",
+                    
+                    "institution": "University of Illinois at Urbana-Champaign"
+                    
+                    }],
+    
+                #"license": "",
+    
+                "collection": "Mg-X Diffusion Dataset",
+    #            "tags": ,
+    
+                #"description": ,
+                "year": 2017,
+    
+                "links": {
+    
+                    "landing_page": "https://data.materialsdatafacility.org/published/#trinkle_mg_x_diffusion",
+    
+                   # "publication": [""],
+                    #"data_doi": "",
+    
+    #                "related_id": ,
+    
+                    # data links: {
+                    
+                        #"globus_endpoint": ,
+                        #"http_host": ,
+    
+                        #"path": ,
+                        #}
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -127,65 +127,64 @@ def convert(input_path, metadata=None, verbose=False):
         except Exception as e:
             #print("Error on: " + data_file["path"] + "/" + data_file["filename"] + "\n" + repr(e))
             total_errors +=1
-        uri = "https://data.materialsdatafacility.org/collections/" + "mg-x/" + data_file["no_root_path"] + "/" + data_file["filename"]
         record_metadata = {
-            "mdf-title": "Mg-X Diffusion - ",
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            #"mdf-composition": ,
-#            "mdf-raw": ,
-
-            "mdf-links": {
-                "mdf-landing_page": uri,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "data_links": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    #"http_host": ,
-
-                    "path": "/collections/mg-x/" + data_file["no_root_path"] + "/" + data_file["filename"],
+            "mdf": {
+                "title": "Mg-X Diffusion - ",
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                #"composition": ,
+    #            "raw": ,
+    
+                "links": {
+                    #"landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "outcar": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/mg-x/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
         try:
-            record_metadata["mdf-composition"] = record["chemical_formula"]
-            record_metadata["mdf-title"] +=  record["chemical_formula"]
+            record_metadata["mdf"]["composition"] = record["mdf"]["chemical_formula"]
+            record_metadata["mdf"]["title"] +=  record["mdf"]["chemical_formula"]
         except:
             #parse_ase unable to read composition of record 1386: https://data.materialsdatafacility.org/collections/mg-x/Elements/Eu/Mg-X_Eu/OUTCAR
             #Placing in the correct material composition
-            record_metadata["mdf-composition"] = "EuMg149"
-            record_metadata["mdf-title"] += "EuMg149"
+            record_metadata["mdf"]["composition"] = "EuMg149"
+            record_metadata["mdf"]["title"] += "EuMg149"
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)

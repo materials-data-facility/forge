@@ -1,12 +1,12 @@
 import json
 import sys
 import os
+from tqdm import tqdm
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
-from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: Neighborhood Behavior: A Useful Concept for Validation of “Molecular Diversity” Descriptors
 
@@ -23,89 +23,89 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "Neighborhood Behavior:  A Useful Concept for Validation of “Molecular Diversity” Descriptors",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "qsar_molecular_diversity",
-            "mdf-citation": ["David E Patterson, Richard D Cramer, Allan M Ferguson, Robert D Clark, Laurence W Weinberger. Neighbourhood Behaviour: A Useful Concept for Validation of \"Molecular Diversity\" Descriptors. J. Med. Chem. 1996 (39) 3049 - 3059."],
-            "mdf-data_contact": {
-
-                "given_name": "Richard D.",
-                "family_name": "Cramer",
-                
-                "email": "cramer@tripos.com",
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "David E.",
-                "family_name": "Patterson",
-                
-                },
-                {
-                
-                "given_name": "Richard D.",
-                "family_name": "Cramer",
-                
-                "email": "cramer@tripos.com",
-                
-                },
-                {
-                
-                "given_name": "Allan M.",
-                "family_name": "Ferguson",
-                
-                },
-                {
-                
-                "given_name": "Robert D.",
-                "family_name": "Clark",
-                
-                },
-                {
-                
-                "given_name": "Laurence E.",
-                "family_name": "Weinberger",
-                
-                }],
-
-          #  "mdf-license": "",
-
-            "mdf-collection": "QSAR Molecular Diversity",
-            "mdf-data_format": ["sdf"],
-            "mdf-data_type":["QSAR"] ,
-            #"mdf-tags": ,
-
-            "mdf-description": "If a molecular descriptor is to be a valid and useful measure of “similarity” in drug discovery, a plot of differences in its values vs differences in biological activities for a set of related molecules will exhibit a characteristic trapezoidal distribution enhancement, revealing a “neighborhood behavior” for the descriptor. Applying this finding to 20 datasets allows 11 molecular diversity descriptors to be ranked by their validity for compound library design",
-            "mdf-year": 1996,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "ftp://ftp.ics.uci.edu/pub/baldig/learning/Patterson/",
-
-                "mdf-publication": ["http://pubs.acs.org/doi/abs/10.1021/jm960290n"],
-              #  "mdf-dataset_doi": ,
-
-               # "mdf-related_id": ,
-
-                # data links: {
-                
-                    #"globus_endpoint": ,
-                    #"http_host": ,
-
-                    #"path": ,
-                    #}
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "Neighborhood Behavior:  A Useful Concept for Validation of “Molecular Diversity” Descriptors",
+                "acl": ['public'],
+                "source_name": "qsar_molecular_diversity",
+                "citation": ["David E Patterson, Richard D Cramer, Allan M Ferguson, Robert D Clark, Laurence W Weinberger. Neighbourhood Behaviour: A Useful Concept for Validation of \"Molecular Diversity\" Descriptors. J. Med. Chem. 1996 (39) 3049 - 3059."],
+                "data_contact": {
+    
+                    "given_name": "Richard D.",
+                    "family_name": "Cramer",
+                    
+                    "email": "cramer@tripos.com",
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "David E.",
+                    "family_name": "Patterson",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Richard D.",
+                    "family_name": "Cramer",
+                    
+                    "email": "cramer@tripos.com",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Allan M.",
+                    "family_name": "Ferguson",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Robert D.",
+                    "family_name": "Clark",
+                    
+                    },
+                    {
+                    
+                    "given_name": "Laurence E.",
+                    "family_name": "Weinberger",
+                    
+                    }],
+    
+              #  "license": "",
+    
+                "collection": "QSAR Molecular Diversity",
+                #"tags": ,
+    
+                "description": "If a molecular descriptor is to be a valid and useful measure of “similarity” in drug discovery, a plot of differences in its values vs differences in biological activities for a set of related molecules will exhibit a characteristic trapezoidal distribution enhancement, revealing a “neighborhood behavior” for the descriptor. Applying this finding to 20 datasets allows 11 molecular diversity descriptors to be ranked by their validity for compound library design",
+                "year": 1996,
+    
+                "links": {
+    
+                    "landing_page": "ftp://ftp.ics.uci.edu/pub/baldig/learning/Patterson/",
+    
+                    "publication": ["http://pubs.acs.org/doi/abs/10.1021/jm960290n"],
+                  #  "data_doi": ,
+    
+                   # "related_id": ,
+    
+                    # data links: {
+                    
+                        #"globus_endpoint": ,
+                        #"http_host": ,
+    
+                        #"path": ,
+                        #}
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -139,54 +139,54 @@ def convert(input_path, metadata=None, verbose=False):
     for data_file in tqdm(find_files(input_path, "sdf"), desc="Processing files", disable=not verbose):
         record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "sdf")
         record_metadata = {
-            "mdf-title": "QSAR Molecular Diversity - " + record["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["chemical_formula"],
-            "mdf-raw": json.dumps(record),
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "sdf": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/qsar_molecular_diversity/" + data_file["no_root_path"] + "/" + data_file["filename"],
+            "mdf": {
+                "title": "QSAR Molecular Diversity - " + record["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["chemical_formula"],
+                "raw": json.dumps(record),
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "sdf": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/qsar_molecular_diversity/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        },
                     },
-                },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
+                }
             }
 
         # Pass each individual record to the Validator

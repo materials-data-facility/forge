@@ -1,12 +1,12 @@
 import json
 import sys
 import os
+from tqdm import tqdm
 from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
-from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
-# VERSION 0.2.0
+# VERSION 0.3.0
 
 # This is the converter for: The CoMFA steroids as a benchmark dataset for development of 3D QSAR methods
 # Arguments:
@@ -22,67 +22,67 @@ def convert(input_path, metadata=None, verbose=False):
     # Collect the metadata
     if not metadata:
         dataset_metadata = {
-            "mdf-title": "The CoMFA steroids as a benchmark dataset for development of 3D QSAR methods",
-            "mdf-acl": ['public'],
-            "mdf-source_name": "qsar_comfa_steroids",
-            "mdf-citation": ["Coats, E.A. Perspectives in Drug Discovery and Design (1998) 12: 199. doi:10.1023/A:1017050508855"],
-            "mdf-data_contact": {
-
-                "given_name": "Eugene A.",
-                "family_name": "Coats",
-                
-                "email": "eugene.coats^q*amylin.com",
-                "instituition": "Amylin Pharmaceuticals, Inc."
-
-                },
-
-            "mdf-author": [{
-                
-                "given_name": "Eugene A.",
-                "family_name": "Coats",
-                
-                "email": "eugene.coats^q*amylin.com",
-                "instituition": "Amylin Pharmaceuticals, Inc."
-                
-                }],
-
-          #  "mdf-license": "",
-
-            "mdf-collection": "QSAR CoMFA Steroids",
-            "mdf-data_format": ["sdf"],
-            "mdf-data_type": ["QSAR"],
-            #"mdf-tags": ,
-
-            "mdf-description": "31 Steroids with Corticosteroid Binding Globulin (CBG) receptor affinity",
-            "mdf-year": 1998,
-
-            "mdf-links": {
-
-                "mdf-landing_page": "http://www2.chemie.uni-erlangen.de/services/steroids/",
-
-                "mdf-publication": ["https://link.springer.com/article/10.1023%2FA%3A1017050508855"],
-              #  "mdf-dataset_doi": ,
-
-            #    "mdf-related_id": ,
-
-                # data links: {
-                
-                    #"globus_endpoint": ,
-                    #"http_host": ,
-
-                    #"path": ,
-                    #}
-                },
-
-#            "mdf-mrr": ,
-
-            "mdf-data_contributor": [{
-                "given_name": "Evan",
-                "family_name": "Pike",
-                "email": "dep78@uchicago.edu",
-                "institution": "The University of Chicago",
-                "github": "dep78"
-                }]
+            "mdf": {
+                "title": "The CoMFA steroids as a benchmark dataset for development of 3D QSAR methods",
+                "acl": ['public'],
+                "source_name": "qsar_comfa_steroids",
+                "citation": ["Coats, E.A. Perspectives in Drug Discovery and Design (1998) 12: 199. doi:10.1023/A:1017050508855"],
+                "data_contact": {
+    
+                    "given_name": "Eugene A.",
+                    "family_name": "Coats",
+                    
+                    "email": "eugene.coats^q*amylin.com",
+                    "instituition": "Amylin Pharmaceuticals, Inc."
+    
+                    },
+    
+                "author": [{
+                    
+                    "given_name": "Eugene A.",
+                    "family_name": "Coats",
+                    
+                    "email": "eugene.coats^q*amylin.com",
+                    "instituition": "Amylin Pharmaceuticals, Inc."
+                    
+                    }],
+    
+              #  "license": "",
+    
+                "collection": "QSAR CoMFA Steroids",
+                #"tags": ,
+    
+                "description": "31 Steroids with Corticosteroid Binding Globulin (CBG) receptor affinity",
+                "year": 1998,
+    
+                "links": {
+    
+                    "landing_page": "http://www2.chemie.uni-erlangen.de/services/steroids/",
+    
+                    "publication": ["https://link.springer.com/article/10.1023%2FA%3A1017050508855"],
+                  #  "data_doi": ,
+    
+                #    "related_id": ,
+    
+                    # data links: {
+                    
+                        #"globus_endpoint": ,
+                        #"http_host": ,
+    
+                        #"path": ,
+                        #}
+                    },
+    
+    #            "mrr": ,
+    
+                "data_contributor": [{
+                    "given_name": "Evan",
+                    "family_name": "Pike",
+                    "email": "dep78@uchicago.edu",
+                    "institution": "The University of Chicago",
+                    "github": "dep78"
+                    }]
+                }
             }
         
     elif type(metadata) is str:
@@ -121,61 +121,61 @@ def convert(input_path, metadata=None, verbose=False):
             activity_lst = raw_in.readlines()[14:]
         activity_data = activity_lst[i].split("  ")
         record_metadata = {
-            "mdf-title": "QSAR CoMFA Steroids - " + record["chemical_formula"],
-            "mdf-acl": ['public'],
-
-#            "mdf-tags": ,
-#            "mdf-description": ,
-            
-            "mdf-composition": record["chemical_formula"],
-          #  "mdf-raw": json.dumps(record),
-
-            "mdf-links": {
-#                "mdf-landing_page": ,
-
-#                "mdf-publication": ,
-#                "mdf-dataset_doi": ,
-
-#                "mdf-related_id": ,
-
-                "sdf": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/qsar_comfa_steroids/" + data_file["no_root_path"] + "/" + data_file["filename"],
+            "mdf": {
+                "title": "QSAR CoMFA Steroids - " + record["chemical_formula"],
+                "acl": ['public'],
+    
+    #            "tags": ,
+    #            "description": ,
+                
+                "composition": record["chemical_formula"],
+              #  "raw": json.dumps(record),
+    
+                "links": {
+    #                "landing_page": ,
+    
+    #                "publication": ,
+    #                "data_doi": ,
+    
+    #                "related_id": ,
+    
+                    "sdf": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/qsar_comfa_steroids/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        },
+                    "txt": {
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+    
+                        "path": "/collections/qsar_comfa_steroids/activity.txt",
+                        }
                     },
-                "txt": {
-                    "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
-                    "http_host": "https://data.materialsdatafacility.org",
-
-                    "path": "/collections/qsar_comfa_steroids/activity.txt",
-                    }
+    
+    #            "citation": ,
+    #            "data_contact": {
+    
+    #                "given_name": ,
+    #                "family_name": ,
+    
+    #                "email": ,
+    #                "institution":,
+    
+    #                },
+    
+    #            "author": ,
+    
+    #            "license": ,
+    #            "collection": ,
+    #            "year": ,
+    
+    #            "mrr":
+    
+    #            "processing": ,
+    #            "structure":,
                 },
-
-#            "mdf-citation": ,
-#            "mdf-data_contact": {
-
-#                "given_name": ,
-#                "family_name": ,
-
-#                "email": ,
-#                "institution":,
-
-#                },
-
-#            "mdf-author": ,
-
-#            "mdf-license": ,
-#            "mdf-collection": ,
-#            "mdf-data_format": ,
-#            "mdf-data_type": ,
-#            "mdf-year": ,
-
-#            "mdf-mrr":
-
-#            "mdf-processing": ,
-#            "mdf-structure":,
-            "other_data": {
+            "qsar_comfa_steroids": {
                 "pK(log_1/K)": activity_data[0],
                 "activity_class": activity_data[1],
                 "compound_name": activity_data[2][:-1],
