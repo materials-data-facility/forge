@@ -65,7 +65,7 @@ if __name__ == "__main__":
         call_harvester(sys.argv[2])
 
     elif sys.argv[1].strip(" -").lower() in convert:
-        call_converter(*sys.argv[2:])
+        call_converter(sys.argv[2:])
 
     elif sys.argv[1].strip(" -").lower() in ingest:
         if sys.argv[2] == "--index" or sys.argv[2] == "--globus-index":
