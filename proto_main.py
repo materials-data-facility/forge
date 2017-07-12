@@ -52,12 +52,22 @@ def call_acceptor(sources="all", remove_old=True, verbose=VERBOSE):
                 print(res)
 
 
+def call_md_only_converter(source_name, verbose=VERBOSE):
+    if type(source_name) is not list:
+        source_name = [source_name]
+    for src_nm in source_name:
+        converter = import_module("mdf_indexers.converters.metadata_only_converter")
+        md_path = "mdf_indexers/datasets/metadata_only/" + src_nm + ".json"
+        converter.convert(md_path, verbose)
+
+
 if __name__ == "__main__":
     import sys
     harvest = ["h", "harvester", "harvest"]
     convert = ["c", "converter", "convert"]
     ingest = ["i", "ingester", "ingest"]
     accept = ["a", "acceptor", "accept"]
+    md_only = ["m", "md", "metadata-only"]
     if len(sys.argv) < 2:
         print("Usage statement coming soon")
 
@@ -87,6 +97,9 @@ if __name__ == "__main__":
         else:
             remove_old = False
         call_acceptor(sys.argv[3:] or "all", remove_old=remove_old)
+
+    elif sys.argv[1].strip(" -").lower() in md_only:
+        call_md_only_converter(sys.argv[2:])
 
     else:
         print("Invalid option")

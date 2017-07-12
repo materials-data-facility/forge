@@ -7,12 +7,10 @@ from ..validator.schema_validator import Validator
 
 # This is the converter for datasets that cannot be meaningfully deeply indexed.
 # Arguments:
-#   input_path (string): The file or directory where the data resides.
-#       NOTE: Do not hard-code the path to the data in the converter. The converter should be portable.
-#   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata, or None to specify the metadata here. Default None.
+#   metadata (string or dict): The path to the JSON dataset metadata file, a dict or json.dumps string containing the dataset metadata.
 #   verbose (bool): Should the script print status messages to standard output? Default False.
 #       NOTE: The converter should have NO output if verbose is False, unless there is an error.
-def convert(input_path, metadata=None, verbose=False):
+def convert(metadata, verbose=False):
     if verbose:
         print("Begin converting")
 

@@ -183,7 +183,6 @@ def convert(input_path, metadata=None, verbose=False):
 
 
         # Get the data
-        # TODO: Write the code to convert your dataset's records into JSON-serializable Python dictionaries
         #    Each record should be exactly one dictionary
         #    You must write your records using the Validator one at a time
         #    It is recommended that you use a parser to help with this process if one is available for your datatype
@@ -312,7 +311,6 @@ def convert(input_path, metadata=None, verbose=False):
                 raise ValueError(result["message"] + "\n" + result.get("details", ""))
 
 
-    # TODO: Save your converter as [mdf-source_name]_converter.py
     # You're done!
     if verbose:
         print("Finished converting")

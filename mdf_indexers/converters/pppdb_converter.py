@@ -186,7 +186,7 @@ def convert(input_path, metadata=None, verbose=False):
             "links": {
                 "landing_page": "http://pppdb.uchicago.edu?&id="+str(record["pppdb_id"]),
 
-                "publication": [str(record.pop("doi"))],
+                "publication": [str(record["doi"])],
 #                "dataset_doi": ,
 
 #                "related_id": ,
@@ -199,7 +199,7 @@ def convert(input_path, metadata=None, verbose=False):
                     #"path": ,
                     #},
 
-#            "citation": ,
+#            "citation": record["reference"],
 #            "data_contact": {
 
 #                "given_name": ,
@@ -223,9 +223,30 @@ def convert(input_path, metadata=None, verbose=False):
 
 #            "processing": ,
 #            "structure":,
-            }
+            },
+        "pppdb": {
+#            "doi": record["doi"],
+            "type" : record["type"],
+            "temperature" : record["temperature"],
+            "tempunit" : record["tempunit"],
+            "chinumber" : record["chinumber"],
+            "chierror" : record["chierror"],
+#            "chia" : record["chia"],
+#            "chiaerror" : record["chiaerror"],
+#            "chib" : record["chib"],
+#            "chiberror" : record["chiberror"],
+#            "chic" : record["chic"],
+#            "chicerror" : record["chicerror"],
+#            "notes" : record["notes"],
+#            "indirect" : record["indirect"],
+            "reference" : record["reference"],
+#            "compound1" : record["compound1"],
+#            "compound2" : record["compound2"],
+            "authors" : record["authors"],
+            "date" : record["date"],
+            "id": record["pppdb_id"]
         }
-        record_metadata["pppdb"] = record
+        }
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
