@@ -8,8 +8,7 @@ from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for: Neighborhood Behavior: A Useful Concept for Validation of “Molecular Diversity” Descriptors
-
+# This is the converter for: Pore Shape Modification of a Microporous Metal–Organic Framework Using High Pressure: Accessing a New Phase with Oversized Guest Molecules
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -24,76 +23,110 @@ def convert(input_path, metadata=None, verbose=False):
     if not metadata:
         dataset_metadata = {
             "mdf": {
-                "title": "Neighborhood Behavior:  A Useful Concept for Validation of “Molecular Diversity” Descriptors",
+                "title": "Pore Shape Modification of a Microporous Metal–Organic Framework Using High Pressure: Accessing a New Phase with Oversized Guest Molecules",
                 "acl": ['public'],
-                "source_name": "qsar_molecular_diversity",
-                "citation": ["David E Patterson, Richard D Cramer, Allan M Ferguson, Robert D Clark, Laurence W Weinberger. Neighbourhood Behaviour: A Useful Concept for Validation of \"Molecular Diversity\" Descriptors. J. Med. Chem. 1996 (39) 3049 - 3059."],
+                "source_name": "porous_mof",
+                "citation": ["The University of Edinburgh School of Chemistry. (2016). Pore Shape Modification of a Microporous Metal-Organic Frame-work Using High Pressure: Accessing a New Phase with Oversized Guest Molecules, [dataset]. http://dx.doi.org/10.7488/ds/371."],
                 "data_contact": {
     
-                    "given_name": "Richard D.",
-                    "family_name": "Cramer",
+                    "given_name": "Stephen A.",
+                    "family_name": "Moggach",
                     
-                    "email": "cramer@tripos.com",
+                    "email": "s.moggach@ed.ac.uk",
+                    "instituition": "University of Edinburgh"
     
                     },
     
                 "author": [{
                     
-                    "given_name": "David E.",
-                    "family_name": "Patterson",
+                    "given_name": "Stephen A.",
+                    "family_name": "Moggach",
+                    
+                    "email": "s.moggach@ed.ac.uk",
+                    "instituition": "University of Edinburgh"
                     
                     },
                     {
                     
-                    "given_name": "Richard D.",
-                    "family_name": "Cramer",
+                    "given_name": "Scott C.",
+                    "family_name": "McKellar",
                     
-                    "email": "cramer@tripos.com",
-                    
-                    },
-                    {
-                    
-                    "given_name": "Allan M.",
-                    "family_name": "Ferguson",
+                    "instituition": "University of Edinburgh"
                     
                     },
                     {
                     
-                    "given_name": "Robert D.",
-                    "family_name": "Clark",
+                    "given_name": "Jorge",
+                    "family_name": "Sotelo",
+                    
+                    "instituition": "University of Edinburgh"
                     
                     },
                     {
                     
-                    "given_name": "Laurence E.",
-                    "family_name": "Weinberger",
+                    "given_name": "Alex",
+                    "family_name": "Greenaway",
+                    
+                    "instituition": "University of St Andrews"
+                    
+                    },
+                    {
+                    
+                    "given_name": "John P. S.",
+                    "family_name": "Mowat",
+                    
+                    "instituition": "University of St Andrews"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Odin",
+                    "family_name": "Kvam",
+                    
+                    "instituition": "University of Edinburgh"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Carole A.",
+                    "family_name": "Morrison",
+                    
+                    "instituition": "University of Edinburgh"
+                    
+                    },
+                    {
+                    
+                    "given_name": "Paul A.",
+                    "family_name": "Wright",
+                    
+                    "instituition": "University of St Andrews"
                     
                     }],
     
-              #  "license": "",
+                "license": "http://creativecommons.org/licenses/by/4.0/legalcode",
     
-                "collection": "QSAR Molecular Diversity",
+                "collection": "Porous Metal-Organic-Framework",
                 #"tags": ,
     
-                "description": "If a molecular descriptor is to be a valid and useful measure of “similarity” in drug discovery, a plot of differences in its values vs differences in biological activities for a set of related molecules will exhibit a characteristic trapezoidal distribution enhancement, revealing a “neighborhood behavior” for the descriptor. Applying this finding to 20 datasets allows 11 molecular diversity descriptors to be ranked by their validity for compound library design",
-                "year": 1996,
+                "description": "Pressures up to 0.8 GPa have been used to squeeze a range of sterically “oversized” C5–C8 alkane guest molecules into the cavities of a small-pore Sc-based metal–organic framework. Guest inclusion causes a pronounced reorientation of the aromatic rings of one-third of the terephthalate linkers, which act as “torsion springs”, resulting in a fully reversible change in the local pore structure. The study demonstrates how pressure-induced guest uptake can be used to investigate framework flexibility relevant to “breathing” behavior and to understand the uptake of guest molecules in MOFs relevant to hydrocarbon separation.",
+                "year": 2015,
     
                 "links": {
     
-                    "landing_page": "ftp://ftp.ics.uci.edu/pub/baldig/learning/Patterson/",
+                    "landing_page": "http://datashare.is.ed.ac.uk/handle/10283/942",
     
-                    "publication": ["http://pubs.acs.org/doi/abs/10.1021/jm960290n"],
-                  #  "data_doi": ,
+                    "publication": ["http://dx.doi.org/10.1021/acs.chemmater.5b02891"],
+                    "data_doi": "http://dx.doi.org//10.7488/ds/371",
     
-                   # "related_id": ,
+                    #"related_id": ,
     
-                    # data links: {
+                    "zip": {
                     
                         #"globus_endpoint": ,
-                        #"http_host": ,
+                        "http_host": "http://datashare.is.ed.ac.uk",
     
-                        #"path": ,
-                        #}
+                        "path": "/download/10283/942/Pore_Shape_Modification_of_a_Microporous_Metal-Organic_Frame-work_Using_High_Pressure:_Accessing_a_New_Phase_with_Oversized_Guest_Molecules.zip",
+                        }
                     },
     
     #            "mrr": ,
@@ -136,18 +169,18 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, "sdf"), desc="Processing files", disable=not verbose):
-        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "sdf")
+    for data_file in tqdm(find_files(input_path, "cif"), desc="Processing files", disable=not verbose):
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "cif")
         record_metadata = {
             "mdf": {
-                "title": "QSAR Molecular Diversity - " + record["chemical_formula"],
+                "title": "Metal-Organic-Frame-Work - " + record["chemical_formula"],
                 "acl": ['public'],
     
     #            "tags": ,
     #            "description": ,
                 
                 "composition": record["chemical_formula"],
-               # "raw": json.dumps(record),
+    #            "raw": ,
     
                 "links": {
     #                "landing_page": ,
@@ -157,11 +190,11 @@ def convert(input_path, metadata=None, verbose=False):
     
     #                "related_id": ,
     
-                    "sdf": {
+                    "cif": {
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
     
-                        "path": "/collections/qsar_molecular_diversity/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        "path": "/collections/porous_mof/" + data_file["no_root_path"] + "/" + data_file["filename"],
                         },
                     },
     
