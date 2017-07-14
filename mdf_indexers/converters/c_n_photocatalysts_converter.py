@@ -7,8 +7,8 @@ from ..parsers.ase_parser import parse_ase
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
-"""On Zenodo it says that there will be an upcoming publication, so revisit the website for update"""
-# This is the converter for: Platinum pyridine cations: the DFT optimized geometries
+
+# This is the converter for: Time-Resolved Spectroscopic Investigation of Charge Trapping in Carbon Nitrides Photocatalysts for Hydrogen Generation
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -30,16 +30,16 @@ def convert(input_path, metadata=None, verbose=False):
         dataset_metadata = {
             "mdf": {
 
-                "title": "Platinum pyridine cations: the DFT optimized geometries",
+                "title": "Time-Resolved Spectroscopic Investigation of Charge Trapping in Carbon Nitrides Photocatalysts for Hydrogen Generation",
                 "acl": ["public"],
-                "source_name": "pt_pyridine_cations",
+                "source_name": "c_n_photocatalysts",
 
                 "data_contact": {
                     
-                    "given_name": "Alexander",
-                    "family_name": "Markov",
-                    "email": "sasha-markov.net",
-                    "institution": "Kurnakov Institute of General and Inorganic Chemistry of RAS",
+                    "given_name": "James",
+                    "family_name": "Durrant",
+                    "email": "j.durrant@imperial.ac.uk",
+                    "institution": "Imperial College London",
 
                 },
 
@@ -53,27 +53,55 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "citation": ["Markov, A. (2015). Platinum pyridine cations: the DFT optimized geometries [Data set]. Zenodo. http://doi.org/10.5281/zenodo.31335"],
+                "citation": ["Godin, Robert, Wang, Yiou, Zwijnenburg, Martijn A., Tang, Junwang, & Durrant, James. (2017). Data for article: Time-Resolved Spectroscopic Investigation of Charge Trapping in Carbon Nitrides Photocatalysts for Hydrogen Generation [Data set]. Journal of the American Chemical Society. Zenodo. http://doi.org/10.5281/zenodo.400776"],
 
                 "author": [{
 
-                    "given_name": "Alexander",
-                    "family_name": "Markov",
-                    "email": "sasha-markov.net",
-                    "institution": "Kurnakov Institute of General and Inorganic Chemistry of RAS",
+                    "given_name": "James",
+                    "family_name": "Durrant",
+                    "email": "j.durrant@imperial.ac.uk",
+                    "institution": "Imperial College London",
+
+                },
+                {
+
+                    "given_name": "Junwang",
+                    "family_name": "Tang",
+                    "institution": "University College London",
+
+                },
+                {
+
+                    "given_name": "Martijn A.",
+                    "family_name": "Zwijnenburg",
+                    "institution": "University College London",
+
+                },
+                {
+
+                    "given_name": "Yiou",
+                    "family_name": "Wang",
+                    "institution": "University College London",
+
+                },
+                {
+
+                    "given_name": "Robert",
+                    "family_name": "Godin",
+                    "institution": "Imperial College London",
 
                 }],
 
-                "license": "https://creativecommons.org/publicdomain/zero/1.0/",
-                "collection": "Platinum Pyridine Cations",
-                "tags": ["platinum", "dft", "computational chemistry"],
-                "description": "The geometries were optimized with the hybrid M06 functional, the mDZP all-electron basis set for platinum atom, and the def2-TZVP basis set for light atoms.",
-                "year": 2015,
+                "license": "https://creativecommons.org/licenses/by/4.0/",
+                "collection": "Carbon Nitrides Photocatalysts for Hydrogen Generation",
+                "tags": ["Transient absorption spectroscopy", "DFT structures"],
+                "description": "Carbon nitride (g-C3N4) as a benchmark polymer photocatalyst is attracting significant research interest because of its visible light photocatalytic performance combined with good stability and facile synthesis. However, little is known about the fundamental photophysical processes of g-C3N4, which are key to explain and promote photoactivity. Using time-resolved absorption and photoluminescence spectroscopies, we have investigated the photophysics of a series of carbon nitrides on time scales ranging from femtoseconds to seconds.",
+                "year": 2017,
 
                 "links": {
 
-                    "landing_page": "http://doi.org/10.5281/zenodo.31335",
-                    #"publication": [""],
+                    "landing_page": "https://doi.org/10.5281/zenodo.400776",
+                    "publication": ["https://doi.org/10.1021/jacs.7b01547"],
                     #"data_doi": "",
                     #"related_id": ,
 
@@ -132,13 +160,13 @@ def convert(input_path, metadata=None, verbose=False):
         record_metadata = {
             "mdf": {
 
-                "title": "Platinum Pyridine Cations - " + record["chemical_formula"],
+                "title": "Carbon Nitrides Photocatalysts - " + record["chemical_formula"],
                 "acl": ["public"],
                 "composition": record["chemical_formula"],
 
 #                "tags": ,
 #                "description": ,
-               # "raw": json.dumps(record),
+                #"raw": json.dumps(record),
 
                 "links": {
 
@@ -152,8 +180,15 @@ def convert(input_path, metadata=None, verbose=False):
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
 
-                        "path": "/collections/pt_pyridine_cations/" + data_file["filename"],
+                        "path": "/collections/c_n_photocatalysts/" + data_file["filename"],
                         },
+                    "xlsx": {
+
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+
+                        "path": "/collections/c_n_photocatalysts/Godin_JACS_Charge_Trapping_in_Carbon_Nitrides_plotted_data.xlsx",
+                        }
                     },
 
 #                "citation": ,

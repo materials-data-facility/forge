@@ -7,8 +7,8 @@ from ..parsers.ase_parser import parse_ase
 from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
-"""On Zenodo it says that there will be an upcoming publication, so revisit the website for update"""
-# This is the converter for: Platinum pyridine cations: the DFT optimized geometries
+
+# This is the converter for: Theoretical Investigations and Density Functional Theory Based Quantitative Structure–Activity Relationships Model for Novel Cytotoxic Platinum(IV) Complexes
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -30,16 +30,16 @@ def convert(input_path, metadata=None, verbose=False):
         dataset_metadata = {
             "mdf": {
 
-                "title": "Platinum pyridine cations: the DFT optimized geometries",
+                "title": "Theoretical Investigations and Density Functional Theory Based Quantitative Structure–Activity Relationships Model for Novel Cytotoxic Platinum(IV) Complexes",
                 "acl": ["public"],
-                "source_name": "pt_pyridine_cations",
+                "source_name": "cytotoxic_pt_complexes",
 
                 "data_contact": {
                     
-                    "given_name": "Alexander",
-                    "family_name": "Markov",
-                    "email": "sasha-markov.net",
-                    "institution": "Kurnakov Institute of General and Inorganic Chemistry of RAS",
+                    "given_name": "Markus",
+                    "family_name": "Galanski",
+                    "email": "markus.galanski@univie.ac.at",
+                    "institution": "University of Vienna",
 
                 },
 
@@ -53,37 +53,73 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "citation": ["Markov, A. (2015). Platinum pyridine cations: the DFT optimized geometries [Data set]. Zenodo. http://doi.org/10.5281/zenodo.31335"],
+                "citation": ["Keppler, Bernhard K. (2013/01/10). Theoretical Investigations and Density Functional Theory Based Quantitative Structure–Activity Relationships Model for Novel Cytotoxic Platinum(IV) Complexes. Journal of Medicinal Chemistry, 56, 330-344. doi: 10.1021/jm3016427"],
 
                 "author": [{
 
+                    "given_name": "Hristo P.",
+                    "family_name": "Varbanov",
+                    "institution": "University of Vienna",
+
+                },
+                {
+
+                    "given_name": "Michael A.",
+                    "family_name": "Jakupec",
+                    "institution": "University of Vienna",
+
+                },
+                {
+
                     "given_name": "Alexander",
-                    "family_name": "Markov",
-                    "email": "sasha-markov.net",
-                    "institution": "Kurnakov Institute of General and Inorganic Chemistry of RAS",
+                    "family_name": "Roller",
+                    "institution": "University of Vienna",
+
+                },
+                {
+
+                    "given_name": "Frank",
+                    "family_name": "Jensen",
+                    "email": "frj@chem.au.dk",
+                    "institution": "University of Aarhus",
+
+                },
+                {
+
+                    "given_name": "Markus",
+                    "family_name": "Galanski",
+                    "email": "markus.galanski@univie.ac.at",
+                    "institution": "University of Vienna",
+
+                },
+                {
+
+                    "given_name": "Bernhard K.",
+                    "family_name": "Keppler",
+                    "institution": "University of Vienna",
 
                 }],
 
-                "license": "https://creativecommons.org/publicdomain/zero/1.0/",
-                "collection": "Platinum Pyridine Cations",
-                "tags": ["platinum", "dft", "computational chemistry"],
-                "description": "The geometries were optimized with the hybrid M06 functional, the mDZP all-electron basis set for platinum atom, and the def2-TZVP basis set for light atoms.",
-                "year": 2015,
+                "license": "http://pubs.acs.org/page/policy/authorchoice_termsofuse.html",
+                "collection": "Cytotoxic Platinum Complexes",
+                #"tags": [""],
+                "description": "Octahedral platinum(IV) complexes are promising candidates in the fight against cancer. In order to rationalize the further development of this class of compounds, detailed studies on their mechanisms of action, toxicity, and resistance must be provided and structure–activity relationships must be drawn. Herein, we report on theoretical and QSAR investigations of a series of 53 novel bis-, tris-, and tetrakis(carboxylato)platinum(IV) complexes, synthesized and tested for cytotoxicity in our laboratories. ",
+                "year": 2012,
 
                 "links": {
 
-                    "landing_page": "http://doi.org/10.5281/zenodo.31335",
-                    #"publication": [""],
+                    "landing_page": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3557934/",
+                    "publication": ["https://dx.doi.org/10.1021%2Fjm3016427"],
                     #"data_doi": "",
                     #"related_id": ,
 
-                    #"data_link": {
+                    "cif": {
 
                         #"globus_endpoint": ,
-                        #"http_host": ,
+                        "http_host": "https://www.ncbi.nlm.nih.gov",
 
-                        #"path": ,
-                        #},
+                        "path": "/pmc/articles/PMC3557934/bin/jm3016427_si_002.cif",
+                        },
                     },
                 },
 
@@ -126,19 +162,21 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
-        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
+    for data_file in tqdm(find_files(input_path, "temp_file.cif"), desc="Processing files", disable=not verbose):
+        #Temp_file is the same as the real file, but with authors and adresses deleted so that ase can read composition
+        #It should only be used for converting purposes
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "cif")
         ## Metadata:record
         record_metadata = {
             "mdf": {
 
-                "title": "Platinum Pyridine Cations - " + record["chemical_formula"],
+                "title": "Cytotoxic Platinum Complexes - " + record["chemical_formula"],
                 "acl": ["public"],
                 "composition": record["chemical_formula"],
 
 #                "tags": ,
 #                "description": ,
-               # "raw": json.dumps(record),
+                #"raw": json.dumps(record),
 
                 "links": {
 
@@ -147,12 +185,12 @@ def convert(input_path, metadata=None, verbose=False):
 #                    "data_doi": ,
 #                    "related_id": ,
 
-                    "xyz": {
+                    "cif": {
 
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
 
-                        "path": "/collections/pt_pyridine_cations/" + data_file["filename"],
+                        "path": "/collections/cytotoxic_pt_complexes/" + "jm3016427_si_002.cif",
                         },
                     },
 
