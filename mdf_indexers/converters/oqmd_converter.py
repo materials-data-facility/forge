@@ -1,14 +1,20 @@
 import json
 import sys
 import os
+import multiprocessing
+from queue import Empty
+from time import sleep
 
 from tqdm import tqdm
 
 from ..validator.schema_validator import Validator
 
+NUM_PROCESSORS = 2
+NUM_WRITERS = 2
+
 # VERSION 0.3.0
 
-# This is the converter for the OQMD
+# This is the converter for the OQMD, using multiple processes for speed.
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter. The converter should be portable.
@@ -120,13 +126,77 @@ def convert(input_path, metadata=None, verbose=False):
         # Discard header line
         lookup_file.readline()
         lookup = {}
-        for line in lookup_file:
+        for line in tqdm(lookup_file, desc="Preprocessing data", disable= not verbose):
             pair = line.split(",")
             if len(pair) > 1:
                 lookup[pair[0]] = pair[1]
 
-    for filename in tqdm(os.listdir(os.path.join(input_path, "metadata-files")), desc="Processing files", disable= not verbose):
-        full_path = os.path.join(input_path, "metadata-files", filename)
+    # Set up multiprocessing
+    md_files = multiprocessing.JoinableQueue()
+    rc_out = multiprocessing.JoinableQueue()
+    counter = multiprocessing.Value('i', 0)
+    killswitch = multiprocessing.Value('i', 0)
+    # Process to add data into input queue
+    adder = multiprocessing.Process(target=(lambda in_path: [ md_files.put(os.path.join(in_path, "metadata-files", f)) for f in os.listdir(os.path.join(in_path, "metadata-files")) ]), args=(input_path,))
+    # Processes to process records from input queue to output queue
+    processors = [multiprocessing.Process(target=process_oqmd, args=(md_files, rc_out, lookup, killswitch)) for i in range(NUM_PROCESSORS)]
+    # Processes to write data from output queue
+    writers = [multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch)) for i in range(NUM_WRITERS)]
+    # Process to manage progress bar
+    prog_bar = multiprocessing.Process(target=track_progress, args=(len(os.listdir(os.path.join(input_path, "metadata-files"))), counter, killswitch))
+
+    # Start queue adder, start processors when queue has some data
+    adder.start()
+    while md_files.empty():
+        sleep(1)
+    [p.start() for p in processors]
+    [w.start() for w in writers]
+    prog_bar.start()
+
+    adder.join()
+    md_files.join()
+    rc_out.join()
+    killswitch.value = 1
+    [p.join() for p in processors]
+    [w.join() for w in writers]
+    prog_bar.join()
+
+    if verbose:
+        print("Finished converting")
+
+
+# Function to deal with updating tqdm in a multiprocess env
+def track_progress(total, counter, killswitch):
+    with tqdm(total=total) as prog:
+        old_counter = 0
+        while killswitch.value == 0:
+            new_counter = counter.value
+            prog.update(new_counter - old_counter)
+            old_counter = new_counter
+
+# Write out results from processing into thread-unsafe validator
+def do_validation(q_metadata, dataset_validator, counter, killswitch):
+    while killswitch.value == 0:
+        try:
+            record = q_metadata.get(timeout=10)
+            with counter.get_lock():
+                result = dataset_validator.write_record(record)
+                counter.value += 1
+            if result["success"] is not True:
+                print("Error:", result["message"])
+            q_metadata.task_done()
+        except Empty:
+            pass
+
+
+# Record processing, ready for multiprocessing
+def process_oqmd(q_paths, q_metadata, lookup, killswitch):
+    while killswitch.value == 0:
+        try:
+            full_path = q_paths.get(timeout=10)
+        except Empty:
+            return
+        filename = os.path.basename(full_path)
         if os.path.isfile(full_path):
             with open(full_path, 'r') as data_file:
                 record = json.load(data_file)
@@ -138,19 +208,19 @@ def convert(input_path, metadata=None, verbose=False):
                 "title": "OQMD - " + record["composition"],
                 "acl": ["public"],
 
-#                "tags": ,
-#                "description": ,
+    #                "tags": ,
+    #                "description": ,
                 
                 "composition": record["composition"],
-#                "raw": ,
+    #                "raw": ,
 
                 "links": {
                     "landing_page": record["url"],
 
-#                    "publication": ,
-#                    "dataset_doi": ,
+    #                    "publication": ,
+    #                    "dataset_doi": ,
 
-#                    "related_id": ,
+    #                    "related_id": ,
 
                     "metadata": {
 
@@ -167,27 +237,27 @@ def convert(input_path, metadata=None, verbose=False):
                         }
                     },
 
-#                "citation": ,
-#                "data_contact": {
+    #                "citation": ,
+    #                "data_contact": {
 
-#                    "given_name": ,
-#                    "family_name": ,
+    #                    "given_name": ,
+    #                    "family_name": ,
 
-#                    "email": ,
-#                    "institution":,
+    #                    "email": ,
+    #                    "institution":,
 
                     # IDs
-#                },
+    #                },
 
-#                "author": ,
+    #                "author": ,
 
-#                "license": ,
-#                "collection": ,
-#                "data_format": ,
-#                "data_type": ,
-#                "year": ,
+    #                "license": ,
+    #                "collection": ,
+    #                "data_format": ,
+    #                "data_type": ,
+    #                "year": ,
 
-#                "mrr":
+    #                "mrr":
 
     #            "processing": ,
     #            "structure":,
@@ -203,14 +273,6 @@ def convert(input_path, metadata=None, verbose=False):
                 }
             }
 
-            # Pass each individual record to the Validator
-            result = dataset_validator.write_record(record_metadata)
+            q_metadata.put(record_metadata)
+            q_paths.task_done()
 
-            # Check if the Validator accepted the record, and print a message if it didn't
-            # If the Validator returns "success" == True, the record was written successfully
-            if result["success"] is not True:
-                print("Error:", result["message"])
-
-
-    if verbose:
-        print("Finished converting")
