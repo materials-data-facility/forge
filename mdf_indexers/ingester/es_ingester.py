@@ -13,7 +13,7 @@ PATH_GMETA = os.path.join(os.path.dirname(os.getcwd()), "utils")
 es_url = "127.0.0.1:9200"
 
 sys.path.append(PATH_GMETA)
-from gmeta_utils import format_gmeta, add_namespace
+from gmeta_utils import format_gmeta
 
 def es_ingest(mdf_source_names, batch_size=100, delete_index=False, verbose=False):
 #    gmeta = importlib.import_module(PATH_GMETA, "gmeta_utils")
@@ -41,7 +41,6 @@ def es_ingest(mdf_source_names, batch_size=100, delete_index=False, verbose=Fals
         with open(os.path.join(PATH_FEEDSTOCK, source_name+"_all.json"), 'r') as feedstock:
             for json_record in tqdm(feedstock, desc="Ingesting " + source_name, disable= not verbose):
                 record = format_gmeta(json.loads(json_record))
-                record["content"] = add_namespace(record["content"])
                 list_ingestables.append(record)
                 count_ingestables += 1
 
@@ -67,7 +66,7 @@ def es_client_ingest(client, data):
         "_index": "mdf",
         "_type" : "record",
 #        "_id": entry['content']['mdf_id'],
-        "_id": entry['content']['http://materialsdatafacility.org/#mdf-id'],
+        "_id": entry['content']['mdf']['mdf-id'],
         "_source": entry['content'],
         } for entry in data["ingest_data"]["gmeta"])
     res = helpers.bulk(client, ingest)
