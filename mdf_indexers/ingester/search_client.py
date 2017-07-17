@@ -1,6 +1,7 @@
 import json
 import sys
 import os
+from urllib.parse import quote
 
 from globus_sdk import ConfidentialAppAuthClient, AccessTokenAuthorizer, RefreshTokenAuthorizer
 from globus_sdk.base import BaseClient, merge_params
@@ -31,14 +32,14 @@ class SearchClient(BaseClient):
         self._headers['Content-Type'] = 'application/json'
         self.default_index = default_index
 
-    def _resolve_uri(self, base_uri, index):
+    def _resolve_uri(self, base_uri, index, *parts):
         index = index or self.default_index
         if not index:
             raise ValueError(
                 ('You must either pass an explicit index'
                  'or set a default one at the time that you create '
                  'a SearchClient'))
-        return '{}/{}'.format(base_uri, index)
+        return '/'.join([base_uri, index] + list(parts))
 
     def search(self, q, limit=None, offset=None, resource_type=None,
                index=None, advanced=None, **params):
@@ -121,3 +122,10 @@ class SearchClient(BaseClient):
         """
         uri = self._resolve_uri('/v1/ingest', index)
         return self.post(uri, json_body=data, params=params)
+
+    def remove(self, subject, index=None, **params):
+#        params["subject"] = data
+        uri = self._resolve_uri('/v1/index', index, "subject")# quote(subject))
+        params["subject"] = subject
+        return self.delete(uri, params=params)
+
