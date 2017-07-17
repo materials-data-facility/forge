@@ -132,7 +132,7 @@ class Validator:
             metadata["tags"] = [metadata["tags"]]
         elif not metadata.get("tags", None):
             metadata["tags"] = []
-        metadata["tags"] += [fmt for fmt in metadata.get("links", {}).keys() if fmt not in ["landing_page", "publication", "dataset_doi", "related_id"]]
+        metadata["tags"] += [fmt for fmt in metadata.get("links", {}).keys() if fmt not in ["landing_page", "publication", "data_doi", "related_id"]]
 
         # publication
         if type(metadata.get("links", {}).get("publication", None)) is str:
@@ -285,6 +285,10 @@ class Validator:
         # tags
         if type(record.get("tags", None)) is str:
             record["tags"] = [record["tags"]]
+        elif not record.get("tags", None):
+            record["tags"] = []
+        record["tags"] += [fmt for fmt in record.get("links", {}).keys() if fmt not in ["landing_page", "publication", "data_doi", "related_id", "parent_id"]]
+
 
         # publication
         if type(record.get("links", {}).get("publication", None)) is str:
