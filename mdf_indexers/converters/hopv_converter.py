@@ -169,6 +169,11 @@ def convert(input_path, metadata=None, verbose=False):
 
             uri = "/collections/hopv/" + filename
 
+            experimental = {}
+            for key, value in molecule["experimental_data"].items():
+                if value == value:  # Check for nan
+                    experimental[key] = value
+
             record_metadata = {
             "mdf": {
                 "title": "HOPV - " + molecule["smiles"],
@@ -229,7 +234,7 @@ def convert(input_path, metadata=None, verbose=False):
     #            "structure":,
                 },
             "hopv": {
-                "experimental_data": molecule["experimental_data"]
+                "experimental_data": experimental
             }
             }
 
