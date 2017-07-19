@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for: Distributed Structure-Searchable Toxicity (DSSTox) Database
+# This is the converter for: Data for the article "Performance of SCAN density functional method for a set of ionic liquids"
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -30,16 +30,16 @@ def convert(input_path, metadata=None, verbose=False):
         dataset_metadata = {
             "mdf": {
 
-                "title": "Distributed Structure-Searchable Toxicity (DSSTox) Database",
+                "title": "Data for the article \"Performance of SCAN density functional method for a set of ionic liquids\"",
                 "acl": ["public"],
-                "source_name": "dss_tox",
+                "source_name": "scan_ionic_liquids",
 
                 "data_contact": {
                     
-                    "given_name": "Dayna",
-                    "family_name": "Gibbons",
-                    "email": "gibbons.dayna@epa.gov",
-                    "institution": "US EPA Research",
+                    "given_name": "Vladislav",
+                    "family_name": "Ivaništšev",
+                    "email": "vladislav.ivanistsev@ut.ee",
+                    "institution": "University of Tartu",
 
                 },
 
@@ -53,27 +53,55 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "citation": ["Richard, A M. AND C. R. Williams. DISTRIBUTED STRUCTURE-SEARCHABLE TOXICITY (DSSTOX) PUBLIC DATABASE NETWORK: A PROPOSAL. MUTATION RESEARCH NEW FRONTIERS ISSUE 499(1):27-52, (2001)."],
+                "citation": ["Karu, Karl, Ers, Heigo, Mišin, Maksim, Sun, Jianwei, & Ivaništšev, Vladislav. (2017). Data for the article \"Performance of SCAN density functional method for a set of ionic liquids\" [Data set]. Zenodo. http://doi.org/10.5281/zenodo.495089"],
 
                 "author": [{
 
-                    "given_name": "Dayna",
-                    "family_name": "Gibbons",
-                    "email": "gibbons.dayna@epa.gov",
-                    "institution": "US EPA Research",
+                    "given_name": "Karl",
+                    "family_name": "Karu",
+                    "institution": "University of Tartu",
+
+                },
+                {
+
+                    "given_name": "Heigo",
+                    "family_name": "Ers",
+                    "institution": "University of Tartu",
+
+                },
+                {
+
+                    "given_name": "Maksim",
+                    "family_name": "Mišin",
+                    "institution": "University of Tartu",
+
+                },
+                {
+
+                    "given_name": "Jianwei",
+                    "family_name": "Sun",
+                    "institution": "The University of Texas at El Paso",
+
+                },
+                {
+
+                    "given_name": "Vladislav",
+                    "family_name": "Ivaništšev",
+                    "email": "vladislav.ivanistsev@ut.ee",
+                    "institution": "University of Tartu",
 
                 }],
 
                 #"license": "",
-                "collection": "DSS Tox",
+                "collection": "SCAN of Ionic Liquids",
                 #"tags": [""],
-                "description": "DSSTox provides a high quality public chemistry resource for supporting improved predictive toxicology. A distinguishing feature of this effort is the accurate mapping of bioassay and physicochemical property data associated with chemical substances to their corresponding chemical structures.",
-                "year": 2016,
+                "description": "The repository (https://github.com/vilab-tartu/SCAN) contains the database, geometries and an illustrative ipython notebook supporting the article \"Performance of SCAN density functional method for a set of ionic liquids\". ",
+                "year": 2017,
 
                 "links": {
 
-                    "landing_page": "https://www.epa.gov/chemical-research/distributed-structure-searchable-toxicity-dsstox-database",
-                    "publication": ["http://cfpub.epa.gov/si/si_lab_search_results.cfm?SIType=PR&TIMSType=Journal&showCriteria=0&view=citation&sortBy=pubDateYear&keyword=DssTox", "https://www.epa.gov/chemical-research/toxicity-forecasting", "https://www.epa.gov/chemical-research/toxicology-testing-21st-century-tox21", "http://actor.epa.gov/dashboard/", "https://www.epa.gov/chemical-research/chemistry-dashboard"],
+                    "landing_page": "https://doi.org/10.5281/zenodo.495089",
+                    "publication": ["https://github.com/vilab-tartu/SCAN/tree/v.05"],
                     #"data_doi": "",
                     #"related_id": ,
 
@@ -126,36 +154,19 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    total_errors = 0
-    for data_file in tqdm(find_files(input_path, "sdf"), desc="Processing files", disable=not verbose):
-        try:
-            record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "sdf")
-        except Exception as e:
-            #print("ERROR: \n" + repr(e))
-            #print(os.path.join(data_file["path"], data_file["filename"]))
-            total_errors +=1
-            continue
-
-        with open(os.path.join(data_file["path"], data_file["filename"]), 'r') as raw_in:
-            record_data = raw_in.read()
-
-        tox_line = record_data.find(">  <DSSTox_QC-Level>")
-        toxicity = record_data[tox_line:].split("\n")[1]
-
-        substance_line = record_data.find(">  <Substance_Name>")
-        substance = record_data[substance_line:].split("\n")[1]
-
+    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
         ## Metadata:record
         record_metadata = {
             "mdf": {
 
-                "title": "DSS Tox - ",
+                "title": "SCAN of Ionic Liquids - " + record["chemical_formula"],
                 "acl": ["public"],
-                #"composition": ,
+                "composition": record["chemical_formula"],
 
 #                "tags": ,
 #                "description": ,
-                #"raw": json.dumps(record),
+               # "raw": json.dumps(record),
 
                 "links": {
 
@@ -164,12 +175,20 @@ def convert(input_path, metadata=None, verbose=False):
 #                    "data_doi": ,
 #                    "related_id": ,
 
-                    "sdf": {
+                    "xyz": {
 
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
 
-                        "path": "/collections/dss_tox/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        "path": "/collections/scan_ionic_liquids/" + data_file["no_root_path"] + "/" + data_file["filename"],
+                        },
+                    
+                    "json": {
+
+                        "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                        "http_host": "https://data.materialsdatafacility.org",
+
+                        "path": "/collections/scan_ionic_liquids/database.json",
                         },
                     },
 
@@ -196,10 +215,6 @@ def convert(input_path, metadata=None, verbose=False):
 #                "year": ,
 
                 },
-            "dss_tox": {
-                "toxicity": toxicity,
-                "substance_name": substance
-            }
 
            # "dc": {
 
@@ -208,11 +223,6 @@ def convert(input_path, metadata=None, verbose=False):
 
         }
         ## End metadata
-        if record["chemical_formula"] == "":
-            record_metadata["mdf"]["title"] += substance
-        else:
-            record_metadata["mdf"]["title"] += record["chemical_formula"]
-            record_metadata["mdf"]["composition"] = record["chemical_formula"]
 
         # Pass each individual record to the Validator
         result = dataset_validator.write_record(record_metadata)
@@ -227,5 +237,4 @@ def convert(input_path, metadata=None, verbose=False):
 
     # You're done!
     if verbose:
-        print("Total Errors: \n" + str(total_errors))
         print("Finished converting")
