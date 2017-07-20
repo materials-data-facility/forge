@@ -195,7 +195,7 @@ def process_oqmd(q_paths, q_metadata, lookup, killswitch):
         try:
             full_path = q_paths.get(timeout=10)
         except Empty:
-            return
+            continue
         filename = os.path.basename(full_path)
         if os.path.isfile(full_path):
             with open(full_path, 'r') as data_file:
