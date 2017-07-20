@@ -1,9 +1,7 @@
-from globus_sdk import AccessTokenAuthorizer, RefreshTokenAuthorizer
 from globus_sdk.base import BaseClient, merge_params
 
 
 class SearchClient(BaseClient):
-    allowed_authorizer_types = [AccessTokenAuthorizer, RefreshTokenAuthorizer]
 
     def __init__(self, base_url="https://search.api.globus.org/", default_index=None, **kwargs):
         app_name = kwargs.pop('app_name', 'DataSearch Client v0.1.1')
