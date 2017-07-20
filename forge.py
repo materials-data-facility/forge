@@ -1,9 +1,13 @@
+import os
+
 import requests
 import globus_sdk
+from tqdm import tqdm
 
 # MDF Utils
-from utils import globus_auth
-from utils.gmeta_utils import gmeta_pop
+from mdf_indexers.utils import auth
+from mdf_indexers.utils.gmeta_utils import gmeta_pop
+from mdf_indexers.utils.globus_utils import get_local_ep
 
 HTTP_NUM_LIMIT = 10
 
@@ -51,14 +55,22 @@ def get_files(locs=[],by_http=True, by_globus=False, n_workers=1):
     
 
 class Forge:
-    base_url = "https://search.api.globus.org/"
     index = "mdf"
-    
+    services = ["mdf", "transfer", "search_ingest"]
+    app_name = "MDF Forge"
+
     def __init__(self, data={}):
-        self.base_url = data.get('base_url', self.base_url)
-        self.index = data.get('index',self.index)
-        self.search_client = 
-        self.search_client = globus_auth.login(self.base_url, self.index)
+        self.index = data.get('index', self.index)
+        self.services = data.get('services', self.services)
+        self.local_ep = data.get("local_ep", None)
+
+        clients = auth.login(credentials={
+                                "app_name": self.app_name,
+                                "services": self.services,
+                                "index": self.index})
+        self.search_client = clients["search"]
+        self.transfer_client = clients["transfer"]
+        self.mdf_authorizer = clients["mdf"]
     
 
     def search(self, q, raw=False, advanced=False):
@@ -94,25 +106,80 @@ class Forge:
         return res if raw else gmeta_pop(res)
 
 
-    def get_http(self, results, dest=".", preserve_dir=False):
+    def get_http(self, results, dest=".", preserve_dir=False, verbose=True):
+        if type(results) is globus_sdk.GlobusHTTPResponse:
+            results = gmeta_pop(results)
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
                 "message": "Too many results supplied. Use get_globus() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
                 }
-#        links = [ res["mdf"]["links"]["http_host"] + res["mdf"]["links"]["path"] for res in results if res["mdf"]["links"].get("http_host", None) ]
-        for res in results:
-            data_links = [ {"http_host": dl["http_host"], "path": dl["path"]} for dl in res["mdf"]["links"]
-            if res["mdf"]["links"].get("http_host", None):
-                pass
+        for res in tqdm(results, desc="Fetching files", disable= not verbose):
+            for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True):  # not verbose):
+                dl = res["mdf"]["links"][key]
+                host = dl.get("http_host", None) if type(dl) is dict else None
+                if host:
+                    remote_path = dl["path"]
+                    # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
+                    local_path = os.path.normpath(dest + dl["path"]) if preserve_dir else os.path.normpath(dest + os.path.basename(dl["path"]))
+                    # Make dirs for storing the file if they don't exist
+                    # preserve_dir doesn't matter; local_path has accounted for it already
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    # Check if file already exists, change filename if necessary
+                    #TODO: Increment number, insert number between filename and extension
+                    while os.path.exists(local_path):
+                        local_path += "(1)"
+                    headers = {}
+                    self.mdf_authorizer.set_authorization_header(headers)
+                    response = requests.get(host+remote_path, headers=headers)
+                    # Handle first 401 by regenerating auth headers
+                    if response.status_code == 401:
+                        self.mdf_authorizer.handle_missing_authorization()
+                        self.mdf_authorizer.set_authorization_header(headers)
+                        self.response = requests.get(host+remote_path, headers=headers)
+                    # Handle other errors by passing the buck to the user
+                    if response.status_code != 200:
+                        print("Error", response.status_code, " when attempting to access '", host+remote_path, "'", sep="")
+                    else:
+                        # Write out the binary response content
+                        with open(local_path, 'wb') as output:
+                            output.write(response.content)
+
+
+    def get_globus(self, results, dest=".", local_ep=None, preserve_dir=False, verbose=True):
+        if type(results) is globus_sdk.GlobusHTTPResponse:
+            results = gmeta_pop(results)
+        if not local_ep:
+            local_ep = self.local_ep or get_local_ep(self.transfer_client)
+        tasks = {}
+        for res in tqdm(results, desc="Processing records", disable= not verbose):
+            for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True):  # not verbose):
+                dl = res["mdf"]["links"][key]
+                host = dl.get("globus_endpoint", None) if type(dl) is dict else None
+                if host:
+                    remote_path = dl["path"]
+                    # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
+                    local_path = os.path.normpath(dest + dl["path"]) if preserve_dir else os.path.normpath(dest + os.path.basename(dl["path"]))
+                    # Make dirs for storing the file if they don't exist
+                    # preserve_dir doesn't matter; local_path has accounted for it already
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    # Check if file already exists, change filename if necessary
+                    #TODO: Increment number, insert number between filename and extension
+                    while os.path.exists(local_path):
+                        local_path += "(1)"
+                    if host not in tasks.keys():
+                        tasks[host] = globus_sdk.TransferData(self.transfer_client, host, local_ep, verify_checksum=True)
+                    tasks[host].add_item(remote_path, local_path)
+        submissions = []
+        for td in tqdm(tasks.values(), desc="Submitting transfers", disable= not verbose):
+            result = self.transfer_client.submit_transfer(td)
+            if result["code"] != "Accepted":
+                print("Error submitting transfer:", result["message"])
             else:
-                print("No http_host found for mdf_id:" + res["mdf"]["mdf_id"] + " (" + res["mdf"]["title"] + ")")
-        
-
-
-
-    def get_globus(mdf_ids, dest=".", preserve_dir=False):
-        pass
+                submissions.append(result["submission_id"])
+        if verbose:
+            print("All transfers submitted")
+            print("Submission IDs:", "\n".join(submissions))
 
 
 
