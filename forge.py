@@ -86,8 +86,7 @@ class Forge:
         return res if raw else gmeta_pop(res)
 
 
-    def search_by_elements(self, *elements, sources=[], match_all=False, raw=False):
-        elements = list(elements)
+    def search_by_elements(self, elements=[], sources=[],limit=200, match_all=False, raw=False):
         q_sources = (build_source_list(sources) + " AND ") if sources else ""
         if match_all:
             q_elements = " AND ".join(["mdf.elements:"+elem for elem in elements])
@@ -98,7 +97,7 @@ class Forge:
                   "mdf.resource_type:record AND " +
                   q_elements),
             "advanced": True,
-            "limit":200
+            "limit":limit
         }            
         
         res = self.search_client.structured_search(q)
