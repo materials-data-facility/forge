@@ -121,14 +121,29 @@ class Forge:
                 if host:
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
-                    local_path = os.path.normpath(dest + dl["path"]) if preserve_dir else os.path.normpath(dest + os.path.basename(dl["path"]))
+                    local_path = os.path.normpath(dest + "/" + dl["path"]) if preserve_dir else os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     os.makedirs(os.path.dirname(local_path), exist_ok=True)
                     # Check if file already exists, change filename if necessary
-                    #TODO: Increment number, insert number between filename and extension
+                    collisions = 0
                     while os.path.exists(local_path):
-                        local_path += "(1)"
+                        # Find period marking extension, if exists
+                        # Will be after last slash
+                        index = local_path.rfind(".", local_path.rfind("/"))
+                        if index < 0:
+                            ext = ""
+                        else:
+                            ext = local_path[index:]
+                            local_path = local_path[:index]
+                        # Check if already added number to end
+                        old_add = "("+str(collisions)+")"
+                        collisions += 1
+                        new_add = "("+str(collisions)+")"
+                        if local_path.endswith(old_add):
+                            local_path = local_path[:-len(old_add)] + new_add + ext
+                        else:
+                            local_path = local_path + new_add + ext
                     headers = {}
                     self.mdf_authorizer.set_authorization_header(headers)
                     response = requests.get(host+remote_path, headers=headers)
@@ -150,8 +165,11 @@ class Forge:
         if type(results) is globus_sdk.GlobusHTTPResponse:
             results = gmeta_pop(results)
         if not local_ep:
-            local_ep = self.local_ep or get_local_ep(self.transfer_client)
+            if not self.local_ep:
+                self.local_ep = get_local_ep(self.transfer_client)
+            local_ep = self.local_ep
         tasks = {}
+        filenames = []
         for res in tqdm(results, desc="Processing records", disable= not verbose):
             for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True):  # not verbose):
                 dl = res["mdf"]["links"][key]
@@ -159,17 +177,34 @@ class Forge:
                 if host:
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
-                    local_path = os.path.normpath(dest + dl["path"]) if preserve_dir else os.path.normpath(dest + os.path.basename(dl["path"]))
+                    local_path = os.path.normpath(dest + "/" + dl["path"]) if preserve_dir else os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     os.makedirs(os.path.dirname(local_path), exist_ok=True)
                     # Check if file already exists, change filename if necessary
-                    #TODO: Increment number, insert number between filename and extension
-                    while os.path.exists(local_path):
-                        local_path += "(1)"
+                    collisions = 0
+                    while os.path.exists(local_path) or local_path in filenames:
+                        # Find period marking extension, if exists
+                        # Will be after last slash
+                        index = local_path.rfind(".", local_path.rfind("/"))
+                        if index < 0:
+                            ext = ""
+                        else:
+                            ext = local_path[index:]
+                            local_path = local_path[:index]
+                        # Check if already added number to end
+                        old_add = "("+str(collisions)+")"
+                        collisions += 1
+                        new_add = "("+str(collisions)+")"
+                        if local_path.endswith(old_add):
+                            local_path = local_path[:-len(old_add)] + new_add + ext
+                        else:
+                            local_path = local_path + new_add + ext
+
                     if host not in tasks.keys():
                         tasks[host] = globus_sdk.TransferData(self.transfer_client, host, local_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
+                    filenames.append(local_path)
         submissions = []
         for td in tqdm(tasks.values(), desc="Submitting transfers", disable= not verbose):
             result = self.transfer_client.submit_transfer(td)
