@@ -71,9 +71,13 @@ class Forge:
         self.search_client = clients["search"]
         self.transfer_client = clients["transfer"]
         self.mdf_authorizer = clients["mdf"]
-    
+        self.qu = Query(search_client)
+
 
     def search(self, q, raw=False, advanced=False, limit=None):
+        return self.qu.search(q=q, raw=raw, advanced=advanced, limit=limit)
+        self.qu = Query(self.search_client)
+        '''
         # Negative limits are treated as no limit
         if limit and limit < 0:
             limit = None
@@ -113,9 +117,15 @@ class Forge:
                 else:
                     break
         return full_res
+        '''
 
 
-    def search_by_elements(self, elements=[], sources=[],limit=200, match_all=False, raw=False):
+    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, raw=False):
+        self.qu.match_elements(elements, match_all=match_all)
+        self.qu.match_sources(sources, match_all=match_all)
+        return self.qu.search(limit=limit, raw=raw)
+        self.qu = Query(self.search_client)
+        '''
         q_sources = (build_source_list(sources) + " AND ") if sources else ""
         if match_all:
             q_elements = " AND ".join(["mdf.elements:"+elem for elem in elements])
@@ -132,6 +142,7 @@ class Forge:
         res = self.search_client.structured_search(q)
         
         return res if raw else gmeta_pop(res)
+        '''
 
 
     def get_http(self, results, dest=".", preserve_dir=False, verbose=True):
@@ -245,6 +256,109 @@ class Forge:
             print("Submission IDs:", "\n".join(submissions))
 
 
+class Query:
+    def __init__(self, search_client, q="", limit=None, raw=False, advanced=False):
+        self.search_client = search_client
+        self.query = q
+        self.limit = limit
+        self.raw = raw
+        self.advanced = False
+
+
+    def match_term(self, term, match_all=True):
+        self.query += (" AND " if match_all else " OR ") + term
+
+
+    def match_field(self, field, value, match_all=True):
+        # match_all determines AND/OR
+        match_join = " AND " if match_all else " OR "
+        # If no namespacing provided, add default
+        if "." not in field:
+            field = "mdf." + field
+        # If value list should be OR'd
+        if type(value) is list and not match_all:
+            value = ",".join(value)
+        # Make value into list for processing
+        if type(value) is not list:
+            value = [value]
+
+        for val in value:
+            self.query += (match_join + field + ":" + val)
+        self.advanced = True
+
+
+    def match_sources(self, sources, match_all=True):
+        self.match_field("mdf.source_name", sources, match_all)
+
+
+    def match_elements(self, elements, match_all=True):
+        self.match_field("mdf.elements", elements, match_all)
+
+
+    def search(self, q=None, raw=None, advanced=None, limit=None):
+        if q is None:
+            q = self.query
+        if not q:
+            print("Error: No query specified")
+            return []
+        if raw is None:
+            raw = self.raw
+        if advanced is None or self.advanced:
+            advanced = self.advanced
+        if limit is None:
+            limit = self.limit
+
+        # Clean query string
+        q = q.strip()
+        removes = ["AND", "OR"]
+        for rterm in removes:
+            if q.startswith(rterm):
+                q = q[len(rterm):]
+            if q.endswith(rterm):
+                q = q[:-len(rterm)]
+        q = q.strip()
+
+
+        full_res = []
+        # Simple query (max 10k results)
+        if not advanced:
+            if not limit or limit > 10000:
+                limit = 10000
+            query = {
+                "q": q,
+                "advanced": False,
+                "limit": limit
+                }
+            res = self.search_client.structured_search(query)
+            full_res += (res if raw else gmeta_pop(res))
+        # Advanced query
+        else:
+            # If there is no limit, iterate "forever"
+            # If there is a limit, iterate until that many records are returned
+            while limit is None or limit > 0:
+                # Perform search
+                query = {
+                    "q": q + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <=" + str(len(full_res) + min(limit or 10000, 10000)) + ")",
+                    "advanced": True,
+                    "limit": 10000
+                    }
+                res = self.search_client.structured_search(query)
+                num_res = len(gmeta_pop(res))
+                print(num_res)
+                # If results were returned, add to full_res
+                if num_res > 0:
+                    full_res += (res if raw else gmeta_pop(res))
+                    # If a limit was set, lower future limit by number of results saved
+                    if limit:
+                        limit -= len(gmeta_pop(res))
+                # If no results were returned, none remain, so break while loop
+                else:
+                    break
+        return full_res
+
+    
+    def execute(self, q=None, raw=None, advanced=None, limit=None):
+        self.search(q, raw, advanced, limit)
 
 
 
