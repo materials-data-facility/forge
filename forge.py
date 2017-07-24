@@ -97,13 +97,13 @@ class Forge:
         return Query(self.search_client).match_elements(elements, match_all=match_all).qu.match_sources(sources, match_all=match_all).qu.search(limit=limit, raw=raw)
 
 
-    def get_http(self, results, dest=".", preserve_dir=False, verbose=True):
+    def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
         if type(results) is globus_sdk.GlobusHTTPResponse:
             results = gmeta_pop(results)
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
-                "message": "Too many results supplied. Use get_globus() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
+                "message": "Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
                 }
         for res in tqdm(results, desc="Fetching files", disable= not verbose):
             for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True):  # not verbose):
@@ -152,7 +152,7 @@ class Forge:
                             output.write(response.content)
 
 
-    def get_globus(self, results, dest=".", local_ep=None, preserve_dir=False, verbose=True):
+    def globus_download(self, results, dest=".", local_ep=None, preserve_dir=False, verbose=True):
         if type(results) is globus_sdk.GlobusHTTPResponse:
             results = gmeta_pop(results)
         if not local_ep:
@@ -206,6 +206,40 @@ class Forge:
         if verbose:
             print("All transfers submitted")
             print("Submission IDs:", "\n".join(submissions))
+
+
+    def http_stream(self, results, verbose=True):
+        if type(results) is globus_sdk.GlobusHTTPResponse:
+            results = gmeta_pop(results)
+        if len(results) > HTTP_NUM_LIMIT:
+            return {
+                "success": False,
+                "message": "Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
+                }
+        for res in results:
+            for key in res["mdf"]["links"].keys():
+                dl = res["mdf"]["links"][key]
+                host = dl.get("http_host", None) if type(dl) is dict else None
+                if host:
+                    remote_path = dl["path"]
+                    headers = {}
+                    self.mdf_authorizer.set_authorization_header(headers)
+                    response = requests.get(host+remote_path, headers=headers)
+                    # Handle first 401 by regenerating auth headers
+                    if response.status_code == 401:
+                        self.mdf_authorizer.handle_missing_authorization()
+                        self.mdf_authorizer.set_authorization_header(headers)
+                        self.response = requests.get(host+remote_path, headers=headers)
+                    # Handle other errors by passing the buck to the user
+                    if response.status_code != 200:
+                        print("Error", response.status_code, " when attempting to access '", host+remote_path, "'", sep="")
+                    else:
+                        yield response.text
+
+
+    def http_return(self, results, verbose=True):
+        return list(http_stream(results, verbose=verbose))
+
 
 
 class Query:
