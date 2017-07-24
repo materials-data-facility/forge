@@ -73,17 +73,46 @@ class Forge:
         self.mdf_authorizer = clients["mdf"]
     
 
-    def search(self, q, raw=False, advanced=False):
+    def search(self, q, raw=False, advanced=False, limit=None):
+        # Negative limits are treated as no limit
+        if limit and limit < 0:
+            limit = None
+        full_res = []
+        # Simple query (max 10k results)
         if not advanced:
-            res = self.search_client.search(q)
-        else:
+            if not limit or limit > 10000:
+                limit = 10000
             query = {
                 "q": q,
-                "advanced": True,
-                "limit": 9999
+                "advanced": False,
+                "limit": limit
                 }
             res = self.search_client.structured_search(query)
-        return res if raw else gmeta_pop(res)
+            full_res += (res if raw else gmeta_pop(res))
+        # Advanced query
+        else:
+            # If there is no limit, iterate "forever"
+            # If there is a limit, iterate until that many records are returned
+            while limit is None or limit > 0:
+                # Perform search
+                query = {
+                    "q": q + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <=" + str(len(full_res) + min(limit or 10000, 10000)) + ")",
+                    "advanced": True,
+                    "limit": 10000
+                    }
+                res = self.search_client.structured_search(query)
+                num_res = len(gmeta_pop(res))
+                print(num_res)
+                # If results were returned, add to full_res
+                if num_res > 0:
+                    full_res += (res if raw else gmeta_pop(res))
+                    # If a limit was set, lower future limit by number of results saved
+                    if limit:
+                        limit -= len(gmeta_pop(res))
+                # If no results were returned, none remain, so break while loop
+                else:
+                    break
+        return full_res
 
 
     def search_by_elements(self, elements=[], sources=[],limit=200, match_all=False, raw=False):
