@@ -98,10 +98,10 @@ def login(*services, credentials=None, clear_old_tokens=False, **kwargs):
         clients["transfer"] = globus_sdk.TransferClient(authorizer=transfer_authorizer)
     if "search_ingest" in servs:
         ingest_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search"] = search_client.SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=ingest_authorizer)
+        clients["search"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=ingest_authorizer)
     elif "search" in servs:
         search_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search"] = search_client.SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=search_authorizer)
+        clients["search"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=search_authorizer)
     if "mdf" in servs:
         mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["data.materialsdatafacility.org"]["refresh_token"], native_client)
         clients["mdf"] = mdf_authorizer
@@ -158,9 +158,9 @@ def confidential_login(credentials=None):
     if "transfer" in servs:
         clients["transfer"] = globus_sdk.TransferClient(authorizer=conf_authorizer)
     if "search_ingest" in servs:
-        clients["search"] = search_client.SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
     elif "search" in servs:
-        clients["search"] = search_client.SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
     if "mdf" in servs:
         clients["mdf"] = conf_authorizer
 
