@@ -214,6 +214,7 @@ class Validator:
             self.__feedstock = open(feedstock_path, 'w')
             json.dump(full_metadata, self.__feedstock)
             self.__feedstock.write("\n")
+            self.__feedstock.flush()
             return {
                 "success": True
                 }

@@ -13,7 +13,7 @@ from ..utils.file_utils import find_files
 from ..parsers.ase_parser import parse_ase
 
 NUM_PROCESSORS = 2
-NUM_WRITERS = 2
+#NUM_WRITERS = 1
 
 # VERSION 0.3.0
 
@@ -214,7 +214,8 @@ def convert(input_path, metadata=None, verbose=False):
     # Processes to process records from input queue to output queue
     processors = [multiprocessing.Process(target=process_cod, args=(md_files, rc_out, err_counter, killswitch)) for i in range(NUM_PROCESSORS)]
     # Processes to write data from output queue
-    writers = [multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch)) for i in range(NUM_WRITERS)]
+#    writers = [multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch)) for i in range(NUM_WRITERS)]
+    w = multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch))
     # Process to manage progress bar
     prog_bar = multiprocessing.Process(target=track_progress, args=(len(cif_list), counter, err_counter, killswitch))
 
@@ -224,7 +225,8 @@ def convert(input_path, metadata=None, verbose=False):
     while md_files.empty():
        sleep(1) 
     [p.start() for p in processors]
-    [w.start() for w in writers]
+#    [w.start() for w in writers]
+    w.start()
     if verbose:
         prog_bar.start()
 
@@ -237,7 +239,8 @@ def convert(input_path, metadata=None, verbose=False):
     killswitch.value = 1
     # Wait on all the processes to terminate
     [p.join() for p in processors]
-    [w.join() for w in writers]
+#    [w.join() for w in writers]
+    w.join()
     if prog_bar.is_alive():
         prog_bar.join()
 
@@ -262,9 +265,9 @@ def do_validation(q_metadata, dataset_validator, counter, killswitch):
     while killswitch.value == 0:
         try:
             record = q_metadata.get(timeout=10)
-            with counter.get_lock():
-                result = dataset_validator.write_record(record)
-                counter.value += 1
+#            with counter.get_lock():
+            result = dataset_validator.write_record(record)
+            counter.value += 1
             if result["success"] is not True:
                 print("Error:", result["message"])
             q_metadata.task_done()

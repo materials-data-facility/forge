@@ -10,7 +10,7 @@ from tqdm import tqdm
 from ..validator.schema_validator import Validator
 
 NUM_PROCESSORS = 2
-NUM_WRITERS = 2
+#NUM_WRITERS = 1
 
 # VERSION 0.3.0
 
@@ -141,7 +141,8 @@ def convert(input_path, metadata=None, verbose=False):
     # Processes to process records from input queue to output queue
     processors = [multiprocessing.Process(target=process_oqmd, args=(md_files, rc_out, lookup, killswitch)) for i in range(NUM_PROCESSORS)]
     # Processes to write data from output queue
-    writers = [multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch)) for i in range(NUM_WRITERS)]
+#    writers = [multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch)) for i in range(NUM_WRITERS)]
+    w = multiprocessing.Process(target=do_validation, args=(rc_out, dataset_validator, counter, killswitch))
     # Process to manage progress bar
     prog_bar = multiprocessing.Process(target=track_progress, args=(len(os.listdir(os.path.join(input_path, "metadata-files"))), counter, killswitch))
 
@@ -150,7 +151,8 @@ def convert(input_path, metadata=None, verbose=False):
     while md_files.empty():
         sleep(1)
     [p.start() for p in processors]
-    [w.start() for w in writers]
+#    [w.start() for w in writers]
+    w.start()
     prog_bar.start()
 
     adder.join()
@@ -158,7 +160,8 @@ def convert(input_path, metadata=None, verbose=False):
     rc_out.join()
     killswitch.value = 1
     [p.join() for p in processors]
-    [w.join() for w in writers]
+#    [w.join() for w in writers]
+    w.join()
     prog_bar.join()
 
     if verbose:
@@ -179,9 +182,9 @@ def do_validation(q_metadata, dataset_validator, counter, killswitch):
     while killswitch.value == 0:
         try:
             record = q_metadata.get(timeout=10)
-            with counter.get_lock():
-                result = dataset_validator.write_record(record)
-                counter.value += 1
+#            with counter.get_lock():
+            result = dataset_validator.write_record(record)
+            counter.value += 1
             if result["success"] is not True:
                 print("Error:", result["message"])
             q_metadata.task_done()
@@ -201,7 +204,7 @@ def process_oqmd(q_paths, q_metadata, lookup, killswitch):
             with open(full_path, 'r') as data_file:
                 record = json.load(data_file)
             metadata_path = lookup.get(filename.split(".")[0], "None").replace("//", "/").strip()
-            outcar_path = os.path.join(os.path.dirname(metadata_path)) if metadata_path != "None" else "Unavailable"
+            outcar_path = os.path.join(os.path.dirname(metadata_path), "OUTCAR") if metadata_path != "None" else "Unavailable"
 
             record_metadata = {
             "mdf": {
