@@ -4,55 +4,10 @@ import requests
 import globus_sdk
 from tqdm import tqdm
 
-# MDF Utils
-from mdf_indexers.utils import auth
-from mdf_indexers.utils.gmeta_utils import gmeta_pop
-from mdf_indexers.utils.globus_utils import get_local_ep
+from mdf_dataworks import toolbox
 
 HTTP_NUM_LIMIT = 10
 
-
-def build_source_list(sources=[], match_all=False):
-    join_term = "AND" if match_all else "OR"
-    sources = ["mdf.source_name:"+s for s in sources]
-    return "("+ (' ' + join_term + ' ').join(sources) + ")"
-
-def get_content_block(res):
-    #TODO Check if GlobusHTTP ressonse
-    tf = [ r['content'][0] for r in res['gmeta']]
-    return tf
-
-def get_file_http(loc, save_files=True):
-    response = requests.get(loc.get('from'), stream=True)
-    if not response.ok: return False
-    
-    # Throw an error for bad status codes
-    response.raise_for_status()
-
-    with open(loc.get('to'), 'wb') as handle:
-        for block in response.iter_content(1024):
-            handle.write(block)
-    #return response.ok         
-    
-def get_files(locs=[],by_http=True, by_globus=False, n_workers=1):
-    tasks = res['gmeta']
-    #pbar = tqdm.tqdm(total=len(tasks)/n_workers)
-
-    if by_globus is True:
-        #perform Globus trans
-        pass
-    elif by_http is True:
-        if n_workers>1:
-            mp = Pool(n_workers)
-            mdf_data = mp.map(get_file_http, locs)
-            mp.close()
-            mp.join()
-        else:
-            for loc in locs:
-                get_file_http(loc)
-    else:
-        pass
-    
 
 class Forge:
     index = "mdf"
@@ -64,7 +19,7 @@ class Forge:
         self.services = data.get('services', self.services)
         self.local_ep = data.get("local_ep", None)
 
-        clients = auth.login(credentials={
+        clients = toolbox.login(credentials={
                                 "app_name": self.app_name,
                                 "services": self.services,
                                 "index": self.index})
@@ -99,7 +54,7 @@ class Forge:
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
         if type(results) is globus_sdk.GlobusHTTPResponse:
-            results = gmeta_pop(results)
+            results = toolbox.gmeta_pop(results)
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
@@ -154,10 +109,10 @@ class Forge:
 
     def globus_download(self, results, dest=".", local_ep=None, preserve_dir=False, verbose=True):
         if type(results) is globus_sdk.GlobusHTTPResponse:
-            results = gmeta_pop(results)
+            results = toolbox.gmeta_pop(results)
         if not local_ep:
             if not self.local_ep:
-                self.local_ep = get_local_ep(self.transfer_client)
+                self.local_ep = toolbox.get_local_ep(self.transfer_client)
             local_ep = self.local_ep
         tasks = {}
         filenames = []
@@ -210,7 +165,7 @@ class Forge:
 
     def http_stream(self, results, verbose=True):
         if type(results) is globus_sdk.GlobusHTTPResponse:
-            results = gmeta_pop(results)
+            results = toolbox.gmeta_pop(results)
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
@@ -320,7 +275,7 @@ class Query:
                 "limit": limit
                 }
             res = self.search_client.structured_search(query)
-            full_res += (res if raw else gmeta_pop(res))
+            full_res += (res if raw else toolbox.gmeta_pop(res))
         # Advanced query
         else:
             # If there is no limit, iterate "forever"
@@ -333,13 +288,13 @@ class Query:
                     "limit": 10000
                     }
                 res = self.search_client.structured_search(query)
-                num_res = len(gmeta_pop(res))
+                num_res = len(toolbox.gmeta_pop(res))
                 # If results were returned, add to full_res
                 if num_res > 0:
-                    full_res += (res if raw else gmeta_pop(res))
+                    full_res += (res if raw else toolbox.gmeta_pop(res))
                     # If a limit was set, lower future limit by number of results saved
                     if limit:
-                        limit -= len(gmeta_pop(res))
+                        limit -= len(toolbox.gmeta_pop(res))
                 # If no results were returned, none remain, so break while loop
                 else:
                     break
@@ -348,6 +303,4 @@ class Query:
     
     def execute(self, q=None, raw=None, advanced=None, limit=None):
         return self.search(q, raw, advanced, limit)
-
-
 
