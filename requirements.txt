@@ -1,17 +1,13 @@
-# General framework requirements
-globus-sdk>=0.5.1
-jsonschema>=2.6.0
-pymongo>=3.4.0
-tqdm>=4.11.2
+# forge and toolbox requirements
+globus-sdk>=1.1.1
+requests>=2.18.1
+tqdm>=4.14.0
 
-# Requirements specifically for harvesters, converters, and parsers
-ase>=3.13.0
+# refinery requirements
+ase>=3.14.1
 beautifulsoup4>=4.6.0
-chemspipy>=1.0.5
-mysql-connector>=2.1.4
-psycopg2>=2.7.1
-pymatgen>=4.7.3
-requests>=2.13.0
-xlrd>=1.0.0
+jsonschema>=2.6.0
+pymatgen>=2017.6.8
+pymongo>=3.4.0  # For bson.ObjectId
 xmltodict>=0.10.2
 
