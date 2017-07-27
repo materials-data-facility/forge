@@ -295,7 +295,10 @@ class Query:
                     # If a limit was set, lower future limit by number of results saved
                     if limit:
                         limit -= len(toolbox.gmeta_pop(res))
-                # If no results were returned, none remain, so break while loop
+                    # If partial results were returned, either limit < 10k or the end of the results was reached
+                    if num_res < 10000:
+                        break
+                # If no results were returned, the end of results was reached
                 else:
                     break
         return full_res

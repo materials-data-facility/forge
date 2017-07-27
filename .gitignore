@@ -11,3 +11,6 @@ feedstock
 datasets/*
 datasets
 
+build/*
+*.egg*
+
