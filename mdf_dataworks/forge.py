@@ -49,7 +49,7 @@ class Forge:
 
 
     def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, raw=False):
-        return Query(self.search_client).match_elements(elements, match_all=match_all).qu.match_sources(sources, match_all=match_all).qu.search(limit=limit, raw=raw)
+        return Query(self.search_client).match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit, raw=raw)
 
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
