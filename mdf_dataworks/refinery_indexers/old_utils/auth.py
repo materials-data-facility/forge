@@ -3,7 +3,7 @@ import json
 
 import globus_sdk
 
-from auth_clients import search_client
+from .auth_clients import search_client
 
 NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
 DEFAULT_CRED_FILENAME = "globus_login.json"

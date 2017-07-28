@@ -92,9 +92,9 @@ class Validator:
         metadata = full_metadata.get("mdf", {})
 
         # Validator-added fields
-        # mdf-id
+        # mdf_id
         self.__parent_id = str(ObjectId())
-        metadata["mdf-id"] = self.__parent_id
+        metadata["mdf_id"] = self.__parent_id
 
         # resource_type
         metadata["resource_type"] = resource_type
@@ -214,6 +214,7 @@ class Validator:
             self.__feedstock = open(feedstock_path, 'w')
             json.dump(full_metadata, self.__feedstock)
             self.__feedstock.write("\n")
+            self.__feedstock.flush()
             return {
                 "success": True
                 }
@@ -244,8 +245,8 @@ class Validator:
 
 
         # Validator-added fields
-        # mdf-id
-        record["mdf-id"] = str(ObjectId())
+        # mdf_id
+        record["mdf_id"] = str(ObjectId())
 
         # resource_type
         record["resource_type"] = resource_type

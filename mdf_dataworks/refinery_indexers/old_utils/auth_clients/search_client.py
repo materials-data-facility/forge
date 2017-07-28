@@ -11,7 +11,7 @@ class SearchClient(BaseClient):
         self._headers['Content-Type'] = 'application/json'
         self.default_index = default_index
 
-    def _resolve_uri(self, base_uri, index, *parts):
+    def _resolve_uri(self, base_uri, index=None, *parts):
         index = index or self.default_index
         if not index:
             raise ValueError(

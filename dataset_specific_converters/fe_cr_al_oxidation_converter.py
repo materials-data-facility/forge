@@ -161,11 +161,11 @@ def convert(input_path, metadata=None, verbose=False):
 
             },
         "fe_cr_al_oxidation": {
-            "temperature_k": temp_k,
+            "temperature_k": float(temp_k) if temp_k != "Room" else temp_k,
             "atomic_composition_percent": {
-                "Fe": compositions[point_num]["Fe at. %"],
-                "Cr": compositions[point_num]["Cr at. %"],
-                "Al": compositions[point_num]["Al at. %"]
+                "Fe": float(compositions[point_num]["Fe at. %"]),
+                "Cr": float(compositions[point_num]["Cr at. %"]),
+                "Al": float(compositions[point_num]["Al at. %"])
                 }
         }
         }
