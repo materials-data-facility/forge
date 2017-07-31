@@ -20,13 +20,13 @@ from tqdm import tqdm
 # Args:
 #   services: services to login to
 #   credentials: A string filename, string JSON, or dictionary with credential information
-#       name: name of client
+#       app_name: name of client
 #       services: list of services to auth for (default [])
 #       Service-specific fields:
 #       Search:
 #           index: The default index
 #   clear_old_tokens: delete old token file if it exists, forcing user to re-login
-def login(*services, credentials=None, clear_old_tokens=False, **kwargs):
+def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
     NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
     DEFAULT_CRED_FILENAME = "globus_login.json"
     SCOPES = {
@@ -98,7 +98,7 @@ def login(*services, credentials=None, clear_old_tokens=False, **kwargs):
         clients["transfer"] = globus_sdk.TransferClient(authorizer=transfer_authorizer)
     if "search_ingest" in servs:
         ingest_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=ingest_authorizer)
+        clients["search_ingest"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=ingest_authorizer)
     elif "search" in servs:
         search_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
         clients["search"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=search_authorizer)
