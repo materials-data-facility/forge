@@ -93,7 +93,7 @@ def convert(input_path, metadata=None, verbose=False):
                     
                     }],
     
-                "license": "http://pubs.acs.org/page/policy/authorchoice_ccby_termsofuse.html",
+                "license": "https://creativecommons.org/licenses/by-nc/4.0/",
     
                 "collection": "ML for Amorphization of Irradiated Pyrochlores",
                 "tags": ["ML"],
@@ -113,9 +113,9 @@ def convert(input_path, metadata=None, verbose=False):
                     "pdf": {
                     
                         #"globus_endpoint": ,
-                        "http_host": "http://pubs.acs.org",
+                        "http_host": "https://ndownloader.figshare.com",
     
-                        "path": "/doi/suppl/10.1021/acs.chemmater.6b04666/suppl_file/cm6b04666_si_001.pdf",
+                        "path": "/files/7712131",
                         }
                     },
     
