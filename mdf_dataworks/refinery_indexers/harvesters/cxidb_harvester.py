@@ -2,7 +2,6 @@ import requests
 from json import dump
 import os
 from tqdm import tqdm
-import paths
 
 #Collects available data from CXIDB and saves to the given directory
 #out_dir: The path to the directory (which will be created) for the data files
@@ -11,7 +10,7 @@ import paths
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def cxidb_harvest(out_dir, existing_dir=0, verbose=False):
+def harvest(out_dir, existing_dir=0, verbose=False):
     if os.path.exists(out_dir):
         if existing_dir == 0:
             exit("Directory '" + out_dir + "' exists")
@@ -35,9 +34,5 @@ def cxidb_harvest(out_dir, existing_dir=0, verbose=False):
             exit("ID fetch failure: " + str(id_data.status_code) + " error")
         with open(os.path.join(out_dir, id_entry), 'w') as out_file:
             dump(id_data.json(), out_file)
-
-
-if __name__ == "__main__":
-    cxidb_harvest(paths.datasets + "cxidb_metadata", 1, verbose=True)
 
 
