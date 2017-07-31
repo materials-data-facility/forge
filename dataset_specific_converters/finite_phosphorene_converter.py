@@ -39,7 +39,7 @@ def convert(input_path, metadata=None, verbose=False):
                     "given_name": "Vitaly V.",
                     "family_name": "Chaban",
                     "email": "v.chaban@rochester.edu",
-                    "institution": "University of Rochester",
+                    "institution": "Universidade Federal de São Paulo",
 
                 },
 

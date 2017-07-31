@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for: Halogen-Substituted Ionic Liquids
+# This is the converter for: Modeling of the phosphodiesterase (PDE6)
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -30,16 +30,16 @@ def convert(input_path, metadata=None, verbose=False):
         dataset_metadata = {
             "mdf": {
 
-                "title": "Halogen-Substituted Ionic Liquids",
+                "title": "Modeling of the phosphodiesterase (PDE6)",
                 "acl": ["public"],
-                "source_name": "halogen_ionic_liquids",
+                "source_name": "modelling_pde6",
 
                 "data_contact": {
                     
-                    "given_name": "Vitaly V.",
-                    "family_name": "Chaban",
-                    "email": "v.chaban@rochester.edu",
-                    "institution": "University of Rochester",
+                    "given_name": "Feixia",
+                    "family_name": "Chu",
+                    "email": "feixia.chu@unh.edu",
+                    "institution": "University of New Hampshire",
 
                 },
 
@@ -53,37 +53,107 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "citation": ["Chaban, Vitaly V. (2016). Halogen-Substituted Ionic Liquids [Data set]. Zenodo. http://doi.org/10.5281/zenodo.165493"],
+                "citation": ["Zeng-Elmore, X., Gao, X.-Z., Pellarin, R., Schneidman-Duhovny, D., Zhang, X.-J., Kozacka, K. A., … Chu, F. (2014). Modeling of the phosphodiesterase (PDE6) [Data set]. J Mol Biol. Zenodo. http://doi.org/10.5281/zenodo.46599"],
 
                 "author": [{
 
-                    "given_name": "Vitaly V.",
-                    "family_name": "Chaban",
-                    "email": "v.chaban@rochester.edu",
-                    "institution": "Universidade Federal de São Paulo",
+                    "given_name": "Xiaohui",
+                    "family_name": "Zeng-Elmore",
+                    "institution": "University of New Hampshire",
+
+                },
+                {
+
+                    "given_name": "Xiong-Zhuo",
+                    "family_name": "Gao",
+                    "institution": "University of New Hampshire",
+
+                },
+                {
+
+                    "given_name": "Riccardo",
+                    "family_name": "Pellarin",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Dina",
+                    "family_name": "Schneidman-Duhovny,",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Xiu-Jun",
+                    "family_name": "Zhang",
+                    "institution": "University of New Hampshire",
+
+                },
+                {
+
+                    "given_name": "Katie A.",
+                    "family_name": "Kozacka",
+                    "institution": "University of New Hampshire",
+
+                },
+                {
+
+                    "given_name": "Yang",
+                    "family_name": "Tang",
+                    "institution": "University of New Hampshire",
+
+                },
+                {
+
+                    "given_name": "Andrej",
+                    "family_name": "Sali",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Robert J.",
+                    "family_name": "Chalkley",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Rick H.",
+                    "family_name": "Cote",
+                    "institution": "University of New Hampshire",
+
+                },
+                {
+
+                    "given_name": "Feixia",
+                    "family_name": "Chu",
+                    "email": "feixia.chu@unh.edu",
+                    "institution": "University of New Hampshire",
 
                 }],
 
-                "license": "https://creativecommons.org/licenses/by/4.0/",
-                "collection": "Halogen Substituted Ionic Liquids",
-                #"tags": [""],
-                "description": "Pre-equilibrated systems for different size for AIMD for Halogen-Substituted Ionic Liquids.",
-                "year": 2016,
+                "license": "http://www.opensource.org/licenses/LGPL-2.1",
+                "collection": "Modelling PDE6",
+                "tags": ["Integrative Modeling Platform (IMP)", "Chemical crosslinks", "Electron microscopy density map", "MODELLER"],
+                "description": "Photoreceptor phosphodiesterase (PDE6) is the central effector enzyme in visual excitation pathway in rod and cone photoreceptors. Its tight regulation is essential for the speed, sensitivity, recovery and adaptation of visual detection. Although major steps in the PDE6 activation/deactivation pathway have been identified, mechanistic understanding of PDE6 regulation is limited by the lack of knowledge about the molecular organization of the PDE6 holoenzyme (αβγγ). Here, we characterize the PDE6 holoenzyme by integrative structural determination of the PDE6 catalytic dimer (αβ), based primarily on chemical cross-linking and mass spectrometric analysis.",
+                "year": 2014,
 
                 "links": {
 
-                    "landing_page": "https://doi.org/10.5281/zenodo.165493",
-                    #"publication": [""],
+                    "landing_page": "https://doi.org/10.5281/zenodo.46599",
+                    "publication": ["https://github.com/integrativemodeling/pde6/tree/v1.0","https://doi.org/10.1016/j.jmb.2014.07.033"],
                     #"data_doi": "",
                     #"related_id": ,
 
-                    #"data_link": {
+                    "zip": {
 
                         #"globus_endpoint": ,
-                        #"http_host": ,
+                        "http_host": "https://zenodo.org",
 
-                        #"path": ,
-                        #},
+                        "path": "/record/46599/files/pde6-v1.0.zip",
+                        },
                     },
                 },
 
@@ -126,13 +196,13 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
-        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
+    for data_file in tqdm(find_files(input_path, "pdb"), desc="Processing files", disable=not verbose):
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "proteindatabank")
         ## Metadata:record
         record_metadata = {
             "mdf": {
 
-                "title": "Halogen Ionic Liquids - " + record["chemical_formula"],
+                "title": "Modelling PDE6 - " + record["chemical_formula"],
                 "acl": ["public"],
                 "composition": record["chemical_formula"],
 
@@ -147,12 +217,12 @@ def convert(input_path, metadata=None, verbose=False):
 #                    "data_doi": ,
 #                    "related_id": ,
 
-                    "xyz": {
+                    "pdb": {
 
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
 
-                        "path": "/collections/halogen_ionic_liquids/" + data_file["filename"],
+                        "path": "/collections/modelling_pde6/" + data_file["no_root_path"] + "/" + data_file["filename"],
                         },
                     },
 

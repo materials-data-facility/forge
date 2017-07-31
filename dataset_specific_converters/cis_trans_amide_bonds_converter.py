@@ -89,7 +89,7 @@ def convert(input_path, metadata=None, verbose=False):
     
                     "landing_page": "http://hdl.handle.net/10044/1/30292",
     
-                    #"publication": [""],
+                    "publication": ["http://pubs.acs.org/doi/full/10.1021/acs.joc.5b00205"],
                     "data_doi": "http://dx.doi.org/10.6084/m9.figshare.1181739",
     
                     #"related_id": ,

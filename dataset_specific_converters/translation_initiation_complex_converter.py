@@ -8,7 +8,7 @@ from ..validator.schema_validator import Validator
 
 # VERSION 0.3.0
 
-# This is the converter for: Halogen-Substituted Ionic Liquids
+# This is the converter for: Molecular architecture of the 40S⋅eIF1⋅eIF3 translation initiation complex
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -30,16 +30,16 @@ def convert(input_path, metadata=None, verbose=False):
         dataset_metadata = {
             "mdf": {
 
-                "title": "Halogen-Substituted Ionic Liquids",
+                "title": "Molecular architecture of the 40S⋅eIF1⋅eIF3 translation initiation complex",
                 "acl": ["public"],
-                "source_name": "halogen_ionic_liquids",
+                "source_name": "translation_initiation_complex",
 
                 "data_contact": {
                     
-                    "given_name": "Vitaly V.",
-                    "family_name": "Chaban",
-                    "email": "v.chaban@rochester.edu",
-                    "institution": "University of Rochester",
+                    "given_name": "Jan P.",
+                    "family_name": "Erzberger",
+                    "email": "jan.erzberger@mol.biol.ethz.ch",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
 
                 },
 
@@ -53,37 +53,107 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "citation": ["Chaban, Vitaly V. (2016). Halogen-Substituted Ionic Liquids [Data set]. Zenodo. http://doi.org/10.5281/zenodo.165493"],
+                "citation": ["Erzberger, J. P., Stengel, F., Pellarin, R., Zhang, S., Schaefer, T., Aylett, C. H. S., … Ban, N. (2014). Molecular architecture of the 40S⋅eIF1⋅eIF3 translation initiation complex [Data set]. Cell. Zenodo. http://doi.org/10.5281/zenodo.46415"],
 
                 "author": [{
 
-                    "given_name": "Vitaly V.",
-                    "family_name": "Chaban",
-                    "email": "v.chaban@rochester.edu",
-                    "institution": "Universidade Federal de São Paulo",
+                    "given_name": "Jan P.",
+                    "family_name": "Erzberger",
+                    "email": "jan.erzberger@mol.biol.ethz.ch",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
+
+                },
+                {
+
+                    "given_name": "Florian",
+                    "family_name": "Stengel",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
+
+                },
+                {
+
+                    "given_name": "Riccardo",
+                    "family_name": "Pellarin",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Suyang",
+                    "family_name": "Zhang",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
+
+                },
+                {
+
+                    "given_name": "Tanja",
+                    "family_name": "Schaefer",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
+
+                },
+                {
+
+                    "given_name": "Christopher H.S.",
+                    "family_name": "Aylett",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
+
+                },
+                {
+
+                    "given_name": "Peter",
+                    "family_name": "Cimermančič",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Daniel",
+                    "family_name": "Boehringer",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
+
+                },
+                {
+
+                    "given_name": "Andrej",
+                    "family_name": "Sali",
+                    "institution": "University of California, San Francisco",
+
+                },
+                {
+
+                    "given_name": "Ruedi",
+                    "family_name": "Aebersold",
+                    "institution": "University of Zurich",
+
+                },
+                {
+
+                    "given_name": "Nenad",
+                    "family_name": "Ban",
+                    "institution": "Institute of Molecular Biology and Biophysics, ETH Zurich",
 
                 }],
 
-                "license": "https://creativecommons.org/licenses/by/4.0/",
-                "collection": "Halogen Substituted Ionic Liquids",
-                #"tags": [""],
-                "description": "Pre-equilibrated systems for different size for AIMD for Halogen-Substituted Ionic Liquids.",
-                "year": 2016,
+                "license": "http://www.opensource.org/licenses/LGPL-2.1",
+                "collection": "Translation Initiation Complex",
+                "tags": ["Integrative Modeling Platform (IMP)", "Chemical crosslinks", "MODELLER", "PMI", "X-ray crystallography"],
+                "description": "Eukaryotic translation initiation requires the recruitment of the large, multiprotein eIF3 complex to the 40S ribosomal subunit. Using X-ray structures of all major components of the minimal, six-subunit Saccharomyces cerevisiae eIF3 core, together with cross-linking coupled to mass spectrometry, we were able to use IMP to position and orient all eIF3 components on the 40S•eIF1 complex, revealing an extended, modular arrangement of eIF3 subunits.",
+                "year": 2014,
 
                 "links": {
 
-                    "landing_page": "https://doi.org/10.5281/zenodo.165493",
-                    #"publication": [""],
+                    "landing_page": "https://doi.org/10.5281/zenodo.46415",
+                    "publication": ["https://github.com/integrativemodeling/40s-eif1-eif3/tree/v1.0", "https://doi.org/10.1016/j.cell.2014.07.044"],
                     #"data_doi": "",
                     #"related_id": ,
 
-                    #"data_link": {
+                    "zip": {
 
                         #"globus_endpoint": ,
-                        #"http_host": ,
+                        "http_host": "https://zenodo.org",
 
-                        #"path": ,
-                        #},
+                        "path": "/record/46415/files/40s-eif1-eif3-v1.0.zip",
+                        },
                     },
                 },
 
@@ -126,13 +196,13 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
-    for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
-        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
+    for data_file in tqdm(find_files(input_path, "pdb"), desc="Processing files", disable=not verbose):
+        record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "proteindatabank")
         ## Metadata:record
         record_metadata = {
             "mdf": {
 
-                "title": "Halogen Ionic Liquids - " + record["chemical_formula"],
+                "title": "Translation Initiation Complex - " + record["chemical_formula"] + " record - " + data_file["filename"],
                 "acl": ["public"],
                 "composition": record["chemical_formula"],
 
@@ -147,12 +217,12 @@ def convert(input_path, metadata=None, verbose=False):
 #                    "data_doi": ,
 #                    "related_id": ,
 
-                    "xyz": {
+                    "pdb": {
 
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
 
-                        "path": "/collections/halogen_ionic_liquids/" + data_file["filename"],
+                        "path": "/collections/translation_initiation_complex/" + data_file["no_root_path"] + "/" + data_file["filename"],
                         },
                     },
 
