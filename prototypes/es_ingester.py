@@ -9,6 +9,10 @@ from elasticsearch.exceptions import RequestError
 from elasticsearch import helpers
 
 from mdf_forge.toolbox import format_gmeta
+from mdf_refinery.config import get_path
+
+PATH_FEEDSTOCK = get_path("feedstock")
+
 
 def es_ingest(mdf_source_names, batch_size=100, delete_index=False, verbose=False):
     client = Elasticsearch(timeout=120)

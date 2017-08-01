@@ -3,7 +3,7 @@ import json
 
 
 PATHS = {}
-CACHE_FILE = os.path.join(os.path.dirname(__file__), ".mdf_paths.json")
+CACHE_FILE = os.path.expanduser("~/.mdf_paths.json")
 
 # Get paths to important directories
 def build_cache():
@@ -11,7 +11,7 @@ def build_cache():
     # If paths have been cached already, just read them
     if os.path.isfile(CACHE_FILE):
         with open(CACHE_FILE) as cache:
-            PATHS = json.loads(CACHE_FILE)
+            PATHS = json.load(cache)
     # Need to get paths
     else:
         path_datasets = os.path.normpath(os.path.realpath(input("Input path to datasets:\n")))
@@ -23,11 +23,15 @@ def build_cache():
         path_schemas = os.path.normpath(os.path.realpath(input("Input path to schemas:\n")))
         if not os.path.isdir(path_schemas):
             raise NotADirectoryError("'" + path_schemas + "' is not a valid schema location")
+        path_creds = os.path.normpath(os.path.realpath(input("Input path to credentials:\n")))
+        if not os.path.isdir(path_creds):
+            raise NotADirectoryError("'" + path_creds + "' is not a valid credentials location")
 
         PATHS = {
             "datasets": path_datasets,
             "feedstock": path_feedstock,
-            "schemas": path_schemas
+            "schemas": path_schemas,
+            "credentials": path_creds
             }
         with open(CACHE_FILE, "w") as cache:
             json.dump(PATHS, cache)

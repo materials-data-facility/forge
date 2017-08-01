@@ -68,7 +68,7 @@ def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
         except IOError:
             try:
                 creds = json.loads(credentials)
-            except JSONDecodeError:
+            except json.JSONDecodeError:
                 raise ValueError("Credential string unreadable")
     elif type(credentials) is dict:
         creds = credentials
@@ -131,7 +131,7 @@ def confidential_login(credentials=None):
         except IOError:
             try:
                 creds = json.loads(credentials)
-            except JSONDecodeError:
+            except json.JSONDecodeError:
                 raise ValueError("Credentials unreadable or missing")
     elif type(credentials) is dict:
         creds = credentials

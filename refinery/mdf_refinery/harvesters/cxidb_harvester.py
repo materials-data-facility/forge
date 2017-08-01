@@ -1,6 +1,7 @@
 import requests
 from json import dump
 import os
+from shutil import rmtree
 from tqdm import tqdm
 
 #Collects available data from CXIDB and saves to the given directory

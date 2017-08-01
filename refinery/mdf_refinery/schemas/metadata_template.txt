@@ -126,11 +126,6 @@ dataset_metadata = {
 
     },
 
-    # OPT dictionary: MRR-format metadata
-    "mrr": {
-
-    },
-
     # OPT dictionary: DataCite-format metadata
     "dc": {
 

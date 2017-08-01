@@ -1,19 +1,19 @@
+import os
 from importlib import import_module
-
+from mdf_refinery.config import get_path
 
 VERBOSE = True
-harvesters_import = "mdf_indexers.harvesters."
-converters_import = "mdf_indexers.converters."
-ingester_import = "mdf_indexers.ingester.data_ingester"
-acceptor_import = "mdf_indexers.acceptor.feedstock_acceptor"
+harvesters_import = "mdf_refinery.harvesters."
+converters_import = "mdf_refinery.converters."
+ingester_import = "mdf_refinery.ingester"
 
-datasets_path = "mdf_indexers/datasets/"
+datasets_path = get_path("datasets")
 
 def call_harvester(source_name, existing_dir=-1, verbose=VERBOSE, **kwargs):
     if verbose:
         print("HARVESTING", source_name)
     harvester = import_module(harvesters_import + source_name + "_harvester")
-    output_path = datasets_path + source_name + "/"
+    output_path = os.path.join(datasets_path, source_name + "/")
     harvester.harvest(out_dir=output_path, existing_dir=existing_dir,  verbose=verbose, **kwargs)
     if verbose:
         print("HARVESTING COMPLETE")
@@ -30,8 +30,8 @@ def call_converter(sources, input_path=None, metadata=None, verbose=VERBOSE):
         converter = import_module(converters_import + source_name + "_converter")
         if not input_path:
             # Relative path is from calling function, not sub-function: paths.datasets will be wrong
-            # Use "mdf_indexers/datasets/X" instead
-            input_path = datasets_path + source_name + "/"
+            # Use "mdf_refinery/datasets/X" instead
+            input_path = os.path.join(datasets_path, source_name + "/")
         converter.convert(input_path=input_path, metadata=metadata, verbose=verbose)
     if verbose:
         print("\nALL CONVERTING COMPLETE")
@@ -40,21 +40,6 @@ def call_converter(sources, input_path=None, metadata=None, verbose=VERBOSE):
 def call_ingester(sources, globus_index="mdf", batch_size=100, verbose=VERBOSE):
     ingester = import_module(ingester_import)
     ingester.ingest(sources, globus_index=globus_index, batch_size=batch_size, verbose=verbose)
-
-
-def call_acceptor(sources="all", remove_old=True, verbose=VERBOSE):
-    acceptor = import_module(acceptor_import)
-    if "all" in sources:
-        res = acceptor.accept_all(remove_old=remove_old, verbose=verbose)
-        if verbose:
-            print(res)
-    else:
-        if type(sources) is not list:
-            sources = [sources]
-        for src in sources:
-            res = acceptor.accept_feedstock("mdf_indexers/submissions/" + src + "all.json", remove_old=remove_old, verbose=verbose)
-            if verbose:
-                print(res)
 
 
 def call_md_only_converter(source_name, verbose=VERBOSE):

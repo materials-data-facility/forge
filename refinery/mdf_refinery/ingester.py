@@ -5,7 +5,9 @@ import os
 from tqdm import tqdm
 
 from mdf_forge.toolbox import format_gmeta, confidential_login
+from mdf_refinery.config import get_path
 
+PATH_FEEDSTOCK = get_path("feedstock")
 
 
 def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
@@ -23,7 +25,7 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
     if verbose:
         print("\nStarting ingest of:\n", mdf_source_names, "\nIndex:", globus_index, "\nBatch size:", batch_size, "\n")
 
-    ingest_client = confidential_login(credentials="ingester_login.json")["search_ingest"]
+    ingest_client = confidential_login(credentials=os.path.join(get_path("credentials"), "ingester_login.json"))["search_ingest"]
 
     if type(mdf_source_names) is str:
         mdf_source_names = [mdf_source_names]

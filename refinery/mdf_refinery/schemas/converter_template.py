@@ -3,7 +3,7 @@ import sys
 
 from mdf_refinery.validator import Validator
 
-# VERSION 0.3.0
+# VERSION 0.3.2
 
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
@@ -146,11 +146,6 @@ def convert(input_path, metadata=None, verbose=False):
                     },
 
                 },
-
-            },
-
-            # OPT dictionary: MRR-format metadata
-            "mrr": {
 
             },
 

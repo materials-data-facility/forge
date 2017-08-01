@@ -6,7 +6,10 @@ from datetime import datetime
 import jsonschema
 from bson import ObjectId
 
-#from mdf_refinery.config import PATH_FEEDSTOCK, PATH_SCHEMAS
+from mdf_refinery.config import get_path
+
+PATH_FEEDSTOCK = get_path("feedstock")
+PATH_SCHEMAS = get_path("schemas")
 
 
 ##################
