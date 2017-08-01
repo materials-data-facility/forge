@@ -55,7 +55,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "citation": ["Moiseev, Ilya I. (2014/08/18). Platinum Acetate Blue: Synthesis and Characterization. Inorganic Chemistry, 53, 8397-8406. doi: 10.1021/ic500940a"],
+                "citation": ["Cherkashina, Natalia V.; Kochubey, Dmitry I.; Kanazhevskiy, Vladislav V.; Zaikovskii, Vladimir I.; Ivanov, Vladimir K.; Markov, Alexander A.; Klyagina, Alla P.; Dobrokhotova, Zhanna V.; Kozitsyna, Natalia Yu.; Baranovsky, Igor B.; Ellert, Olga G.; Efimov, Nikolai N.; Nefedov, Sergei E.; Novotortsev, Vladimir M.; Vargaftik, Michael N.; Moiseev, Ilya I. (2014): Platinum Acetate Blue: Synthesis and Characterization. ACS Publications. https://doi.org/10.1021/ic500940a.s002"],
 
                 "author": [{
 
@@ -171,26 +171,26 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                #"license": "",
+                "license": "https://creativecommons.org/licenses/by-nc/4.0/",
                 "collection": "Platinum Acetate Blue",
-                #"tags": [""],
+                "tags": ["transmission electron microscopy", "building blocks", "Pt", "Platinum Acetate Blue", "Characterization", "Platinum acetate", "Typical PAB samples", "III", "PtII", "synthesis", "II", "scanning electron microscopy", "oxidation state", "quantum chemical density", "platinum complexes"],
                 "description": "A noncrystalline platinum acetate blue (PAB) of the empirical formula Pt(OOCMe)2.5±0.25 was proposed as an easily prepared starting material instead of the crystalline platinum(II) acetate. Three new platinum(II) and (III) complexes: PtII(dipy)(OOCMe)2, PtIII2(OOCMe)4(O3SPhMe)2, and PtII(μ−OOCMe)4CoII(OH2) were synthesized using PAB as starting material and structurally characterized with X-ray diffraction analysis. The combined EXAFS, SEM, TEM, XRD, DTA-TG, magnetochemical, and DFT−MM+ study revealed the chemical nature of the PAB with the main structural unit Pt9(OOCMe)23.",
                 "year": 2014,
 
                 "links": {
 
-                    "landing_page": "http://pubs.acs.org/doi/full/10.1021/ic500940a",
-                    #"publication": [""],
+                    "landing_page": "https://figshare.com/articles/Platinum_Acetate_Blue_Synthesis_and_Characterization/2263327",
+                    "publication": ["https://doi.org/10.1021/ic500940a"],
                     #"data_doi": "",
                     #"related_id": ,
 
-                    #"data_link": {
+                    "zip": {
 
                         #"globus_endpoint": ,
-                        #"http_host": ,
+                        "http_host": "https://ndownloader.figshare.com",
 
-                        #"path": ,
-                        #},
+                        "path": "/files/3899320",
+                        },
                     },
                 },
 
