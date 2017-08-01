@@ -100,9 +100,9 @@ def convert(input_path, metadata=None, verbose=False):
 
                 }],
 
-                "license": "http://pubs.acs.org/page/policy/authorchoice_termsofuse.html",
+                "license": "https://creativecommons.org/licenses/by-nc/4.0/",
                 "collection": "Cytotoxic Platinum Complexes",
-                #"tags": [""],
+                "tags": ["structure geometry", "series", "resistance", "Herein", "laboratory", "tetraki", "tris", "Relationship", "wb 97x", "mechanism", "cisplatin", "complex", "SW", "Cytotoxic", "calculation", "relationship", "Density Functional Theory", "DFT", "Reliable", "ComplexesOctahedral", "bi", "compound", "Quantitative", "Model", "QSAR investigations", "cytotoxicity", "candidate", "cell line CH 1", "descriptor", "optimization", "QSAR models", "toxicity", "Theoretical Investigations"],
                 "description": "Octahedral platinum(IV) complexes are promising candidates in the fight against cancer. In order to rationalize the further development of this class of compounds, detailed studies on their mechanisms of action, toxicity, and resistance must be provided and structure–activity relationships must be drawn. Herein, we report on theoretical and QSAR investigations of a series of 53 novel bis-, tris-, and tetrakis(carboxylato)platinum(IV) complexes, synthesized and tested for cytotoxicity in our laboratories. ",
                 "year": 2012,
 
@@ -116,9 +116,9 @@ def convert(input_path, metadata=None, verbose=False):
                     "cif": {
 
                         #"globus_endpoint": ,
-                        "http_host": "https://www.ncbi.nlm.nih.gov",
+                        "http_host": "https://ndownloader.figshare.com",
 
-                        "path": "/pmc/articles/PMC3557934/bin/jm3016427_si_002.cif",
+                        "path": "/files/3593325",
                         },
                     },
                 },
