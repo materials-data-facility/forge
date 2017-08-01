@@ -1,19 +1,19 @@
 import os
 import json
 
-
+from mdf_refinery import MDF_PATH
 PATHS = {}
-CACHE_FILE = os.path.expanduser("~/.mdf_paths.json")
+CACHE_FILE = os.path.join(MDF_PATH, "mdf_paths.json")
 
 # Get paths to important directories
-def build_cache():
+def build_cache(prompt_user=False):
     global PATHS
     # If paths have been cached already, just read them
     if os.path.isfile(CACHE_FILE):
         with open(CACHE_FILE) as cache:
             PATHS = json.load(cache)
     # Need to get paths
-    else:
+    elif prompt_user:
         path_datasets = os.path.normpath(os.path.realpath(input("Input path to datasets:\n")))
         if not os.path.isdir(path_datasets):
             raise NotADirectoryError("'" + path_datasets + "' is not a valid dataset location")
@@ -35,6 +35,15 @@ def build_cache():
             }
         with open(CACHE_FILE, "w") as cache:
             json.dump(PATHS, cache)
+    else:
+        PATHS = {
+            "datasets": os.path.join(MDF_PATH, "datasets/"),
+            "feedstock": os.path.join(MDF_PATH, "feedstock/"),
+            "schemas": os.path.join(MDF_PATH, "schemas/"),
+            "credentials": os.path.join(MDF_PATH, "credentials/")
+            }
+        with open(CACHE_FILE, "w") as cache:
+            json.dump(PATHS, cache)
 
 
 # Remove old path cache
@@ -43,7 +52,7 @@ def clear_cache():
         global PATHS
         PATHS = {}
         os.remove(CACHE_FILE)
-    # If cache does not exist, is clear
+    # If cache does not exist, it is clear
     except FileNotFoundError:
         pass
 

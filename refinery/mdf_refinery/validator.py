@@ -6,10 +6,7 @@ from datetime import datetime
 import jsonschema
 from bson import ObjectId
 
-from mdf_refinery.config import get_path
-
-PATH_FEEDSTOCK = get_path("feedstock")
-PATH_SCHEMAS = get_path("schemas")
+from mdf_refinery import PATH_FEEDSTOCK, PATH_SCHEMAS
 
 
 ##################
@@ -62,6 +59,8 @@ class Validator:
                     self.__schemas[schema.split("_")[1].replace(".schema", "")] = json.load(in_schema)
         except Exception as e:
             raise
+
+        os.makedirs(PATH_FEEDSTOCK, exist_ok=True)
 
         res = self.__write_metadata(metadata, resource_type)
         if not res["success"]:

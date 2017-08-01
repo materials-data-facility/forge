@@ -1,19 +1,18 @@
 import os
 from importlib import import_module
-from mdf_refinery.config import get_path
+from mdf_refinery import PATH_DATASETS
 
 VERBOSE = True
 harvesters_import = "mdf_refinery.harvesters."
 converters_import = "mdf_refinery.converters."
 ingester_import = "mdf_refinery.ingester"
 
-datasets_path = get_path("datasets")
 
 def call_harvester(source_name, existing_dir=-1, verbose=VERBOSE, **kwargs):
     if verbose:
         print("HARVESTING", source_name)
     harvester = import_module(harvesters_import + source_name + "_harvester")
-    output_path = os.path.join(datasets_path, source_name + "/")
+    output_path = os.path.join(PATH_DATASETS, source_name + "/")
     harvester.harvest(out_dir=output_path, existing_dir=existing_dir,  verbose=verbose, **kwargs)
     if verbose:
         print("HARVESTING COMPLETE")
@@ -31,7 +30,7 @@ def call_converter(sources, input_path=None, metadata=None, verbose=VERBOSE):
         if not input_path:
             # Relative path is from calling function, not sub-function: paths.datasets will be wrong
             # Use "mdf_refinery/datasets/X" instead
-            input_path = os.path.join(datasets_path, source_name + "/")
+            input_path = os.path.join(PATH_DATASETS, source_name + "/")
         converter.convert(input_path=input_path, metadata=metadata, verbose=verbose)
     if verbose:
         print("\nALL CONVERTING COMPLETE")
@@ -47,7 +46,7 @@ def call_md_only_converter(source_name, verbose=VERBOSE):
         source_name = [source_name]
     for src_nm in source_name:
         converter = import_module(converters_import + "metadata_only_converter")
-        md_path = datasets_path + "/metadata_only/" + src_nm + ".json"
+        md_path = PATH_DATASETS + "/metadata_only/" + src_nm + ".json"
         converter.convert(md_path, verbose)
 
 
