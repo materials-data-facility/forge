@@ -32,7 +32,8 @@ def convert(input_path, metadata=None, verbose=False):
                     "family_name": "Torres",
                     
                     "email": "juan.torres@uq.edu.au",
-                    "instituition": "University of Queensland"
+                    "instituition": "University of Queensland",
+                    "orcid": "orcid.org/0000-0002-0301-4374"
     
                     },
     
@@ -42,7 +43,8 @@ def convert(input_path, metadata=None, verbose=False):
                     "family_name": "Torres",
                     
                     "email": "juan.torres@uq.edu.au",
-                    "instituition": "University of Queensland"
+                    "instituition": "University of Queensland",
+                    "orcid": "orcid.org/0000-0002-0301-4374"
                     
                     }],
     
@@ -61,7 +63,7 @@ def convert(input_path, metadata=None, verbose=False):
                     "publication": ["http://www.sciencedirect.com/science/article/pii/S1359835X17301136", "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5397101/"],
                    # "data_doi": "",
     
-                    "related_id": "orcid.org/0000-0002-0301-4374",
+                    #"related_id": ,
     
                     "zip": {
                     
