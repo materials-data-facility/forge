@@ -5,6 +5,7 @@
 *login*
 *.ipynb_checkpoints
 Untitled*.ipynb
+*.mdf_paths.json
 
 feedstock/*
 feedstock
