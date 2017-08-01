@@ -8,15 +8,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import RequestError
 from elasticsearch import helpers
 
-PATH_FEEDSTOCK = "../feedstock"
-PATH_GMETA = os.path.join(os.path.dirname(os.getcwd()), "utils")
-es_url = "127.0.0.1:9200"
-
-sys.path.append(PATH_GMETA)
-from gmeta_utils import format_gmeta
+from mdf_forge.toolbox import format_gmeta
 
 def es_ingest(mdf_source_names, batch_size=100, delete_index=False, verbose=False):
-#    gmeta = importlib.import_module(PATH_GMETA, "gmeta_utils")
     client = Elasticsearch(timeout=120)
     try:
         client.indices.create(index="mdf")

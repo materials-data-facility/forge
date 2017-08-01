@@ -4,9 +4,9 @@ import os
 
 from tqdm import tqdm
 
-from ..validator.schema_validator import Validator
-from ..parsers.ase_parser import parse_ase
-from ..utils.file_utils import find_files
+from mdf_refinery.validator import Validator
+from mdf_refinery.parsers.ase_parser import parse_ase
+from mdf_forge.toolbox import find_files
 
 # VERSION 0.3.0
 

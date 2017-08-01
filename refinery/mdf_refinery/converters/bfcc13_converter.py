@@ -2,9 +2,9 @@ import json
 import sys
 import os
 from tqdm import tqdm
-from ..parsers.ase_parser import parse_ase
-from ..utils.file_utils import find_files
-from ..validator.schema_validator import Validator
+from mdf_refinery.parsers.ase_parser import parse_ase
+from mdf_forge.toolbox import find_files
+from mdf_refinery.validator import Validator
 
 # VERSION 0.3.0
 

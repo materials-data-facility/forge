@@ -4,12 +4,8 @@ import os
 
 from tqdm import tqdm
 
-from . import search_client
-from ..utils import paths
-from ..utils.gmeta_utils import format_gmeta
+from mdf_forge.toolbox import format_gmeta, confidential_login
 
-PATH_FEEDSTOCK = paths.get_path(__file__, "feedstock")
-globus_url = "https://search.api.globus.org/"
 
 
 def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
@@ -27,7 +23,7 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
     if verbose:
         print("\nStarting ingest of:\n", mdf_source_names, "\nIndex:", globus_index, "\nBatch size:", batch_size, "\n")
 
-    ingest_client = search_client.SearchClient(globus_url, globus_index)
+    ingest_client = confidential_login(credentials="ingester_login.json")["search_ingest"]
 
     if type(mdf_source_names) is str:
         mdf_source_names = [mdf_source_names]

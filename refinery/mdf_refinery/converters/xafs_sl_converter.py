@@ -5,7 +5,7 @@ from urllib.parse import quote
 import psycopg2
 from tqdm import tqdm
 
-from ..validator.schema_validator import Validator
+from mdf_refinery.validator import Validator
 
 # VERSION 0.3.0
 

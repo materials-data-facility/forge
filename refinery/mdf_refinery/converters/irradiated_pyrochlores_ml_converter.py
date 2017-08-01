@@ -1,8 +1,8 @@
 import json
 import sys
 import os
-from ..parsers.tab_parser import parse_tab
-from ..validator.schema_validator import Validator
+from mdf_refinery.parsers.tab_parser import parse_tab
+from mdf_refinery.validator import Validator
 
 # VERSION 0.3.0
 

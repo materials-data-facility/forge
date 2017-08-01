@@ -98,22 +98,10 @@ def inject_md(input_file, schema, md_type, version, indent="    "):
 
 # # Save new template
 
-def generate_template(md_type, md_version, template_file=None):
+def generate_template(md_type, md_version, template_file):
     # Open correct schema file
     with open(md_version+"_"+md_type+".schema") as schema_file:
-        schema = json.load(schema_file)
-    # Find converter template if not provided
-    if not template_file:
-        # Imports here because relative import breaks things in certain environments (Jupyter)
-        # Essentially require template_file if in those environments
-        try:
-            import os
-            from ..utils import paths
-        except ImportError:
-            raise TypeError("generate_template missing 1 required argument for this environment: template_file")
-        path_schemas = paths.get_path(__file__, "converters")
-        template_file = os.path.join(paths_schemas, "converter_template.py")
-        
+        schema = json.load(schema_file)       
     with open(template_file, "r") as input_file:
         new_template = inject_md(input_file, schema, md_type, md_version)
     with open(template_file, "w") as output_file:

@@ -8,9 +8,9 @@ from time import sleep
 
 from tqdm import tqdm
 
-from ..validator.schema_validator import Validator
-from ..utils.file_utils import find_files
-from ..parsers.ase_parser import parse_ase
+from mdf_refinery.validator import Validator
+from mdf_forge.toolbox import find_files
+from mdf_refinery.parsers.ase_parser import parse_ase
 
 NUM_PROCESSORS = 2
 #NUM_WRITERS = 1

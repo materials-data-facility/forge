@@ -7,7 +7,7 @@ from time import sleep
 
 from tqdm import tqdm
 
-from ..validator.schema_validator import Validator
+from mdf_refinery.validator import Validator
 
 NUM_PROCESSORS = 2
 #NUM_WRITERS = 1

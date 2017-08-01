@@ -1,7 +1,7 @@
 import json
 import sys
 import os
-from ..validator.schema_validator import Validator
+from mdf_refinery.validator import Validator
 
 # VERSION 0.3.0
 

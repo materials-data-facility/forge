@@ -158,7 +158,7 @@ def confidential_login(credentials=None):
     if "transfer" in servs:
         clients["transfer"] = globus_sdk.TransferClient(authorizer=conf_authorizer)
     if "search_ingest" in servs:
-        clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search_ingest"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
     elif "search" in servs:
         clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
     if "mdf" in servs:

@@ -4,8 +4,8 @@ import os
 
 from tqdm import tqdm
 
-from ..utils.file_utils import find_files
-from ..validator.schema_validator import Validator
+from mdf_forge.toolbox import find_files
+from mdf_refinery.validator import Validator
 
 # VERSION 0.3.0
 
