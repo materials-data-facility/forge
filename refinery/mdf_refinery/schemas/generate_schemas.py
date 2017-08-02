@@ -2,6 +2,33 @@
 # coding: utf-8
 
 import json
+import os
+
+
+# # Save new schemas in appropriate files
+
+def write_schema(schema, md_type, md_version):
+    schema_loc = "."
+    conv_template_loc = "./converter_template.py"
+    text_template_loc = "./metadata_template.txt"
+
+    # Write out to .schema
+    with open(os.path.join(schema_loc, md_version + "_" + md_type + ".schema"), 'w') as md_file:
+        json.dump(schema, md_file)
+
+    # Inject into converter template
+    with open(conv_template_loc, "r") as input_file:
+        new_template = inject_md(input_file, schema, md_type, md_version)
+    with open(conv_template_loc, "w") as output_file:
+        output_file.write(new_template)
+
+    # Inject into text template
+    with open(text_template_loc, "r") as input_file:
+        new_template = inject_md(input_file, schema, md_type, md_version)
+    with open(text_template_loc, "w") as output_file:
+        output_file.write(new_template)
+
+    return {"success": True}
 
 
 # # Recursively format JSON Schema into a Python template
@@ -73,7 +100,7 @@ def inject_md(input_file, schema, md_type, version, indent="    "):
     doc = ""
     pause = False
     for line in input_file:
-        # Update verison number
+        # Update version number
         if "# VERSION" in line:
             doc += "# VERSION " + version + "\n"
         # If pause was set, template has been written
@@ -96,16 +123,5 @@ def inject_md(input_file, schema, md_type, version, indent="    "):
     return doc
 
 
-# # Save new template
 
-def generate_template(md_type, md_version, template_file):
-    # Open correct schema file
-    with open(md_version+"_"+md_type+".schema") as schema_file:
-        schema = json.load(schema_file)       
-    with open(template_file, "r") as input_file:
-        new_template = inject_md(input_file, schema, md_type, md_version)
-    with open(template_file, "w") as output_file:
-        output_file.write(new_template)
-
-    return {"success": True}
 
