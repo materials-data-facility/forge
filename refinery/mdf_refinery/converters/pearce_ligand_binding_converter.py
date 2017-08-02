@@ -9,7 +9,7 @@ from mdf_refinery.validator import Validator
 # VERSION 0.3.0
 
 # This is the converter for: Proper modelling of ligand binding requires an ensemble of bound and unbound states
-#When revisiting... cif files were unreadable by ase and pymatgen
+"""When revisiting... cif files were unreadable by ase and pymatgen. Log files seem to be "aim" files, but ase unable to read"""
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
