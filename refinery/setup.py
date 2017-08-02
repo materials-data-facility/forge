@@ -1,4 +1,6 @@
+import os
 from setuptools import setup, find_packages
+
 
 setup(
     name='mdf_refinery',
@@ -16,5 +18,13 @@ setup(
         "pymatgen>=2017.6.8",
         "jsonschema>=2.6.0",
         "pymongo>=3.4.0"  # For bson.ObjectId
-    ]
+    ],
+    package_data={'mdf_refinery': ['schemas/*.schema']}
 )
+
+from mdf_refinery import config
+os.makedirs(config.MDF_PATH, exist_ok=True)
+os.makedirs(config.PATH_DATASETS, exist_ok=True)
+os.makedirs(config.PATH_FEEDSTOCK, exist_ok=True)
+os.makedirs(config.PATH_CREDENTIALS, exist_ok=True)
+

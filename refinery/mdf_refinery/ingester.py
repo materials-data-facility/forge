@@ -5,7 +5,7 @@ import os
 from tqdm import tqdm
 
 from mdf_forge.toolbox import format_gmeta, confidential_login
-from mdf_refinery import PATH_FEEDSTOCK, PATH_CREDENTIALS
+from mdf_refinery.config import PATH_FEEDSTOCK, PATH_CREDENTIALS
 
 
 def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):

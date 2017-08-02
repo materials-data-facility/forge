@@ -29,6 +29,7 @@ from tqdm import tqdm
 def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
     NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
     DEFAULT_CRED_FILENAME = "globus_login.json"
+    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf"), DEFAULT_CRED_FILENAME)
     SCOPES = {
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
@@ -77,7 +78,11 @@ def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
             with open(os.path.join(os.getcwd(), DEFAULT_CRED_FILENAME)) as cred_file:
                 creds = json.load(cred_file)
         except IOError:
-            raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in " + DEFAULT_CRED_FILENAME + ".")
+             try:
+                with open(DEFAULT_CRED_PATH) as cred_file:
+                    creds = json.load(cred_file)
+            except IOError:
+                raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
 
     native_client = globus_sdk.NativeAppAuthClient(NATIVE_CLIENT_ID, app_name=creds["app_name"])
 
@@ -117,6 +122,7 @@ def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
 #   index: For Globus Search only, the default index
 def confidential_login(credentials=None):
     DEFAULT_CRED_FILENAME = "globus_login.json"
+    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf"), DEFAULT_CRED_FILENAME)
     SCOPES = {
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
@@ -140,7 +146,11 @@ def confidential_login(credentials=None):
             with open(os.path.join(os.getcwd(), DEFAULT_CRED_FILENAME)) as cred_file:
                 creds = json.load(cred_file)
         except IOError:
-            raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in " + DEFAULT_CRED_FILENAME + ".")
+            try:
+                with open(DEFAULT_CRED_PATH) as cred_file:
+                    creds = json.load(cred_file)
+            except IOError:
+                raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
 
     conf_client = globus_sdk.ConfidentialAppAuthClient(creds["client_id"], creds["client_secret"])
     servs = []
