@@ -78,7 +78,7 @@ def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
             with open(os.path.join(os.getcwd(), DEFAULT_CRED_FILENAME)) as cred_file:
                 creds = json.load(cred_file)
         except IOError:
-             try:
+            try:
                 with open(DEFAULT_CRED_PATH) as cred_file:
                     creds = json.load(cred_file)
             except IOError:
@@ -182,7 +182,7 @@ def confidential_login(credentials=None):
 ##  File utilities
 ###################################################
 
-#Finds files inside a given directory (recursively) and returns path and filename info.
+#Finds files inside a given directory (recursively) and yields path and filename info.
 #Arguments:
 #   root: Path to the first dir to start with. Required.
 #   file_pattern: regex string to search for. Default is None, which matches all files.
@@ -190,16 +190,14 @@ def confidential_login(credentials=None):
 def find_files(root, file_pattern=None, verbose=False):
     # Add separator to end of root if not already supplied
     root += os.sep if root[-1:] != os.sep else ""
-    dir_list = []
     for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
         for one_file in files:
             if not file_pattern or re.search(file_pattern, one_file):  # Only care about dirs with desired data
-                dir_list.append({
+                yield {
                     "path": path,
                     "filename": one_file,
                     "no_root_path": path.replace(root, "")
-                    })
-    return dir_list
+                    }
 
 
 #Uncompresses all tar, zip, and gzip archives in a directory (searched recursively). Very slow.
