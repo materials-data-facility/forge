@@ -44,12 +44,12 @@ class Forge:
         return Query(self.search_client).match_elements(elements=elements, match_all=match_all)
 
 
-    def search(self, q, advanced=False, limit=None):
-        return Query(self.search_client).search(q=q, advanced=advanced, limit=limit)
+    def search(self, q, advanced=False, limit=None, info=False):
+        return Query(self.search_client).search(q=q, advanced=advanced, limit=limit, info=info)
 
 
-    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False):
-        return Query(self.search_client).match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit)
+    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, info=False):
+        return Query(self.search_client).match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit, info=info)
 
 
     def aggregate_source(self, source, limit=None):
@@ -243,7 +243,7 @@ class Query:
         return self
 
 
-    def search(self, q=None, advanced=None, limit=None):
+    def search(self, q=None, advanced=None, limit=None, info=False):
         if q is None:
             q = self.query
         if not q:
@@ -271,11 +271,11 @@ class Query:
             "advanced": advanced,
             "limit": limit
             }
-        return toolbox.gmeta_pop(self.search_client.structured_search(query))
+        return toolbox.gmeta_pop(self.search_client.structured_search(query), info=info)
 
 
-    def execute(self, q=None, advanced=None, limit=None):
-        return self.search(q, advanced, limit)
+    def execute(self, q=None, advanced=None, limit=None, info=False):
+        return self.search(q, advanced, limit, info)
 
 
     def aggregate_source(self, source, limit=None):

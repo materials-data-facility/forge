@@ -274,18 +274,25 @@ def format_gmeta(data):
 # Removes GMeta wrapping
 # Args:
 #   gmeta: Dict (or GlobusHTTPResponse, or JSON str) to unwrap
-def gmeta_pop(gmeta):
-    if type(gmeta) is str:
-        gmeta = json.loads(gmeta)
-    elif type(gmeta) is GlobusHTTPResponse:
+#   info: Return the total number of hits and other info about the result
+def gmeta_pop(gmeta, info=False):
+    if type(gmeta) is GlobusHTTPResponse:
         gmeta = json.loads(gmeta.text)
+    elif type(gmeta) is str:
+        gmeta = json.loads(gmeta)
     elif type(gmeta) is not dict:
         raise TypeError("gmeta must be dict, GlobusHTTPResponse, or JSON string")
     results = []
     for res in gmeta["gmeta"]:
         for con in res["content"]:
             results.append(con)
-    return results
+    if info:
+        fyi = {
+            "total_query_matches": gmeta["total"]
+            }
+        return results, fyi
+    else:
+        return results
 
 
 
