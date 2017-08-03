@@ -1,6 +1,6 @@
 import os
 from importlib import import_module
-from mdf_refinery import PATH_DATASETS
+from mdf_refinery.config import PATH_DATASETS
 
 VERBOSE = True
 harvesters_import = "mdf_refinery.harvesters."
