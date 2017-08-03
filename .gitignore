@@ -1,16 +1,11 @@
 *.pyc
 *.swp
 *.swo
-*_json.pickle
 *login*
 *.ipynb_checkpoints
 Untitled*.ipynb
-*.mdf_paths.json
 
-feedstock/*
-feedstock
-datasets/*
-datasets
+*.cache*
 
 */build/*
 */dist/*

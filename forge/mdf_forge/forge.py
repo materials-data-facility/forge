@@ -11,7 +11,7 @@ HTTP_NUM_LIMIT = 10
 
 class Forge:
     index = "mdf"
-    services = ["mdf", "transfer", "search_ingest"]
+    services = ["mdf", "transfer", "search"]
     app_name = "MDF Forge"
 
     def __init__(self, data={}):
@@ -44,12 +44,16 @@ class Forge:
         return Query(self.search_client).match_elements(elements=elements, match_all=match_all)
 
 
-    def search(self, q, raw=False, advanced=False, limit=None):
-        return Query(self.search_client).search(q=q, raw=raw, advanced=advanced, limit=limit)
+    def search(self, q, advanced=False, limit=None):
+        return Query(self.search_client).search(q=q, advanced=advanced, limit=limit)
 
 
-    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, raw=False):
-        return Query(self.search_client).match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit, raw=raw)
+    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False):
+        return Query(self.search_client).match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit)
+
+
+    def aggregate_source(self, source, limit=None):
+        return Query(self.search_client).aggregate_source(source=source, limit=limit)
 
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
@@ -198,11 +202,10 @@ class Forge:
 
 
 class Query:
-    def __init__(self, search_client, q="", limit=None, raw=False, advanced=False):
+    def __init__(self, search_client, q="", limit=None, advanced=False):
         self.search_client = search_client
         self.query = q
         self.limit = limit
-        self.raw = raw
         self.advanced = False
 
 
@@ -240,18 +243,16 @@ class Query:
         return self
 
 
-    def search(self, q=None, raw=None, advanced=None, limit=None):
+    def search(self, q=None, advanced=None, limit=None):
         if q is None:
             q = self.query
         if not q:
             print("Error: No query specified")
             return []
-        if raw is None:
-            raw = self.raw
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
-            limit = self.limit
+            limit = self.limit or 10000
 
         # Clean query string
         q = q.strip()
@@ -264,46 +265,35 @@ class Query:
         q = q.strip()
 
 
-        full_res = []
         # Simple query (max 10k results)
-        if not advanced:
-            if not limit or limit > 10000:
-                limit = 10000
+        query = {
+            "q": q,
+            "advanced": advanced,
+            "limit": limit
+            }
+        return toolbox.gmeta_pop(self.search_client.structured_search(query))
+
+
+    def execute(self, q=None, advanced=None, limit=None):
+        return self.search(q, advanced, limit)
+
+
+    def aggregate_source(self, source, limit=None):
+        full_res = []
+        res = True  # Start res as value that will pass while condition
+        # Scroll while results are being returned and limit not reached
+        while res and (limit is None or limit > 0):
             query = {
-                "q": q,
-                "advanced": False,
-                "limit": limit
+                "q": "mdf.source_name:" + source + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <" + str( len(full_res) + (limit or 10000) ) + ")",
+                "advanced": True,
+                "limit": limit or 10000
                 }
-            res = self.search_client.structured_search(query)
-            full_res += (res if raw else toolbox.gmeta_pop(res))
-        # Advanced query
-        else:
-            # If there is no limit, iterate "forever"
-            # If there is a limit, iterate until that many records are returned
-            while limit is None or limit > 0:
-                # Perform search
-                query = {
-                    "q": q + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <=" + str(len(full_res) + min(limit or 10000, 10000)) + ")",
-                    "advanced": True,
-                    "limit": 10000
-                    }
-                res = self.search_client.structured_search(query)
-                num_res = len(toolbox.gmeta_pop(res))
-                # If results were returned, add to full_res
-                if num_res > 0:
-                    full_res += (res if raw else toolbox.gmeta_pop(res))
-                    # If a limit was set, lower future limit by number of results saved
-                    if limit:
-                        limit -= len(toolbox.gmeta_pop(res))
-                    # If partial results were returned, either limit < 10k or the end of the results was reached
-                    if num_res < 10000:
-                        break
-                # If no results were returned, the end of results was reached
-                else:
-                    break
+            res = toolbox.gmeta_pop(self.search_client.structured_search(query))
+            num_res = len(res)
+            full_res += res
+            # If a limit was set, lower future limit by number of results saved
+            if limit:
+                limit -= num_res
         return full_res
 
-    
-    def execute(self, q=None, raw=None, advanced=None, limit=None):
-        return self.search(q, raw, advanced, limit)
 
