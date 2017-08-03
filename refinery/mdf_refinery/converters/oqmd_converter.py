@@ -266,13 +266,15 @@ def process_oqmd(q_paths, q_metadata, lookup, killswitch):
     #            "structure":,
                 },
                 "oqmd": {
-                "band_gap": record["band gap"]["value"],
-                "configuration": record["configuration"],
-                "converged": record["converged"],
-                "stability": record.get("stability_data", {}).get("stability", {}).get("value", None),
-                "crossreference": record["entry"]["crossreference"],
-                "magnetic_moment": record.get("magnetic moment", None),
-                "total_energy": record.get("total energy", None)
+                    "band_gap": record["band_gap"],
+                    "delta_e": record.get("stability_data", {}).get("formation entahlpy", {}),
+                    "volume": record["volume_pa"],
+                    "stability": record.get("stability_data", {}).get("stability", {}),
+                    "configuration": record["configuration"],
+                    "converged": record["converged"],
+                    "crossreference": record["entry"]["crossreference"],
+                    "magnetic_moment": record.get("magnetic_moment", None),
+                    "total_energy": record.get("total_energy", None)
                 }
             }
 
