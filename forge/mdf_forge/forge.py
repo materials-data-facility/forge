@@ -10,50 +10,176 @@ HTTP_NUM_LIMIT = 10
 
 
 class Forge:
-    index = "mdf"
-    services = ["mdf", "transfer", "search"]
-    app_name = "MDF Forge"
+    """Fetch metadata from Globus Search and files from the Materials Data Facility.
+    Forge is intended to be the best way to access MDF data for all users.
+    An internal Query object is used to make queries. From the user's perspective,
+    an instantiation of Forge will black-box searching.
+
+    Public Variables:
+    local_ep is the endpoint ID of the local Globus Connect Personal endpoint.
+
+    Methods:
+    __init__ handles authentication with Globus Auth.
+    match_term adds simple terms to the query.
+    match_field adds a field:value pair to the query.
+    match_sources specifies `source_name`s to search for results in.
+    match_elements specifies element abbreviations to match.
+    search executes a search.
+    search_by_elements executes a search for given elements in given sources.
+    aggregate_source returns all records for a given source.
+    reset_query destroys the current query and starts a fresh one.
+    http_download saves the data files associated with results to disk with HTTPS.
+    globus_download saves the data files associated with results to disk with Globus Transfer.
+    http_stream yields a generator to fetch data files in sequence.
+    http_return returns all the data files at once.
+    """
+    __index = "mdf"
+    __services = ["mdf", "transfer", "search"]
+    __app_name = "MDF Forge"
 
     def __init__(self, data={}):
-        self.index = data.get('index', self.index)
-        self.services = data.get('services', self.services)
+        self.__index = data.get('index', self.__index)
+        self.__services = data.get('services', self.__services)
         self.local_ep = data.get("local_ep", None)
 
         clients = toolbox.login(credentials={
-                                "app_name": self.app_name,
-                                "services": self.services,
-                                "index": self.index})
-        self.search_client = clients["search"]
-        self.transfer_client = clients["transfer"]
-        self.mdf_authorizer = clients["mdf"]
+                                "app_name": self.__app_name,
+                                "services": self.__services,
+                                "index": self.__index})
+        self.__search_client = clients["search"]
+        self.__transfer_client = clients["transfer"]
+        self.__mdf_authorizer = clients["mdf"]
+
+        self.__query = Query(self.__search_client)
 
 
     def match_term(self, term, match_all=True):
-        return Query(self.search_client).match_term(term=term, match_all=match_all)
+        """Add a term to the query.
+
+        Arguments:
+        term (str): The term to add.
+        match_all (bool): If True, will add term with AND. If False, will use OR. Default True.
+
+        Returns:
+        self (Forge): For chaining.
+        """
+        self.__query.match_term(term=term, match_all=match_all)
+        return self
 
 
     def match_field(self, field, value, match_all=True):
-        return Query(self.search_client).match_field(field=field, value=value, match_all=match_all)
+        """Add a field:value term to the query.
+        Matches will have field == value.
+
+        Arguments:
+        field (str): The field to look in for the value.
+            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            If no namespace is provided, the default ("mdf.") will be used.
+        value (str): The value to match.
+        match_all: If True, will add with AND. If False, will use OR. Default True.
+ 
+        Returns:
+        self (Forge): For chaining.
+        """
+        self.__query.match_field(field=field, value=value, match_all=match_all)
+        return self
 
 
-    def match_sources(self, sources, match_all=True):
-        return Query(self.search_client).match_sources(sources=sources, match_all=match_all)
+    def match_sources(self, sources):
+        """Add sources to match to the query.
+        match_sources(x) is equivalent to match_field("mdf.source_name", x, match_all=False)
+
+        Arguments:
+        sources (str or list): The sources to match.
+ 
+        Returns:
+        self (Forge): For chaining.
+        """
+        self.__query.match_field(field="mdf.source_name", value=sources, match_all=False)
+        return self
 
 
     def match_elements(self, elements, match_all=True):
-        return Query(self.search_client).match_elements(elements=elements, match_all=match_all)
+        """Add elemental abbreviations to the query.
+        match_elements(x) is equivalent to match_field("mdf.elements", x)
+
+        Arguments:
+        elements (str or list): The elements to match.
+        match_all: If True, will add with AND. If False, will use OR. Default True.
+ 
+        Returns:
+        self (Forge): For chaining.
+        """
+        self.__query.match_field(field="mdf.elements", value=elements, match_all=match_all)
+        return self
 
 
-    def search(self, q, advanced=False, limit=None, info=False):
-        return Query(self.search_client).search(q=q, advanced=advanced, limit=limit, info=info)
+    def search(self, q=None, advanced=False, limit=10000, info=False, reset_query=True):
+        """Execute a search and return the results.
+
+        Arguments:
+        q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+        advanced (bool): Submit the query in "advanced" mode, which enables searches other than basic fulltext. Default False.
+            This value can change to True automatically if the query is built using advanced features, such as match_field.
+        limit (int): The maximum number of results to return. The max for this argument is 10,000.
+        info (bool): If False, search will return a list of the results.
+                     If True, search will return a tuple containing the results list, and other information about the query.
+                     Default False.
+        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False. Default True.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
+        res = self.__query.search(q=q, advanced=advanced, limit=limit, info=info)
+        if reset_query:
+            self.reset_query()
+        return res
 
 
-    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, info=False):
-        return Query(self.search_client).match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit, info=info)
+    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, info=False, reset_query=True):
+        """Execute a search for the given elements in the given sources.
+        search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
+
+        Arguments:
+        elements (list of str): The elements to match. Default [].
+        sources (list of str): The sources to match. Default [].
+        limit (int): The maximum number of results to return. The max for this argument is 10,000.
+        info (bool): If False, search will return a list of the results.
+                     If True, search will return a tuple containing the results list, and other information about the query.
+                     Default False.
+        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False. Default True.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
+        res = self.__query.match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit, info=info)
+        if reset_query:
+            self.reset_query()
+        return res
 
 
     def aggregate_source(self, source, limit=None):
+        """Aggregate all records from a given source.
+        There is no inherent limit to the number of results returned.
+        Note that this method does not use or alter the current query.
+
+        Arguments:
+        source (str): The source to aggregate.
+        limit (int): The maximum number of results to return. Default None, to return all results.
+        
+        Returns:
+        list: All of the records from the source.
+        """
         return Query(self.search_client).aggregate_source(source=source, limit=limit)
+
+
+    def reset_query():
+        """Destroy the current query and create a fresh, clean one."""
+        del self.__query
+        self.__query = Query(self.__search_client)
 
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
@@ -233,16 +359,6 @@ class Query:
         return self
 
 
-    def match_sources(self, sources, match_all=True):
-        self.match_field("mdf.source_name", sources, match_all)
-        return self
-
-
-    def match_elements(self, elements, match_all=True):
-        self.match_field("mdf.elements", elements, match_all)
-        return self
-
-
     def search(self, q=None, advanced=None, limit=None, info=False):
         if q is None:
             q = self.query
@@ -272,10 +388,6 @@ class Query:
             "limit": limit
             }
         return toolbox.gmeta_pop(self.search_client.structured_search(query), info=info)
-
-
-    def execute(self, q=None, advanced=None, limit=None, info=False):
-        return self.search(q, advanced, limit, info)
 
 
     def aggregate_source(self, source, limit=None):
