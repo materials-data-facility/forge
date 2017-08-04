@@ -161,7 +161,7 @@ def convert(input_path, metadata=None, verbose=False):
 
             },
         "fe_cr_al_oxidation": {
-            "temperature_k": float(temp_k) if temp_k != "Room" else temp_k,
+            "temperature_k": float(temp_k) if temp_k != "Room" else 293.15,  # Avg room temp
             "atomic_composition_percent": {
                 "Fe": float(compositions[point_num]["Fe at. %"]),
                 "Cr": float(compositions[point_num]["Cr at. %"]),
