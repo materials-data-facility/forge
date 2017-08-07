@@ -16,20 +16,27 @@ from tqdm import tqdm
 ##  Authentication utilities
 ###################################################
 
-# Login to Globus services
-# Args:
-#   services: services to login to
-#   credentials: A string filename, string JSON, or dictionary with credential information
-#       app_name: name of client
-#       services: list of services to auth for (default [])
-#       Service-specific fields:
-#       Search:
-#           index: The default index
-#   clear_old_tokens: delete old token file if it exists, forcing user to re-login
-def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
+def login(credentials=None, clear_old_tokens=False, **kwargs):
+    """Login to Globus services
+
+    Arguments:
+    credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.
+                               By default, looks in ~/mdf/credentials/globus_login.json.
+        Contains:
+        app_name (str): Name of script/client. This will form the name of the token cache file.
+        services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
+        index: The default Search index. Only required if services contains 'search' or 'search_ingest'.
+    clear_old_tokens (bool): If True, delete old token file if it exists, forcing user to re-login.
+                             If False, use existing token file if there is one.
+                             Default False.
+
+    Returns:
+    dict: The clients and authorizers requested, indexed by service name.
+          For example, if login() is told to auth with 'search' then the search client will be in the 'search' field.
+    """
     NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
     DEFAULT_CRED_FILENAME = "globus_login.json"
-    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf"), DEFAULT_CRED_FILENAME)
+    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf/credentials"), DEFAULT_CRED_FILENAME)
     SCOPES = {
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
@@ -87,7 +94,7 @@ def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
     native_client = globus_sdk.NativeAppAuthClient(NATIVE_CLIENT_ID, app_name=creds["app_name"])
 
     servs = []
-    for serv in list(services) + creds.get("services", []):
+    for serv in creds.get("services", []):
         serv = serv.lower().strip()
         if type(serv) is str:
             servs += serv.split(" ")
@@ -114,15 +121,24 @@ def login(services=[], credentials=None, clear_old_tokens=False, **kwargs):
     return clients
 
 
-# Auth for confidential clients (that have their own login credentials)
-# Arg credentials must be a dict, JSON string, or path to JSON document (default "./globus_login.json") containing:
-#   client_id: The Globus ID of the client
-#   client_secret: The secret of the client
-#   services: The services to auth for
-#   index: For Globus Search only, the default index
 def confidential_login(credentials=None):
-    DEFAULT_CRED_FILENAME = "globus_login.json"
-    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf"), DEFAULT_CRED_FILENAME)
+    """Login to Globus services as a confidential client (a client with its own login information).
+
+    Arguments:
+    credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.
+                               By default, looks in ~/mdf/credentials/confidential_globus_login.json.
+        Contains:
+        client_id (str): The ID of the client.
+        client_secret (str): The client's secret for authentication.
+        services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
+        index: The default Search index. Only required if services contains 'search' or 'search_ingest'.
+
+    Returns:
+    dict: The clients and authorizers requested, indexed by service name.
+          For example, if login() is told to auth with 'search' then the search client will be in the 'search' field.
+    """
+    DEFAULT_CRED_FILENAME = "confidential_globus_login.json"
+    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf/credentials"), DEFAULT_CRED_FILENAME)
     SCOPES = {
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
@@ -182,12 +198,23 @@ def confidential_login(credentials=None):
 ##  File utilities
 ###################################################
 
-#Finds files inside a given directory (recursively) and yields path and filename info.
-#Arguments:
-#   root: Path to the first dir to start with. Required.
-#   file_pattern: regex string to search for. Default is None, which matches all files.
-#   verbose: Should the script print status messages? Default False.
 def find_files(root, file_pattern=None, verbose=False):
+    """Find files recursively in a given directory.
+
+    Arguments:
+    root (str): The path to the starting (root) directory.
+    file_pattern (str): A regular expression to match files against, or None to match all files. Default None.
+    verbose: If True, will print status messages.
+             If False, will remain silent unless there is an error.
+             Default False.
+
+    Yields:
+    dict: The matching file's path information.
+        Contains:
+        path (str): The path to the directory containing the file.
+        no_root_path (str): The path to the directory containing the file, with the path to the root directory removed.
+        filename (str): The name of the file.
+    """
     # Add separator to end of root if not already supplied
     root += os.sep if root[-1:] != os.sep else ""
     for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
@@ -200,8 +227,16 @@ def find_files(root, file_pattern=None, verbose=False):
                     }
 
 
-#Uncompresses all tar, zip, and gzip archives in a directory (searched recursively). Very slow.
 def uncompress_tree(root, verbose=False):
+    """Uncompress all tar, zip, and gzip archives under a given directory.
+    Note that this process tends to be very slow.
+
+    Arguments:
+    root (str): The path to the starting (root) directory.
+    verbose: If True, will print status messages.
+             If False, will remain silent unless there is an error.
+             Default False.
+    """
     for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing files", disable= not verbose):
         for single_file in files:
             abs_path = os.path.join(path, single_file)
@@ -217,9 +252,11 @@ def uncompress_tree(root, verbose=False):
                 try:
                     with gzip.open(abs_path) as gz:
                         file_data = gz.read()
-                        with open(abs_path.rsplit('.', 1)[0], 'w') as newfile: #Opens the absolute path, including filename, for writing, but does not include the extension (should be .gz or similar)
+                        # Opens the absolute path, including filename, for writing, but does not include the extension (should be .gz or similar)
+                        with open(abs_path.rsplit('.', 1)[0], 'w') as newfile:
                             newfile.write(str(file_data))
-                except IOError: #This will occur at gz.read() if the file is not a gzip.
+                # An IOErrorwill occur at gz.read() if the file is not a gzip
+                except IOError:
                     pass
 
 
@@ -228,22 +265,29 @@ def uncompress_tree(root, verbose=False):
 ##  GMeta formatting utilities
 ###################################################
 
-# Adds GMeta wrapping
-# Args:
-#   data: A dictionary to wrap in GMeta format
-#         OR
-#         A list of GMeta-wrapped dictionaries (GMetaEntrys)
 def format_gmeta(data):
-    ''' Formats input into GMeta.
-    If data is a dict, returns a GMetaEntry.
-    If data is a list (must be GMetaEntrys), returns a GMetaList.
-    REQUIRED:
-        GMetaEntry (dict):
-            globus_subject (unique string, should be URI if possible)
-            acl (list of UUID strings, or ["public"])
-        GMetaList (list):
-            Valid list of GMetaEntrys
-    '''
+    """Format input into GMeta format, suitable for ingesting into Globus Search.
+    Format a dictionary into a GMetaEntry.
+    Format a list of GMetaEntry into a GMetaList inside a GMetaIngest.
+
+    Example usage:
+        glist = []
+        for document in all_my_documents:
+            gmeta_entry = format_gmeta(document)
+            glist.append(gmeta_entry)
+        ingest_ready_document = format_gmeta(glist)
+
+    Arguments:
+    data (dict or list): The data to be formatted.
+        If data is a dict, it must contain:
+        data["mdf"]["links"]["landing_page"] (str): A URI to a web page for the entry.
+        data["mdf"]["acl"] (list of str): A list of Globus UUIDs that are allowed to view the entry.
+        If data is a list, it must consist of GMetaEntry documents.
+
+    Returns:
+    dict (if data is dict): The data as a GMetaEntry.
+    dict (if data is list): The data as a GMetaIngest.
+    """
     if type(data) is dict:
         gmeta = {
             "@datatype": "GMetaEntry",
@@ -271,11 +315,20 @@ def format_gmeta(data):
     return gmeta
 
 
-# Removes GMeta wrapping
-# Args:
-#   gmeta: Dict (or GlobusHTTPResponse, or JSON str) to unwrap
-#   info: Return the total number of hits and other info about the result
 def gmeta_pop(gmeta, info=False):
+    """Remove GMeta wrapping from a Globus Search result.
+    This function can be called on the raw GlobusHTTPResponse that Search returns, or a string or dictionary representation of it.
+
+    Arguments:
+    gmeta (dict, str, or GlobusHTTPResponse): The Globus Search result to unwrap.
+    info (bool): If False, gmeta_pop will return a list of the results and discard the metadata.
+                 If True, gmeta_pop will return a tuple containing the results list, and other information about the query.
+                 Default False.
+
+    Returns:
+    list (if info=False): The unwrapped results.
+    tuple (if info=True): The unwrapped results, and a dictionary of query information.
+    """
     if type(gmeta) is GlobusHTTPResponse:
         gmeta = json.loads(gmeta.text)
     elif type(gmeta) is str:
@@ -300,31 +353,38 @@ def gmeta_pop(gmeta, info=False):
 ##  Globus utilities
 ###################################################
 
-# Attempts to autodetect the local GCP endpoint ID
-# If multiple candidates are found, prompt user to choose correct EP
 def get_local_ep(transfer_client):
+    """Discover the local Globus Connect Personal endpoint's ID, if possible.
+
+    Arguments:
+    transfer_client (TransferClient): An authenticated Transfer client.
+
+    Returns:
+    str: The local GCP EP ID if it was discovered.
+    If the ID is not discovered, an exception (globus_sdk.GlobusError unless the user cancels the search) will be raised.
+    """
     pgr_res = transfer_client.endpoint_search(filter_scope="my-endpoints")
     ep_candidates = pgr_res.data
-    if len(ep_candidates) < 1: #Nothing found
+    if len(ep_candidates) < 1:  # Nothing found
         raise globus_sdk.GlobusError("Error: No local endpoints found")
-    elif len(ep_candidates) == 1: #Exactly one candidate
-        if ep_candidates[0]["gcp_connected"] == False: #Is GCP, is not on
+    elif len(ep_candidates) == 1:  # Exactly one candidate
+        if ep_candidates[0]["gcp_connected"] == False:  # Is GCP, is not on
             raise globus_sdk.GlobusError("Error: Globus Connect is not running")
-        else: #Is GCServer or GCP and connected
+        else:  # Is GCServer or GCP and connected
             return ep_candidates[0]["id"]
     else: # >1 found
         #Filter out disconnected GCP
         ep_connections = [candidate for candidate in ep_candidates if candidate["gcp_connected"] is not False]
         #Recheck list
-        if len(ep_connections) < 1: #Nothing found
+        if len(ep_connections) < 1:  # Nothing found
             raise globus_sdk.GlobusError("Error: No local endpoints running")
-        elif len(ep_connections) == 1: #Exactly one candidate
-            if ep_connections[0]["gcp_connected"] == False: #Is GCP, is not on
+        elif len(ep_connections) == 1:  # Exactly one candidate
+            if ep_connections[0]["gcp_connected"] == False:  # Is GCP, is not on
                 raise globus_sdk.GlobusError("Error: Globus Connect is not active")
-            else: #Is GCServer or GCP and connected
+            else:  # Is GCServer or GCP and connected
                 return ep_connections[0]["id"]
-        else: # >1 found
-            #Prompt user
+        else:  # >1 found
+            # Prompt user
             print("Multiple endpoints found:")
             count = 0
             for ep in ep_connections:
@@ -336,11 +396,11 @@ def get_local_ep(transfer_client):
                 usr_choice = input("Enter the number of the correct endpoint (-1 to cancel): ")
                 try:
                     ep_choice = int(usr_choice)
-                    if ep_choice == -1: #User wants to quit
-                        ep_num = -1 #Will break out of while to exit program
-                    elif ep_choice in range(1, count+1): #Valid selection
-                        ep_num = ep_choice #Break out of while, return valid ID
-                    else: #Invalid number
+                    if ep_choice == -1:  # User wants to quit
+                        ep_num = -1  # Will break out of while to exit program
+                    elif ep_choice in range(1, count+1):  # Valid selection
+                        ep_num = ep_choice  # Break out of while, return valid ID
+                    else:  # Invalid number
                         print("Invalid selection")
                 except:
                     print("Invalid input")
@@ -356,8 +416,8 @@ def get_local_ep(transfer_client):
 ##  Clients
 ###################################################
 
-# Client to access Globus Search
 class SearchClient(BaseClient):
+    """Access (search and ingest) Globus Search."""
 
     def __init__(self, base_url="https://search.api.globus.org/", default_index=None, **kwargs):
         app_name = kwargs.pop('app_name', 'DataSearch Client v0.1.1')
