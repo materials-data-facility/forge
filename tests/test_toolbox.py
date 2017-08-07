@@ -1,4 +1,5 @@
 import os
+import json
 import pytest
 import globus_sdk
 from mdf_forge import toolbox
@@ -25,7 +26,7 @@ def test_find_files():
     # Get everything
     res1 = list(toolbox.find_files(root))
     fn1 = [r["filename"] for r in res1]
-    assert all([name in fn1 for name in ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv"]])
+    assert all([name in fn1 for name in ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv", "toolbox_compressed.zip"]])
     # Check paths and no_root_paths
     for res in res1:
         assert res["path"] == os.path.join(root, res["no_root_path"])
@@ -34,7 +35,7 @@ def test_find_files():
     # Get everything (by regex)
     res2 = list(toolbox.find_files(root, "toolbox"))
     fn2 = [r["filename"] for r in res2]
-    correct2 = ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv"]
+    correct2 = ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv", "toolbox_compressed.zip"]
     fn2.sort()
     correct2.sort()
     assert fn2 == correct2
@@ -168,11 +169,73 @@ def test_gmeta_pop():
         headers = {
             "Content-Type": "json"
             }
+        data = {
+            '@datatype': 'GSearchResult',
+            '@version': '2016-11-09',
+            'count': 11,
+            'gmeta': [{
+                '@datatype': 'GMetaResult',
+                '@version': '2016-11-09',
+                'content': [{
+                    'mdf': {
+                        'links': {
+                            'landing_page': 'https://data.materialsdatafacility.org/test/test_fetch.txt',
+                            'txt': {
+                                "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                                "http_host": "https://data.materialsdatafacility.org",
+                                "path": "/test/test_fetch.txt"
+                                }
+                            }
+                        }
+                    },{
+                    'mdf': {
+                        'links': {
+                            'landing_page': 'https://data.materialsdatafacility.org/test/test_fetch.txt',
+                            'txt': {
+                                "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
+                                "http_host": "https://data.materialsdatafacility.org",
+                                "path": "/test/test_fetch.txt"
+                                }
+                            }
+                        }
+                    }],
+                'subject': 'https://data.materialsdatafacility.org/test/test_fetch.txt',
+                }],
+            'offset': 0,
+            'total': 22
+            }
+        text = json.dumps(data)
+        def json(self):
+            return self.data
     ghttp = globus_sdk.GlobusHTTPResponse(TestResponse())
-    print(ghttp)
-    assert False
-#assert dict, json string, or GlobusHTTPReponse processed
-#assert results properly returned from inside GMeta
+    popped = toolbox.gmeta_pop(ghttp)
+    assert popped == [{
+            'mdf': {
+                'links': {
+                    'landing_page': 'https://data.materialsdatafacility.org/test/test_fetch.txt',
+                    'txt': {
+                        'globus_endpoint': '82f1b5c6-6e9b-11e5-ba47-22000b92c6ec',
+                        'http_host': 'https://data.materialsdatafacility.org',
+                        'path': '/test/test_fetch.txt'
+                    }
+                }
+            }
+        }, {
+            'mdf': {
+                'links': {
+                    'landing_page': 'https://data.materialsdatafacility.org/test/test_fetch.txt',
+                    'txt': {
+                        'globus_endpoint': '82f1b5c6-6e9b-11e5-ba47-22000b92c6ec',
+                        'http_host': 'https://data.materialsdatafacility.org',
+                        'path': '/test/test_fetch.txt'
+                    }
+                }
+            }
+        }]
+    info_pop = toolbox.gmeta_pop(ghttp, info=True)
+    print(info_pop)
+    assert info_pop == (popped, {'total_query_matches': 22})
+
 
 '''
 get_local_ep
