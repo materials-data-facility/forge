@@ -6,7 +6,11 @@ from tqdm import tqdm
 
 from mdf_forge import toolbox
 
+# Maximum recommended number of HTTP file transfers
+# Large transfers are much better suited to Globus Transfer use
 HTTP_NUM_LIMIT = 10
+# Maximum number of results per search allowed by Globus Search
+SEARCH_LIMIT = 10000
 
 
 class Forge:
@@ -38,6 +42,15 @@ class Forge:
     __app_name = "MDF Forge"
 
     def __init__(self, data={}):
+    """Initialize the Forge instance.
+
+    Arguments:
+    data (dict): Optional configuration data. Default {}.
+        Fields:
+        index (str): The Globus Search index to search on.
+        services (list of str): The services to authenticate for.
+        local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
+    """
         self.__index = data.get('index', self.__index)
         self.__services = data.get('services', self.__services)
         self.local_ep = data.get("local_ep", None)
@@ -115,18 +128,21 @@ class Forge:
         return self
 
 
-    def search(self, q=None, advanced=False, limit=10000, info=False, reset_query=True):
+    def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, info=False, reset_query=True):
         """Execute a search and return the results.
 
         Arguments:
         q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
-        advanced (bool): Submit the query in "advanced" mode, which enables searches other than basic fulltext. Default False.
-            This value can change to True automatically if the query is built using advanced features, such as match_field.
-        limit (int): The maximum number of results to return. The max for this argument is 10,000.
+        advanced (bool): If True, will submit query in "advanced" mode, which enables searches other than basic fulltext.
+                         If False, only basic fulltext term matches will be supported.
+                         Default False.
+                         This value can change to True automatically if the query is built using advanced features, such as match_field.
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
                      Default False.
-        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False. Default True.
+        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.
+                            Default True.
 
         Returns:
         list (if info=False): The results.
@@ -141,15 +157,17 @@ class Forge:
     def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, info=False, reset_query=True):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
+        Note that this method does use terms from the current query.
 
         Arguments:
         elements (list of str): The elements to match. Default [].
         sources (list of str): The sources to match. Default [].
-        limit (int): The maximum number of results to return. The max for this argument is 10,000.
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
                      Default False.
-        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False. Default True.
+        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.
+                            Default True.
 
         Returns:
         list (if info=False): The results.
@@ -171,7 +189,7 @@ class Forge:
         limit (int): The maximum number of results to return. Default None, to return all results.
         
         Returns:
-        list: All of the records from the source.
+        list of dict: All of the records from the source.
         """
         return Query(self.search_client).aggregate_source(source=source, limit=limit)
 
@@ -183,8 +201,20 @@ class Forge:
 
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
-        if type(results) is globus_sdk.GlobusHTTPResponse:
-            results = toolbox.gmeta_pop(results)
+        """Download data files from the provided results using HTTPS.
+        For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.
+
+        Arguments:
+        results (dict): The records from which files should be fetched.
+                        This should be the return value of a search method.
+        dest (str): The destination path for the data files on the local machine. Default current directory.
+        preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.
+                             If False, only the data files themselves will be saved.
+                            Default False.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
+                        Default True.
+        """
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
@@ -237,13 +267,27 @@ class Forge:
                             output.write(response.content)
 
 
-    def globus_download(self, results, dest=".", local_ep=None, preserve_dir=False, verbose=True):
+    def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False, verbose=True):
+        """Download data files from the provided results using Globus Transfer.
+        This method requires Globus Connect to be installed on the destination endpoint.
+
+        Arguments:
+        results (dict): The records from which files should be fetched.
+                        This should be the return value of a search method.
+        dest (str): The destination path for the data files on the local machine. Default current directory.
+        preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.
+                             If False, only the data files themselves will be saved.
+                             Default False.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
+                        Default True.
+        """
         if type(results) is globus_sdk.GlobusHTTPResponse:
             results = toolbox.gmeta_pop(results)
-        if not local_ep:
+        if not dest_ep:
             if not self.local_ep:
                 self.local_ep = toolbox.get_local_ep(self.transfer_client)
-            local_ep = self.local_ep
+            dest_ep = self.local_ep
         tasks = {}
         filenames = []
         for res in tqdm(results, desc="Processing records", disable= not verbose):
@@ -278,7 +322,7 @@ class Forge:
                             local_path = local_path + new_add + ext
 
                     if host not in tasks.keys():
-                        tasks[host] = globus_sdk.TransferData(self.transfer_client, host, local_ep, verify_checksum=True)
+                        tasks[host] = globus_sdk.TransferData(self.transfer_client, host, dest_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
                     filenames.append(local_path)
         submissions = []
@@ -294,8 +338,19 @@ class Forge:
 
 
     def http_stream(self, results, verbose=True):
-        if type(results) is globus_sdk.GlobusHTTPResponse:
-            results = toolbox.gmeta_pop(results)
+        """Yield data files from the provided results using HTTPS, through a generator.
+        For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.
+
+        Arguments:
+        results (dict): The records from which files should be fetched.
+                        This should be the return value of a search method.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
+                        Default True.
+
+        Yields:
+        str: Text of each data file.
+        """
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
@@ -323,24 +378,70 @@ class Forge:
 
 
     def http_return(self, results, verbose=True):
+        """Return data files from the provided results using HTTPS.
+        For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.
+
+        Arguments:
+        results (dict): The records from which files should be fetched.
+                        This should be the return value of a search method.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
+                        Default True.
+
+        Returns:
+        list of str: Text data of the data files.
+        """
         return list(http_stream(results, verbose=verbose))
 
 
 
 class Query:
     def __init__(self, search_client, q="", limit=None, advanced=False):
+    """Initialize the Query instance.
+
+    Arguments:
+    search_client (SearchClient): The Globus Search client to use for searching.
+    q (str): The query string to start with. Default nothing.
+    limit: The maximum number of results to return. Default None.
+    advanced: If True, will submit query in "advanced" mode, which enables searches other than basic fulltext.
+              If False, only basic fulltext term matches will be supported.
+              Default False.
+    """
         self.search_client = search_client
         self.query = q
         self.limit = limit
-        self.advanced = False
+        self.advanced = advanced
 
 
     def match_term(self, term, match_all=True):
+        """Add a term to the query.
+
+        Arguments:
+        term (str): The term to add.
+        match_all (bool): If True, will add term with AND. If False, will use OR. Default True.
+
+        Returns:
+        self (Query): For chaining.
+        """
         self.query += (" AND " if match_all else " OR ") + term
         return self
 
 
     def match_field(self, field, value, match_all=True):
+        """Add a field:value term to the query.
+        Matches will have field == value.
+
+        Arguments:
+        field (str): The field to look in for the value.
+            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            If no namespace is provided, the default ("mdf.") will be used.
+        value (str): The value to match.
+        match_all: If True, will add with AND. If False, will use OR. Default True.
+ 
+        Returns:
+        self (Query): For chaining.
+        """
         # match_all determines AND/OR
         match_join = " AND " if match_all else " OR "
         # If no namespacing provided, add default
@@ -355,11 +456,29 @@ class Query:
 
         for val in value:
             self.query += (match_join + field + ":" + val)
+        # Field matches are advanced queries
         self.advanced = True
         return self
 
 
     def search(self, q=None, advanced=None, limit=None, info=False):
+        """Execute a search and return the results.
+
+        Arguments:
+        q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+        advanced (bool): If True, will submit query in "advanced" mode, which enables searches other than basic fulltext.
+                         If False, only basic fulltext term matches will be supported.
+                         Default False.
+                         This value can change to True automatically if the query is built using advanced features, such as match_field.
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        info (bool): If False, search will return a list of the results.
+                     If True, search will return a tuple containing the results list, and other information about the query.
+                     Default False.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
         if q is None:
             q = self.query
         if not q:
@@ -368,7 +487,7 @@ class Query:
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
-            limit = self.limit or 10000
+            limit = self.limit or SEARCH_LIMIT
 
         # Clean query string
         q = q.strip()
@@ -391,14 +510,25 @@ class Query:
 
 
     def aggregate_source(self, source, limit=None):
+        """Aggregate all records from a given source.
+        There is no inherent limit to the number of results returned.
+        Note that this method does not use or alter the current query.
+
+        Arguments:
+        source (str): The source to aggregate.
+        limit (int): The maximum number of results to return. Default None, to return all results.
+        
+        Returns:
+        list of dict: All of the records from the source.
+        """
         full_res = []
         res = True  # Start res as value that will pass while condition
         # Scroll while results are being returned and limit not reached
         while res and (limit is None or limit > 0):
             query = {
-                "q": "mdf.source_name:" + source + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <" + str( len(full_res) + (limit or 10000) ) + ")",
+                "q": "mdf.source_name:" + source + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <" + str( len(full_res) + (limit or SEARCH_LIMIT) ) + ")",
                 "advanced": True,
-                "limit": limit or 10000
+                "limit": limit or SEARCH_LIMIT
                 }
             res = toolbox.gmeta_pop(self.search_client.structured_search(query))
             num_res = len(res)
