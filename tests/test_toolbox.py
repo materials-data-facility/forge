@@ -8,6 +8,7 @@ from mdf_forge import toolbox
 ############################
 # Toolbox tests
 ############################
+
 '''
 def test_login():
 error if not credentials in any checked location
@@ -26,7 +27,7 @@ def test_find_files():
     # Get everything
     res1 = list(toolbox.find_files(root))
     fn1 = [r["filename"] for r in res1]
-    assert all([name in fn1 for name in ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv", "toolbox_compressed.zip"]])
+    assert all([name in fn1 for name in ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv", "toolbox_compressed.tar"]])
     # Check paths and no_root_paths
     for res in res1:
         assert res["path"] == os.path.join(root, res["no_root_path"])
@@ -35,7 +36,7 @@ def test_find_files():
     # Get everything (by regex)
     res2 = list(toolbox.find_files(root, "toolbox"))
     fn2 = [r["filename"] for r in res2]
-    correct2 = ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv", "toolbox_compressed.zip"]
+    correct2 = ["2_toolbox.txt", "3_toolbox_3.txt", "4toolbox4.txt", "6_toolbox.dat", "toolbox_1.txt", "toolbox_5.csv", "txttoolbox.csv", "toolbox_compressed.tar"]
     fn2.sort()
     correct2.sort()
     assert fn2 == correct2
@@ -48,11 +49,14 @@ def test_find_files():
     correct3.sort()
     assert fn3 == correct3
 
-'''
-uncompress_tree
-assert all uncompressible files uncompressed
-assert uncompresses tar, zip, and gzip
-'''
+
+def test_uncompress_tree():
+    root = os.path.join(os.path.dirname(__file__), "testing_files")
+    toolbox.uncompress_tree(root)
+    path = os.path.join(root, "toolbox_more", "tlbx_uncompressed.txt")
+    assert os.path.isfile(path)
+    os.remove(path)
+
 
 def test_format_gmeta():
     # Simple GMetaEntry

@@ -36,7 +36,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
     """
     NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
     DEFAULT_CRED_FILENAME = "globus_login.json"
-    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf/credentials"), DEFAULT_CRED_FILENAME)
+    DEFAULT_CRED_PATH = os.path.expanduser("~/mdf/credentials")
     SCOPES = {
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
@@ -45,7 +45,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
         }
 
     def _get_tokens(client, scopes, app_name, force_refresh=False):
-        token_path = os.path.expanduser("~/." + app_name + "_tokens.json")
+        token_path = os.path.join(DEFAULT_CRED_PATH, app_name + "_tokens.json")
         if force_refresh:
             if os.path.exists(token_path):
                 os.remove(token_path)
@@ -53,6 +53,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             with open(token_path, "r") as tf:
                 tokens = json.load(tf)
         else:
+            os.makedirs(DEFAULT_CRED_PATH, exist_ok=True)
             client.oauth2_start_flow(requested_scopes=scopes, refresh_tokens=True)
             authorize_url = client.oauth2_get_authorize_url()
 
@@ -86,7 +87,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
                 creds = json.load(cred_file)
         except IOError:
             try:
-                with open(DEFAULT_CRED_PATH) as cred_file:
+                with open(os.path.join(DEFAULT_CRED_PATH, DEFAULT_CRED_FILENAME)) as cred_file:
                     creds = json.load(cred_file)
             except IOError:
                 raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
@@ -138,7 +139,7 @@ def confidential_login(credentials=None):
           For example, if login() is told to auth with 'search' then the search client will be in the 'search' field.
     """
     DEFAULT_CRED_FILENAME = "confidential_globus_login.json"
-    DEFAULT_CRED_PATH = os.path.join(os.path.expanduser("~/mdf/credentials"), DEFAULT_CRED_FILENAME)
+    DEFAULT_CRED_PATH = os.path.expanduser("~/mdf/credentials")
     SCOPES = {
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
@@ -163,7 +164,7 @@ def confidential_login(credentials=None):
                 creds = json.load(cred_file)
         except IOError:
             try:
-                with open(DEFAULT_CRED_PATH) as cred_file:
+                with open(os.path.join(DEFAULT_CRED_PATH, DEFAULT_CRED_FILENAME)) as cred_file:
                     creds = json.load(cred_file)
             except IOError:
                 raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
@@ -242,11 +243,11 @@ def uncompress_tree(root, verbose=False):
             abs_path = os.path.join(path, single_file)
             if tarfile.is_tarfile(abs_path):
                 tar = tarfile.open(abs_path)
-                tar.extractall()
+                tar.extractall(path)
                 tar.close()
             elif zipfile.is_zipfile(abs_path):
                 z = zipfile.ZipFile(abs_path)
-                z.extractall()
+                z.extractall(path)
                 z.close()
             else:
                 try:
