@@ -42,15 +42,15 @@ class Forge:
     __app_name = "MDF Forge"
 
     def __init__(self, data={}):
-    """Initialize the Forge instance.
+        """Initialize the Forge instance.
 
-    Arguments:
-    data (dict): Optional configuration data. Default {}.
-        Fields:
-        index (str): The Globus Search index to search on.
-        services (list of str): The services to authenticate for.
-        local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
-    """
+        Arguments:
+        data (dict): Optional configuration data. Default {}.
+            Fields:
+            index (str): The Globus Search index to search on.
+            services (list of str): The services to authenticate for.
+            local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
+        """
         self.__index = data.get('index', self.__index)
         self.__services = data.get('services', self.__services)
         self.local_ep = data.get("local_ep", None)
@@ -194,7 +194,7 @@ class Forge:
         return Query(self.search_client).aggregate_source(source=source, limit=limit)
 
 
-    def reset_query():
+    def reset_query(self):
         """Destroy the current query and create a fresh, clean one."""
         del self.__query
         self.__query = Query(self.__search_client)
@@ -265,7 +265,6 @@ class Forge:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
                             output.write(response.content)
-
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False, verbose=True):
         """Download data files from the provided results using Globus Transfer.
@@ -376,7 +375,6 @@ class Forge:
                     else:
                         yield response.text
 
-
     def http_return(self, results, verbose=True):
         """Return data files from the provided results using HTTPS.
         For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.
@@ -397,16 +395,16 @@ class Forge:
 
 class Query:
     def __init__(self, search_client, q="", limit=None, advanced=False):
-    """Initialize the Query instance.
+        """Initialize the Query instance.
 
-    Arguments:
-    search_client (SearchClient): The Globus Search client to use for searching.
-    q (str): The query string to start with. Default nothing.
-    limit: The maximum number of results to return. Default None.
-    advanced: If True, will submit query in "advanced" mode, which enables searches other than basic fulltext.
-              If False, only basic fulltext term matches will be supported.
-              Default False.
-    """
+        Arguments:
+        search_client (SearchClient): The Globus Search client to use for searching.
+        q (str): The query string to start with. Default nothing.
+        limit: The maximum number of results to return. Default None.
+        advanced: If True, will submit query in "advanced" mode, which enables searches other than basic fulltext.
+                  If False, only basic fulltext term matches will be supported.
+                  Default False.
+        """
         self.search_client = search_client
         self.query = q
         self.limit = limit
