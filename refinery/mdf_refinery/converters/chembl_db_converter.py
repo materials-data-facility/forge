@@ -140,7 +140,7 @@ def convert(input_path, metadata=None, verbose=False):
     err_counter = multiprocessing.Value('i', 0)
     killswitch = multiprocessing.Value('i', 0)
     # Find all the sdf files
-    sdf_list = [ os.path.join(sdf["path"], sdf["filename"]) for sdf in tqdm(find_files(input_path, "sdf$"), desc="Finding files", disable= not verbose) ]
+    sdf_list = [ os.path.join(sdf["path"], sdf["filename"]) for sdf in tqdm(find_files(os.path.join(input_path, "chembl_sdf_data_1"), "sdf$"), desc="Finding files", disable= not verbose) ]
     # Process to add data into queue
     adder = multiprocessing.Process(target=(lambda sdf_list: [ md_files.put(sdf) for sdf in sdf_list ]), args=(sdf_list,))
     # Processes to process records from input queue to output queue
@@ -168,7 +168,7 @@ def convert(input_path, metadata=None, verbose=False):
     md_files.join()
     rc_out.join()
     # Trigger remote termination of processes without purpose
-    killswitch.value = 1
+    #killswitch.value = 1
     # Wait on all the processes to terminate
     [p.join() for p in processors]
 #    [w.join() for w in writers]
@@ -223,6 +223,7 @@ def process_chembl_db(in_q, out_q, err_counter, killswitch):
         except Exception as e:
             with err_counter.get_lock():
                 err_counter.value += 1
+            continue
         ## Metadata:record
         end_path = full_path.split("datasets/chembl_db/")[-1]
         record_metadata = {
