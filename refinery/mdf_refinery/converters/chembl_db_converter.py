@@ -168,7 +168,7 @@ def convert(input_path, metadata=None, verbose=False):
     md_files.join()
     rc_out.join()
     # Trigger remote termination of processes without purpose
-    #killswitch.value = 1
+    killswitch.value = 1
     # Wait on all the processes to terminate
     [p.join() for p in processors]
 #    [w.join() for w in writers]
@@ -205,6 +205,7 @@ def do_validation(q_metadata, dataset_validator, counter, killswitch):
             q_metadata.task_done()
         except Empty:
             pass
+    dataset_validator.flush()
 
 
 

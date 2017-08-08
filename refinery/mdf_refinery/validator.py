@@ -422,6 +422,12 @@ class Validator:
             }
 
 
+    # Flushes output
+    def flush(self):
+        self.__feedstock.flush()
+        return True
+
+
     @property
     def dataset_id(self):
         return self.__dataset_id
