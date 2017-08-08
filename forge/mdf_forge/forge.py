@@ -39,7 +39,7 @@ class Forge:
     """
     __index = "mdf"
     __services = ["mdf", "transfer", "search"]
-    __app_name = "MDF Forge"
+    __app_name = "MDF_Forge"
 
     def __init__(self, data={}):
         """Initialize the Forge instance.
@@ -173,9 +173,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        res = self.__query.match_elements(elements, match_all=match_all).match_sources(sources, match_all=match_all).search(limit=limit, info=info)
-        if reset_query:
-            self.reset_query()
+        res = self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info, reset_query=reset_query)
         return res
 
 
@@ -265,6 +263,7 @@ class Forge:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
                             output.write(response.content)
+
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False, verbose=True):
         """Download data files from the provided results using Globus Transfer.
@@ -375,6 +374,7 @@ class Forge:
                     else:
                         yield response.text
 
+
     def http_return(self, results, verbose=True):
         """Return data files from the provided results using HTTPS.
         For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.
@@ -405,7 +405,7 @@ class Query:
                   If False, only basic fulltext term matches will be supported.
                   Default False.
         """
-        self.search_client = search_client
+        self.__search_client = search_client
         self.query = q
         self.limit = limit
         self.advanced = advanced
@@ -499,12 +499,16 @@ class Query:
 
 
         # Simple query (max 10k results)
-        query = {
+        qu = {
             "q": q,
             "advanced": advanced,
             "limit": limit
             }
-        return toolbox.gmeta_pop(self.search_client.structured_search(query), info=info)
+        res = toolbox.gmeta_pop(self.__search_client.structured_search(qu), info=info)
+        # Add additional info
+        if info:
+            res[1]["query"] = qu
+        return res
 
 
     def aggregate_source(self, source, limit=None):
@@ -528,7 +532,7 @@ class Query:
                 "advanced": True,
                 "limit": limit or SEARCH_LIMIT
                 }
-            res = toolbox.gmeta_pop(self.search_client.structured_search(query))
+            res = toolbox.gmeta_pop(self.__search_client.structured_search(query))
             num_res = len(res)
             full_res += res
             # If a limit was set, lower future limit by number of results saved

@@ -1,94 +1,122 @@
+import pytest
 from mdf_forge import forge
+from mdf_forge import toolbox
+
+
+# Manually logging in for Query testing
+query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge", "services": ["search"], "index": "mdf"})["search"]
+
+
+############################
+# Query tests
+############################
+def test_query_match_term():
+    q = forge.Query(query_search_client)
+    # Single match test
+    q.match_term("term1")
+    assert q.query == " AND term1"
+    # Multi-match test
+    q.match_term("term2")
+    assert q.query == " AND term1 AND term2"
+    # match_all test
+    q.match_term("term3", match_all=False)
+    assert q.query == " AND term1 AND term2 OR term3"
+
+
+def test_query_match_field():
+    q = forge.Query(query_search_client)
+    # Single field and return value test
+    assert type(q.match_field("mdf.source_name", "oqmd")) is forge.Query
+    assert q.query == " AND mdf.source_name:oqmd"
+    # Multi-field and match_all test
+    q.match_field("dc.title", "sample", match_all=False)
+    assert q.query == " AND mdf.source_name:oqmd OR dc.title:sample"
+    # Auto-namespacing test
+    q.match_field("composition", "Al")
+    assert q.query == " AND mdf.source_name:oqmd OR dc.title:sample AND mdf.composition:Al"
+    # Ensure advanced is set
+    assert q.advanced
+
+
+def test_query_search(capsys):
+    # Error on no query
+    q1 = forge.Query(query_search_client)
+    assert q1.search() == []
+    out, err = capsys.readouterr()
+    assert "Error: No query specified" in out
+
+    # Return info if requested
+    q2 = forge.Query(query_search_client)
+    res2 = q2.search(q="Al", info=False)
+    assert type(res2) is list
+    assert type(res2[0]) is dict
+    q3 = forge.Query(query_search_client)
+    res3 = q3.search(q="Al", info=True)
+    assert type(res3) is tuple
+    assert type(res3[0]) is list
+    assert type(res3[0][0]) is dict
+    assert type(res3[1]) is dict
+
+    # Check limit
+    q4 = forge.Query(query_search_client)
+    res4 = q4.search("oqmd", limit=3)
+    assert len(res4) == 3
+
+
+def test_query_aggregate_source():
+    pass
+
 
 
 ############################
 # Forge tests
 ############################
+
 def test_forge_match_term():
-    f1 = forge.Forge()
-    # Single match test
-    f1.match_term("term1")
-    assert f1.query == " AND term1"
-    # Multi-match test
-    f1.match_term("term2")
-    assert f1.query == " AND term1 AND term2"
-    # match_all test
-    f1.match_term("term3", match_all=False)
-    assert f1.query == " AND term1 AND term2 OR term3"
+    pass
 
 
 def test_forge_match_field():
-    f1 = forge.Forge()
-    # Single field test
-    f1.match_field("mdf.source_name", "oqmd")
-    assert f1.query == " AND mdf.source_name:oqmd"
-    # Multi-field test
-    f1.match_field
-assert return Query has proper self.query (field1:term1 AND/OR mdf.field:term2) and advanced=True
+    pass
 
-match_sources
-assert match_field with mdf.source_name
 
-match_elements
-assert match_field with mdf.elements
+def test_forge_match_sources():
+    pass
+    #assert match_field with mdf.source_name
 
-search
-error if no query
-assert results returned
-assert one correct result
-assert no incorrect results
-assert correct total number of results (if <10k)
 
-search_by_elements
-?
+def test_forge_match_elements():
+    pass
+    #assert match_field with mdf.elements
 
-http_download
-given correct data_link, assert files download
-assert GlobusHTTPResponse gets processed
 
-globus_download
-given correct data_link, assert transfers submit
-assert GlobusHTTPResponse gets processed
+def test_forge_search():
+    pass
 
-http_stream
-given correct data_link, assert files yield
-assert GlobusHTTPResponse gets processed
 
-http_return
-given correct data_link, assert files return in list
-assert GlobusHTTPResponse gets processed
+def test_forge_search_by_elements():
+    pass
 
-############################
-# Query tests
-############################
-def test_forge_match_term():
-    f1 = forge.Forge()
-    # Single match test
-    f1.match_term("term1")
-    assert f1.query == " AND term1"
-    # Multi-match test
-    f1.match_term("term2")
-    assert f1.query == " AND term1 AND term2"
-    # match_all test
-    f1.match_term("term3", match_all=False)
-    assert f1.query == " AND term1 AND term2 OR term3"
 
-same as Forge
+def test_forge_http_download():
+    pass
+    #given correct data_link, assert files download
+    #assert GlobusHTTPResponse gets processed
 
-match_field
-same as Forge
 
-match_sources
-same as Forge
+def globus_download():
+    pass
+    #given correct data_link, assert transfers submit
+    #assert GlobusHTTPResponse gets processed
 
-match_elements
-same as Forge
+def http_stream():
+    pass
+    #given correct data_link, assert files yield
+    #assert GlobusHTTPResponse gets processed
 
-search
-same as Forge
-
-execute
-same as search
-
+def http_return():
+    pass
+    #given correct data_link, assert files return in list
+    #assert GlobusHTTPResponse gets processed
 
 
