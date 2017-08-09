@@ -41,19 +41,17 @@ class Forge:
     __services = ["mdf", "transfer", "search"]
     __app_name = "MDF_Forge"
 
-    def __init__(self, data={}):
+    def __init__(self, **kwargs):
         """Initialize the Forge instance.
 
-        Arguments:
-        data (dict): Optional configuration data. Default {}.
-            Fields:
-            index (str): The Globus Search index to search on.
-            services (list of str): The services to authenticate for.
-            local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
+        Keyword Arguments:
+        index (str): The Globus Search index to search on.
+        services (list of str): The services to authenticate for.
+        local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
         """
-        self.__index = data.get('index', self.__index)
-        self.__services = data.get('services', self.__services)
-        self.local_ep = data.get("local_ep", None)
+        self.__index = kwargs.get('index', self.__index)
+        self.__services = kwargs.get('services', self.__services)
+        self.local_ep = kwargs.get("local_ep", None)
 
         clients = toolbox.login(credentials={
                                 "app_name": self.__app_name,
@@ -189,7 +187,7 @@ class Forge:
         Returns:
         list of dict: All of the records from the source.
         """
-        return Query(self.search_client).aggregate_source(source=source, limit=limit)
+        return Query(self.__search_client).aggregate_source(source=source, limit=limit)
 
     def aggregate(self, query, scroll_size=SEARCH_LIMIT):
         """Perform an advanced query, and return all matching results.
@@ -227,6 +225,9 @@ class Forge:
                         If False, only error messages will be printed.
                         Default True.
         """
+        # If results have info attached, remove it
+        if type(results) is tuple:
+            results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
@@ -242,7 +243,12 @@ class Forge:
                     local_path = os.path.normpath(dest + "/" + dl["path"]) if preserve_dir else os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
-                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    try:
+                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    # If dest is current dir and preserve_dir=False, there are no dirs to make and os.makedirs() will raise FileNotFoundError.
+                    # Since it means all dirs required exist, it can be swallowed.
+                    except FileNotFoundError:
+                        pass
                     # Check if file already exists, change filename if necessary
                     collisions = 0
                     while os.path.exists(local_path):
@@ -263,12 +269,12 @@ class Forge:
                         else:
                             local_path = local_path + new_add + ext
                     headers = {}
-                    self.mdf_authorizer.set_authorization_header(headers)
+                    self.__mdf_authorizer.set_authorization_header(headers)
                     response = requests.get(host+remote_path, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.mdf_authorizer.handle_missing_authorization()
-                        self.mdf_authorizer.set_authorization_header(headers)
+                        self.__mdf_authorizer.handle_missing_authorization()
+                        self.__mdf_authorizer.set_authorization_header(headers)
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
@@ -294,11 +300,12 @@ class Forge:
                         If False, only error messages will be printed.
                         Default True.
         """
-        if type(results) is globus_sdk.GlobusHTTPResponse:
-            results = toolbox.gmeta_pop(results)
+        # If results have info attached, remove it
+        if type(results) is tuple:
+            results = results[0]
         if not dest_ep:
             if not self.local_ep:
-                self.local_ep = toolbox.get_local_ep(self.transfer_client)
+                self.local_ep = toolbox.get_local_ep(self.__transfer_client)
             dest_ep = self.local_ep
         tasks = {}
         filenames = []
@@ -334,12 +341,12 @@ class Forge:
                             local_path = local_path + new_add + ext
 
                     if host not in tasks.keys():
-                        tasks[host] = globus_sdk.TransferData(self.transfer_client, host, dest_ep, verify_checksum=True)
+                        tasks[host] = globus_sdk.TransferData(self.__transfer_client, host, dest_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
                     filenames.append(local_path)
         submissions = []
         for td in tqdm(tasks.values(), desc="Submitting transfers", disable= not verbose):
-            result = self.transfer_client.submit_transfer(td)
+            result = self.__transfer_client.submit_transfer(td)
             if result["code"] != "Accepted":
                 print("Error submitting transfer:", result["message"])
             else:
@@ -363,6 +370,9 @@ class Forge:
         Yields:
         str: Text of each data file.
         """
+        # If results have info attached, remove it
+        if type(results) is tuple:
+            results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
             return {
                 "success": False,
@@ -375,12 +385,12 @@ class Forge:
                 if host:
                     remote_path = dl["path"]
                     headers = {}
-                    self.mdf_authorizer.set_authorization_header(headers)
+                    self.__mdf_authorizer.set_authorization_header(headers)
                     response = requests.get(host+remote_path, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.mdf_authorizer.handle_missing_authorization()
-                        self.mdf_authorizer.set_authorization_header(headers)
+                        self.__mdf_authorizer.handle_missing_authorization()
+                        self.__mdf_authorizer.set_authorization_header(headers)
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
