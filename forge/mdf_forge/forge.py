@@ -63,6 +63,17 @@ class Forge:
 
         self.__query = Query(self.__search_client)
 
+    @property
+    def search_client(self):
+        return self.__search_client
+
+    @property
+    def transfer_client(self):
+        return self.__transfer_client
+
+    @property
+    def mdf_authorizer(self):
+        return self.__mdf_authorizer
 
     def match_term(self, term, match_all=True):
         """Add a term to the query.
