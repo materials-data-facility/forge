@@ -232,17 +232,30 @@ def convert(input_path, metadata=None, verbose=False):
 
     # Wait on adder to finish
     adder.join()
+    if verbose
+        print("Adder has completed.")
     # Wait on both queues to be complete
     md_files.join()
+    if verbose:
+        print("Input Queue is empty.")
     rc_out.join()
+    if verbose:
+        print("Output Queue is empty.")
     # Trigger remote termination of processes without purpose
     killswitch.value = 1
+    if verbose:
+        print("Terminating remaining processes.")
     # Wait on all the processes to terminate
     [p.join() for p in processors]
+    if verbose:
+        print("All processors terminated.")
 #    [w.join() for w in writers]
     w.join()
+    if verbose:
+        print("Writer terminated")
     if prog_bar.is_alive():
         prog_bar.join()
+        print("Progress bar terminated.")
 
     if verbose:
         print("Finished converting")
@@ -273,6 +286,7 @@ def do_validation(q_metadata, dataset_validator, counter, killswitch):
             q_metadata.task_done()
         except Empty:
             pass
+    dataset_validator.flush()
 
 # Process records in parallel
 def process_cod(in_q, out_q, err_counter, killswitch):
@@ -288,6 +302,7 @@ def process_cod(in_q, out_q, err_counter, killswitch):
         except Exception as e:
             with err_counter.get_lock():
                 err_counter.value += 1
+            in_q.task_done()
             continue
         # Fields can be:
         #    REQ (Required, must be present)
