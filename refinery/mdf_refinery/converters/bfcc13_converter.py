@@ -170,11 +170,11 @@ def convert(input_path, metadata=None, verbose=False):
     
     #                "related_id": ,
     
-                    "data_links": {
+                    "outcar": {
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
                         "http_host": "https://data.materialsdatafacility.org",
     
-                        "path": "/collections/bfcc-13/bfcc-13/" + data_file["no_root_path"] + '/' + data_file["filename"],
+                        "path": "/collections/bfcc13/" + data_file["no_root_path"] + '/' + data_file["filename"],
                         },
                     },
     

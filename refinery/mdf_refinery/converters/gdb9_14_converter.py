@@ -3,8 +3,8 @@ import sys
 import os
 from tqdm import tqdm
 from mdf_forge.toolbox import find_files
-from mdf_refinery.parsers.pymatgen_parser import parse_pymatgen
 from mdf_refinery.validator import Validator
+from mdf_refinery.parsers.ase_parser import parse_ase
 
 # VERSION 0.3.0
 
@@ -136,13 +136,14 @@ def convert(input_path, metadata=None, verbose=False):
     #    You must write your records using the Validator one at a time
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
+    errors=0
     for data_file in tqdm(find_files(input_path, "xyz"), desc="Processing files", disable=not verbose):
-        record = parse_pymatgen(os.path.join(data_file["path"], data_file["filename"]))
-        if record["structure"]:
-            comp = record["structure"]["material_composition"]
-        elif record["molecule"]:
-            comp = record["molecule"]["material_composition"]
         index = ""
+        try:
+            record = parse_ase(os.path.join(data_file["path"], data_file["filename"]), "xyz")
+        except Exception as e:          #Unable to convert string to float on some files.
+            errors+=1                   #String is in scientific form e.g. 6.2198*^-6
+        comp = record["chemical_formula"]
         if data_file["no_root_path"] == "dsgdb9nsd.xyz":
             start = data_file["filename"].find('_')
             #index is between the underscore and ".xyz"
@@ -150,7 +151,7 @@ def convert(input_path, metadata=None, verbose=False):
             
         record_metadata = {
             "mdf": {
-                "title": "gdb9_14 - " + data_file["filename"],
+                "title": "gdb9_14 - " + comp,
                 "acl": ['public'],
     
     #            "tags": ,
@@ -211,4 +212,5 @@ def convert(input_path, metadata=None, verbose=False):
 
     # You're done!
     if verbose:
+        print("TOTAL ERROS: " + str(errors))
         print("Finished converting")
