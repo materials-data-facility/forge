@@ -23,6 +23,13 @@ def test_query_match_term():
     assert q.query == " AND term1 AND term2 OR term3"
 
 
+def test_aggregate():
+    f = forge.Forge()
+    r = forge.aggregate('mdf.source_name:oqmd AND '
+                        '(oqmd.configuration:static OR oqmd.configuration:standard) '
+                        'AND oqmd.converged:True AND oqmd.band_gap.value:>2')
+    assert isinstance(r[0], dict)
+
 def test_query_match_field():
     q = forge.Query(query_search_client)
     # Single field and return value test

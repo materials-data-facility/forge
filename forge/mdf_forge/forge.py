@@ -191,6 +191,20 @@ class Forge:
         """
         return Query(self.search_client).aggregate_source(source=source, limit=limit)
 
+    def aggregate(self, query, scroll_size=SEARCH_LIMIT):
+        """Perform an advanced query, and return all matching results.
+
+        Will automatically preform multiple queries in order to retrieve all
+
+        Arguments:
+        query (str): Query string
+        scroll_size (int): Minimum number of records returned per query
+
+        :return:
+        """
+
+        # Create the query
+        return Query(self.__search_client, query).aggregate(scroll_size)
 
     def reset_query(self):
         """Destroy the current query and create a fresh, clean one."""
@@ -389,7 +403,7 @@ class Forge:
         Returns:
         list of str: Text data of the data files.
         """
-        return list(http_stream(results, verbose=verbose))
+        return list(self.http_stream(results, verbose=verbose))
 
 
 
@@ -540,4 +554,48 @@ class Query:
                 limit -= num_res
         return full_res
 
+    def aggregate(self, max_scroll_width=SEARCH_LIMIT):
+        """Gather all results that match a specific query
 
+        Arguments:
+        max_scroll_width (int): Maximum number of records requested per request
+
+        Returns:
+        list of dict: All matching records
+        """
+
+        # Get the total number of records
+        result = self.__search_client.search(self.query, limit=1, advanced=True)
+        total = result['total']
+
+        # Scroll until all results are found
+        output = []
+        scroll_pos = 0
+        with tqdm(total=total) as pbar:
+            while len(output) < total:
+
+                # Scroll until the width is small enough to get all records
+                #   `scroll_id`s are unique to each dataset. If multiple datasets
+                #   match a certain query, the total number of matching records
+                #   may exceed the maximum that serach will return - even if the
+                #   scroll width is much smaller than that maximum
+                scroll_width = max_scroll_width
+                while True:
+                    result_records = self.__search_client.search(self.query +
+                                                                 ' AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
+                                                                     scroll_pos, scroll_pos + scroll_width),
+                                                                 advanced=True, limit=SEARCH_LIMIT)
+
+                    # Check to make sure that all the matching records were returned
+                    if result_records['total'] <= result_records['count']:
+                        break
+
+                    # If not, reduce the scroll width
+                    scroll_width = int(scroll_width * (result_records['count'] / result_records['total']))
+
+                # Append the results to the output
+                output.extend(toolbox.gmeta_pop(result_records))
+                pbar.update(result_records['count'])
+                scroll_pos += scroll_width
+
+        return output
