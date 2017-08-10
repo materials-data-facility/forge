@@ -1,5 +1,6 @@
 import os
 from importlib import import_module
+import globus_sdk
 from mdf_refinery.config import PATH_DATASETS
 
 VERBOSE = True
@@ -38,7 +39,11 @@ def call_converter(sources, input_path=None, metadata=None, verbose=VERBOSE):
 
 def call_ingester(sources, globus_index="mdf", batch_size=100, verbose=VERBOSE):
     ingester = import_module(ingester_import)
-    ingester.ingest(sources, globus_index=globus_index, batch_size=batch_size, verbose=verbose)
+    try:
+        ingester.ingest(sources, globus_index=globus_index, batch_size=batch_size, verbose=verbose)
+    except globus_sdk.GlobusAPIError as e:
+        print("A GlobusAPIError has occurred.\nDetails:")
+        print(e.raw_json)
 
 
 def call_md_only_converter(source_name, verbose=VERBOSE):

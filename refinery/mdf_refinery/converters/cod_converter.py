@@ -232,7 +232,7 @@ def convert(input_path, metadata=None, verbose=False):
 
     # Wait on adder to finish
     adder.join()
-    if verbose
+    if verbose:
         print("Adder has completed.")
     # Wait on both queues to be complete
     md_files.join()

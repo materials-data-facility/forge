@@ -521,6 +521,8 @@ class Query:
             advanced = self.advanced
         if limit is None:
             limit = self.limit or SEARCH_LIMIT
+        if limit > SEARCH_LIMIT:
+            limit = SEARCH_LIMIT
 
         # Clean query string
         q = q.strip()
