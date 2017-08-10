@@ -8,6 +8,8 @@ from mdf_refinery.validator import Validator
 # VERSION 0.3.0
 
 # This is the gdb8-15 dataset: Electronic Spectra from TDDFT and Machine Learning in Chemical Space
+"""If feedstock path gets changed in an mdf version update,
+   the path to the gdb9_14 feedstock will likely need changed"""
 # Arguments:
 #   input_path (string): The file or directory where the data resides.
 #       NOTE: Do not hard-code the path to the data in the converter (the filename can be hard-coded, though). The converter should be portable.
@@ -137,7 +139,7 @@ def convert(input_path, metadata=None, verbose=False):
     #    It is recommended that you use a parser to help with this process if one is available for your datatype
     #    Each record also needs its own metadata
     headers = ["Index", "E1-CC2", "E2-CC2", "f1-CC2", "f2-CC2", "E1-PBE0", "E2-PBE0", "f1-PBE0", "f2-PBE0", "E1-PBE0", "E2-PBE0", "f1-PBE0", "f2-PBE0", "E1-CAM", "E2-CAM", "f1-CAM", "f2-CAM"]
-    with open("mdf_indexers/datasets/gdb8_15/gdb8_22k_elec_spec.txt", 'r') as raw_in:
+    with open(os.path.join(input_path, "gdb8_22k_elec_spec.txt"), 'r') as raw_in:
         data = raw_in.read()
     #Start at line 29 for data
     starter = data.find("       1      0.43295186     0.43295958")
@@ -146,9 +148,9 @@ def convert(input_path, metadata=None, verbose=False):
     stripped_decomp = []
     for line in decomp:
         stripped_decomp.append(line.strip())
-        
+
     #Open gdb9-14 feedstock to get chemical composition
-    with open("mdf_indexers/feedstock/gdb9_14_all.json", 'r') as json_file:
+    with open(os.path.expanduser("~/mdf/feedstock/gdb9_14_all.json"), 'r') as json_file:
         lines = json_file.readlines()
         full_json_data = [json.loads(line) for line in lines]
         #Composition needed doesn't begin until after record 6095

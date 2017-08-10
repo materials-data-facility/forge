@@ -212,5 +212,5 @@ def convert(input_path, metadata=None, verbose=False):
 
     # You're done!
     if verbose:
-        print("TOTAL ERROS: " + str(errors))
+        print("TOTAL ERRORS: " + str(errors))
         print("Finished converting")
