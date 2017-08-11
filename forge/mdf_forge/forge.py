@@ -305,11 +305,15 @@ class Forge:
                         This should be the return value of a search method.
         dest (str): The destination path for the data files on the local machine. Default current directory.
         preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.
+                                The path to tne new files will be relative to the `dest` path
                              If False, only the data files themselves will be saved.
                              Default False.
         verbose (bool): If True, status and progress messages will be printed.
                         If False, only error messages will be printed.
                         Default True.
+
+        Returns:
+        list of str: task IDs of the Gloubs transfers
         """
         # If results have info attached, remove it
         if type(results) is tuple:
@@ -318,54 +322,76 @@ class Forge:
             if not self.local_ep:
                 self.local_ep = toolbox.get_local_ep(self.__transfer_client)
             dest_ep = self.local_ep
+
+        # Assemble the transfer data
         tasks = {}
-        filenames = []
+        filenames = set()
         for res in tqdm(results, desc="Processing records", disable= not verbose):
-            for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True):  # not verbose):
+            for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True): 
+
+                # Get the location of the data
                 dl = res["mdf"]["links"][key]
                 host = dl.get("globus_endpoint", None) if type(dl) is dict else None
+
+                # If the data is on a Globus Endpoint
+                #   LW 9Aug17: Should we at least throw a warning if the data isn't on an endpoint?
                 if host:
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
-                    local_path = os.path.normpath(dest + "/" + dl["path"]) if preserve_dir else os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
+                    if preserve_dir:
+                        local_path = os.path.abspath(dest + remote_path) # remote_path is absolute, so os.path.join does not work!
+                    else:
+                        local_path = os.path.abspath(os.path.join(dest, os.path.basename(remote_path)))
+
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                    # Check if file already exists, change filename if necessary
-                    collisions = 0
-                    while os.path.exists(local_path) or local_path in filenames:
-                        # Find period marking extension, if exists
-                        # Will be after last slash
-                        index = local_path.rfind(".", local_path.rfind("/"))
-                        if index < 0:
-                            ext = ""
-                        else:
-                            ext = local_path[index:]
-                            local_path = local_path[:index]
-                        # Check if already added number to end
-                        old_add = "("+str(collisions)+")"
-                        collisions += 1
-                        new_add = "("+str(collisions)+")"
-                        if local_path.endswith(old_add):
-                            local_path = local_path[:-len(old_add)] + new_add + ext
-                        else:
-                            local_path = local_path + new_add + ext
 
+                    if not preserve_dir:
+                        # Check if file already exists, change filename if necessary
+                        #   The pattern is to add a number just before the extension (e.g., myfile(1).ext)
+                        collisions = 0
+                        while os.path.exists(local_path) or local_path in filenames:
+                            # Find period marking extension, if exists
+                            # Will be after last slash
+                            index = local_path.rfind(".", local_path.rfind("/"))
+                            if index < 0:
+                                ext = ""
+                            else:
+                                ext = local_path[index:]
+                                local_path = local_path[:index]
+                            # Check if already added number to end
+                            old_add = "("+str(collisions)+")"
+                            collisions += 1
+                            new_add = "("+str(collisions)+")"
+                            if local_path.endswith(old_add):
+                                local_path = local_path[:-len(old_add)] + new_add + ext
+                            else:
+                                local_path = local_path + new_add + ext
+
+                    # Add data to a transfer data object
+                    #   LW 11Aug17: TODO, handle transfers with huge number of files
+                    #      - If a TransferData object is too large. Globus might timeout before it can be completely uploaded
+                    #        So, we need to be able to check the size of the TD object, and - if need be - send it early
                     if host not in tasks.keys():
                         tasks[host] = globus_sdk.TransferData(self.__transfer_client, host, dest_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
-                    filenames.append(local_path)
+                    filenames.add(local_path)
+
+        # Submit the jobs
         submissions = []
+        task_ids = []
         for td in tqdm(tasks.values(), desc="Submitting transfers", disable= not verbose):
             result = self.__transfer_client.submit_transfer(td)
             if result["code"] != "Accepted":
                 print("Error submitting transfer:", result["message"])
             else:
                 submissions.append(result["submission_id"])
+                task_ids.append(result['task_id'])
         if verbose:
             print("All transfers submitted")
             print("Submission IDs:", "\n".join(submissions))
-
+        return task_ids
 
     def http_stream(self, results, verbose=True):
         """Yield data files from the provided results using HTTPS, through a generator.
