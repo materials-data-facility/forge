@@ -1,4 +1,4 @@
-*NOTE: These tests are still in development, and should not be expected to properly cover all test cases until they are complete.*
+*NOTE: These tests are still in development, and should not be expected to properly cover all test cases yet.*
 ## MDF Tests
 This directory contains the tests for the `mdf_forge` package.
 The tests cover the `Forge` and `Query` classes as well as the utilities in the `toolbox` module.
@@ -10,5 +10,5 @@ After Pytest is installed, the tests can be executed by running `pytest` in this
 
 ### About the tests
 These tests cover the basic and advanced functionality of the `mdf_forge` package. They test each function to check that operations succeed with expected values, error with invalid values, and respect parameters appropriately.
-However, the tests currently do not cover functionality in Globus Search, a service that Forge relies on. Search results are not verified. Additionally, errors from Search can, but are not guaranteed to, fail these tests.
+However, the tests currently do not cover functionality in Globus Search, a service that Forge relies on. Search results are not verified. Additionally, errors from Search usually will, but are not guaranteed to, fail these tests.
 

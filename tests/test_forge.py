@@ -1,4 +1,5 @@
 import os
+import time
 import types
 import pytest
 from mdf_forge import forge
@@ -24,13 +25,6 @@ def test_query_match_term():
     q.match_term("term3", match_all=False)
     assert q.query == " AND term1 AND term2 OR term3"
 
-
-def test_aggregate():
-    f = forge.Forge()
-    r = f.aggregate('mdf.source_name:oqmd AND '
-                        '(oqmd.configuration:static OR oqmd.configuration:standard) '
-                        'AND oqmd.converged:True AND oqmd.band_gap.value:>2')
-    assert isinstance(r[0], dict)
 
 def test_query_match_field():
     q = forge.Query(query_search_client)
@@ -73,8 +67,37 @@ def test_query_search(capsys):
 
 
 def test_query_aggregate_source():
-    pass
+    # Test limit
+    q1 = forge.Query(query_search_client)
+    res1 = q1.aggregate_source("nist_xps_db", limit=30)
+    assert type(res1) is list
+    assert len(res1) == 30
+    assert type(res1[0]) is dict
+    # Test fetching whole thing
+    res2 = q1.aggregate_source("nist_xps_db")
+    xps_len = len(res2)
+    assert xps_len > 20000
+    # Test does not use query
+    q3 = forge.Query(query_search_client)
+    q3.match_field("mdf.notreal", "badval")
+    res3 = q3.aggregate_source("nist_xps_db")
+    assert len(res3) == xps_len
 
+
+def test_query_aggregate():
+    q = forge.Query(query_search_client)
+    r = q.aggregate('mdf.source_name:oqmd AND '
+                        '(oqmd.configuration:static OR oqmd.configuration:standard) '
+                        'AND oqmd.converged:True AND oqmd.band_gap.value:>2')
+    assert isinstance(r[0], dict)
+
+
+def test_query_chaining():
+    q1 = forge.Query(query_search_client)
+    q1.match_field("source_name", "hopv")
+    res1 = q1.search()
+    res2 = forge.Query(query_search_client).match_field("source_name", "hopv").search()
+    assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
 ############################
@@ -163,7 +186,52 @@ def test_forge_search(capsys):
 
 
 def test_forge_search_by_elements():
-    pass
+    return  # TODO: Fix AND/OR behavior to allow this test
+    f1 = forge.Forge()
+    f2 = forge.Forge()
+    elements = ["Fe", "Al"]
+    sources = ["hopv", "gw100", "nist_janaf"]
+    res1 = f1.match_elements(elements).match_sources(sources).search()
+    res2 = f2.search_by_elements(elements, sources)
+    assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
+#    print("res1 diff:\n", [r for r in res1 if r not in res2])
+#    print("res2 diff:\n", [r for r in res2 if r not in res1])
+#    assert False
+
+
+def test_forge_aggregate_source():
+    # Test limit
+    f1 = forge.Forge()
+    res1 = f1.aggregate_source("nist_xps_db", limit=30)
+    assert type(res1) is list
+    assert len(res1) == 30
+    assert type(res1[0]) is dict
+    # Test fetching whole thing
+    res2 = f1.aggregate_source("nist_xps_db")
+    xps_len = len(res2)
+    assert xps_len > 20000
+    # Test does not use query
+    f3 = forge.Forge()
+    f3.match_field("mdf.notreal", "badval")
+    res3 = f3.aggregate_source("nist_xps_db")
+    assert len(res3) == xps_len
+
+
+def test_forge_aggregate():
+    f = forge.Forge()
+    r = f.aggregate('mdf.source_name:oqmd AND '
+                        '(oqmd.configuration:static OR oqmd.configuration:standard) '
+                        'AND oqmd.converged:True AND oqmd.band_gap.value:>2')
+    assert isinstance(r[0], dict)
+
+
+def test_forge_reset_query():
+    f = forge.Forge()
+    # Term will return results
+    f.match_term("data")
+    f.reset_query()
+    # Specifying no query will return no results
+    assert f.search() == []
 
 
 def test_forge_http_download():
@@ -187,9 +255,23 @@ def test_forge_http_download():
 
 
 def test_forge_globus_download():
-    pass
-    #given correct data_link, assert transfers submit
-    #assert GlobusHTTPResponse gets processed
+    f = forge.Forge()
+    # Simple case
+    res1 = f.globus_download(example_result1)
+    assert os.path.exists("./test_fetch.txt")
+    os.remove("./test_fetch.txt")
+    # With dest and preserve_dir
+    dest_path = os.path.expanduser("~/mdf")
+    f.globus_download(example_result1, dest=dest_path, preserve_dir=True)
+    assert os.path.exists(os.path.join(dest_path, "test", "test_fetch.txt"))
+    os.remove(os.path.join(dest_path, "test", "test_fetch.txt"))
+    os.rmdir(os.path.join(dest_path, "test"))
+    # With multiple files
+    f.globus_download(example_result2, dest=dest_path)
+    assert os.path.exists(os.path.join(dest_path, "test_fetch.txt"))
+    assert os.path.exists(os.path.join(dest_path, "test_multifetch.txt"))
+    os.remove(os.path.join(dest_path, "test_fetch.txt"))
+    os.remove(os.path.join(dest_path, "test_multifetch.txt"))
 
 
 def test_forge_http_stream():
@@ -217,4 +299,10 @@ def test_forge_http_return():
     assert res2 == ["This is a test document for Forge testing. Please do not remove.\n", "This is a second test document for Forge testing. Please do not remove.\n"]
 
 
+def test_forge_chaining():
+    f1 = forge.Forge()
+    f1.match_field("source_name", "hopv")
+    res1 = f1.search()
+    res2 = forge.Forge().match_field("source_name", "hopv").search()
+    assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
