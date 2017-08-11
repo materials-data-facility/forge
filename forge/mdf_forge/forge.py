@@ -182,8 +182,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        res = self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info, reset_query=reset_query)
-        return res
+        return self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info, reset_query=reset_query)
 
 
     def aggregate_source(self, source, limit=None):
@@ -200,20 +199,27 @@ class Forge:
         """
         return Query(self.__search_client).aggregate_source(source=source, limit=limit)
 
-    def aggregate(self, query, scroll_size=SEARCH_LIMIT):
-        """Perform an advanced query, and return all matching results.
 
-        Will automatically preform multiple queries in order to retrieve all
+    def aggregate(self, q=None, scroll_size=SEARCH_LIMIT, reset_query=True):
+        """Perform an advanced query, and return all matching results.
+        Will automatically preform multiple queries in order to retrieve all results.
+
+        Note that all aggregate queries run in advanced mode.
 
         Arguments:
-        query (str): Query string
+        q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
         scroll_size (int): Minimum number of records returned per query
+        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.
+                            Default True.
 
-        :return:
+        Returns:
+        list of dict: All matching records
         """
+        res = self.__query.aggregate(q=q, scroll_size=scroll_size)
+        if reset_query:
+            self.reset_query()
+        return res
 
-        # Create the query
-        return Query(self.__search_client, query).aggregate(scroll_size)
 
     def reset_query(self):
         """Destroy the current query and create a fresh, clean one."""
@@ -296,7 +302,7 @@ class Forge:
                             output.write(response.content)
 
 
-    def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False, verbose=True):
+    def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False, wait_for_completion=True, verbose=True):
         """Download data files from the provided results using Globus Transfer.
         This method requires Globus Connect to be installed on the destination endpoint.
 
@@ -307,10 +313,17 @@ class Forge:
         preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.
                              If False, only the data files themselves will be saved.
                              Default False.
+        wait_for_completion (bool): If True, will block until the transfer is finished.
+                                    If False, will not block.
+                                    Default True.
         verbose (bool): If True, status and progress messages will be printed.
                         If False, only error messages will be printed.
                         Default True.
+
+        Returns:
+        list: The task IDs.
         """
+        dest = os.path.abspath(dest)
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
@@ -330,7 +343,12 @@ class Forge:
                     local_path = os.path.normpath(dest + "/" + dl["path"]) if preserve_dir else os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
-                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    try:
+                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    # If dest is current dir and preserve_dir=False, there are no dirs to make and os.makedirs() will raise FileNotFoundError.
+                    # Since it means all dirs required exist, it can be swallowed.
+                    except FileNotFoundError:
+                        pass
                     # Check if file already exists, change filename if necessary
                     collisions = 0
                     while os.path.exists(local_path) or local_path in filenames:
@@ -361,10 +379,15 @@ class Forge:
             if result["code"] != "Accepted":
                 print("Error submitting transfer:", result["message"])
             else:
-                submissions.append(result["submission_id"])
+                if wait_for_completion:
+                    while not self.__transfer_client.task_wait(result["task_id"], timeout=60, polling_interval=10):
+                        if verbose:
+                            print("Transferring...")
+                submissions.append(result["task_id"])
         if verbose:
             print("All transfers submitted")
-            print("Submission IDs:", "\n".join(submissions))
+            print("Task IDs:", "\n".join(submissions))
+        return submissions
 
 
     def http_stream(self, results, verbose=True):
@@ -565,7 +588,7 @@ class Query:
         # Scroll while results are being returned and limit not reached
         while res and (limit is None or limit > 0):
             query = {
-                "q": "mdf.source_name:" + source + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <" + str( len(full_res) + (limit or SEARCH_LIMIT) ) + ")",
+                "q": "mdf.source_name:" + source + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <=" + str( len(full_res) + (limit or SEARCH_LIMIT) ) + ")",
                 "advanced": True,
                 "limit": limit or SEARCH_LIMIT
                 }
@@ -577,18 +600,40 @@ class Query:
                 limit -= num_res
         return full_res
 
-    def aggregate(self, max_scroll_width=SEARCH_LIMIT):
+    def aggregate(self, q=None, scroll_size=SEARCH_LIMIT):
         """Gather all results that match a specific query
 
+        Note that all aggregate queries run in advanced mode.
+
         Arguments:
-        max_scroll_width (int): Maximum number of records requested per request
+        q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+        advanced (bool): If True, will submit query in "advanced" mode, which enables searches other than basic fulltext.
+                         If False, only basic fulltext term matches will be supported.
+                         Default False.
+                         This value can change to True automatically if the query is built using advanced features, such as match_field.
+        scroll_size (int): Maximum number of records requested per request
 
         Returns:
         list of dict: All matching records
         """
+        if q is None:
+            q = self.query
+        if not q:
+            print("Error: No query specified")
+            return []
+
+        # Clean query string
+        q = q.strip()
+        removes = ["AND", "OR"]
+        for rterm in removes:
+            if q.startswith(rterm):
+                q = q[len(rterm):]
+            if q.endswith(rterm):
+                q = q[:-len(rterm)]
+        q = q.strip()
 
         # Get the total number of records
-        result = self.__search_client.search(self.query, limit=1, advanced=True)
+        result = self.__search_client.search(q, limit=0, advanced=True)
         total = result['total']
 
         # Scroll until all results are found
@@ -602,9 +647,9 @@ class Query:
                 #   match a certain query, the total number of matching records
                 #   may exceed the maximum that serach will return - even if the
                 #   scroll width is much smaller than that maximum
-                scroll_width = max_scroll_width
+                scroll_width = scroll_size
                 while True:
-                    result_records = self.__search_client.search(self.query +
+                    result_records = self.__search_client.search(q +
                                                                  ' AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
                                                                      scroll_pos, scroll_pos + scroll_width),
                                                                  advanced=True, limit=SEARCH_LIMIT)
@@ -622,3 +667,4 @@ class Query:
                 scroll_pos += scroll_width
 
         return output
+
