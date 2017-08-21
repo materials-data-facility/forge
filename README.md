@@ -11,9 +11,9 @@ pip install -e .
 # Examples
 
 ```python
-from mdf_dataworks.forge import Forge
+from mdf_forge.forge import Forge
 
-mdf = forge.Forge()
+mdf = Forge()
 
 # free text query
 res = mdf.search("materials commons")
@@ -22,11 +22,11 @@ res = mdf.search("materials commons")
 res_s = mdf.search_by_elements(elements=["Al","Cu"], sources=["oqmd"])
 ```
 
-More examples are available at [Forge Docs](https://github.com/materials-data-facility/forge-docs)
+More examples are available in the examples directory.
 
 
 # Documentation
-Documentation is available at [Forge Docs](https://github.com/materials-data-facility/forge-docs)
+Documentation is available in the docs directory.
 
 
 # Support
