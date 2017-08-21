@@ -246,6 +246,7 @@ class Forge:
         if type(results) is tuple:
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
+            print("Error: Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
             return {
                 "success": False,
                 "message": "Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
@@ -429,6 +430,7 @@ class Forge:
         if type(results) is tuple:
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
+            print("Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
             return {
                 "success": False,
                 "message": "Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
