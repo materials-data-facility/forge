@@ -1,5 +1,7 @@
 # Forge
-Forge is the Materials Data Facility python package to interface and leverage the MDF Data Discovery service. 
+Forge is the Materials Data Facility Python package to interface and leverage the MDF Data Discovery service.
+
+Forge requires Python 3. To access data in the MDF, you must have an account recognized by Globus Auth (including Google, ORCiD, many academic institutions, or a [free Globus ID](https://www.globusid.org/create)).
 
 # Installation
 ```
@@ -11,9 +13,9 @@ pip install -e .
 # Examples
 
 ```python
-from mdf_forge.forge import Forge
+from mdf_forge import forge
 
-mdf = Forge()
+mdf = forge.Forge()
 
 # free text query
 res = mdf.search("materials commons")
