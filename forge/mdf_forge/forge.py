@@ -540,7 +540,7 @@ class Query:
         return self
 
 
-    def search(self, q=None, advanced=None, limit=None, info=False):
+    def search(self, q=None, advanced=None, limit=10, info=False):
         """Execute a search and return the results.
 
         Arguments:
@@ -549,7 +549,7 @@ class Query:
                          If False, only basic fulltext term matches will be supported.
                          Default False.
                          This value can change to True automatically if the query is built using advanced features, such as match_field.
-        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search. Default 10.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
                      Default False.

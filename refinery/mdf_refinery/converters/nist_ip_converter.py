@@ -135,6 +135,8 @@ def convert(input_path, metadata=None, verbose=False):
             for web_link in artifact["artifact"]:
                 url = web_link.get("web-link", {}).get("URL", None)
                 if url:
+                    if not url.startswith("http"):
+                        url = "http://" + url
                     url_list.append(url)
                 link_text = web_link.get("web-link", {}).get("link-text", None)
                 if link_text:
