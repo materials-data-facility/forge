@@ -10,7 +10,7 @@ import os
 def write_schema(schema, md_type, md_version):
     schema_loc = "."
     conv_template_loc = "./converter_template.py"
-    text_template_loc = "./metadata_template.txt"
+    text_doc_loc = "./schema_doc.txt"
 
     # Write out to .schema
     with open(os.path.join(schema_loc, md_version + "_" + md_type + ".schema"), 'w') as md_file:
@@ -22,10 +22,10 @@ def write_schema(schema, md_type, md_version):
     with open(conv_template_loc, "w") as output_file:
         output_file.write(new_template)
 
-    # Inject into text template
-    with open(text_template_loc, "r") as input_file:
-        new_template = inject_md(input_file, schema, md_type, md_version)
-    with open(text_template_loc, "w") as output_file:
+    # Inject into docs
+    with open(text_doc_loc, "r") as input_file:
+        new_template = format_docs(inject_md(input_file, schema, md_type, md_version), md_type)
+    with open(text_doc_loc, "w") as output_file:
         output_file.write(new_template)
 
     return {"success": True}
@@ -121,6 +121,51 @@ def inject_md(input_file, schema, md_type, version, indent="    "):
         else:
             doc += line
     return doc
+
+
+# Format template into documentation
+def format_docs(template, md_type):
+    # Overwrite doc from start flag to end flag (exclusive) with docs
+    start_flag = "## Metadata:" + md_type
+    end_flag= "## End metadata"
+    overwrite = False
+    doc = ""
+    info = ""
+    field = ""
+    indent = ""
+    for line in template.split("\n"):
+        if overwrite:
+            # Line has end flag
+            if end_flag in line:
+                doc += line + "\n"
+                overwrite = False
+            # Line has comment
+            elif "#" in line:
+                # Check that info is not already added
+                if info:
+                    raise ValueError("Info already added for '" + line + "'")
+                indent = line.split("#")[0]
+                info = line.strip().strip("# ")
+            # After info line is always field placeholder
+            elif info and not field:
+                # Field name is always in between the first two double-quotes
+                field = line.split("\"")[1]
+                # If we have the info and field, create documentation
+                if info and field:
+                    doc += indent + field + ": " + info + "\n\n"
+                    info = ""
+                    field = ""
+                    indent = ""
+                # Otherwise, something is wrong
+                else:
+                    raise ValueError("Field not found for '" + line + "'")
+            # Else, line has nothing to process, should not be copied
+        else:
+            doc += line + "\n"
+            if start_flag in line:
+                overwrite = True
+
+    return doc.strip()
 
 
 

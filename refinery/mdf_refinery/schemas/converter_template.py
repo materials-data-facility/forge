@@ -59,7 +59,7 @@ def convert(input_path, metadata=None, verbose=False):
 
                 },
 
-                # REQ list of dictionaries: The person/people contributing the tools (harvester, this converter) to ingest the dataset (i.e. you)
+                # REQ list of dictionaries: The person/people contributing the tools (harvester, this converter) to ingest the dataset
                 "data_contributor": [{
 
                     # REQ string: The person's given (or first) name
