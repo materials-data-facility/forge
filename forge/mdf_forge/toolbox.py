@@ -421,7 +421,7 @@ class SearchClient(BaseClient):
     """Access (search and ingest) Globus Search."""
 
     def __init__(self, base_url="https://search.api.globus.org/", default_index=None, **kwargs):
-        app_name = kwargs.pop('app_name', 'DataSearch Client v0.1.1')
+        app_name = kwargs.pop('app_name', 'Search Client v0.2')
         BaseClient.__init__(self, "datasearch", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
@@ -462,7 +462,7 @@ class SearchClient(BaseClient):
             Optional. An offset into the total result set for paging.
 
           ``resource_type`` (*string*)
-            Optional. A resource_type name as defined within the DataSearch
+            Optional. A resource_type name as defined within the Search
             service.
 
           ``advanced`` (*bool*)

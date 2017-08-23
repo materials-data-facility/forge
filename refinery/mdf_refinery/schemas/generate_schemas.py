@@ -167,6 +167,3 @@ def format_docs(template, md_type):
 
     return doc.strip()
 
-
-
-
