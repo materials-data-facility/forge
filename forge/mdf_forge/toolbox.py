@@ -6,7 +6,7 @@ import tarfile
 import zipfile
 
 import globus_sdk
-from globus_sdk.base import BaseClient, merge_params
+from globus_sdk.base import BaseClient, merge_params, slash_join
 from globus_sdk.response import GlobusHTTPResponse
 from tqdm import tqdm
 
@@ -422,20 +422,20 @@ class SearchClient(BaseClient):
 
     def __init__(self, base_url="https://search.api.globus.org/", default_index=None, **kwargs):
         app_name = kwargs.pop('app_name', 'Search Client v0.2')
-        BaseClient.__init__(self, "datasearch", app_name=app_name, **kwargs)
+        BaseClient.__init__(self, "search", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
         self._headers['Content-Type'] = 'application/json'
         self.default_index = default_index
 
-    def _resolve_uri(self, base_uri, index=None, *parts):
+    def _base_index_uri(self, index):
         index = index or self.default_index
         if not index:
             raise ValueError(
-                ('You must either pass an explicit index'
+                ('You must either pass an explicit index '
                  'or set a default one at the time that you create '
-                 'a DataSearchClient'))
-        return '/'.join([base_uri, index] + list(parts))
+                 'a SearchClient'))
+        return '/v1/index/{}'.format(index)
 
     def search(self, q, limit=None, offset=None, resource_type=None,
                index=None, advanced=None, **params):
@@ -472,7 +472,7 @@ class SearchClient(BaseClient):
           ``params``
             Any aditional query params to pass. For internal use only.
         """
-        uri = self._resolve_uri('/v1/search', index)
+        uri = slash_join(self._base_index_uri(index), 'search')
         merge_params(params, q=q, limit=limit, offset=offset,
                      resource_type=resource_type, advanced=advanced)
         return self.get(uri, params=params)
@@ -495,9 +495,9 @@ class SearchClient(BaseClient):
             interpreting the query string. Defaults to False.
 
           ``params``
-            Any aditional query params to pass. For internal use only.
+            Any additional query params to pass. For internal use only.
         """
-        uri = self._resolve_uri('/v1/search', index)
+        uri = slash_join(self._base_index_uri(index), 'search')
         return self.post(uri, json_body=data, params=params)
 
     def ingest(self, data, index=None, **params):
@@ -516,11 +516,11 @@ class SearchClient(BaseClient):
           ``params``
             Any aditional query params to pass. For internal use only.
         """
-        uri = self._resolve_uri('/v1/ingest', index)
+        uri = slash_join(self._base_index_uri(index), 'ingest')
         return self.post(uri, json_body=data, params=params)
 
     def remove(self, subject, index=None, **params):
-        uri = self._resolve_uri('/v1/index', index, "subject")
+        uri = slash_join(self._base_index_uri(index), "subject")
         params["subject"] = subject
         return self.delete(uri, params=params)
 

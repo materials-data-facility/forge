@@ -17,26 +17,26 @@ def test_query_match_term():
     q = forge.Query(query_search_client)
     # Single match test
     q.match_term("term1")
-    assert q.query == " AND term1"
+    assert q.query == "() AND (term1"
     # Multi-match test
     q.match_term("term2")
-    assert q.query == " AND term1 AND term2"
+    assert q.query == "() AND (term1) AND (term2"
     # match_all test
     q.match_term("term3", match_all=False)
-    assert q.query == " AND term1 AND term2 OR term3"
+    assert q.query == "() AND (term1) AND (term2 OR term3"
 
 
 def test_query_match_field():
     q = forge.Query(query_search_client)
     # Single field and return value test
     assert type(q.match_field("mdf.source_name", "oqmd")) is forge.Query
-    assert q.query == " AND mdf.source_name:oqmd"
+    assert q.query == "() AND (mdf.source_name:oqmd"
     # Multi-field and match_all test
     q.match_field("dc.title", "sample", match_all=False)
-    assert q.query == " AND mdf.source_name:oqmd OR dc.title:sample"
+    assert q.query == "() AND (mdf.source_name:oqmd OR dc.title:sample"
     # Auto-namespacing test
     q.match_field("composition", "Al")
-    assert q.query == " AND mdf.source_name:oqmd OR dc.title:sample AND mdf.composition:Al"
+    assert q.query == "() AND (mdf.source_name:oqmd OR dc.title:sample) AND (mdf.composition:Al"
     # Ensure advanced is set
     assert q.advanced
 
@@ -95,8 +95,8 @@ def test_query_aggregate():
 def test_query_chaining():
     q1 = forge.Query(query_search_client)
     q1.match_field("source_name", "hopv")
-    res1 = q1.search()
-    res2 = forge.Query(query_search_client).match_field("source_name", "hopv").search()
+    res1 = q1.search(limit=10000)
+    res2 = forge.Query(query_search_client).match_field("source_name", "hopv").search(limit=10000)
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
@@ -186,13 +186,13 @@ def test_forge_search(capsys):
 
 
 def test_forge_search_by_elements():
-    return  # TODO: Fix AND/OR behavior to allow this test
     f1 = forge.Forge()
     f2 = forge.Forge()
     elements = ["Fe", "Al"]
     sources = ["hopv", "gw100", "nist_janaf"]
-    res1 = f1.match_elements(elements).match_sources(sources).search()
-    res2 = f2.search_by_elements(elements, sources)
+    res1, info1 = f1.match_elements(elements).match_sources(sources).search(limit=10000, info=True)
+    res2, info2 = f2.search_by_elements(elements, sources, limit=10000, info=True)
+    assert info1 == info2
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 #    print("res1 diff:\n", [r for r in res1 if r not in res2])
 #    print("res2 diff:\n", [r for r in res2 if r not in res1])

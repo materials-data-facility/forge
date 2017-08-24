@@ -163,7 +163,7 @@ class Forge:
         return res
 
 
-    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=False, info=False, reset_query=True):
+    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=True, info=False, reset_query=True):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
         Note that this method does use terms from the current query.
@@ -475,7 +475,14 @@ class Forge:
 
 
 class Query:
-    def __init__(self, search_client, q="", limit=None, advanced=False):
+    """The Query class is meant for use through Forge. Users should generally not instantiate a Query object directly,
+    as Forge manages all the functions a user might need, but advanced users may do so at their own risk.
+
+    Queries may end up wrapped in parentheses, which has no direct effect on the search. This is to enable forcing 'OR'
+    terms to bind more tightly than 'AND' terms, when the default is the opposite. It intuitively makes more sense for
+    a query such as "oqmd OR nist_janaf AND Al" to be interpreted as "(oqmd OR nist_janaf) AND (Al)" for Forge use cases.
+    """
+    def __init__(self, search_client, q="(", limit=None, advanced=False):
         """Initialize the Query instance.
 
         Arguments:
@@ -502,7 +509,7 @@ class Query:
         Returns:
         self (Query): For chaining.
         """
-        self.query += (" AND " if match_all else " OR ") + term
+        self.query += (") AND (" if match_all else " OR ") + term
         return self
 
 
@@ -522,7 +529,7 @@ class Query:
         self (Query): For chaining.
         """
         # match_all determines AND/OR
-        match_join = " AND " if match_all else " OR "
+        match_join = ") AND (" if match_all else " OR "
         # If no namespacing provided, add default
         if "." not in field:
             field = "mdf." + field
@@ -560,7 +567,7 @@ class Query:
         """
         if q is None:
             q = self.query
-        if not q:
+        if not q.strip("()"):
             print("Error: No query specified")
             return []
         if advanced is None or self.advanced:
@@ -570,16 +577,20 @@ class Query:
         if limit > SEARCH_LIMIT:
             limit = SEARCH_LIMIT
 
-        # Clean query string
+        # Balance parentheses
         q = q.strip()
-        removes = ["AND", "OR"]
+        while q.count("(") > q.count(")"):
+            q += ")"
+        while q.count("(") < q.count(")"):
+            q = "(" + q
+        # Clean query string
+        q = q.replace("( OR", "(")
+        removes = ["()", "AND", "OR"]
         for rterm in removes:
             if q.startswith(rterm):
-                q = q[len(rterm):]
+                q = q[len(rterm):].strip()
             if q.endswith(rterm):
-                q = q[:-len(rterm)]
-        q = q.strip()
-
+                q = q[:-len(rterm)].strip()
 
         # Simple query (max 10k results)
         qu = {
@@ -641,19 +652,23 @@ class Query:
         """
         if q is None:
             q = self.query
-        if not q:
+        if not q.strip("()"):
             print("Error: No query specified")
             return []
 
-        # Clean query string
+        # Balance parentheses
         q = q.strip()
-        removes = ["AND", "OR"]
+        while q.count("(") > q.count(")"):
+            q += ")"
+        while q.count("(") < q.count(")"):
+            q = "(" + q
+        # Clean query string
+        removes = ["()", "AND", "OR"]
         for rterm in removes:
             if q.startswith(rterm):
-                q = q[len(rterm):]
+                q = q[len(rterm):].strip()
             if q.endswith(rterm):
-                q = q[:-len(rterm)]
-        q = q.strip()
+                q = q[:-len(rterm)].strip()
 
         # Get the total number of records
         result = self.__search_client.search(q, limit=0, advanced=True)
@@ -672,8 +687,8 @@ class Query:
                 #   scroll width is much smaller than that maximum
                 scroll_width = scroll_size
                 while True:
-                    result_records = self.__search_client.search(q +
-                                                                 ' AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
+                    result_records = self.__search_client.search("(" + q +
+                                                                 ') AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
                                                                      scroll_pos, scroll_pos + scroll_width),
                                                                  advanced=True, limit=SEARCH_LIMIT)
 
