@@ -437,7 +437,7 @@ class SearchClient(BaseClient):
                  'a SearchClient'))
         return '/v1/index/{}'.format(index)
 
-    def search(self, q, limit=None, offset=None, resource_type=None,
+    def search(self, q, limit=None, offset=None, query_template=None,
                index=None, advanced=None, **params):
         """
         Perform a simple ``GET`` based search.
@@ -461,8 +461,8 @@ class SearchClient(BaseClient):
           ``offset`` (*int*)
             Optional. An offset into the total result set for paging.
 
-          ``resource_type`` (*string*)
-            Optional. A resource_type name as defined within the Search
+          ``query_template`` (*string*)
+            Optional. A query_template name as defined within the Search
             service.
 
           ``advanced`` (*bool*)
@@ -470,11 +470,11 @@ class SearchClient(BaseClient):
             interpreting ``q``. Defaults to False.
 
           ``params``
-            Any aditional query params to pass. For internal use only.
+            Any additional query params to pass. For internal use only.
         """
         uri = slash_join(self._base_index_uri(index), 'search')
         merge_params(params, q=q, limit=limit, offset=offset,
-                     resource_type=resource_type, advanced=advanced)
+                     query_template=query_template, advanced=advanced)
         return self.get(uri, params=params)
 
     def structured_search(self, data, index=None, **params):
@@ -514,7 +514,7 @@ class SearchClient(BaseClient):
             The search index to send data into.
 
           ``params``
-            Any aditional query params to pass. For internal use only.
+            Any additional query params to pass. For internal use only.
         """
         uri = slash_join(self._base_index_uri(index), 'ingest')
         return self.post(uri, json_body=data, params=params)
