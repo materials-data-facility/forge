@@ -66,23 +66,27 @@ def queue_ingests(ingest_queue, source_name, batch_size):
             list_ingestables.append(record)
 
             if batch_size > 0 and len(list_ingestables) >= batch_size:
-                ingest_queue.put(format_gmeta(list_ingestables))
+                full_ingest = format_gmeta(list_ingestables)
+                ingest_queue.put(json.dumps(full_ingest))
                 list_ingestables.clear()
 
     # Check for partial batch to ingest
     if list_ingestables:
-        ingest_queue.put(format_gmeta(list_ingestables))
+        full_ingest = format_gmeta(list_ingestables)
+        ingest_queue.put(json.dumps(full_ingest))
         list_ingestables.clear()
 
 
 def process_ingests(ingest_queue, ingest_client, counter, killswitch):
     while killswitch.value == 0:
         try:
-            ingestable = ingest_queue.get(timeout=10)
+            ingestable = json.loads(ingest_queue.get(timeout=10))
         except Empty:
             continue
         try:
-            ingest_client.ingest(ingestable)
+            res = ingest_client.ingest(ingestable)
+            if not res["success"]:
+                raise ValueError("Ingest failed: " + str(res))
         except GlobusAPIError as e:
             print("\nA Globus API Error has occurred. Details:\n", e.raw_json, "\n")
             return
