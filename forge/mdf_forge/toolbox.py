@@ -290,7 +290,7 @@ def format_gmeta(data):
     dict (if data is list): The data as a GMetaIngest.
     """
     if type(data) is dict:
-        gmeta = {
+        return {
             "@datatype": "GMetaEntry",
             "@version": "2016-11-09",
             "subject": data["mdf"]["links"]["landing_page"],
@@ -299,7 +299,7 @@ def format_gmeta(data):
             }
 
     elif type(data) is list:
-        gmeta = {
+        return {
             "@datatype": "GIngest",
             "@version": "2016-11-09",
             "ingest_type": "GMetaList",
@@ -312,8 +312,6 @@ def format_gmeta(data):
 
     else:
         raise TypeError("Cannot format '" + str(type(data)) + "' into GMeta.")
-
-    return gmeta
 
 
 def gmeta_pop(gmeta, info=False):
