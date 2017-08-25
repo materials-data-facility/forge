@@ -194,9 +194,6 @@ def test_forge_search_by_elements():
     res2, info2 = f2.search_by_elements(elements, sources, limit=10000, info=True)
     assert info1 == info2
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
-#    print("res1 diff:\n", [r for r in res1 if r not in res2])
-#    print("res2 diff:\n", [r for r in res2 if r not in res1])
-#    assert False
 
 
 def test_forge_aggregate_source():

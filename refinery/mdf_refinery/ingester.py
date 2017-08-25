@@ -5,6 +5,7 @@ import multiprocessing
 from queue import Empty
 
 from tqdm import tqdm
+from globus_sdk import GlobusAPIError
 
 from mdf_forge.toolbox import format_gmeta, confidential_login
 from mdf_refinery.config import PATH_FEEDSTOCK, PATH_CREDENTIALS
@@ -45,30 +46,7 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
     [s.start() for s in submitters]
     if verbose:
         prog_bar.start()
-    '''
-    for source_name in mdf_source_names:
-        list_ingestables = []
-        count_ingestables = 0
-        count_batches = 0
-        with open(os.path.join(PATH_FEEDSTOCK, source_name+"_all.json"), 'r') as feedstock:
-            for json_record in feedstock:
-                record = format_gmeta(json.loads(json_record))
-                list_ingestables.append(record)
-                count_ingestables += 1
 
-                if batch_size > 0 and len(list_ingestables) >= batch_size:
-#                    ingest_client.ingest(format_gmeta(list_ingestables))
-                    ingest_queue.put(format_gmeta(list_ingestables))
-                    list_ingestables.clear()
-                    count_batches += 1
-
-        # Check for partial batch to ingest
-        if list_ingestables:
-#            ingest_client.ingest(format_gmeta(list_ingestables))
-            ingest_queue.put(format_gmeta(list_ingestables))
-            list_ingestables.clear()
-            count_batches += 1
-    '''
     [r.join() for r in readers]
     ingest_queue.join()
     killswitch.value = 1
@@ -103,7 +81,11 @@ def process_ingests(ingest_queue, ingest_client, counter, killswitch):
             ingestable = ingest_queue.get(timeout=10)
         except Empty:
             continue
-        ingest_client.ingest(ingestable)
+        try:
+            ingest_client.ingest(ingestable)
+        except GlobusAPIError as e:
+            print("\nA Globus API Error has occurred. Details:\n", e.raw_json, "\n")
+            return
         with counter.get_lock():
             counter.value += 1
         ingest_queue.task_done()
