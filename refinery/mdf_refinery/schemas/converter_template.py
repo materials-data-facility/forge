@@ -3,7 +3,7 @@ import sys
 
 from mdf_refinery.validator import Validator
 
-# VERSION 0.3.2
+# VERSION 0.4.0
 
 # This is the template for new converters. It is not a complete converter. Incomplete parts are labelled with "TODO"
 # Arguments:
@@ -103,6 +103,9 @@ def convert(input_path, metadata=None, verbose=False):
 
                 # RCM string: A link to the license for distribution of the dataset
                 "license": ,
+
+                # RCM string: The repository (that should already be in MDF) holding the dataset
+                "repository": ,
 
                 # RCM string: The collection for the dataset, commonly a portion of the title
                 "collection": ,

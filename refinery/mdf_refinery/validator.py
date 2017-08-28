@@ -6,12 +6,13 @@ from datetime import datetime
 import jsonschema
 from bson import ObjectId
 
-from mdf_refinery.config import PATH_FEEDSTOCK
+from mdf_refinery.config import PATH_FEEDSTOCK, PATH_MDF
 
 PATH_SCHEMAS = os.path.join(os.path.dirname(__file__), "schemas")
+PATH_REPO_CACHE = os.path.join(PATH_MDF, ".repositories.json")
 
 ##################
-VALIDATOR_VERSION = "0.3.x"
+VALIDATOR_VERSION = "0.4.x"
 ##################
 
 DICT_OF_ALL_ELEMENTS = {"Actinium": "Ac", "Silver": "Ag", "Aluminum": "Al", "Americium": "Am", "Argon": "Ar", "Arsenic": "As", "Astatine": "At", "Gold": "Au", "Boron": "B", "Barium": "Ba", "Beryllium": "Be", "Bohrium": "Bh", "Bismuth": "Bi", "Berkelium": "Bk", "Bromine": "Br", "Carbon": "C", "Calcium": "Ca", "Cadmium": "Cd", "Cerium": "Ce", "Californium": "Cf", "Chlorine": "Cl", "Curium": "Cm", "Copernicium": "Cn", "Cobalt": "Co", "Chromium": "Cr", "Cesium": "Cs", "Copper": "Cu", "Dubnium": "Db", "Darmstadtium": "Ds", "Dysprosium": "Dy", "Erbium": "Er", "Einsteinium": "Es", "Europium": "Eu", "Fluorine": "F", "Iron": "Fe", "Flerovium": "Fl", "Fermium": "Fm", "Francium": "Fr", "Gallium": "Ga", "Gadolinium": "Gd", "Germanium": "Ge", "Hydrogen": "H", "Helium": "He", "Hafnium": "Hf", "Mercury": "Hg", "Holmium": "Ho", "Hassium": "Hs", "Iodine": "I", "Indium": "In", "Iridium": "Ir", "Potassium": "K", "Krypton": "Kr", "Lanthanum": "La", "Lithium": "Li", "Lawrencium": "Lr", "Lutetium": "Lu", "Livermorium": "Lv", "Mendelevium": "Md", "Magnesium": "Mg", "Manganese": "Mn", "Molybdenum": "Mo", "Meitnerium": "Mt", "Nitrogen": "N", "Sodium": "Na", "Niobium": "Nb", "Neodymium": "Nd", "Neon": "Ne", "Nickel": "Ni", "Nobelium": "No", "Neptunium": "Np", "Oxygen": "O", "Osmium": "Os", "Phosphorus": "P", "Protactinium": "Pa", "Lead": "Pb", "Palladium": "Pd", "Promethium": "Pm", "Polonium": "Po", "Praseodymium": "Pr", "Platinum": "Pt", "Plutonium": "Pu", "Radium": "Ra", "Rubidium": "Rb", "Rhenium": "Re", "Rutherfordium": "Rf", "Roentgenium": "Rg", "Rhodium": "Rh", "Radon": "Rn", "Ruthenium": "Ru", "Sulfur": "S", "Antimony": "Sb", "Scandium": "Sc", "Selenium": "Se", "Seaborgium": "Sg", "Silicon": "Si", "Samarium": "Sm", "Tin": "Sn", "Strontium": "Sr", "Tantalum": "Ta", "Terbium": "Tb", "Technetium": "Tc", "Tellurium": "Te", "Thorium": "Th", "Titanium": "Ti", "Thallium": "Tl", "Thulium": "Tm", "Uranium": "U", "Ununoctium": "Uuo", "Ununpentium": "Uup", "Ununseptium": "Uus", "Ununtrium": "Uut", "Vanadium": "V", "Tungsten": "W", "Xenon": "Xe", "Yttrium": "Y", "Ytterbium": "Yb", "Zinc": "Zn", "Zirconium": "Zr"}
@@ -69,6 +70,23 @@ class Validator:
         else:
             self.__initialized = True
 
+        # If the metadata is a repository, cache the mdf_id and close out the feedstock file
+        if resource_type == "repository":
+            self.flush()
+            self.__feedstock.close()
+            if os.path.exists(PATH_REPO_CACHE):
+                with open(PATH_REPO_CACHE) as repo_cache:
+                    cache = json.load(repo_cache)
+            else:
+                cache = {}
+            cache[self.__source_name] = {
+                "mdf_id": self.__parent_id,
+                "title": self.__parent_title
+                }
+            with open(PATH_REPO_CACHE, 'w') as repo_cache:
+                json.dump(cache, repo_cache)
+
+
     #del attempts cleanup
     def __del__(self):
         try:
@@ -107,6 +125,10 @@ class Validator:
         metadata["ingest_date"] = datetime.utcnow().isoformat("T") + "Z"
 
 
+        if type(metadata.get("title", None)) is str:
+            self.__parent_title = metadata["title"]
+
+
         # Convenience processing
         # acl
         if metadata.get("acl", None) == "public":
@@ -127,6 +149,24 @@ class Validator:
                 authors.append(auth)
         if authors:
             metadata["author"] = authors
+
+        # repository
+        repo = metadata.get("repository", None)
+        if type(repo) is str:
+            with open(PATH_REPO_CACHE) as repo_cache:
+                cache = json.load(repo_cache)
+            # Check if repo name has an id
+            if cache.get(repo, None) is not None:
+                metadata["links"]["parent_id"] = cache[repo]["mdf_id"]
+            # Check if repository is an id
+            elif repo in [r["mdf_id"] for r in cache.values()]:
+                metadata["links"]["parent_id"] = repo
+            # Check if repository is a title
+            else:
+                for sn, r in cache.items():
+                    if repo.lower() == r["title"].lower():
+                        metadata["links"]["parent_id"] = cache[sn]["mdf_id"]
+                        break
 
         # tags
         if type(metadata.get("tags", None)) is str:
@@ -228,8 +268,7 @@ class Validator:
 
 
     # Output single record to feedstock
-    def write_record(self, full_record):
-        resource_type = "record"
+    def write_record(self, full_record, resource_type="record"):
         if not self.__initialized or self.__feedstock.closed: #Metadata not set, or cancelled
             return {
                 "success": False,
