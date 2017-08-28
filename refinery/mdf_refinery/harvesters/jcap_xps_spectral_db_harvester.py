@@ -10,7 +10,7 @@ from tqdm import tqdm
 #       -1: Remove out_dir if it exists
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
-def harvest(out_dir, min_id, max_id, existing_dir=0, verbose=False):
+def harvest(out_dir, min_id=0, max_id=150, existing_dir=0, verbose=False):
     if verbose:
         print("Begin harvesting")
     if os.path.exists(out_dir):
@@ -61,8 +61,4 @@ def harvest(out_dir, min_id, max_id, existing_dir=0, verbose=False):
         print("Harvesting complete")
         print("Data found for ID:", data_found)
         print("\nData not found for ID:", not_found)
-
-if __name__ == "__main__":
-    import paths
-    harvest(paths.datasets+"jcap_xps_spectral_db", min_id=0, max_id=150, existing_dir=-1, verbose=True)
 

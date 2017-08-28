@@ -1,7 +1,6 @@
 import requests
 from json import dump
 import os
-import paths
 
 base_url = "http://www.materialscommons.org/api/pub/datasets"
 headers = {"content-type":"application/json"}
@@ -14,7 +13,7 @@ headers = {"content-type":"application/json"}
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def materials_commons_harvest(out_dir, existing_dir=0, verbose=False):
+def harvest(out_dir, existing_dir=0, verbose=False):
     if verbose:
         print("Begin harvesting")
     if os.path.exists(out_dir):
@@ -33,8 +32,4 @@ def materials_commons_harvest(out_dir, existing_dir=0, verbose=False):
     for record in res.json():
         with open(os.path.join(out_dir, record["id"] + ".json"), 'w') as outfile:
             dump(record, outfile)
-
-if __name__ == "__main__":
-    materials_commons_harvest(out_dir=paths.datasets+"materials_commons_metadata",  existing_dir=1, verbose=True)
-
 

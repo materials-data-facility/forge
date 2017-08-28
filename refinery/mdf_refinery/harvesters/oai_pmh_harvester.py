@@ -7,8 +7,6 @@ import os.path
 from shutil import rmtree
 from tqdm import tqdm
 
-import paths
-
 #List of resources to harvest
 to_harvest = []
 #to_harvest.append("matin")
@@ -25,7 +23,7 @@ to_harvest.append("nist_mrr")
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def oai_pmh_harvest(out_dir, base_url, metadata_prefixes=["oai_dc"], resource_types=[], existing_dir=0, verbose=False):
+def harvest(out_dir, base_url, metadata_prefixes=["oai_dc"], resource_types=[], existing_dir=0, verbose=False):
     if os.path.exists(out_dir):
         if existing_dir == 0:
             exit("Directory '" + out_dir + "' exists")

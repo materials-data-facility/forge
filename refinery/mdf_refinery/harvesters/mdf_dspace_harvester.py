@@ -7,8 +7,6 @@ import os.path
 from shutil import rmtree
 from tqdm import tqdm
 
-import paths
-
 base_url = "https://publish.globus.org/v1/api/"
 
 class DSpaceDatasetFetcher(BaseClient):
@@ -35,7 +33,7 @@ def get_dataset_id_list():
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def mdf_dspace_harvest(out_dir, existing_dir=0, verbose=False):
+def harvest(out_dir, existing_dir=0, verbose=False):
     if os.path.exists(out_dir):
         if existing_dir == 0:
             exit("Directory '" + out_dir + "' exists")
@@ -63,7 +61,4 @@ def mdf_dspace_harvest(out_dir, existing_dir=0, verbose=False):
             else:
                 raise
 
-
-if __name__ == "__main__":
-    mdf_dspace_harvest(paths.datasets + "mdf_dspace", 1)
 

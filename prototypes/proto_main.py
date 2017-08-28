@@ -14,7 +14,7 @@ def call_harvester(source_name, existing_dir=-1, verbose=VERBOSE, **kwargs):
         print("HARVESTING", source_name)
     harvester = import_module(harvesters_import + source_name + "_harvester")
     output_path = os.path.join(PATH_DATASETS, source_name + "/")
-    harvester.harvest(out_dir=output_path, existing_dir=existing_dir,  verbose=verbose, **kwargs)
+    harvester.harvest(out_dir=output_path, existing_dir=existing_dir, verbose=verbose, **kwargs)
     if verbose:
         print("HARVESTING COMPLETE")
 

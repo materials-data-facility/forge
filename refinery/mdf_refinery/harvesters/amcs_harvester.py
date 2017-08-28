@@ -7,8 +7,6 @@ import os.path
 from shutil import rmtree
 from tqdm import tqdm
 
-import paths
-
 start_num = 1
 end_num = 20573
 base_url = "http://rruff.geo.arizona.edu/AMS/xtal_data/"
@@ -24,9 +22,9 @@ cif_ext = ".cif"
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #start_id: int id to start harvest from. Default 1 (00001).
-#stop_id: int id to stop harvest at (exclusive). Default 2 (00002), which pulls only one record.
+#stop_id: int id to stop harvest at (exclusive). Default 20573, which pulls all records.
 #verbose: Print status messages? Default False
-def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
+def harvest(out_dir, existing_dir=0, start_id=start_num, stop_id=end_num, verbose=False):
     if verbose:
         print("Begin harvesting")
         print("Harvesting IDs ", start_id, "-", stop_id, sep="")
@@ -74,6 +72,3 @@ def amcs_harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
         print("CIFs:", num_cif_save, "saved,", num_cif_fail, "failed.")
         print("DIFs:", num_dif_save, "saved,", num_dif_fail, "failed.")
 
-
-if __name__ == "__main__":
-    amcs_harvest(paths.datasets+"amcs", existing_dir=-1, start_id=start_num, stop_id=end_num, verbose=True)
