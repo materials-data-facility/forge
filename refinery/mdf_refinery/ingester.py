@@ -21,6 +21,8 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
             batch_size (int): Max size of a single ingest operation. -1 for unlimited. Default 100.
             verbose (bool): Print status messages? Default False.
         '''
+    if type(mdf_source_names) is str:
+        mdf_source_names = [mdf_source_names]
 
     if "all" in mdf_source_names:
         mdf_source_names = [feed.replace("_all.json", "") for feed in os.listdir(PATH_FEEDSTOCK) if feed.endswith("_all.json")]
@@ -28,26 +30,28 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
     if verbose:
         print("\nStarting ingest of:\n", mdf_source_names, "\nIndex:", globus_index, "\nBatch size:", batch_size, "\n")
 
-    ingest_client = confidential_login(credentials=os.path.join(PATH_CREDENTIALS, "ingester_login.json"))["search_ingest"]
+    with open(os.path.join(PATH_CREDENTIALS, "ingester_login.json")) as cred_file:
+        creds = json.load(cred_file)
+        creds["index"] = globus_index
+        ingest_client = confidential_login(credentials=creds)["search_ingest"]
 
-    if type(mdf_source_names) is str:
-        mdf_source_names = [mdf_source_names]
 
     # Set up multiprocessing
     ingest_queue = multiprocessing.JoinableQueue()
     counter = multiprocessing.Value('i', 0)
     killswitch = multiprocessing.Value('i', 0)
-    # One reader per feedstock to ingest
-    readers = [multiprocessing.Process(target=queue_ingests, args=(ingest_queue, sn, batch_size)) for sn in mdf_source_names]
-    # As many submitters as you want
+
+    # One reader (can reduce performance on large datasets if multiple are submitted at once)
+    reader = multiprocessing.Process(target=queue_ingests, args=(ingest_queue, mdf_source_names, batch_size))
+    # As many submitters as is feasible
     submitters = [multiprocessing.Process(target=process_ingests, args=(ingest_queue, ingest_client, counter, killswitch)) for i in range(NUM_SUBMITTERS)]
     prog_bar = multiprocessing.Process(target=track_progress, args=(counter, killswitch))
-    [r.start() for r in readers]
+    reader.start()
     [s.start() for s in submitters]
     if verbose:
         prog_bar.start()
 
-    [r.join() for r in readers]
+    reader.join()
     ingest_queue.join()
     killswitch.value = 1
     [s.join() for s in submitters]
@@ -58,23 +62,24 @@ def ingest(mdf_source_names, globus_index, batch_size=100, verbose=False):
         print("Ingesting complete")
 
 
-def queue_ingests(ingest_queue, source_name, batch_size):
-    list_ingestables = []
-    with open(os.path.join(PATH_FEEDSTOCK, source_name+"_all.json"), 'r') as feedstock:
-        for json_record in feedstock:
-            record = format_gmeta(json.loads(json_record))
-            list_ingestables.append(record)
+def queue_ingests(ingest_queue, sources, batch_size):
+    for source_name in sources:
+        list_ingestables = []
+        with open(os.path.join(PATH_FEEDSTOCK, source_name+"_all.json"), 'r') as feedstock:
+            for json_record in feedstock:
+                record = format_gmeta(json.loads(json_record))
+                list_ingestables.append(record)
 
-            if batch_size > 0 and len(list_ingestables) >= batch_size:
-                full_ingest = format_gmeta(list_ingestables)
-                ingest_queue.put(json.dumps(full_ingest))
-                list_ingestables.clear()
+                if batch_size > 0 and len(list_ingestables) >= batch_size:
+                    full_ingest = format_gmeta(list_ingestables)
+                    ingest_queue.put(json.dumps(full_ingest))
+                    list_ingestables.clear()
 
-    # Check for partial batch to ingest
-    if list_ingestables:
-        full_ingest = format_gmeta(list_ingestables)
-        ingest_queue.put(json.dumps(full_ingest))
-        list_ingestables.clear()
+        # Check for partial batch to ingest
+        if list_ingestables:
+            full_ingest = format_gmeta(list_ingestables)
+            ingest_queue.put(json.dumps(full_ingest))
+            list_ingestables.clear()
 
 
 def process_ingests(ingest_queue, ingest_client, counter, killswitch):

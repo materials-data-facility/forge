@@ -6,10 +6,10 @@ from datetime import datetime
 import jsonschema
 from bson import ObjectId
 
-from mdf_refinery.config import PATH_FEEDSTOCK, PATH_MDF
+from mdf_refinery.config import PATH_FEEDSTOCK, MDF_PATH
 
 PATH_SCHEMAS = os.path.join(os.path.dirname(__file__), "schemas")
-PATH_REPO_CACHE = os.path.join(PATH_MDF, ".repositories.json")
+PATH_REPO_CACHE = os.path.join(MDF_PATH, ".repositories.json")
 
 ##################
 VALIDATOR_VERSION = "0.4.x"
