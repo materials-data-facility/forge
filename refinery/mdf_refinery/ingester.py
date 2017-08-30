@@ -92,9 +92,11 @@ def process_ingests(ingest_queue, ingest_client, counter, killswitch):
             res = ingest_client.ingest(ingestable)
             if not res["success"]:
                 raise ValueError("Ingest failed: " + str(res))
+            elif res["num_documents_ingested"] <= 0:
+                raise ValueError("No documents ingested: " + str(res))
         except GlobusAPIError as e:
             print("\nA Globus API Error has occurred. Details:\n", e.raw_json, "\n")
-            return
+            continue
         with counter.get_lock():
             counter.value += 1
         ingest_queue.task_done()
