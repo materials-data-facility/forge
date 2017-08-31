@@ -1,0 +1,621 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mdf_forge.toolbox &#8212; mdf_forge 0.4.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.4.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for mdf_forge.toolbox</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+
+<span class="kn">import</span> <span class="nn">globus_sdk</span>
+<span class="kn">from</span> <span class="nn">globus_sdk.base</span> <span class="k">import</span> <span class="n">BaseClient</span><span class="p">,</span> <span class="n">merge_params</span><span class="p">,</span> <span class="n">slash_join</span>
+<span class="kn">from</span> <span class="nn">globus_sdk.response</span> <span class="k">import</span> <span class="n">GlobusHTTPResponse</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+
+
+
+<span class="c1">###################################################</span>
+<span class="c1">##  Authentication utilities</span>
+<span class="c1">###################################################</span>
+
+<div class="viewcode-block" id="login"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.login">[docs]</a><span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">credentials</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clear_old_tokens</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Login to Globus services</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.</span>
+<span class="sd">                               By default, looks in ~/mdf/credentials/globus_login.json.</span>
+<span class="sd">        Contains:</span>
+<span class="sd">        app_name (str): Name of script/client. This will form the name of the token cache file.</span>
+<span class="sd">        services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).</span>
+<span class="sd">        index: The default Search index. Only required if services contains &#39;search&#39; or &#39;search_ingest&#39;.</span>
+<span class="sd">    clear_old_tokens (bool): If True, delete old token file if it exists, forcing user to re-login.</span>
+<span class="sd">                             If False, use existing token file if there is one.</span>
+<span class="sd">                             Default False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    dict: The clients and authorizers requested, indexed by service name.</span>
+<span class="sd">          For example, if login() is told to auth with &#39;search&#39; then the search client will be in the &#39;search&#39; field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">NATIVE_CLIENT_ID</span> <span class="o">=</span> <span class="s2">&quot;98bfc684-977f-4670-8669-71f8337688e4&quot;</span>
+    <span class="n">DEFAULT_CRED_FILENAME</span> <span class="o">=</span> <span class="s2">&quot;globus_login.json&quot;</span>
+    <span class="n">DEFAULT_CRED_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/mdf/credentials&quot;</span><span class="p">)</span>
+    <span class="n">SCOPES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;transfer&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:transfer.api.globus.org:all&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;search&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:search.api.globus.org:search&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;search_ingest&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:search.api.globus.org:all&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mdf&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:data.materialsdatafacility.org:all&quot;</span> <span class="c1"># urn:globus:auth:scope:api.materialsdatafacility.org:all&quot;</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_get_tokens</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">scopes</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="n">force_refresh</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">token_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DEFAULT_CRED_PATH</span><span class="p">,</span> <span class="n">app_name</span> <span class="o">+</span> <span class="s2">&quot;_tokens.json&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">force_refresh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">token_path</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">token_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">token_path</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">token_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tf</span><span class="p">:</span>
+                <span class="n">tokens</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">DEFAULT_CRED_PATH</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">oauth2_start_flow</span><span class="p">(</span><span class="n">requested_scopes</span><span class="o">=</span><span class="n">scopes</span><span class="p">,</span> <span class="n">refresh_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">authorize_url</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">oauth2_get_authorize_url</span><span class="p">()</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;It looks like this is the first time you&#39;re accessing this client.</span><span class="se">\n</span><span class="s2">Please log in to Globus at this link:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">authorize_url</span><span class="p">)</span>
+            <span class="n">auth_code</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Copy and paste the authorization code here: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thanks!&quot;</span><span class="p">)</span>
+
+            <span class="n">token_response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">oauth2_exchange_code_for_tokens</span><span class="p">(</span><span class="n">auth_code</span><span class="p">)</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">token_response</span><span class="o">.</span><span class="n">by_resource_server</span>
+
+            <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="mo">0o077</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">token_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tf</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tf</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tokens</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+                <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Credential string unreadable&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">creds</span> <span class="o">=</span> <span class="n">credentials</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">DEFAULT_CRED_FILENAME</span><span class="p">))</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+                <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DEFAULT_CRED_PATH</span><span class="p">,</span> <span class="n">DEFAULT_CRED_FILENAME</span><span class="p">))</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+                    <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in &#39;&quot;</span> <span class="o">+</span> <span class="n">DEFAULT_CRED_FILENAME</span> <span class="o">+</span> <span class="s2">&quot;&#39; or &#39;&quot;</span> <span class="o">+</span> <span class="n">DEFAULT_CRED_PATH</span> <span class="o">+</span> <span class="s2">&quot;&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">native_client</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">NativeAppAuthClient</span><span class="p">(</span><span class="n">NATIVE_CLIENT_ID</span><span class="p">,</span> <span class="n">app_name</span><span class="o">=</span><span class="n">creds</span><span class="p">[</span><span class="s2">&quot;app_name&quot;</span><span class="p">])</span>
+
+    <span class="n">servs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">serv</span> <span class="ow">in</span> <span class="n">creds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;services&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+        <span class="n">serv</span> <span class="o">=</span> <span class="n">serv</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">serv</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">servs</span> <span class="o">+=</span> <span class="n">serv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">servs</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">serv</span><span class="p">)</span>
+    <span class="n">scopes</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">SCOPES</span><span class="p">[</span><span class="n">sc</span><span class="p">]</span> <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">])</span>
+
+    <span class="n">all_tokens</span> <span class="o">=</span> <span class="n">_get_tokens</span><span class="p">(</span><span class="n">native_client</span><span class="p">,</span> <span class="n">scopes</span><span class="p">,</span> <span class="n">creds</span><span class="p">[</span><span class="s2">&quot;app_name&quot;</span><span class="p">],</span> <span class="n">force_refresh</span><span class="o">=</span><span class="n">clear_old_tokens</span><span class="p">)</span>
+
+    <span class="n">clients</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="s2">&quot;transfer&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">transfer_authorizer</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">RefreshTokenAuthorizer</span><span class="p">(</span><span class="n">all_tokens</span><span class="p">[</span><span class="s2">&quot;transfer.api.globus.org&quot;</span><span class="p">][</span><span class="s2">&quot;refresh_token&quot;</span><span class="p">],</span> <span class="n">native_client</span><span class="p">)</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;transfer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">TransferClient</span><span class="p">(</span><span class="n">authorizer</span><span class="o">=</span><span class="n">transfer_authorizer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;search_ingest&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">ingest_authorizer</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">RefreshTokenAuthorizer</span><span class="p">(</span><span class="n">all_tokens</span><span class="p">[</span><span class="s2">&quot;search.api.globus.org&quot;</span><span class="p">][</span><span class="s2">&quot;refresh_token&quot;</span><span class="p">],</span> <span class="n">native_client</span><span class="p">)</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;search_ingest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SearchClient</span><span class="p">(</span><span class="n">default_index</span><span class="o">=</span><span class="p">(</span><span class="n">creds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="n">authorizer</span><span class="o">=</span><span class="n">ingest_authorizer</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;search&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">search_authorizer</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">RefreshTokenAuthorizer</span><span class="p">(</span><span class="n">all_tokens</span><span class="p">[</span><span class="s2">&quot;search.api.globus.org&quot;</span><span class="p">][</span><span class="s2">&quot;refresh_token&quot;</span><span class="p">],</span> <span class="n">native_client</span><span class="p">)</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;search&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SearchClient</span><span class="p">(</span><span class="n">default_index</span><span class="o">=</span><span class="p">(</span><span class="n">creds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)),</span> <span class="n">authorizer</span><span class="o">=</span><span class="n">search_authorizer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;mdf&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">mdf_authorizer</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">RefreshTokenAuthorizer</span><span class="p">(</span><span class="n">all_tokens</span><span class="p">[</span><span class="s2">&quot;data.materialsdatafacility.org&quot;</span><span class="p">][</span><span class="s2">&quot;refresh_token&quot;</span><span class="p">],</span> <span class="n">native_client</span><span class="p">)</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;mdf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mdf_authorizer</span>
+
+    <span class="k">return</span> <span class="n">clients</span></div>
+
+
+<div class="viewcode-block" id="confidential_login"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.confidential_login">[docs]</a><span class="k">def</span> <span class="nf">confidential_login</span><span class="p">(</span><span class="n">credentials</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Login to Globus services as a confidential client (a client with its own login information).</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.</span>
+<span class="sd">                               By default, looks in ~/mdf/credentials/confidential_globus_login.json.</span>
+<span class="sd">        Contains:</span>
+<span class="sd">        client_id (str): The ID of the client.</span>
+<span class="sd">        client_secret (str): The client&#39;s secret for authentication.</span>
+<span class="sd">        services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).</span>
+<span class="sd">        index: The default Search index. Only required if services contains &#39;search&#39; or &#39;search_ingest&#39;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    dict: The clients and authorizers requested, indexed by service name.</span>
+<span class="sd">          For example, if login() is told to auth with &#39;search&#39; then the search client will be in the &#39;search&#39; field.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DEFAULT_CRED_FILENAME</span> <span class="o">=</span> <span class="s2">&quot;confidential_globus_login.json&quot;</span>
+    <span class="n">DEFAULT_CRED_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/mdf/credentials&quot;</span><span class="p">)</span>
+    <span class="n">SCOPES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;transfer&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:transfer.api.globus.org:all&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;search&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:search.api.globus.org:search&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;search_ingest&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:search.api.globus.org:all&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mdf&quot;</span><span class="p">:</span> <span class="s2">&quot;urn:globus:auth:scope:data.materialsdatafacility.org:all&quot;</span> <span class="c1"># urn:globus:auth:scope:api.materialsdatafacility.org:all&quot;</span>
+        <span class="p">}</span>
+    <span class="c1"># Read credentials</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+                <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Credentials unreadable or missing&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">credentials</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">creds</span> <span class="o">=</span> <span class="n">credentials</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">DEFAULT_CRED_FILENAME</span><span class="p">))</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+                <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DEFAULT_CRED_PATH</span><span class="p">,</span> <span class="n">DEFAULT_CRED_FILENAME</span><span class="p">))</span> <span class="k">as</span> <span class="n">cred_file</span><span class="p">:</span>
+                    <span class="n">creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">cred_file</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in &#39;&quot;</span> <span class="o">+</span> <span class="n">DEFAULT_CRED_FILENAME</span> <span class="o">+</span> <span class="s2">&quot;&#39; or &#39;&quot;</span> <span class="o">+</span> <span class="n">DEFAULT_CRED_PATH</span> <span class="o">+</span> <span class="s2">&quot;&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">conf_client</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">ConfidentialAppAuthClient</span><span class="p">(</span><span class="n">creds</span><span class="p">[</span><span class="s2">&quot;client_id&quot;</span><span class="p">],</span> <span class="n">creds</span><span class="p">[</span><span class="s2">&quot;client_secret&quot;</span><span class="p">])</span>
+    <span class="n">servs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">serv</span> <span class="ow">in</span> <span class="n">creds</span><span class="p">[</span><span class="s2">&quot;services&quot;</span><span class="p">]:</span>
+        <span class="n">serv</span> <span class="o">=</span> <span class="n">serv</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">serv</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">servs</span> <span class="o">+=</span> <span class="n">serv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">servs</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">serv</span><span class="p">)</span>
+    <span class="n">scopes</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">SCOPES</span><span class="p">[</span><span class="n">sc</span><span class="p">]</span> <span class="k">for</span> <span class="n">sc</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">])</span>
+
+    <span class="n">conf_authorizer</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">ClientCredentialsAuthorizer</span><span class="p">(</span><span class="n">conf_client</span><span class="p">,</span> <span class="n">scopes</span><span class="p">)</span>
+
+    <span class="n">clients</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="s2">&quot;transfer&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;transfer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">TransferClient</span><span class="p">(</span><span class="n">authorizer</span><span class="o">=</span><span class="n">conf_authorizer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;search_ingest&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;search_ingest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SearchClient</span><span class="p">(</span><span class="n">default_index</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">authorizer</span><span class="o">=</span><span class="n">conf_authorizer</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s2">&quot;search&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;search&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SearchClient</span><span class="p">(</span><span class="n">default_index</span><span class="o">=</span><span class="n">creds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">authorizer</span><span class="o">=</span><span class="n">conf_authorizer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;mdf&quot;</span> <span class="ow">in</span> <span class="n">servs</span><span class="p">:</span>
+        <span class="n">clients</span><span class="p">[</span><span class="s2">&quot;mdf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conf_authorizer</span>
+
+    <span class="k">return</span> <span class="n">clients</span></div>
+
+
+
+<span class="c1">###################################################</span>
+<span class="c1">##  File utilities</span>
+<span class="c1">###################################################</span>
+
+<div class="viewcode-block" id="find_files"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.find_files">[docs]</a><span class="k">def</span> <span class="nf">find_files</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find files recursively in a given directory.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    root (str): The path to the starting (root) directory.</span>
+<span class="sd">    file_pattern (str): A regular expression to match files against, or None to match all files. Default None.</span>
+<span class="sd">    verbose: If True, will print status messages.</span>
+<span class="sd">             If False, will remain silent unless there is an error.</span>
+<span class="sd">             Default False.</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">    dict: The matching file&#39;s path information.</span>
+<span class="sd">        Contains:</span>
+<span class="sd">        path (str): The path to the directory containing the file.</span>
+<span class="sd">        no_root_path (str): The path to the directory containing the file, with the path to the root directory removed.</span>
+<span class="sd">        filename (str): The name of the file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Add separator to end of root if not already supplied</span>
+    <span class="n">root</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="k">if</span> <span class="n">root</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Finding files&quot;</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">one_file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_pattern</span> <span class="ow">or</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">file_pattern</span><span class="p">,</span> <span class="n">one_file</span><span class="p">):</span>  <span class="c1"># Only care about dirs with desired data</span>
+                <span class="k">yield</span> <span class="p">{</span>
+                    <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">,</span>
+                    <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">one_file</span><span class="p">,</span>
+                    <span class="s2">&quot;no_root_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="uncompress_tree"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.uncompress_tree">[docs]</a><span class="k">def</span> <span class="nf">uncompress_tree</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Uncompress all tar, zip, and gzip archives under a given directory.</span>
+<span class="sd">    Note that this process tends to be very slow.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    root (str): The path to the starting (root) directory.</span>
+<span class="sd">    verbose: If True, will print status messages.</span>
+<span class="sd">             If False, will remain silent unless there is an error.</span>
+<span class="sd">             Default False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Uncompressing files&quot;</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span> <span class="ow">not</span> <span class="n">verbose</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">single_file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">abs_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">single_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">is_tarfile</span><span class="p">(</span><span class="n">abs_path</span><span class="p">):</span>
+                <span class="n">tar</span> <span class="o">=</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">abs_path</span><span class="p">)</span>
+                <span class="n">tar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">tar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">abs_path</span><span class="p">):</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">abs_path</span><span class="p">)</span>
+                <span class="n">z</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">z</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">abs_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">gz</span><span class="p">:</span>
+                        <span class="n">file_data</span> <span class="o">=</span> <span class="n">gz</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                        <span class="c1"># Opens the absolute path, including filename, for writing, but does not include the extension (should be .gz or similar)</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">abs_path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">newfile</span><span class="p">:</span>
+                            <span class="n">newfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file_data</span><span class="p">))</span>
+                <span class="c1"># An IOErrorwill occur at gz.read() if the file is not a gzip</span>
+                <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+                    <span class="k">pass</span></div>
+
+
+
+<span class="c1">###################################################</span>
+<span class="c1">##  GMeta formatting utilities</span>
+<span class="c1">###################################################</span>
+
+<div class="viewcode-block" id="format_gmeta"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.format_gmeta">[docs]</a><span class="k">def</span> <span class="nf">format_gmeta</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Format input into GMeta format, suitable for ingesting into Globus Search.</span>
+<span class="sd">    Format a dictionary into a GMetaEntry.</span>
+<span class="sd">    Format a list of GMetaEntry into a GMetaList inside a GMetaIngest.</span>
+
+<span class="sd">    Example usage:</span>
+<span class="sd">        glist = []</span>
+<span class="sd">        for document in all_my_documents:</span>
+<span class="sd">            gmeta_entry = format_gmeta(document)</span>
+<span class="sd">            glist.append(gmeta_entry)</span>
+<span class="sd">        ingest_ready_document = format_gmeta(glist)</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    data (dict or list): The data to be formatted.</span>
+<span class="sd">        If data is a dict, it must contain:</span>
+<span class="sd">        data[&quot;mdf&quot;][&quot;links&quot;][&quot;landing_page&quot;] (str): A URI to a web page for the entry.</span>
+<span class="sd">        data[&quot;mdf&quot;][&quot;acl&quot;] (list of str): A list of Globus UUIDs that are allowed to view the entry.</span>
+<span class="sd">        If data is a list, it must consist of GMetaEntry documents.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    dict (if data is dict): The data as a GMetaEntry.</span>
+<span class="sd">    dict (if data is list): The data as a GMetaIngest.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;@datatype&quot;</span><span class="p">:</span> <span class="s2">&quot;GMetaEntry&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;@version&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-11-09&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;subject&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mdf&quot;</span><span class="p">][</span><span class="s2">&quot;links&quot;</span><span class="p">][</span><span class="s2">&quot;landing_page&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;visible_to&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mdf&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;acl&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">data</span>
+            <span class="p">}</span>
+
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;@datatype&quot;</span><span class="p">:</span> <span class="s2">&quot;GIngest&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;@version&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-11-09&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ingest_type&quot;</span><span class="p">:</span> <span class="s2">&quot;GMetaList&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ingest_data&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;@datatype&quot;</span><span class="p">:</span> <span class="s2">&quot;GMetaList&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;@version&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-11-09&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gmeta&quot;</span><span class="p">:</span> <span class="n">data</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot format &#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;&#39; into GMeta.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gmeta_pop"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.gmeta_pop">[docs]</a><span class="k">def</span> <span class="nf">gmeta_pop</span><span class="p">(</span><span class="n">gmeta</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove GMeta wrapping from a Globus Search result.</span>
+<span class="sd">    This function can be called on the raw GlobusHTTPResponse that Search returns, or a string or dictionary representation of it.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    gmeta (dict, str, or GlobusHTTPResponse): The Globus Search result to unwrap.</span>
+<span class="sd">    info (bool): If False, gmeta_pop will return a list of the results and discard the metadata.</span>
+<span class="sd">                 If True, gmeta_pop will return a tuple containing the results list, and other information about the query.</span>
+<span class="sd">                 Default False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    list (if info=False): The unwrapped results.</span>
+<span class="sd">    tuple (if info=True): The unwrapped results, and a dictionary of query information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">gmeta</span><span class="p">)</span> <span class="ow">is</span> <span class="n">GlobusHTTPResponse</span><span class="p">:</span>
+        <span class="n">gmeta</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">gmeta</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">gmeta</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">gmeta</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">gmeta</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">gmeta</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;gmeta must be dict, GlobusHTTPResponse, or JSON string&quot;</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">gmeta</span><span class="p">[</span><span class="s2">&quot;gmeta&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">]:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">con</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">info</span><span class="p">:</span>
+        <span class="n">fyi</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;total_query_matches&quot;</span><span class="p">:</span> <span class="n">gmeta</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="k">return</span> <span class="n">results</span><span class="p">,</span> <span class="n">fyi</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+<span class="c1">###################################################</span>
+<span class="c1">##  Globus utilities</span>
+<span class="c1">###################################################</span>
+
+<div class="viewcode-block" id="get_local_ep"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.get_local_ep">[docs]</a><span class="k">def</span> <span class="nf">get_local_ep</span><span class="p">(</span><span class="n">transfer_client</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Discover the local Globus Connect Personal endpoint&#39;s ID, if possible.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">    transfer_client (TransferClient): An authenticated Transfer client.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    str: The local GCP EP ID if it was discovered.</span>
+<span class="sd">    If the ID is not discovered, an exception (globus_sdk.GlobusError unless the user cancels the search) will be raised.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pgr_res</span> <span class="o">=</span> <span class="n">transfer_client</span><span class="o">.</span><span class="n">endpoint_search</span><span class="p">(</span><span class="n">filter_scope</span><span class="o">=</span><span class="s2">&quot;my-endpoints&quot;</span><span class="p">)</span>
+    <span class="n">ep_candidates</span> <span class="o">=</span> <span class="n">pgr_res</span><span class="o">.</span><span class="n">data</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ep_candidates</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Nothing found</span>
+        <span class="k">raise</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">GlobusError</span><span class="p">(</span><span class="s2">&quot;Error: No local endpoints found&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ep_candidates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Exactly one candidate</span>
+        <span class="k">if</span> <span class="n">ep_candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;gcp_connected&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># Is GCP, is not on</span>
+            <span class="k">raise</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">GlobusError</span><span class="p">(</span><span class="s2">&quot;Error: Globus Connect is not running&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Is GCServer or GCP and connected</span>
+            <span class="k">return</span> <span class="n">ep_candidates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># &gt;1 found</span>
+        <span class="c1">#Filter out disconnected GCP</span>
+        <span class="n">ep_connections</span> <span class="o">=</span> <span class="p">[</span><span class="n">candidate</span> <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">ep_candidates</span> <span class="k">if</span> <span class="n">candidate</span><span class="p">[</span><span class="s2">&quot;gcp_connected&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="c1">#Recheck list</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ep_connections</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Nothing found</span>
+            <span class="k">raise</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">GlobusError</span><span class="p">(</span><span class="s2">&quot;Error: No local endpoints running&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ep_connections</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Exactly one candidate</span>
+            <span class="k">if</span> <span class="n">ep_connections</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;gcp_connected&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># Is GCP, is not on</span>
+                <span class="k">raise</span> <span class="n">globus_sdk</span><span class="o">.</span><span class="n">GlobusError</span><span class="p">(</span><span class="s2">&quot;Error: Globus Connect is not active&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Is GCServer or GCP and connected</span>
+                <span class="k">return</span> <span class="n">ep_connections</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># &gt;1 found</span>
+            <span class="c1"># Prompt user</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Multiple endpoints found:&quot;</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="n">ep_connections</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="s2">&quot;: &quot;</span><span class="p">,</span> <span class="n">ep</span><span class="p">[</span><span class="s2">&quot;display_name&quot;</span><span class="p">],</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ep</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Please choose the endpoint on this machine&quot;</span><span class="p">)</span>
+            <span class="n">ep_num</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">ep_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">usr_choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter the number of the correct endpoint (-1 to cancel): &quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">ep_choice</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">usr_choice</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ep_choice</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>  <span class="c1"># User wants to quit</span>
+                        <span class="n">ep_num</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># Will break out of while to exit program</span>
+                    <span class="k">elif</span> <span class="n">ep_choice</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>  <span class="c1"># Valid selection</span>
+                        <span class="n">ep_num</span> <span class="o">=</span> <span class="n">ep_choice</span>  <span class="c1"># Break out of while, return valid ID</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Invalid number</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid selection&quot;</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid input&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">ep_num</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cancelling&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">SystemExit</span>
+            <span class="k">return</span> <span class="n">ep_connections</span><span class="p">[</span><span class="n">ep_num</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span></div>
+
+
+
+<span class="c1">###################################################</span>
+<span class="c1">##  Clients</span>
+<span class="c1">###################################################</span>
+
+<div class="viewcode-block" id="SearchClient"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.SearchClient">[docs]</a><span class="k">class</span> <span class="nc">SearchClient</span><span class="p">(</span><span class="n">BaseClient</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Access (search and ingest) Globus Search.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://search.api.globus.org/&quot;</span><span class="p">,</span> <span class="n">default_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">app_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;app_name&#39;</span><span class="p">,</span> <span class="s1">&#39;Search Client v0.2&#39;</span><span class="p">)</span>
+        <span class="n">BaseClient</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;search&quot;</span><span class="p">,</span> <span class="n">app_name</span><span class="o">=</span><span class="n">app_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># base URL lookup will fail, producing None, set it by hand</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/json&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_index</span> <span class="o">=</span> <span class="n">default_index</span>
+
+    <span class="k">def</span> <span class="nf">_base_index_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_index</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">index</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="p">(</span><span class="s1">&#39;You must either pass an explicit index &#39;</span>
+                 <span class="s1">&#39;or set a default one at the time that you create &#39;</span>
+                 <span class="s1">&#39;a SearchClient&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s1">&#39;/v1/index/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SearchClient.search"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.SearchClient.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">query_template</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">advanced</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform a simple ``GET`` based search.</span>
+
+<span class="sd">        Does not support all of the behaviors and parameters of advanced</span>
+<span class="sd">        searches.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">          ``q`` (*string*)</span>
+<span class="sd">            The user-query string. Required for simple searches (and most</span>
+<span class="sd">            advanced searches).</span>
+
+<span class="sd">          ``index`` (*string*)</span>
+<span class="sd">            Optional unless ``default_index`` was not set.</span>
+<span class="sd">            The index to query.</span>
+
+<span class="sd">          ``limit`` (*int*)</span>
+<span class="sd">            Optional. The number of results to return.</span>
+
+<span class="sd">          ``offset`` (*int*)</span>
+<span class="sd">            Optional. An offset into the total result set for paging.</span>
+
+<span class="sd">          ``query_template`` (*string*)</span>
+<span class="sd">            Optional. A query_template name as defined within the Search</span>
+<span class="sd">            service.</span>
+
+<span class="sd">          ``advanced`` (*bool*)</span>
+<span class="sd">            Use simple query parsing vs. advanced query syntax when</span>
+<span class="sd">            interpreting ``q``. Defaults to False.</span>
+
+<span class="sd">          ``params``</span>
+<span class="sd">            Any additional query params to pass. For internal use only.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">slash_join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base_index_uri</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="s1">&#39;search&#39;</span><span class="p">)</span>
+        <span class="n">merge_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span>
+                     <span class="n">query_template</span><span class="o">=</span><span class="n">query_template</span><span class="p">,</span> <span class="n">advanced</span><span class="o">=</span><span class="n">advanced</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SearchClient.structured_search"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.SearchClient.structured_search">[docs]</a>    <span class="k">def</span> <span class="nf">structured_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform a structured, ``POST``-based, search.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">          ``data`` (*dict*)</span>
+<span class="sd">            A valid GSearchRequest document to execute.</span>
+
+<span class="sd">          ``index`` (*string*)</span>
+<span class="sd">            Optional unless ``default_index`` was not set.</span>
+<span class="sd">            The index to query.</span>
+
+<span class="sd">          ``advanced`` (*bool*)</span>
+<span class="sd">            Use simple query parsing vs. advanced query syntax when</span>
+<span class="sd">            interpreting the query string. Defaults to False.</span>
+
+<span class="sd">          ``params``</span>
+<span class="sd">            Any additional query params to pass. For internal use only.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">slash_join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base_index_uri</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="s1">&#39;search&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SearchClient.ingest"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.SearchClient.ingest">[docs]</a>    <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform a simple ``POST`` based ingest op.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">          ``data`` (*dict*)</span>
+<span class="sd">            A valid GIngest document to index.</span>
+
+<span class="sd">          ``index`` (*string*)</span>
+<span class="sd">            Optional unless ``default_index`` was not set.</span>
+<span class="sd">            The search index to send data into.</span>
+
+<span class="sd">          ``params``</span>
+<span class="sd">            Any additional query params to pass. For internal use only.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">slash_join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base_index_uri</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="s1">&#39;ingest&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SearchClient.remove"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.toolbox.SearchClient.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="n">slash_join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base_index_uri</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="s2">&quot;subject&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;subject&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">mdf_forge</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ben Blaiszik, Jonathon Gaff.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
