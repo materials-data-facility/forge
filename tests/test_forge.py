@@ -13,30 +13,27 @@ query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge", "servi
 ############################
 # Query tests
 ############################
-def test_query_match_term():
+def test_query_term():
     q = forge.Query(query_search_client)
     # Single match test
-    q.match_term("term1")
-    assert q.query == "() AND (term1"
+    assert type(q.term("term1")) is forge.Query
+    assert q.query == "(term1"
     # Multi-match test
-    q.match_term("term2")
-    assert q.query == "() AND (term1) AND (term2"
-    # match_all test
-    q.match_term("term3", match_all=False)
-    assert q.query == "() AND (term1) AND (term2 OR term3"
+    q.and_join().term("term2")
+    assert q.query == "(term1 AND term2"
+    # Grouping test
+    q.or_join(close_group=True).term("term3")
+    assert q.query == "(term1 AND term2) OR (term3"
 
 
-def test_query_match_field():
+def test_query_field():
     q = forge.Query(query_search_client)
     # Single field and return value test
-    assert type(q.match_field("mdf.source_name", "oqmd")) is forge.Query
-    assert q.query == "() AND (mdf.source_name:oqmd"
-    # Multi-field and match_all test
-    q.match_field("dc.title", "sample", match_all=False)
-    assert q.query == "() AND (mdf.source_name:oqmd OR dc.title:sample"
-    # Auto-namespacing test
-    q.match_field("composition", "Al")
-    assert q.query == "() AND (mdf.source_name:oqmd OR dc.title:sample) AND (mdf.composition:Al"
+    assert type(q.field("mdf.source_name", "oqmd")) is forge.Query
+    assert q.query == "(mdf.source_name:oqmd"
+    # Multi-field and grouping test
+    q.and_join(close_group=True).field("dc.title", "sample")
+    assert q.query == "(mdf.source_name:oqmd) AND (dc.title:sample"
     # Ensure advanced is set
     assert q.advanced
 
@@ -66,24 +63,6 @@ def test_query_search(capsys):
     assert len(res4) == 3
 
 
-def test_query_aggregate_source():
-    # Test limit
-    q1 = forge.Query(query_search_client)
-    res1 = q1.aggregate_source("nist_xps_db", limit=30)
-    assert type(res1) is list
-    assert len(res1) == 30
-    assert type(res1[0]) is dict
-    # Test fetching whole thing
-    res2 = q1.aggregate_source("nist_xps_db")
-    xps_len = len(res2)
-    assert xps_len > 20000
-    # Test does not use query
-    q3 = forge.Query(query_search_client)
-    q3.match_field("mdf.notreal", "badval")
-    res3 = q3.aggregate_source("nist_xps_db")
-    assert len(res3) == xps_len
-
-
 def test_query_aggregate():
     q = forge.Query(query_search_client)
     r = q.aggregate('mdf.source_name:oqmd AND '
@@ -94,9 +73,11 @@ def test_query_aggregate():
 
 def test_query_chaining():
     q1 = forge.Query(query_search_client)
-    q1.match_field("source_name", "hopv")
+    q1.field("source_name", "cip")
+    q1.and_join()
+    q1.field("elements", "Al")
     res1 = q1.search(limit=10000)
-    res2 = forge.Query(query_search_client).match_field("source_name", "hopv").search(limit=10000)
+    res2 = forge.Query(query_search_client).field("source_name", "cip").and_join().field("elements", "Al").search(limit=10000)
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
@@ -190,28 +171,18 @@ def test_forge_search_by_elements():
     f2 = forge.Forge()
     elements = ["Fe", "Al"]
     sources = ["hopv", "gw100", "nist_janaf"]
-    res1, info1 = f1.match_elements(elements).match_sources(sources).search(limit=10000, info=True)
+    res1, info1 = f1.match_sources(sources).match_elements(elements).search(limit=10000, info=True)
     res2, info2 = f2.search_by_elements(elements, sources, limit=10000, info=True)
-    assert info1 == info2
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
 def test_forge_aggregate_source():
     # Test limit
     f1 = forge.Forge()
-    res1 = f1.aggregate_source("nist_xps_db", limit=30)
+    res1 = f1.aggregate_source("amcs")
     assert type(res1) is list
-    assert len(res1) == 30
+    assert len(res1) > 10000
     assert type(res1[0]) is dict
-    # Test fetching whole thing
-    res2 = f1.aggregate_source("nist_xps_db")
-    xps_len = len(res2)
-    assert xps_len > 20000
-    # Test does not use query
-    f3 = forge.Forge()
-    f3.match_field("mdf.notreal", "badval")
-    res3 = f3.aggregate_source("nist_xps_db")
-    assert len(res3) == xps_len
 
 
 def test_forge_aggregate():
@@ -298,8 +269,9 @@ def test_forge_http_return():
 
 def test_forge_chaining():
     f1 = forge.Forge()
-    f1.match_field("source_name", "hopv")
+    f1.match_field("source_name", "cip")
+    f1.match_field("elements", "Al")
     res1 = f1.search()
-    res2 = forge.Forge().match_field("source_name", "hopv").search()
+    res2 = forge.Forge().match_field("source_name", "cip").match_field("elements", "Al").search()
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 

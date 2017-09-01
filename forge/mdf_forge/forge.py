@@ -63,33 +63,47 @@ class Forge:
 
         self.__query = Query(self.__search_client)
 
+
     @property
     def search_client(self):
         return self.__search_client
+
 
     @property
     def transfer_client(self):
         return self.__transfer_client
 
+
     @property
     def mdf_authorizer(self):
         return self.__mdf_authorizer
 
-    def match_term(self, term, match_all=True):
+#################################################
+##  Core functions
+#################################################
+
+    def match_term(self, term, required=True, new_group=False):
         """Add a term to the query.
 
         Arguments:
         term (str): The term to add.
-        match_all (bool): If True, will add term with AND. If False, will use OR. Default True.
+        required (bool): If True, will add term with AND. If False, will use OR. Default True.
+        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.
 
         Returns:
         self (Forge): For chaining.
         """
-        self.__query.match_term(term=term, match_all=match_all)
+        # If not the start of the query string, add an AND or OR
+        if self.__query.query != "(":
+            if required:
+                self.__query.and_join(new_group)
+            else:
+                self.__query.or_join(new_group)
+        self.__query.term(term)
         return self
 
 
-    def match_field(self, field, value, match_all=True):
+    def match_field(self, field, value, required=True, new_group=False):
         """Add a field:value term to the query.
         Matches will have field == value.
 
@@ -99,41 +113,22 @@ class Forge:
             Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
             If no namespace is provided, the default ("mdf.") will be used.
         value (str): The value to match.
-        match_all: If True, will add with AND. If False, will use OR. Default True.
+        required (bool): If True, will add term with AND. If False, will use OR. Default True.
+        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.
  
         Returns:
         self (Forge): For chaining.
         """
-        self.__query.match_field(field=field, value=value, match_all=match_all)
-        return self
-
-
-    def match_sources(self, sources):
-        """Add sources to match to the query.
-        match_sources(x) is equivalent to match_field("mdf.source_name", x, match_all=False)
-
-        Arguments:
-        sources (str or list): The sources to match.
- 
-        Returns:
-        self (Forge): For chaining.
-        """
-        self.__query.match_field(field="mdf.source_name", value=sources, match_all=False)
-        return self
-
-
-    def match_elements(self, elements, match_all=True):
-        """Add elemental abbreviations to the query.
-        match_elements(x) is equivalent to match_field("mdf.elements", x)
-
-        Arguments:
-        elements (str or list): The elements to match.
-        match_all: If True, will add with AND. If False, will use OR. Default True.
- 
-        Returns:
-        self (Forge): For chaining.
-        """
-        self.__query.match_field(field="mdf.elements", value=elements, match_all=match_all)
+        # If not the start of the query string, add an AND or OR
+        if self.__query.query != "(":
+            if required:
+                self.__query.and_join(new_group)
+            else:
+                self.__query.or_join(new_group)
+        # Add default namespacing if not present
+        if "." not in field:
+            field = "mdf." + field
+        self.__query.field(field, value)
         return self
 
 
@@ -163,43 +158,6 @@ class Forge:
         return res
 
 
-    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=True, info=False, reset_query=True):
-        """Execute a search for the given elements in the given sources.
-        search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
-        Note that this method does use terms from the current query.
-
-        Arguments:
-        elements (list of str): The elements to match. Default [].
-        sources (list of str): The sources to match. Default [].
-        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list, and other information about the query.
-                     Default False.
-        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.
-                            Default True.
-
-        Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
-        """
-        return self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info, reset_query=reset_query)
-
-
-    def aggregate_source(self, source, limit=None):
-        """Aggregate all records from a given source.
-        There is no inherent limit to the number of results returned.
-        Note that this method does not use or alter the current query.
-
-        Arguments:
-        source (str): The source to aggregate.
-        limit (int): The maximum number of results to return. Default None, to return all results.
-        
-        Returns:
-        list of dict: All of the records from the source.
-        """
-        return Query(self.__search_client).aggregate_source(source=source, limit=limit)
-
-
     def aggregate(self, q=None, scroll_size=SEARCH_LIMIT, reset_query=True):
         """Perform an advanced query, and return all matching results.
         Will automatically preform multiple queries in order to retrieve all results.
@@ -226,6 +184,98 @@ class Forge:
         del self.__query
         self.__query = Query(self.__search_client)
 
+
+#################################################
+##  Helper functions
+#################################################
+
+    def match_sources(self, sources):
+        """Add sources to match to the query.
+
+        Arguments:
+        sources (str or list of str): The sources to match.
+ 
+        Returns:
+        self (Forge): For chaining.
+        """
+        if not sources:
+            print("Error: No sources specified.")
+            return self
+        if not isinstance(sources, list):
+            sources = [sources]
+        self.match_field(field="mdf.source_name", value=",".join(sources), required=True, new_group=True)
+        return self
+
+
+    def match_elements(self, elements, match_all=True):
+        """Add elemental abbreviations to the query.
+
+        Arguments:
+        elements (str or list of str): The elements to match.
+        match_all (bool): If True, will add with AND. If False, will use OR. Default True.
+ 
+        Returns:
+        self (Forge): For chaining.
+        """
+        if not elements:
+            print("Error: No elements specified.")
+            return self
+        if not isinstance(elements, list):
+            elements = [elements]
+
+        if match_all:
+            # First source should be in separate group (and required)
+            self.match_field(field="mdf.elements", value=elements[0], required=True, new_group=True)
+            # Other sources should stay in that group
+            for element in elements[1:]:
+                self.match_field(field="mdf.elements", value=element, required=match_all, new_group=False)
+        else:
+            self.match_field(field="mdf.elements", value=",".join(elements), required=True, new_group=True)
+        return self
+
+
+#################################################
+##  Premade searches
+#################################################
+
+    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=True, info=False):
+        """Execute a search for the given elements in the given sources.
+        search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
+        Note that this method does use terms from the current query.
+
+        Arguments:
+        elements (list of str): The elements to match. Default [].
+        sources (list of str): The sources to match. Default [].
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        match_all (bool): If True, will add elements with AND. If False, will use OR. Default True.
+        info (bool): If False, search will return a list of the results.
+                     If True, search will return a tuple containing the results list, and other information about the query.
+                     Default False.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
+        return self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info)
+
+
+    def aggregate_source(self, sources):
+        """Aggregate all records from a given source.
+        There is no limit to the number of results returned.
+        Please beware of aggregating very large datasets.
+
+        Arguments:
+        sources (str or list of str): The source to aggregate.
+        
+        Returns:
+        list of dict: All of the records from the source.
+        """
+        return self.match_sources(sources).aggregate()
+
+
+#################################################
+##  Data retrieval functions
+#################################################
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
         """Download data files from the provided results using HTTPS.
@@ -475,12 +525,13 @@ class Forge:
 
 
 class Query:
-    """The Query class is meant for use through Forge. Users should generally not instantiate a Query object directly,
-    as Forge manages all the functions a user might need, but advanced users may do so at their own risk.
+    """The Query class is meant for internal Forge use. Users should not instantiate a Query object directly,
+    as Forge manages all the functions a user might need, but advanced users may do so at their own risk. Using Query
+    directly is an unsupported behavior and may have unexpected results or unlisted changes in the future.
 
-    Queries may end up wrapped in parentheses, which has no direct effect on the search. This is to enable forcing 'OR'
-    terms to bind more tightly than 'AND' terms, when the default is the opposite. It intuitively makes more sense for
-    a query such as "oqmd OR nist_janaf AND Al" to be interpreted as "(oqmd OR nist_janaf) AND (Al)" for Forge use cases.
+    Queries may end up wrapped in parentheses, which has no direct effect on the search. Adding terms must be chained
+    with .and() or .or(). Terms will not have spaces in between otherwise, and it is desirable to be explicit about
+    which terms are required.
     """
     def __init__(self, search_client, q="(", limit=None, advanced=False):
         """Initialize the Query instance.
@@ -499,51 +550,108 @@ class Query:
         self.advanced = advanced
 
 
-    def match_term(self, term, match_all=True):
+    def __clean_query_string(self, q):
+        """Clean up a query string.
+        This method does not access self, so that a search will not change state.
+        """
+        q = q.strip().replace("()", "")
+        if q.endswith("("):
+            q = q[:-1]
+        # Remove misplaced AND/OR at end
+        if q[-3:] == "AND":
+            q = q[:-3]
+        elif q[-2:] == "OR":
+            q = q[:-2]
+
+        # Balance parentheses
+        while q.count("(") > q.count(")"):
+            q += ")"
+        while q.count(")") > q.count("("):
+            q = "(" + q
+        
+        return q
+
+
+    def term(self, term):
         """Add a term to the query.
 
         Arguments:
         term (str): The term to add.
-        match_all (bool): If True, will add term with AND. If False, will use OR. Default True.
 
         Returns:
         self (Query): For chaining.
         """
-        self.query += (") AND (" if match_all else " OR ") + term
+        self.query += term
         return self
 
 
-    def match_field(self, field, value, match_all=True):
+    def field(self, field, value):
         """Add a field:value term to the query.
         Matches will have field == value.
+        This method sets advanced=True.
 
         Arguments:
         field (str): The field to look in for the value.
-            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
-            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
-            If no namespace is provided, the default ("mdf.") will be used.
         value (str): The value to match.
-        match_all: If True, will add with AND. If False, will use OR. Default True.
  
         Returns:
         self (Query): For chaining.
         """
-        # match_all determines AND/OR
-        match_join = ") AND (" if match_all else " OR "
-        # If no namespacing provided, add default
-        if "." not in field:
-            field = "mdf." + field
-        # If value list should be OR'd
-        if type(value) is list and not match_all:
-            value = ",".join(value)
-        # Make value into list for processing
-        if type(value) is not list:
-            value = [value]
-
-        for val in value:
-            self.query += (match_join + field + ":" + val)
+        self.query += field + ":" + value
         # Field matches are advanced queries
         self.advanced = True
+        return self
+
+
+    def and_join(self, close_group=False):
+        """Combine terms with AND.
+        There must be a term added before using this method.
+
+        Arguments:
+        close_group (bool): If True, will end the current group and start a new one.
+                      If False, will continue current group.
+                      Example: If the current query is "(term1"
+                          .and(close_group=True) => "(term1) AND ("
+                          .and(close_group=False) => "(term1 AND "
+
+        Returns:
+        self (Query): For chaining.
+        """
+        last = self.query.strip(" ()")[-3:]
+        # Check that the query has terms
+        if not last:
+            print("Error: You must add a term before using .and(). The current query has not been changed.")
+        # Check to make sure there is a term before the AND
+        elif last == "AND" or last[1:] == "OR":
+            print("Error: You must add a term between each AND or OR. The current query has not been changed.")
+        else:
+            self.query += ") AND (" if close_group else " AND "
+        return self
+
+
+    def or_join(self, close_group=False):
+        """Combine terms with OR.
+        There must be a term added before using this method.
+
+        Arguments:
+        close_group (bool): If True, will end the current group and start a new one.
+                      If False, will continue current group.
+                      Example: If the current query is "(term1"
+                          .or(close_group=True) => "(term1) OR("
+                          .or(close_group=False) => "(term1 OR "
+
+        Returns:
+        self (Query): For chaining.
+        """
+        last = self.query.strip(" ()")[-3:]
+        # Check that the query has terms
+        if not last:
+            print("Error: You must add a term before using .or(). The current query has not been changed.")
+        # Check to make sure there is a term before the OR
+        elif last == "AND" or last[1:] == "OR":
+            print("Error: You must add a term between each AND or OR. The current query has not been changed.")
+        else:
+            self.query += ") OR (" if close_group else " OR "
         return self
 
 
@@ -569,7 +677,7 @@ class Query:
             q = self.query
         if not q.strip("()"):
             print("Error: No query specified")
-            return []
+            return ([], {"error": "No query specified"}) if info else []
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
@@ -577,20 +685,7 @@ class Query:
         if limit > SEARCH_LIMIT:
             limit = SEARCH_LIMIT
 
-        # Balance parentheses
-        q = q.strip()
-        while q.count("(") > q.count(")"):
-            q += ")"
-        while q.count("(") < q.count(")"):
-            q = "(" + q
-        # Clean query string
-        q = q.replace("( OR", "(")
-        removes = ["()", "AND", "OR"]
-        for rterm in removes:
-            if q.startswith(rterm):
-                q = q[len(rterm):].strip()
-            if q.endswith(rterm):
-                q = q[:-len(rterm)].strip()
+        q = self.__clean_query_string(q)
 
         # Simple query (max 10k results)
         qu = {
@@ -605,37 +700,8 @@ class Query:
         return res
 
 
-    def aggregate_source(self, source, limit=None):
-        """Aggregate all records from a given source.
-        There is no inherent limit to the number of results returned.
-        Note that this method does not use or alter the current query.
-
-        Arguments:
-        source (str): The source to aggregate.
-        limit (int): The maximum number of results to return. Default None, to return all results.
-        
-        Returns:
-        list of dict: All of the records from the source.
-        """
-        full_res = []
-        res = True  # Start res as value that will pass while condition
-        # Scroll while results are being returned and limit not reached
-        while res and (limit is None or limit > 0):
-            query = {
-                "q": "mdf.source_name:" + source + " AND mdf.scroll_id:(>" + str(len(full_res)) + " AND <=" + str( len(full_res) + (limit or SEARCH_LIMIT) ) + ")",
-                "advanced": True,
-                "limit": limit or SEARCH_LIMIT
-                }
-            res = toolbox.gmeta_pop(self.__search_client.structured_search(query))
-            num_res = len(res)
-            full_res += res
-            # If a limit was set, lower future limit by number of results saved
-            if limit:
-                limit -= num_res
-        return full_res
-
     def aggregate(self, q=None, scroll_size=SEARCH_LIMIT):
-        """Gather all results that match a specific query
+        """Gather all record results that match a specific query
 
         Note that all aggregate queries run in advanced mode.
 
@@ -654,21 +720,11 @@ class Query:
             q = self.query
         if not q.strip("()"):
             print("Error: No query specified")
-            return []
+            return ([], {"error": "No query specified"}) if info else []
 
-        # Balance parentheses
-        q = q.strip()
-        while q.count("(") > q.count(")"):
-            q += ")"
-        while q.count("(") < q.count(")"):
-            q = "(" + q
-        # Clean query string
-        removes = ["()", "AND", "OR"]
-        for rterm in removes:
-            if q.startswith(rterm):
-                q = q[len(rterm):].strip()
-            if q.endswith(rterm):
-                q = q[:-len(rterm)].strip()
+        q = self.__clean_query_string(q)
+
+        q += " AND mdf.resource_type:record"
 
         # Get the total number of records
         result = self.__search_client.search(q, limit=0, advanced=True)
@@ -676,14 +732,14 @@ class Query:
 
         # Scroll until all results are found
         output = []
-        scroll_pos = 0
+        scroll_pos = 1
         with tqdm(total=total) as pbar:
             while len(output) < total:
 
                 # Scroll until the width is small enough to get all records
                 #   `scroll_id`s are unique to each dataset. If multiple datasets
                 #   match a certain query, the total number of matching records
-                #   may exceed the maximum that serach will return - even if the
+                #   may exceed the maximum that search will return - even if the
                 #   scroll width is much smaller than that maximum
                 scroll_width = scroll_size
                 while True:
