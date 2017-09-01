@@ -204,27 +204,15 @@ def process_oqmd(q_paths, q_metadata, lookup, killswitch):
             with open(full_path, 'r') as data_file:
                 record = json.load(data_file)
             metadata_path = lookup.get(filename.split(".")[0], "None").replace("//", "/").strip()
-            outcar_path = os.path.join(os.path.dirname(metadata_path), "OUTCAR") if metadata_path != "None" else "Unavailable"
+            outcar_path = os.path.join(os.path.dirname(metadata_path), "OUTCAR.gz") if metadata_path != "None" else "Unavailable"
 
             record_metadata = {
             "mdf": {
                 "title": "OQMD - " + record["composition"],
                 "acl": ["public"],
-
-    #                "tags": ,
-    #                "description": ,
-                
                 "composition": record["composition"],
-    #                "raw": ,
-
                 "links": {
                     "landing_page": record["url"],
-
-    #                    "publication": ,
-    #                    "dataset_doi": ,
-
-    #                    "related_id": ,
-
                     "metadata": {
 
                         "globus_endpoint": "82f1b5c6-6e9b-11e5-ba47-22000b92c6ec",
@@ -267,9 +255,10 @@ def process_oqmd(q_paths, q_metadata, lookup, killswitch):
                 },
                 "oqmd": {
                     "band_gap": record["band_gap"],
-                    "delta_e": record.get("stability_data", {}).get("formation entahlpy", {}),
+                    "delta_e": record.get("stability_data", {}).get("formation_enthalpy", {}),
                     "volume": record["volume_pa"],
                     "stability": record.get("stability_data", {}).get("stability", {}),
+                    "spacegroup": record.get("spacegroup", None),
                     "configuration": record["configuration"],
                     "converged": record["converged"],
                     "crossreference": record["entry"]["crossreference"],

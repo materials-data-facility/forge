@@ -8,8 +8,6 @@ from multiprocessing.pool import Pool
 from shutil import rmtree
 from tqdm import tqdm
 
-import paths
-
 base_url = "https://srdata.nist.gov/xps/XPSDetailPage.aspx?AllDataNo="
 g_verbose = False
 
@@ -19,10 +17,10 @@ g_verbose = False
 #       -1: Remove out_dir if it exists
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
-#start_id: int id to start harvest from. Default 1 (00001).
-#stop_id: int id to stop harvest at (exclusive). Default 2 (00002), which pulls only one record.
+#start_id: int id to start harvest from. Default 1.
+#stop_id: int id to stop harvest at (exclusive). Default 100000.
 #verbose: Print status messages? Default False
-def harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
+def harvest(out_dir, existing_dir=0, start_id=0, stop_id=100000, verbose=False):
     g_verbose = verbose
     if verbose:
         print("Begin harvesting")
@@ -45,24 +43,7 @@ def harvest(out_dir, existing_dir=0, start_id=1, stop_id=2, verbose=False):
     mp.join()
     if verbose:
         print("Harvesting complete")
-#    for i in tqdm(range(start_id, stop_id), desc="Fetching records", disable= not verbose):
-#        res = requests.get(base_url + str(i))
-#        soup = BeautifulSoup(res.text, "lxml")
-#        table = soup.find_all("table")[1]  # Second table is only relevant one
-#        record = {}
-#        for row in table.find_all("tr"):
-#            key = row.td.text.strip().strip(":")
-#            value = []
-#            for elem in row.find_all("td")[1:]:
-#                value.append(elem.text.strip())
-#            if len(value) < 1:
-#                value = None
-#            elif len(value) == 1:
-#                value = value[0]
-#            record[key] = value
-#        if record["Element"]:
-#            with open(os.path.join(out_dir, "nist_xps_"+str(i)+".json"), "w") as output:
-#                json.dump(record, output)
+
 
 #Record processing, in function for optimization
 def fetch_write(index, out_dir, verbose=False):
@@ -91,6 +72,3 @@ def fetch_write(index, out_dir, verbose=False):
     else:
         print("Bad table: #" + str(index), flush=True)
 
-
-if __name__ == "__main__":
-    harvest(paths.datasets+"nist_xps_db", existing_dir=1, start_id=0, stop_id=100000, verbose=True)

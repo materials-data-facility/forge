@@ -6,8 +6,6 @@ import os.path
 from shutil import rmtree
 from tqdm import tqdm
 
-import paths
-
 #Collects available data from NIST's MML and saves to the given directory
 #out_dir: The path to the directory (which will be created) for the data files
 #existing_dir:
@@ -15,7 +13,7 @@ import paths
 #    0: Error if out_dir exists (Default)
 #    1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def nist_mml_harvest(out_dir, existing_dir=0, verbose=False):
+def harvest(out_dir, existing_dir=0, verbose=False):
     if os.path.exists(out_dir):
         if existing_dir == 0:
             exit("Directory '" + out_dir + "' exists")
@@ -79,9 +77,4 @@ def nist_mml_harvest(out_dir, existing_dir=0, verbose=False):
                 for chunk in data.iter_content(chunk_size=1024):
                     out_file.write(chunk)
         '''
-
-
-
-if __name__ == "__main__":
-    nist_mml_harvest(paths.datasets + "nist_mml", existing_dir=1, verbose=True)
 

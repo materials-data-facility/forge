@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mdf_forge',
-    version='0.0.1',
+    version='0.4.0',
     packages=['mdf_forge'],
     description='Materials Data Facility python package',
     install_requires=[

@@ -1,7 +1,8 @@
 import os
 from importlib import import_module
 import globus_sdk
-from mdf_refinery.config import PATH_DATASETS
+from mdf_forge.toolbox import find_files
+from mdf_refinery.config import PATH_DATASETS, PATH_FEEDSTOCK
 
 VERBOSE = True
 harvesters_import = "mdf_refinery.harvesters."
@@ -14,7 +15,7 @@ def call_harvester(source_name, existing_dir=-1, verbose=VERBOSE, **kwargs):
         print("HARVESTING", source_name)
     harvester = import_module(harvesters_import + source_name + "_harvester")
     output_path = os.path.join(PATH_DATASETS, source_name + "/")
-    harvester.harvest(out_dir=output_path, existing_dir=existing_dir,  verbose=verbose, **kwargs)
+    harvester.harvest(out_dir=output_path, existing_dir=existing_dir, verbose=verbose, **kwargs)
     if verbose:
         print("HARVESTING COMPLETE")
 
@@ -46,6 +47,18 @@ def call_ingester(sources, globus_index="mdf", batch_size=100, verbose=VERBOSE):
         print(e.raw_json)
 
 
+def call_ingester_repo(repos, globus_index="mdf", batch_size=100, verbose=VERBOSE):
+    if type(repos) is not list:
+        repos = [repos]
+    if verbose:
+        print("INGESTING THE FOLLOWING REPOS:", repos)
+    for repo in repos:
+        sources = [s["filename"].replace("_all.json", "") for s in find_files(PATH_FEEDSTOCK, repo+".*json$")]
+        call_ingester(sources, globus_index=globus_index, batch_size=batch_size, verbose=VERBOSE)
+        if verbose:
+            print("\nREPO INGESTING COMPLETE")
+
+
 def call_md_only_converter(source_name, verbose=VERBOSE):
     if type(source_name) is not list:
         source_name = [source_name]
@@ -60,6 +73,7 @@ if __name__ == "__main__":
     harvest = ["h", "harvester", "harvest"]
     convert = ["c", "converter", "convert"]
     ingest = ["i", "ingester", "ingest"]
+    repo_ingest = ["r", "ir", "repo", "repo_ingest", "ingest_repo"]
     accept = ["a", "acceptor", "accept"]
     md_only = ["m", "md", "metadata-only"]
     if len(sys.argv) < 2:
@@ -84,6 +98,20 @@ if __name__ == "__main__":
         else:
             batch_size = 100
         call_ingester(sources=sys.argv[2:], globus_index=globus_index, batch_size=batch_size)
+
+    elif sys.argv[1].strip(" -").lower() in repo_ingest:
+        if sys.argv[2] == "--index" or sys.argv[2] == "--globus-index":
+            sys.argv.pop(2)
+            globus_index = sys.argv.pop(2)
+        else:
+            globus_index = "mdf"
+
+        if sys.argv[2] == "--batch-size":
+            sys.argv.pop(2)
+            batch_size = int(sys.argv.pop(2))
+        else:
+            batch_size = 100
+        call_ingester_repo(repos=sys.argv[2:], globus_index=globus_index, batch_size=batch_size)    
 
     elif sys.argv[1].strip(" -").lower() in accept:
         if len(sys.argv) > 2 and sys.argv[2] == "--remove_old":

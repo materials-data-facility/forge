@@ -1,0 +1,681 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>mdf_forge package &#8212; mdf_forge 0.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.4.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mdf-forge-package">
+<h1>mdf_forge package<a class="headerlink" href="#mdf-forge-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-mdf_forge.forge">
+<span id="mdf-forge-forge-module"></span><h2>mdf_forge.forge module<a class="headerlink" href="#module-mdf_forge.forge" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mdf_forge.forge.Forge">
+<em class="property">class </em><code class="descclassname">mdf_forge.forge.</code><code class="descname">Forge</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Fetch metadata from Globus Search and files from the Materials Data Facility.
+Forge is intended to be the best way to access MDF data for all users.
+An internal Query object is used to make queries. From the user’s perspective,
+an instantiation of Forge will black-box searching.</p>
+<p>Public Variables:
+local_ep is the endpoint ID of the local Globus Connect Personal endpoint.</p>
+<p>Methods:
+__init__ handles authentication with Globus Auth.
+match_term adds simple terms to the query.
+match_field adds a field:value pair to the query.
+match_sources specifies <a href="#id1"><span class="problematic" id="id2">`</span></a>source_name`s to search for results in.
+match_elements specifies element abbreviations to match.
+search executes a search.
+search_by_elements executes a search for given elements in given sources.
+aggregate_source returns all records for a given source.
+reset_query destroys the current query and starts a fresh one.
+http_download saves the data files associated with results to disk with HTTPS.
+globus_download saves the data files associated with results to disk with Globus Transfer.
+http_stream yields a generator to fetch data files in sequence.
+http_return returns all the data files at once.</p>
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.aggregate">
+<code class="descname">aggregate</code><span class="sig-paren">(</span><em>q=None</em>, <em>scroll_size=10000</em>, <em>reset_query=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.aggregate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.aggregate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an advanced query, and return all matching results.
+Will automatically preform multiple queries in order to retrieve all results.</p>
+<p>Note that all aggregate queries run in advanced mode.</p>
+<p>Arguments:
+q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+scroll_size (int): Minimum number of records returned per query
+reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.</p>
+<blockquote>
+<div>Default True.</div></blockquote>
+<p>Returns:
+list of dict: All matching records</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.aggregate_source">
+<code class="descname">aggregate_source</code><span class="sig-paren">(</span><em>source</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.aggregate_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.aggregate_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregate all records from a given source.
+There is no inherent limit to the number of results returned.
+Note that this method does not use or alter the current query.</p>
+<p>Arguments:
+source (str): The source to aggregate.
+limit (int): The maximum number of results to return. Default None, to return all results.</p>
+<p>Returns:
+list of dict: All of the records from the source.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.globus_download">
+<code class="descname">globus_download</code><span class="sig-paren">(</span><em>results</em>, <em>dest='.'</em>, <em>dest_ep=None</em>, <em>preserve_dir=False</em>, <em>wait_for_completion=True</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.globus_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.globus_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download data files from the provided results using Globus Transfer.
+This method requires Globus Connect to be installed on the destination endpoint.</p>
+<p>Arguments:
+results (dict): The records from which files should be fetched.</p>
+<blockquote>
+<div>This should be the return value of a search method.</div></blockquote>
+<p>dest (str): The destination path for the data files on the local machine. Default current directory.
+preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.</p>
+<blockquote>
+<div><blockquote>
+<div>The path to tne new files will be relative to the <cite>dest</cite> path</div></blockquote>
+<p>If False, only the data files themselves will be saved.
+Default False.</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>wait_for_completion (bool): If True, will block until the transfer is finished.</dt>
+<dd>If False, will not block.
+Default True.</dd>
+<dt>verbose (bool): If True, status and progress messages will be printed.</dt>
+<dd>If False, only error messages will be printed.
+Default True.</dd>
+</dl>
+<p>Returns:
+list of str: task IDs of the Gloubs transfers</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.http_download">
+<code class="descname">http_download</code><span class="sig-paren">(</span><em>results</em>, <em>dest='.'</em>, <em>preserve_dir=False</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.http_download"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.http_download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download data files from the provided results using HTTPS.
+For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.</p>
+<p>Arguments:
+results (dict): The records from which files should be fetched.</p>
+<blockquote>
+<div>This should be the return value of a search method.</div></blockquote>
+<p>dest (str): The destination path for the data files on the local machine. Default current directory.
+preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.</p>
+<blockquote>
+<div><blockquote>
+<div>If False, only the data files themselves will be saved.</div></blockquote>
+<p>Default False.</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>verbose (bool): If True, status and progress messages will be printed.</dt>
+<dd>If False, only error messages will be printed.
+Default True.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.http_return">
+<code class="descname">http_return</code><span class="sig-paren">(</span><em>results</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.http_return"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.http_return" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data files from the provided results using HTTPS.
+For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.</p>
+<p>Arguments:
+results (dict): The records from which files should be fetched.</p>
+<blockquote>
+<div>This should be the return value of a search method.</div></blockquote>
+<dl class="docutils">
+<dt>verbose (bool): If True, status and progress messages will be printed.</dt>
+<dd>If False, only error messages will be printed.
+Default True.</dd>
+</dl>
+<p>Returns:
+list of str: Text data of the data files.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.http_stream">
+<code class="descname">http_stream</code><span class="sig-paren">(</span><em>results</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.http_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.http_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield data files from the provided results using HTTPS, through a generator.
+For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(), which uses Globus Transfer.</p>
+<p>Arguments:
+results (dict): The records from which files should be fetched.</p>
+<blockquote>
+<div>This should be the return value of a search method.</div></blockquote>
+<dl class="docutils">
+<dt>verbose (bool): If True, status and progress messages will be printed.</dt>
+<dd>If False, only error messages will be printed.
+Default True.</dd>
+</dl>
+<p>Yields:
+str: Text of each data file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.match_elements">
+<code class="descname">match_elements</code><span class="sig-paren">(</span><em>elements</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_elements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add elemental abbreviations to the query.
+match_elements(x) is equivalent to match_field(“mdf.elements”, x)</p>
+<p>Arguments:
+elements (str or list): The elements to match.
+match_all: If True, will add with AND. If False, will use OR. Default True.</p>
+<p>Returns:
+self (Forge): For chaining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.match_field">
+<code class="descname">match_field</code><span class="sig-paren">(</span><em>field</em>, <em>value</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a field:value term to the query.
+Matches will have field == value.</p>
+<p>Arguments:
+field (str): The field to look in for the value.</p>
+<blockquote>
+<div>The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+Ex. “mdf.source_name” is the “source_name” field of the “mdf” dictionary.
+If no namespace is provided, the default (“mdf.”) will be used.</div></blockquote>
+<p>value (str): The value to match.
+match_all: If True, will add with AND. If False, will use OR. Default True.</p>
+<p>Returns:
+self (Forge): For chaining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.match_sources">
+<code class="descname">match_sources</code><span class="sig-paren">(</span><em>sources</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add sources to match to the query.
+match_sources(x) is equivalent to match_field(“mdf.source_name”, x, match_all=False)</p>
+<p>Arguments:
+sources (str or list): The sources to match.</p>
+<p>Returns:
+self (Forge): For chaining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.match_term">
+<code class="descname">match_term</code><span class="sig-paren">(</span><em>term</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a term to the query.</p>
+<p>Arguments:
+term (str): The term to add.
+match_all (bool): If True, will add term with AND. If False, will use OR. Default True.</p>
+<p>Returns:
+self (Forge): For chaining.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdf_forge.forge.Forge.mdf_authorizer">
+<code class="descname">mdf_authorizer</code><a class="headerlink" href="#mdf_forge.forge.Forge.mdf_authorizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.reset_query">
+<code class="descname">reset_query</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.reset_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.reset_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Destroy the current query and create a fresh, clean one.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.search">
+<code class="descname">search</code><span class="sig-paren">(</span><em>q=None</em>, <em>advanced=False</em>, <em>limit=10000</em>, <em>info=False</em>, <em>reset_query=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a search and return the results.</p>
+<p>Arguments:
+q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+advanced (bool): If True, will submit query in “advanced” mode, which enables searches other than basic fulltext.</p>
+<blockquote>
+<div>If False, only basic fulltext term matches will be supported.
+Default False.
+This value can change to True automatically if the query is built using advanced features, such as match_field.</div></blockquote>
+<p>limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+info (bool): If False, search will return a list of the results.</p>
+<blockquote>
+<div>If True, search will return a tuple containing the results list, and other information about the query.
+Default False.</div></blockquote>
+<dl class="docutils">
+<dt>reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.</dt>
+<dd>Default True.</dd>
+</dl>
+<p>Returns:
+list (if info=False): The results.
+tuple (if info=True): The results, and a dictionary of query information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Forge.search_by_elements">
+<code class="descname">search_by_elements</code><span class="sig-paren">(</span><em>elements=[]</em>, <em>sources=[]</em>, <em>limit=None</em>, <em>match_all=True</em>, <em>info=False</em>, <em>reset_query=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.search_by_elements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.search_by_elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a search for the given elements in the given sources.
+search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
+Note that this method does use terms from the current query.</p>
+<p>Arguments:
+elements (list of str): The elements to match. Default [].
+sources (list of str): The sources to match. Default [].
+limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+info (bool): If False, search will return a list of the results.</p>
+<blockquote>
+<div>If True, search will return a tuple containing the results list, and other information about the query.
+Default False.</div></blockquote>
+<dl class="docutils">
+<dt>reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.</dt>
+<dd>Default True.</dd>
+</dl>
+<p>Returns:
+list (if info=False): The results.
+tuple (if info=True): The results, and a dictionary of query information.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mdf_forge.forge.Forge.search_client">
+<code class="descname">search_client</code><a class="headerlink" href="#mdf_forge.forge.Forge.search_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mdf_forge.forge.Forge.transfer_client">
+<code class="descname">transfer_client</code><a class="headerlink" href="#mdf_forge.forge.Forge.transfer_client" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mdf_forge.forge.Query">
+<em class="property">class </em><code class="descclassname">mdf_forge.forge.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>search_client</em>, <em>q='('</em>, <em>limit=None</em>, <em>advanced=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>The Query class is meant for use through Forge. Users should generally not instantiate a Query object directly,
+as Forge manages all the functions a user might need, but advanced users may do so at their own risk.</p>
+<p>Queries may end up wrapped in parentheses, which has no direct effect on the search. This is to enable forcing ‘OR’
+terms to bind more tightly than ‘AND’ terms, when the default is the opposite. It intuitively makes more sense for
+a query such as “oqmd OR nist_janaf AND Al” to be interpreted as “(oqmd OR nist_janaf) AND (Al)” for Forge use cases.</p>
+<dl class="method">
+<dt id="mdf_forge.forge.Query.aggregate">
+<code class="descname">aggregate</code><span class="sig-paren">(</span><em>q=None</em>, <em>scroll_size=10000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.aggregate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.aggregate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather all results that match a specific query</p>
+<p>Note that all aggregate queries run in advanced mode.</p>
+<p>Arguments:
+q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+advanced (bool): If True, will submit query in “advanced” mode, which enables searches other than basic fulltext.</p>
+<blockquote>
+<div>If False, only basic fulltext term matches will be supported.
+Default False.
+This value can change to True automatically if the query is built using advanced features, such as match_field.</div></blockquote>
+<p>scroll_size (int): Maximum number of records requested per request</p>
+<p>Returns:
+list of dict: All matching records</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Query.aggregate_source">
+<code class="descname">aggregate_source</code><span class="sig-paren">(</span><em>source</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.aggregate_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.aggregate_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregate all records from a given source.
+There is no inherent limit to the number of results returned.
+Note that this method does not use or alter the current query.</p>
+<p>Arguments:
+source (str): The source to aggregate.
+limit (int): The maximum number of results to return. Default None, to return all results.</p>
+<p>Returns:
+list of dict: All of the records from the source.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Query.match_field">
+<code class="descname">match_field</code><span class="sig-paren">(</span><em>field</em>, <em>value</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.match_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.match_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a field:value term to the query.
+Matches will have field == value.</p>
+<p>Arguments:
+field (str): The field to look in for the value.</p>
+<blockquote>
+<div>The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+Ex. “mdf.source_name” is the “source_name” field of the “mdf” dictionary.
+If no namespace is provided, the default (“mdf.”) will be used.</div></blockquote>
+<p>value (str): The value to match.
+match_all: If True, will add with AND. If False, will use OR. Default True.</p>
+<p>Returns:
+self (Query): For chaining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Query.match_term">
+<code class="descname">match_term</code><span class="sig-paren">(</span><em>term</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.match_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.match_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a term to the query.</p>
+<p>Arguments:
+term (str): The term to add.
+match_all (bool): If True, will add term with AND. If False, will use OR. Default True.</p>
+<p>Returns:
+self (Query): For chaining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Query.search">
+<code class="descname">search</code><span class="sig-paren">(</span><em>q=None</em>, <em>advanced=None</em>, <em>limit=10</em>, <em>info=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a search and return the results.</p>
+<p>Arguments:
+q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
+advanced (bool): If True, will submit query in “advanced” mode, which enables searches other than basic fulltext.</p>
+<blockquote>
+<div>If False, only basic fulltext term matches will be supported.
+Default False.
+This value can change to True automatically if the query is built using advanced features, such as match_field.</div></blockquote>
+<p>limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search. Default 10.
+info (bool): If False, search will return a list of the results.</p>
+<blockquote>
+<div>If True, search will return a tuple containing the results list, and other information about the query.
+Default False.</div></blockquote>
+<p>Returns:
+list (if info=False): The results.
+tuple (if info=True): The results, and a dictionary of query information.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-mdf_forge.toolbox">
+<span id="mdf-forge-toolbox-module"></span><h2>mdf_forge.toolbox module<a class="headerlink" href="#module-mdf_forge.toolbox" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="mdf_forge.toolbox.SearchClient">
+<em class="property">class </em><code class="descclassname">mdf_forge.toolbox.</code><code class="descname">SearchClient</code><span class="sig-paren">(</span><em>base_url='https://search.api.globus.org/'</em>, <em>default_index=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#SearchClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.SearchClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">globus_sdk.base.BaseClient</span></code></p>
+<p>Access (search and ingest) Globus Search.</p>
+<dl class="method">
+<dt id="mdf_forge.toolbox.SearchClient.ingest">
+<code class="descname">ingest</code><span class="sig-paren">(</span><em>data</em>, <em>index=None</em>, <em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#SearchClient.ingest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.SearchClient.ingest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a simple <code class="docutils literal"><span class="pre">POST</span></code> based ingest op.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">data</span></code> (<em>dict</em>)</dt>
+<dd>A valid GIngest document to index.</dd>
+<dt><code class="docutils literal"><span class="pre">index</span></code> (<em>string</em>)</dt>
+<dd>Optional unless <code class="docutils literal"><span class="pre">default_index</span></code> was not set.
+The search index to send data into.</dd>
+<dt><code class="docutils literal"><span class="pre">params</span></code></dt>
+<dd>Any additional query params to pass. For internal use only.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.toolbox.SearchClient.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>subject</em>, <em>index=None</em>, <em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#SearchClient.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.SearchClient.remove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.toolbox.SearchClient.search">
+<code class="descname">search</code><span class="sig-paren">(</span><em>q</em>, <em>limit=None</em>, <em>offset=None</em>, <em>query_template=None</em>, <em>index=None</em>, <em>advanced=None</em>, <em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#SearchClient.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.SearchClient.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a simple <code class="docutils literal"><span class="pre">GET</span></code> based search.</p>
+<p>Does not support all of the behaviors and parameters of advanced
+searches.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">q</span></code> (<em>string</em>)</dt>
+<dd>The user-query string. Required for simple searches (and most
+advanced searches).</dd>
+<dt><code class="docutils literal"><span class="pre">index</span></code> (<em>string</em>)</dt>
+<dd>Optional unless <code class="docutils literal"><span class="pre">default_index</span></code> was not set.
+The index to query.</dd>
+<dt><code class="docutils literal"><span class="pre">limit</span></code> (<em>int</em>)</dt>
+<dd>Optional. The number of results to return.</dd>
+<dt><code class="docutils literal"><span class="pre">offset</span></code> (<em>int</em>)</dt>
+<dd>Optional. An offset into the total result set for paging.</dd>
+<dt><code class="docutils literal"><span class="pre">query_template</span></code> (<em>string</em>)</dt>
+<dd>Optional. A query_template name as defined within the Search
+service.</dd>
+<dt><code class="docutils literal"><span class="pre">advanced</span></code> (<em>bool</em>)</dt>
+<dd>Use simple query parsing vs. advanced query syntax when
+interpreting <code class="docutils literal"><span class="pre">q</span></code>. Defaults to False.</dd>
+<dt><code class="docutils literal"><span class="pre">params</span></code></dt>
+<dd>Any additional query params to pass. For internal use only.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.toolbox.SearchClient.structured_search">
+<code class="descname">structured_search</code><span class="sig-paren">(</span><em>data</em>, <em>index=None</em>, <em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#SearchClient.structured_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.SearchClient.structured_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a structured, <code class="docutils literal"><span class="pre">POST</span></code>-based, search.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">data</span></code> (<em>dict</em>)</dt>
+<dd>A valid GSearchRequest document to execute.</dd>
+<dt><code class="docutils literal"><span class="pre">index</span></code> (<em>string</em>)</dt>
+<dd>Optional unless <code class="docutils literal"><span class="pre">default_index</span></code> was not set.
+The index to query.</dd>
+<dt><code class="docutils literal"><span class="pre">advanced</span></code> (<em>bool</em>)</dt>
+<dd>Use simple query parsing vs. advanced query syntax when
+interpreting the query string. Defaults to False.</dd>
+<dt><code class="docutils literal"><span class="pre">params</span></code></dt>
+<dd>Any additional query params to pass. For internal use only.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.confidential_login">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">confidential_login</code><span class="sig-paren">(</span><em>credentials=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#confidential_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.confidential_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Login to Globus services as a confidential client (a client with its own login information).</p>
+<p>Arguments:
+credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.</p>
+<blockquote>
+<div><blockquote>
+<div>By default, looks in ~/mdf/credentials/confidential_globus_login.json.</div></blockquote>
+<p>Contains:
+client_id (str): The ID of the client.
+client_secret (str): The client’s secret for authentication.
+services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
+index: The default Search index. Only required if services contains ‘search’ or ‘search_ingest’.</p>
+</div></blockquote>
+<p>Returns:
+dict: The clients and authorizers requested, indexed by service name.</p>
+<blockquote>
+<div>For example, if login() is told to auth with ‘search’ then the search client will be in the ‘search’ field.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.find_files">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">find_files</code><span class="sig-paren">(</span><em>root</em>, <em>file_pattern=None</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#find_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.find_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find files recursively in a given directory.</p>
+<p>Arguments:
+root (str): The path to the starting (root) directory.
+file_pattern (str): A regular expression to match files against, or None to match all files. Default None.
+verbose: If True, will print status messages.</p>
+<blockquote>
+<div>If False, will remain silent unless there is an error.
+Default False.</div></blockquote>
+<p>Yields:
+dict: The matching file’s path information.</p>
+<blockquote>
+<div>Contains:
+path (str): The path to the directory containing the file.
+no_root_path (str): The path to the directory containing the file, with the path to the root directory removed.
+filename (str): The name of the file.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.format_gmeta">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">format_gmeta</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#format_gmeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.format_gmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format input into GMeta format, suitable for ingesting into Globus Search.
+Format a dictionary into a GMetaEntry.
+Format a list of GMetaEntry into a GMetaList inside a GMetaIngest.</p>
+<dl class="docutils">
+<dt>Example usage:</dt>
+<dd><p class="first">glist = []
+for document in all_my_documents:</p>
+<blockquote>
+<div>gmeta_entry = format_gmeta(document)
+glist.append(gmeta_entry)</div></blockquote>
+<p class="last">ingest_ready_document = format_gmeta(glist)</p>
+</dd>
+</dl>
+<p>Arguments:
+data (dict or list): The data to be formatted.</p>
+<blockquote>
+<div>If data is a dict, it must contain:
+data[“mdf”][“links”][“landing_page”] (str): A URI to a web page for the entry.
+data[“mdf”][“acl”] (list of str): A list of Globus UUIDs that are allowed to view the entry.
+If data is a list, it must consist of GMetaEntry documents.</div></blockquote>
+<p>Returns:
+dict (if data is dict): The data as a GMetaEntry.
+dict (if data is list): The data as a GMetaIngest.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.get_local_ep">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">get_local_ep</code><span class="sig-paren">(</span><em>transfer_client</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#get_local_ep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.get_local_ep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Discover the local Globus Connect Personal endpoint’s ID, if possible.</p>
+<p>Arguments:
+transfer_client (TransferClient): An authenticated Transfer client.</p>
+<p>Returns:
+str: The local GCP EP ID if it was discovered.
+If the ID is not discovered, an exception (globus_sdk.GlobusError unless the user cancels the search) will be raised.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.gmeta_pop">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">gmeta_pop</code><span class="sig-paren">(</span><em>gmeta</em>, <em>info=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#gmeta_pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.gmeta_pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove GMeta wrapping from a Globus Search result.
+This function can be called on the raw GlobusHTTPResponse that Search returns, or a string or dictionary representation of it.</p>
+<p>Arguments:
+gmeta (dict, str, or GlobusHTTPResponse): The Globus Search result to unwrap.
+info (bool): If False, gmeta_pop will return a list of the results and discard the metadata.</p>
+<blockquote>
+<div>If True, gmeta_pop will return a tuple containing the results list, and other information about the query.
+Default False.</div></blockquote>
+<p>Returns:
+list (if info=False): The unwrapped results.
+tuple (if info=True): The unwrapped results, and a dictionary of query information.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.login">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">login</code><span class="sig-paren">(</span><em>credentials=None</em>, <em>clear_old_tokens=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Login to Globus services</p>
+<p>Arguments:
+credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.</p>
+<blockquote>
+<div><blockquote>
+<div>By default, looks in ~/mdf/credentials/globus_login.json.</div></blockquote>
+<p>Contains:
+app_name (str): Name of script/client. This will form the name of the token cache file.
+services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
+index: The default Search index. Only required if services contains ‘search’ or ‘search_ingest’.</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>clear_old_tokens (bool): If True, delete old token file if it exists, forcing user to re-login.</dt>
+<dd>If False, use existing token file if there is one.
+Default False.</dd>
+</dl>
+<p>Returns:
+dict: The clients and authorizers requested, indexed by service name.</p>
+<blockquote>
+<div>For example, if login() is told to auth with ‘search’ then the search client will be in the ‘search’ field.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="mdf_forge.toolbox.uncompress_tree">
+<code class="descclassname">mdf_forge.toolbox.</code><code class="descname">uncompress_tree</code><span class="sig-paren">(</span><em>root</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/toolbox.html#uncompress_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.toolbox.uncompress_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uncompress all tar, zip, and gzip archives under a given directory.
+Note that this process tends to be very slow.</p>
+<p>Arguments:
+root (str): The path to the starting (root) directory.
+verbose: If True, will print status messages.</p>
+<blockquote>
+<div>If False, will remain silent unless there is an error.
+Default False.</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-mdf_forge">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-mdf_forge" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">mdf_forge</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ben Blaiszik, Jonathon Gaff.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/mdf_forge.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

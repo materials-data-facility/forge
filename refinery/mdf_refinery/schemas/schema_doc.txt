@@ -1,4 +1,4 @@
-# VERSION 0.3.2
+# VERSION 0.4.0
 
 This is the schema for dataset and record metadata in the MDF.
 In addition to the fields listed here, each entry can have another block (dictionary at the same level as "mdf"). The block must be called the same thing as the source_name for the dataset.
@@ -47,6 +47,8 @@ In addition to the fields listed here, each entry can have another block (dictio
             institution: RCM string: The primary affiliation for the person
 
         license: RCM string: A link to the license for distribution of the dataset
+
+        repository: RCM string: The repository (that should already be in MDF) holding the dataset
 
         collection: RCM string: The collection for the dataset, commonly a portion of the title
 

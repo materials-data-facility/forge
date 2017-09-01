@@ -7,8 +7,6 @@ import os.path
 from shutil import rmtree
 from tqdm import tqdm
 
-import paths
-
 base_url = "http://ixs.iit.edu/data/Farrel_Lytle_data/RAW/"
 
 #Collects available data from  and saves to the given directory
@@ -18,7 +16,7 @@ base_url = "http://ixs.iit.edu/data/Farrel_Lytle_data/RAW/"
 #        0: Error if out_dir exists (Default)
 #        1: Overwrite files in out_dir if there are path collisions
 #verbose: Print status messages? Default False
-def farrel_lytle_harvest(out_dir, existing_dir=0, verbose=False):
+def harvest(out_dir, existing_dir=0, verbose=False):
     if verbose:
         print("Begin harvesting")
     if os.path.exists(out_dir):
@@ -72,10 +70,4 @@ def farrel_lytle_harvest(out_dir, existing_dir=0, verbose=False):
 
     if verbose:
         print("End harvesting")
-
-
-
-if __name__ == "__main__":
-    farrel_lytle_harvest(paths.datasets + "farrel_lytle", existing_dir=-1, verbose=True)
-
 
