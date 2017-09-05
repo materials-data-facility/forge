@@ -105,33 +105,47 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__query</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__search_client</span><span class="p">)</span>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">search_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__search_client</span>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">transfer_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__transfer_client</span>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mdf_authorizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mdf_authorizer</span>
 
-<div class="viewcode-block" id="Forge.match_term"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_term">[docs]</a>    <span class="k">def</span> <span class="nf">match_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="c1">#################################################</span>
+<span class="c1">##  Core functions</span>
+<span class="c1">#################################################</span>
+
+<div class="viewcode-block" id="Forge.match_term"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_term">[docs]</a>    <span class="k">def</span> <span class="nf">match_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_group</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a term to the query.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">        term (str): The term to add.</span>
-<span class="sd">        match_all (bool): If True, will add term with AND. If False, will use OR. Default True.</span>
+<span class="sd">        required (bool): If True, will add term with AND. If False, will use OR. Default True.</span>
+<span class="sd">        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">        self (Forge): For chaining.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">match_term</span><span class="p">(</span><span class="n">term</span><span class="o">=</span><span class="n">term</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="n">match_all</span><span class="p">)</span>
+        <span class="c1"># If not the start of the query string, add an AND or OR</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">query</span> <span class="o">!=</span> <span class="s2">&quot;(&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">required</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">and_join</span><span class="p">(</span><span class="n">new_group</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">or_join</span><span class="p">(</span><span class="n">new_group</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">term</span><span class="p">(</span><span class="n">term</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
-<div class="viewcode-block" id="Forge.match_field"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_field">[docs]</a>    <span class="k">def</span> <span class="nf">match_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Forge.match_field"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_field">[docs]</a>    <span class="k">def</span> <span class="nf">match_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_group</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a field:value term to the query.</span>
 <span class="sd">        Matches will have field == value.</span>
 
@@ -141,41 +155,22 @@
 <span class="sd">            Ex. &quot;mdf.source_name&quot; is the &quot;source_name&quot; field of the &quot;mdf&quot; dictionary.</span>
 <span class="sd">            If no namespace is provided, the default (&quot;mdf.&quot;) will be used.</span>
 <span class="sd">        value (str): The value to match.</span>
-<span class="sd">        match_all: If True, will add with AND. If False, will use OR. Default True.</span>
+<span class="sd">        required (bool): If True, will add term with AND. If False, will use OR. Default True.</span>
+<span class="sd">        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.</span>
 <span class="sd"> </span>
 <span class="sd">        Returns:</span>
 <span class="sd">        self (Forge): For chaining.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="n">match_all</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
-
-
-<div class="viewcode-block" id="Forge.match_sources"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_sources">[docs]</a>    <span class="k">def</span> <span class="nf">match_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add sources to match to the query.</span>
-<span class="sd">        match_sources(x) is equivalent to match_field(&quot;mdf.source_name&quot;, x, match_all=False)</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">        sources (str or list): The sources to match.</span>
-<span class="sd"> </span>
-<span class="sd">        Returns:</span>
-<span class="sd">        self (Forge): For chaining.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
-
-
-<div class="viewcode-block" id="Forge.match_elements"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_elements">[docs]</a>    <span class="k">def</span> <span class="nf">match_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add elemental abbreviations to the query.</span>
-<span class="sd">        match_elements(x) is equivalent to match_field(&quot;mdf.elements&quot;, x)</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">        elements (str or list): The elements to match.</span>
-<span class="sd">        match_all: If True, will add with AND. If False, will use OR. Default True.</span>
-<span class="sd"> </span>
-<span class="sd">        Returns:</span>
-<span class="sd">        self (Forge): For chaining.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="n">match_all</span><span class="p">)</span>
+        <span class="c1"># If not the start of the query string, add an AND or OR</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">query</span> <span class="o">!=</span> <span class="s2">&quot;(&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">required</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">and_join</span><span class="p">(</span><span class="n">new_group</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">or_join</span><span class="p">(</span><span class="n">new_group</span><span class="p">)</span>
+        <span class="c1"># Add default namespacing if not present</span>
+        <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">field</span><span class="p">:</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="s2">&quot;mdf.&quot;</span> <span class="o">+</span> <span class="n">field</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
@@ -205,43 +200,6 @@
         <span class="k">return</span> <span class="n">res</span></div>
 
 
-<div class="viewcode-block" id="Forge.search_by_elements"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.search_by_elements">[docs]</a>    <span class="k">def</span> <span class="nf">search_by_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="p">[],</span> <span class="n">sources</span><span class="o">=</span><span class="p">[],</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reset_query</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Execute a search for the given elements in the given sources.</span>
-<span class="sd">        search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()</span>
-<span class="sd">        Note that this method does use terms from the current query.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">        elements (list of str): The elements to match. Default [].</span>
-<span class="sd">        sources (list of str): The sources to match. Default [].</span>
-<span class="sd">        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.</span>
-<span class="sd">        info (bool): If False, search will return a list of the results.</span>
-<span class="sd">                     If True, search will return a tuple containing the results list, and other information about the query.</span>
-<span class="sd">                     Default False.</span>
-<span class="sd">        reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.</span>
-<span class="sd">                            Default True.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">        list (if info=False): The results.</span>
-<span class="sd">        tuple (if info=True): The results, and a dictionary of query information.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_elements</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="n">match_all</span><span class="p">)</span><span class="o">.</span><span class="n">match_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">reset_query</span><span class="o">=</span><span class="n">reset_query</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="Forge.aggregate_source"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.aggregate_source">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Aggregate all records from a given source.</span>
-<span class="sd">        There is no inherent limit to the number of results returned.</span>
-<span class="sd">        Note that this method does not use or alter the current query.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">        source (str): The source to aggregate.</span>
-<span class="sd">        limit (int): The maximum number of results to return. Default None, to return all results.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns:</span>
-<span class="sd">        list of dict: All of the records from the source.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__search_client</span><span class="p">)</span><span class="o">.</span><span class="n">aggregate_source</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="Forge.aggregate"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scroll_size</span><span class="o">=</span><span class="n">SEARCH_LIMIT</span><span class="p">,</span> <span class="n">reset_query</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Perform an advanced query, and return all matching results.</span>
 <span class="sd">        Will automatically preform multiple queries in order to retrieve all results.</span>
@@ -268,6 +226,98 @@
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__query</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__search_client</span><span class="p">)</span></div>
 
+
+<span class="c1">#################################################</span>
+<span class="c1">##  Helper functions</span>
+<span class="c1">#################################################</span>
+
+<div class="viewcode-block" id="Forge.match_sources"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_sources">[docs]</a>    <span class="k">def</span> <span class="nf">match_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add sources to match to the query.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        sources (str or list of str): The sources to match.</span>
+<span class="sd"> </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        self (Forge): For chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: No sources specified.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">sources</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sources</span><span class="p">),</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_group</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Forge.match_elements"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.match_elements">[docs]</a>    <span class="k">def</span> <span class="nf">match_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add elemental abbreviations to the query.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        elements (str or list of str): The elements to match.</span>
+<span class="sd">        match_all (bool): If True, will add with AND. If False, will use OR. Default True.</span>
+<span class="sd"> </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        self (Forge): For chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: No elements specified.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">elements</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">match_all</span><span class="p">:</span>
+            <span class="c1"># First source should be in separate group (and required)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_group</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Other sources should stay in that group</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">element</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="n">match_all</span><span class="p">,</span> <span class="n">new_group</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">elements</span><span class="p">),</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_group</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<span class="c1">#################################################</span>
+<span class="c1">##  Premade searches</span>
+<span class="c1">#################################################</span>
+
+<div class="viewcode-block" id="Forge.search_by_elements"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.search_by_elements">[docs]</a>    <span class="k">def</span> <span class="nf">search_by_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="p">[],</span> <span class="n">sources</span><span class="o">=</span><span class="p">[],</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute a search for the given elements in the given sources.</span>
+<span class="sd">        search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()</span>
+<span class="sd">        Note that this method does use terms from the current query.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        elements (list of str): The elements to match. Default [].</span>
+<span class="sd">        sources (list of str): The sources to match. Default [].</span>
+<span class="sd">        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.</span>
+<span class="sd">        match_all (bool): If True, will add elements with AND. If False, will use OR. Default True.</span>
+<span class="sd">        info (bool): If False, search will return a list of the results.</span>
+<span class="sd">                     If True, search will return a tuple containing the results list, and other information about the query.</span>
+<span class="sd">                     Default False.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        list (if info=False): The results.</span>
+<span class="sd">        tuple (if info=True): The results, and a dictionary of query information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_elements</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="n">match_all</span><span class="p">)</span><span class="o">.</span><span class="n">match_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Forge.aggregate_source"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.aggregate_source">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Aggregate all records from a given source.</span>
+<span class="sd">        There is no limit to the number of results returned.</span>
+<span class="sd">        Please beware of aggregating very large datasets.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        sources (str or list of str): The source to aggregate.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">        list of dict: All of the records from the source.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span></div>
+
+
+<span class="c1">#################################################</span>
+<span class="c1">##  Data retrieval functions</span>
+<span class="c1">#################################################</span>
 
 <div class="viewcode-block" id="Forge.http_download"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Forge.http_download">[docs]</a>    <span class="k">def</span> <span class="nf">http_download</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">preserve_dir</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Download data files from the provided results using HTTPS.</span>
@@ -517,12 +567,13 @@
 
 
 <div class="viewcode-block" id="Query"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query">[docs]</a><span class="k">class</span> <span class="nc">Query</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;The Query class is meant for use through Forge. Users should generally not instantiate a Query object directly,</span>
-<span class="sd">    as Forge manages all the functions a user might need, but advanced users may do so at their own risk.</span>
+    <span class="sd">&quot;&quot;&quot;The Query class is meant for internal Forge use. Users should not instantiate a Query object directly,</span>
+<span class="sd">    as Forge manages all the functions a user might need, but advanced users may do so at their own risk. Using Query</span>
+<span class="sd">    directly is an unsupported behavior and may have unexpected results or unlisted changes in the future.</span>
 
-<span class="sd">    Queries may end up wrapped in parentheses, which has no direct effect on the search. This is to enable forcing &#39;OR&#39;</span>
-<span class="sd">    terms to bind more tightly than &#39;AND&#39; terms, when the default is the opposite. It intuitively makes more sense for</span>
-<span class="sd">    a query such as &quot;oqmd OR nist_janaf AND Al&quot; to be interpreted as &quot;(oqmd OR nist_janaf) AND (Al)&quot; for Forge use cases.</span>
+<span class="sd">    Queries may end up wrapped in parentheses, which has no direct effect on the search. Adding terms must be chained</span>
+<span class="sd">    with .and() or .or(). Terms will not have spaces in between otherwise, and it is desirable to be explicit about</span>
+<span class="sd">    which terms are required.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_client</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="s2">&quot;(&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">advanced</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the Query instance.</span>
@@ -541,51 +592,108 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">advanced</span> <span class="o">=</span> <span class="n">advanced</span>
 
 
-<div class="viewcode-block" id="Query.match_term"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.match_term">[docs]</a>    <span class="k">def</span> <span class="nf">match_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__clean_query_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clean up a query string.</span>
+<span class="sd">        This method does not access self, so that a search will not change state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;()&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">):</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Remove misplaced AND/OR at end</span>
+        <span class="k">if</span> <span class="n">q</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;AND&quot;</span><span class="p">:</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">q</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;OR&quot;</span><span class="p">:</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="c1"># Balance parentheses</span>
+        <span class="k">while</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
+            <span class="n">q</span> <span class="o">+=</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">while</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">):</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">q</span>
+        
+        <span class="k">return</span> <span class="n">q</span>
+
+
+<div class="viewcode-block" id="Query.term"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.term">[docs]</a>    <span class="k">def</span> <span class="nf">term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">term</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a term to the query.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">        term (str): The term to add.</span>
-<span class="sd">        match_all (bool): If True, will add term with AND. If False, will use OR. Default True.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">        self (Query): For chaining.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;) AND (&quot;</span> <span class="k">if</span> <span class="n">match_all</span> <span class="k">else</span> <span class="s2">&quot; OR &quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">term</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="n">term</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
-<div class="viewcode-block" id="Query.match_field"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.match_field">[docs]</a>    <span class="k">def</span> <span class="nf">match_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">match_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Query.field"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.field">[docs]</a>    <span class="k">def</span> <span class="nf">field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a field:value term to the query.</span>
 <span class="sd">        Matches will have field == value.</span>
+<span class="sd">        This method sets advanced=True.</span>
 
 <span class="sd">        Arguments:</span>
 <span class="sd">        field (str): The field to look in for the value.</span>
-<span class="sd">            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.</span>
-<span class="sd">            Ex. &quot;mdf.source_name&quot; is the &quot;source_name&quot; field of the &quot;mdf&quot; dictionary.</span>
-<span class="sd">            If no namespace is provided, the default (&quot;mdf.&quot;) will be used.</span>
 <span class="sd">        value (str): The value to match.</span>
-<span class="sd">        match_all: If True, will add with AND. If False, will use OR. Default True.</span>
 <span class="sd"> </span>
 <span class="sd">        Returns:</span>
 <span class="sd">        self (Query): For chaining.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># match_all determines AND/OR</span>
-        <span class="n">match_join</span> <span class="o">=</span> <span class="s2">&quot;) AND (&quot;</span> <span class="k">if</span> <span class="n">match_all</span> <span class="k">else</span> <span class="s2">&quot; OR &quot;</span>
-        <span class="c1"># If no namespacing provided, add default</span>
-        <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">field</span><span class="p">:</span>
-            <span class="n">field</span> <span class="o">=</span> <span class="s2">&quot;mdf.&quot;</span> <span class="o">+</span> <span class="n">field</span>
-        <span class="c1"># If value list should be OR&#39;d</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">match_all</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="c1"># Make value into list for processing</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
-
-        <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="p">(</span><span class="n">match_join</span> <span class="o">+</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="n">value</span>
         <span class="c1"># Field matches are advanced queries</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">advanced</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Query.and_join"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.and_join">[docs]</a>    <span class="k">def</span> <span class="nf">and_join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">close_group</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Combine terms with AND.</span>
+<span class="sd">        There must be a term added before using this method.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        close_group (bool): If True, will end the current group and start a new one.</span>
+<span class="sd">                      If False, will continue current group.</span>
+<span class="sd">                      Example: If the current query is &quot;(term1&quot;</span>
+<span class="sd">                          .and(close_group=True) =&gt; &quot;(term1) AND (&quot;</span>
+<span class="sd">                          .and(close_group=False) =&gt; &quot;(term1 AND &quot;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        self (Query): For chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot; ()&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="c1"># Check that the query has terms</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">last</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: You must add a term before using .and(). The current query has not been changed.&quot;</span><span class="p">)</span>
+        <span class="c1"># Check to make sure there is a term before the AND</span>
+        <span class="k">elif</span> <span class="n">last</span> <span class="o">==</span> <span class="s2">&quot;AND&quot;</span> <span class="ow">or</span> <span class="n">last</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;OR&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: You must add a term between each AND or OR. The current query has not been changed.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="s2">&quot;) AND (&quot;</span> <span class="k">if</span> <span class="n">close_group</span> <span class="k">else</span> <span class="s2">&quot; AND &quot;</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Query.or_join"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.or_join">[docs]</a>    <span class="k">def</span> <span class="nf">or_join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">close_group</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Combine terms with OR.</span>
+<span class="sd">        There must be a term added before using this method.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">        close_group (bool): If True, will end the current group and start a new one.</span>
+<span class="sd">                      If False, will continue current group.</span>
+<span class="sd">                      Example: If the current query is &quot;(term1&quot;</span>
+<span class="sd">                          .or(close_group=True) =&gt; &quot;(term1) OR(&quot;</span>
+<span class="sd">                          .or(close_group=False) =&gt; &quot;(term1 OR &quot;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        self (Query): For chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot; ()&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="c1"># Check that the query has terms</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">last</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: You must add a term before using .or(). The current query has not been changed.&quot;</span><span class="p">)</span>
+        <span class="c1"># Check to make sure there is a term before the OR</span>
+        <span class="k">elif</span> <span class="n">last</span> <span class="o">==</span> <span class="s2">&quot;AND&quot;</span> <span class="ow">or</span> <span class="n">last</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;OR&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: You must add a term between each AND or OR. The current query has not been changed.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="s2">&quot;) OR (&quot;</span> <span class="k">if</span> <span class="n">close_group</span> <span class="k">else</span> <span class="s2">&quot; OR &quot;</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
@@ -611,7 +719,7 @@
             <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;()&quot;</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: No query specified&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">return</span> <span class="p">([],</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;No query specified&quot;</span><span class="p">})</span> <span class="k">if</span> <span class="n">info</span> <span class="k">else</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">advanced</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">advanced</span><span class="p">:</span>
             <span class="n">advanced</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">advanced</span>
         <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -619,20 +727,7 @@
         <span class="k">if</span> <span class="n">limit</span> <span class="o">&gt;</span> <span class="n">SEARCH_LIMIT</span><span class="p">:</span>
             <span class="n">limit</span> <span class="o">=</span> <span class="n">SEARCH_LIMIT</span>
 
-        <span class="c1"># Balance parentheses</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">while</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
-            <span class="n">q</span> <span class="o">+=</span> <span class="s2">&quot;)&quot;</span>
-        <span class="k">while</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
-            <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">q</span>
-        <span class="c1"># Clean query string</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;( OR&quot;</span><span class="p">,</span> <span class="s2">&quot;(&quot;</span><span class="p">)</span>
-        <span class="n">removes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;()&quot;</span><span class="p">,</span> <span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;OR&quot;</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">rterm</span> <span class="ow">in</span> <span class="n">removes</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">rterm</span><span class="p">):</span>
-                <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">rterm</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">rterm</span><span class="p">):</span>
-                <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">rterm</span><span class="p">)]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clean_query_string</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
 
         <span class="c1"># Simple query (max 10k results)</span>
         <span class="n">qu</span> <span class="o">=</span> <span class="p">{</span>
@@ -647,37 +742,8 @@
         <span class="k">return</span> <span class="n">res</span></div>
 
 
-<div class="viewcode-block" id="Query.aggregate_source"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.aggregate_source">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Aggregate all records from a given source.</span>
-<span class="sd">        There is no inherent limit to the number of results returned.</span>
-<span class="sd">        Note that this method does not use or alter the current query.</span>
-
-<span class="sd">        Arguments:</span>
-<span class="sd">        source (str): The source to aggregate.</span>
-<span class="sd">        limit (int): The maximum number of results to return. Default None, to return all results.</span>
-<span class="sd">        </span>
-<span class="sd">        Returns:</span>
-<span class="sd">        list of dict: All of the records from the source.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">full_res</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Start res as value that will pass while condition</span>
-        <span class="c1"># Scroll while results are being returned and limit not reached</span>
-        <span class="k">while</span> <span class="n">res</span> <span class="ow">and</span> <span class="p">(</span><span class="n">limit</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="s2">&quot;mdf.source_name:&quot;</span> <span class="o">+</span> <span class="n">source</span> <span class="o">+</span> <span class="s2">&quot; AND mdf.scroll_id:(&gt;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">full_res</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; AND &lt;=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">full_res</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">limit</span> <span class="ow">or</span> <span class="n">SEARCH_LIMIT</span><span class="p">)</span> <span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;advanced&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s2">&quot;limit&quot;</span><span class="p">:</span> <span class="n">limit</span> <span class="ow">or</span> <span class="n">SEARCH_LIMIT</span>
-                <span class="p">}</span>
-            <span class="n">res</span> <span class="o">=</span> <span class="n">toolbox</span><span class="o">.</span><span class="n">gmeta_pop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__search_client</span><span class="o">.</span><span class="n">structured_search</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
-            <span class="n">num_res</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
-            <span class="n">full_res</span> <span class="o">+=</span> <span class="n">res</span>
-            <span class="c1"># If a limit was set, lower future limit by number of results saved</span>
-            <span class="k">if</span> <span class="n">limit</span><span class="p">:</span>
-                <span class="n">limit</span> <span class="o">-=</span> <span class="n">num_res</span>
-        <span class="k">return</span> <span class="n">full_res</span></div>
-
 <div class="viewcode-block" id="Query.aggregate"><a class="viewcode-back" href="../../mdf_forge.html#mdf_forge.forge.Query.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scroll_size</span><span class="o">=</span><span class="n">SEARCH_LIMIT</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Gather all results that match a specific query</span>
+        <span class="sd">&quot;&quot;&quot;Gather all record results that match a specific query</span>
 
 <span class="sd">        Note that all aggregate queries run in advanced mode.</span>
 
@@ -696,21 +762,11 @@
             <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;()&quot;</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: No query specified&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">return</span> <span class="p">([],</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;No query specified&quot;</span><span class="p">})</span> <span class="k">if</span> <span class="n">info</span> <span class="k">else</span> <span class="p">[]</span>
 
-        <span class="c1"># Balance parentheses</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">while</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
-            <span class="n">q</span> <span class="o">+=</span> <span class="s2">&quot;)&quot;</span>
-        <span class="k">while</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
-            <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;(&quot;</span> <span class="o">+</span> <span class="n">q</span>
-        <span class="c1"># Clean query string</span>
-        <span class="n">removes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;()&quot;</span><span class="p">,</span> <span class="s2">&quot;AND&quot;</span><span class="p">,</span> <span class="s2">&quot;OR&quot;</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">rterm</span> <span class="ow">in</span> <span class="n">removes</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">rterm</span><span class="p">):</span>
-                <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">rterm</span><span class="p">):]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">rterm</span><span class="p">):</span>
-                <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[:</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">rterm</span><span class="p">)]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clean_query_string</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+
+        <span class="n">q</span> <span class="o">+=</span> <span class="s2">&quot; AND mdf.resource_type:record&quot;</span>
 
         <span class="c1"># Get the total number of records</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__search_client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">advanced</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -718,14 +774,14 @@
 
         <span class="c1"># Scroll until all results are found</span>
         <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">scroll_pos</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">scroll_pos</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">total</span><span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
             <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">total</span><span class="p">:</span>
 
                 <span class="c1"># Scroll until the width is small enough to get all records</span>
                 <span class="c1">#   `scroll_id`s are unique to each dataset. If multiple datasets</span>
                 <span class="c1">#   match a certain query, the total number of matching records</span>
-                <span class="c1">#   may exceed the maximum that serach will return - even if the</span>
+                <span class="c1">#   may exceed the maximum that search will return - even if the</span>
                 <span class="c1">#   scroll width is much smaller than that maximum</span>
                 <span class="n">scroll_width</span> <span class="o">=</span> <span class="n">scroll_size</span>
                 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>

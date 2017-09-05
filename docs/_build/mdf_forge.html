@@ -88,13 +88,12 @@ list of dict: All matching records</p>
 
 <dl class="method">
 <dt id="mdf_forge.forge.Forge.aggregate_source">
-<code class="descname">aggregate_source</code><span class="sig-paren">(</span><em>source</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.aggregate_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.aggregate_source" title="Permalink to this definition">¶</a></dt>
+<code class="descname">aggregate_source</code><span class="sig-paren">(</span><em>sources</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.aggregate_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.aggregate_source" title="Permalink to this definition">¶</a></dt>
 <dd><p>Aggregate all records from a given source.
-There is no inherent limit to the number of results returned.
-Note that this method does not use or alter the current query.</p>
+There is no limit to the number of results returned.
+Please beware of aggregating very large datasets.</p>
 <p>Arguments:
-source (str): The source to aggregate.
-limit (int): The maximum number of results to return. Default None, to return all results.</p>
+sources (str or list of str): The source to aggregate.</p>
 <p>Returns:
 list of dict: All of the records from the source.</p>
 </dd></dl>
@@ -190,18 +189,17 @@ str: Text of each data file.</p>
 <dl class="method">
 <dt id="mdf_forge.forge.Forge.match_elements">
 <code class="descname">match_elements</code><span class="sig-paren">(</span><em>elements</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_elements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_elements" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add elemental abbreviations to the query.
-match_elements(x) is equivalent to match_field(“mdf.elements”, x)</p>
+<dd><p>Add elemental abbreviations to the query.</p>
 <p>Arguments:
-elements (str or list): The elements to match.
-match_all: If True, will add with AND. If False, will use OR. Default True.</p>
+elements (str or list of str): The elements to match.
+match_all (bool): If True, will add with AND. If False, will use OR. Default True.</p>
 <p>Returns:
 self (Forge): For chaining.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="mdf_forge.forge.Forge.match_field">
-<code class="descname">match_field</code><span class="sig-paren">(</span><em>field</em>, <em>value</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_field" title="Permalink to this definition">¶</a></dt>
+<code class="descname">match_field</code><span class="sig-paren">(</span><em>field</em>, <em>value</em>, <em>required=True</em>, <em>new_group=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_field" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a field:value term to the query.
 Matches will have field == value.</p>
 <p>Arguments:
@@ -211,7 +209,8 @@ field (str): The field to look in for the value.</p>
 Ex. “mdf.source_name” is the “source_name” field of the “mdf” dictionary.
 If no namespace is provided, the default (“mdf.”) will be used.</div></blockquote>
 <p>value (str): The value to match.
-match_all: If True, will add with AND. If False, will use OR. Default True.</p>
+required (bool): If True, will add term with AND. If False, will use OR. Default True.
+new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.</p>
 <p>Returns:
 self (Forge): For chaining.</p>
 </dd></dl>
@@ -219,21 +218,21 @@ self (Forge): For chaining.</p>
 <dl class="method">
 <dt id="mdf_forge.forge.Forge.match_sources">
 <code class="descname">match_sources</code><span class="sig-paren">(</span><em>sources</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_sources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_sources" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add sources to match to the query.
-match_sources(x) is equivalent to match_field(“mdf.source_name”, x, match_all=False)</p>
+<dd><p>Add sources to match to the query.</p>
 <p>Arguments:
-sources (str or list): The sources to match.</p>
+sources (str or list of str): The sources to match.</p>
 <p>Returns:
 self (Forge): For chaining.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="mdf_forge.forge.Forge.match_term">
-<code class="descname">match_term</code><span class="sig-paren">(</span><em>term</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_term" title="Permalink to this definition">¶</a></dt>
+<code class="descname">match_term</code><span class="sig-paren">(</span><em>term</em>, <em>required=True</em>, <em>new_group=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.match_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.match_term" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a term to the query.</p>
 <p>Arguments:
 term (str): The term to add.
-match_all (bool): If True, will add term with AND. If False, will use OR. Default True.</p>
+required (bool): If True, will add term with AND. If False, will use OR. Default True.
+new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.</p>
 <p>Returns:
 self (Forge): For chaining.</p>
 </dd></dl>
@@ -276,7 +275,7 @@ tuple (if info=True): The results, and a dictionary of query information.</p>
 
 <dl class="method">
 <dt id="mdf_forge.forge.Forge.search_by_elements">
-<code class="descname">search_by_elements</code><span class="sig-paren">(</span><em>elements=[]</em>, <em>sources=[]</em>, <em>limit=None</em>, <em>match_all=True</em>, <em>info=False</em>, <em>reset_query=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.search_by_elements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.search_by_elements" title="Permalink to this definition">¶</a></dt>
+<code class="descname">search_by_elements</code><span class="sig-paren">(</span><em>elements=[]</em>, <em>sources=[]</em>, <em>limit=None</em>, <em>match_all=True</em>, <em>info=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Forge.search_by_elements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Forge.search_by_elements" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a search for the given elements in the given sources.
 search_by_elements([x], [y]) is equivalent to match_elements([x]).match_sources([y]).search()
 Note that this method does use terms from the current query.</p>
@@ -284,14 +283,11 @@ Note that this method does use terms from the current query.</p>
 elements (list of str): The elements to match. Default [].
 sources (list of str): The sources to match. Default [].
 limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+match_all (bool): If True, will add elements with AND. If False, will use OR. Default True.
 info (bool): If False, search will return a list of the results.</p>
 <blockquote>
 <div>If True, search will return a tuple containing the results list, and other information about the query.
 Default False.</div></blockquote>
-<dl class="docutils">
-<dt>reset_query (bool): If True, will destroy the query after execution and start a fresh one. Does nothing if False.</dt>
-<dd>Default True.</dd>
-</dl>
 <p>Returns:
 list (if info=False): The results.
 tuple (if info=True): The results, and a dictionary of query information.</p>
@@ -313,15 +309,16 @@ tuple (if info=True): The results, and a dictionary of query information.</p>
 <dt id="mdf_forge.forge.Query">
 <em class="property">class </em><code class="descclassname">mdf_forge.forge.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>search_client</em>, <em>q='('</em>, <em>limit=None</em>, <em>advanced=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>The Query class is meant for use through Forge. Users should generally not instantiate a Query object directly,
-as Forge manages all the functions a user might need, but advanced users may do so at their own risk.</p>
-<p>Queries may end up wrapped in parentheses, which has no direct effect on the search. This is to enable forcing ‘OR’
-terms to bind more tightly than ‘AND’ terms, when the default is the opposite. It intuitively makes more sense for
-a query such as “oqmd OR nist_janaf AND Al” to be interpreted as “(oqmd OR nist_janaf) AND (Al)” for Forge use cases.</p>
+<p>The Query class is meant for internal Forge use. Users should not instantiate a Query object directly,
+as Forge manages all the functions a user might need, but advanced users may do so at their own risk. Using Query
+directly is an unsupported behavior and may have unexpected results or unlisted changes in the future.</p>
+<p>Queries may end up wrapped in parentheses, which has no direct effect on the search. Adding terms must be chained
+with .and() or .or(). Terms will not have spaces in between otherwise, and it is desirable to be explicit about
+which terms are required.</p>
 <dl class="method">
 <dt id="mdf_forge.forge.Query.aggregate">
 <code class="descname">aggregate</code><span class="sig-paren">(</span><em>q=None</em>, <em>scroll_size=10000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.aggregate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.aggregate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gather all results that match a specific query</p>
+<dd><p>Gather all record results that match a specific query</p>
 <p>Note that all aggregate queries run in advanced mode.</p>
 <p>Arguments:
 q (str): The query to execute. Defaults to the current query, if any. There must be some query to execute.
@@ -336,42 +333,50 @@ list of dict: All matching records</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="mdf_forge.forge.Query.aggregate_source">
-<code class="descname">aggregate_source</code><span class="sig-paren">(</span><em>source</em>, <em>limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.aggregate_source"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.aggregate_source" title="Permalink to this definition">¶</a></dt>
-<dd><p>Aggregate all records from a given source.
-There is no inherent limit to the number of results returned.
-Note that this method does not use or alter the current query.</p>
+<dt id="mdf_forge.forge.Query.and_join">
+<code class="descname">and_join</code><span class="sig-paren">(</span><em>close_group=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.and_join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.and_join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine terms with AND.
+There must be a term added before using this method.</p>
 <p>Arguments:
-source (str): The source to aggregate.
-limit (int): The maximum number of results to return. Default None, to return all results.</p>
-<p>Returns:
-list of dict: All of the records from the source.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="mdf_forge.forge.Query.match_field">
-<code class="descname">match_field</code><span class="sig-paren">(</span><em>field</em>, <em>value</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.match_field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.match_field" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a field:value term to the query.
-Matches will have field == value.</p>
-<p>Arguments:
-field (str): The field to look in for the value.</p>
+close_group (bool): If True, will end the current group and start a new one.</p>
 <blockquote>
-<div>The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
-Ex. “mdf.source_name” is the “source_name” field of the “mdf” dictionary.
-If no namespace is provided, the default (“mdf.”) will be used.</div></blockquote>
-<p>value (str): The value to match.
-match_all: If True, will add with AND. If False, will use OR. Default True.</p>
+<div><p>If False, will continue current group.
+Example: If the current query is “(term1”</p>
+<blockquote>
+<div>.and(close_group=True) =&gt; “(term1) AND (”
+.and(close_group=False) =&gt; “(term1 AND “</div></blockquote>
+</div></blockquote>
 <p>Returns:
 self (Query): For chaining.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="mdf_forge.forge.Query.match_term">
-<code class="descname">match_term</code><span class="sig-paren">(</span><em>term</em>, <em>match_all=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.match_term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.match_term" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a term to the query.</p>
+<dt id="mdf_forge.forge.Query.field">
+<code class="descname">field</code><span class="sig-paren">(</span><em>field</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.field"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a field:value term to the query.
+Matches will have field == value.
+This method sets advanced=True.</p>
 <p>Arguments:
-term (str): The term to add.
-match_all (bool): If True, will add term with AND. If False, will use OR. Default True.</p>
+field (str): The field to look in for the value.
+value (str): The value to match.</p>
+<p>Returns:
+self (Query): For chaining.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Query.or_join">
+<code class="descname">or_join</code><span class="sig-paren">(</span><em>close_group=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.or_join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.or_join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine terms with OR.
+There must be a term added before using this method.</p>
+<p>Arguments:
+close_group (bool): If True, will end the current group and start a new one.</p>
+<blockquote>
+<div><p>If False, will continue current group.
+Example: If the current query is “(term1”</p>
+<blockquote>
+<div>.or(close_group=True) =&gt; “(term1) OR(”
+.or(close_group=False) =&gt; “(term1 OR “</div></blockquote>
+</div></blockquote>
 <p>Returns:
 self (Query): For chaining.</p>
 </dd></dl>
@@ -395,6 +400,16 @@ Default False.</div></blockquote>
 <p>Returns:
 list (if info=False): The results.
 tuple (if info=True): The results, and a dictionary of query information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mdf_forge.forge.Query.term">
+<code class="descname">term</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mdf_forge/forge.html#Query.term"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mdf_forge.forge.Query.term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a term to the query.</p>
+<p>Arguments:
+term (str): The term to add.</p>
+<p>Returns:
+self (Query): For chaining.</p>
 </dd></dl>
 
 </dd></dl>
