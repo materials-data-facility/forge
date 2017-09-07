@@ -14,7 +14,6 @@ setup(
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Framework :: Jupyter",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
@@ -30,7 +29,7 @@ setup(
         "data discovery",
         "supercomputing",
         "light sources"
-    ]
+    ],
     license="Apache License, Version 2.0",
     url="https://github.com/materials-data-facility/forge"
 )
