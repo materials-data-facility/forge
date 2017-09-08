@@ -1,5 +1,15 @@
 # Forge Installation
+## Via PyPI
+You will need to have Python 3 and pip installed for this method.
+
+Install Forge with `pip`:
+```bash
+pip3 install -u mdf_forge
+```
+
 ## Via GitHub
+This method is only recommended if you want to have the docs and examples locally.
+
 You will need to have git, Python 3, and pip to install Forge via GitHub.
 
 Start by cloning the GitHub repository:
@@ -12,17 +22,7 @@ cd forge
 ```
 Finally, use `pip` to install Forge:
 ```bash
-pip install -e .
-```
-
-## Via PyPI
-**Coming soon, but *currently unsupported!***
-
-You will need to have Python 3 and pip installed for this method.
-
-Install Forge with `pip`:
-```bash
-pip install -u mdf_forge
+pip3 install -e .
 ```
 
 
@@ -34,7 +34,7 @@ Start by following the instructions above to install Forge via GitHub.
 ```bash
 git clone https://github.com/materials-data-facility/forge.git
 cd forge
-pip install -e .
+pip3 install -e .
 ```
 Then, enter the `refinery` directory:
 ```bash
@@ -43,5 +43,5 @@ cd refinery
 ```
 Finally, use `pip` to install Refinery:
 ```bash
-pip install -e .
+pip3 install -e .
 ```
