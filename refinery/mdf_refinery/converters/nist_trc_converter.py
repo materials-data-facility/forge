@@ -305,7 +305,7 @@ def convert(input_path, metadata=None, verbose=False):
                     "landing_page": "http://trc.nist.gov/applications/metals_data/metals_data.php#" + str(ref_id),
 
                     # RCM list of strings: The DOI(s) (in link form, ex. 'https://dx.doi.org/10.12345') for publications connected to the dataset
-                    "publication": ["https://dx.doi.org/" + doi for doi in ref_data.get("doi", [])],
+                    "publication": ["https://dx.doi.org/" + doi for doi in (ref_data.get("doi", []) if type(ref_data.get("doi", [])) is list else [ref_data.get("doi", [])] )],
 
                     # RCM string: The DOI of the dataset itself (in link form)
 #                    "data_doi": ,
