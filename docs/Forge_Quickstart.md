@@ -1,15 +1,15 @@
 # Forge Quickstart Guide
 ## Install Forge
-The first step is to install Forge. Detailed instructions are available in the [Installation Guide](Installation Guide.md). You only need to install Forge.
+The first step is to install Forge. Detailed instructions are available in the [Installation Guide](./Installation_Guide.md) . You only need to install Forge.
 
 ## Import Forge
 Once Forge is installed, it is available for your Python scripts or Jupyter notebooks.
 
 Import and start Forge like this:
 ```python 3
-from mdf_forge import forge
+from mdf_forge.forge import Forge
 # You don't have to use the name "mdf" but we do for consistency.
-mdf = forge.Forge()
+mdf = Forge()
 ```
 
 ## Log in
