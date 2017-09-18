@@ -41,7 +41,8 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
         "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all" # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
         }
 
     def _get_tokens(client, scopes, app_name, force_refresh=False):
@@ -118,6 +119,9 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
     if "mdf" in servs:
         mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["data.materialsdatafacility.org"]["refresh_token"], native_client)
         clients["mdf"] = mdf_authorizer
+    if "publish" in servs:
+        publish_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["publish.api.globus.org"]["refresh_token"], native_client)
+        clients["publish"] = DataPublicationClient(authorizer=publish_authorizer)
 
     return clients
 
@@ -144,7 +148,8 @@ def confidential_login(credentials=None):
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
         "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all" # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
         }
     # Read credentials
     if type(credentials) is str:
@@ -190,6 +195,8 @@ def confidential_login(credentials=None):
         clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
     if "mdf" in servs:
         clients["mdf"] = conf_authorizer
+    if "publish" in servs:
+        clients["publish"] = DataPublicationClient(authorizer=conf_authorizer)
 
     return clients
 
@@ -521,4 +528,55 @@ class SearchClient(BaseClient):
         uri = slash_join(self._base_index_uri(index), "subject")
         params["subject"] = subject
         return self.delete(uri, params=params)
+
+
+class DataPublicationClient(BaseClient):
+    """Publish data with Globus Publish."""
+
+    def __init__(self, base_url="https://publish.globus.org/v1/api/", **kwargs):
+        app_name = kwargs.pop('app_name', 'DataPublication Client v0.1')
+        BaseClient.__init__(self, "datapublication",
+                            app_name=app_name, **kwargs)
+        # base URL lookup will fail, producing None, set it by hand
+        self.base_url = base_url
+        self._headers['Content-Type'] = 'application/json'
+
+    def list_schemas(self, **params):
+        return self.get('schemas', params=params)
+
+    def get_schema(self, schema_id, **params):
+        return self.get('schemas/{}'.format(schema_id), params=params)
+
+    def list_collections(self, **params):
+        try:
+            return self.get('collections', params=params)
+        except Exception as e:
+            print('FAIL: {}'.format(e))
+
+    def list_datasets(self, collection_id, **params):
+        return self.get('collections/{}/datasets'.format(collection_id),
+                        params=params)
+
+    def push_metadata(self, collection, metadata, **params):
+        return self.post('collections/{}'.format(collection),
+                         json_body=metadata, params=params)
+
+    def get_dataset(self, dataset_id, **params):
+        return self.get('datasets/{}'.format(dataset_id),
+                        params=params)
+
+    def get_submission(self, submission_id, **params):
+        return self.get('submissions/{}'.format(submission_id),
+                        params=params)
+
+    def delete_submission(self, submission_id, **params):
+        return self.delete('submissions/{}'.format(submission_id),
+                           params=params)
+
+    def complete_submission(self, submission_id, **params):
+        return self.post('submissions/{}/submit'.format(submission_id),
+                         params=params)
+
+    def list_submissions(self, **params):
+        return self.get('submissions', params=params)
 
