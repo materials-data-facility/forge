@@ -10,6 +10,8 @@ from globus_sdk.base import BaseClient, merge_params, slash_join
 from globus_sdk.response import GlobusHTTPResponse
 from tqdm import tqdm
 
+from six import print_
+
 
 
 ###################################################
@@ -58,9 +60,9 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             client.oauth2_start_flow(requested_scopes=scopes, refresh_tokens=True)
             authorize_url = client.oauth2_get_authorize_url()
 
-            print("It looks like this is the first time you're accessing this client.\nPlease log in to Globus at this link:\n", authorize_url)
+            print_("It looks like this is the first time you're accessing this client.\nPlease log in to Globus at this link:\n", authorize_url)
             auth_code = input("Copy and paste the authorization code here: ").strip()
-            print("Thanks!")
+            print_("Thanks!")
 
             token_response = client.oauth2_exchange_code_for_tokens(auth_code)
             tokens = token_response.by_resource_server
@@ -212,7 +214,7 @@ def find_files(root, file_pattern=None, verbose=False):
     Arguments:
     root (str): The path to the starting (root) directory.
     file_pattern (str): A regular expression to match files against, or None to match all files. Default None.
-    verbose: If True, will print status messages.
+    verbose: If True, will print_ status messages.
              If False, will remain silent unless there is an error.
              Default False.
 
@@ -241,7 +243,7 @@ def uncompress_tree(root, verbose=False):
 
     Arguments:
     root (str): The path to the starting (root) directory.
-    verbose: If True, will print status messages.
+    verbose: If True, will print_ status messages.
              If False, will remain silent unless there is an error.
              Default False.
     """
@@ -391,12 +393,12 @@ def get_local_ep(transfer_client):
                 return ep_connections[0]["id"]
         else:  # >1 found
             # Prompt user
-            print("Multiple endpoints found:")
+            print_("Multiple endpoints found:")
             count = 0
             for ep in ep_connections:
                 count += 1
-                print(count, ": ", ep["display_name"], "\t", ep["id"])
-            print("\nPlease choose the endpoint on this machine")
+                print_(count, ": ", ep["display_name"], "\t", ep["id"])
+            print_("\nPlease choose the endpoint on this machine")
             ep_num = 0
             while ep_num == 0:
                 usr_choice = input("Enter the number of the correct endpoint (-1 to cancel): ")
@@ -407,12 +409,12 @@ def get_local_ep(transfer_client):
                     elif ep_choice in range(1, count+1):  # Valid selection
                         ep_num = ep_choice  # Break out of while, return valid ID
                     else:  # Invalid number
-                        print("Invalid selection")
+                        print_("Invalid selection")
                 except:
-                    print("Invalid input")
+                    print_("Invalid input")
 
             if ep_num == -1:
-                print("Cancelling")
+                print_("Cancelling")
                 raise SystemExit
             return ep_connections[ep_num-1]["id"]
 
@@ -551,7 +553,7 @@ class DataPublicationClient(BaseClient):
         try:
             return self.get('collections', params=params)
         except Exception as e:
-            print('FAIL: {}'.format(e))
+            print_('FAIL: {}'.format(e))
 
     def list_datasets(self, collection_id, **params):
         return self.get('collections/{}/datasets'.format(collection_id),

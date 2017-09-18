@@ -16,7 +16,7 @@ query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge", "servi
 def test_query_term():
     q = forge.Query(query_search_client)
     # Single match test
-    assert type(q.term("term1")) is forge.Query
+    assert isinstance(q.term("term1"), forge.Query)
     assert q.query == "(term1"
     # Multi-match test
     q.and_join().term("term2")
@@ -29,7 +29,7 @@ def test_query_term():
 def test_query_field():
     q = forge.Query(query_search_client)
     # Single field and return value test
-    assert type(q.field("mdf.source_name", "oqmd")) is forge.Query
+    assert isinstance(q.field("mdf.source_name", "oqmd"), forge.Query)
     assert q.query == "(mdf.source_name:oqmd"
     # Multi-field and grouping test
     q.and_join(close_group=True).field("dc.title", "sample")
@@ -48,14 +48,14 @@ def test_query_search(capsys):
     # Return info if requested
     q2 = forge.Query(query_search_client)
     res2 = q2.search(q="Al", info=False)
-    assert type(res2) is list
-    assert type(res2[0]) is dict
+    assert isinstance(res2, list)
+    assert isinstance(res2[0], dict)
     q3 = forge.Query(query_search_client)
     res3 = q3.search(q="Al", info=True)
-    assert type(res3) is tuple
-    assert type(res3[0]) is list
-    assert type(res3[0][0]) is dict
-    assert type(res3[1]) is dict
+    assert isinstance(res3, tuple)
+    assert isinstance(res3[0], list)
+    assert isinstance(res3[0][0], dict)
+    assert isinstance(res3[1], dict)
 
     # Check limit
     q4 = forge.Query(query_search_client)
@@ -151,14 +151,14 @@ def test_forge_search(capsys):
     # Return info if requested
     f2 = forge.Forge()
     res2 = f2.search(q="Al", info=False)
-    assert type(res2) is list
-    assert type(res2[0]) is dict
+    assert isinstance(res2, list)
+    assert isinstance(res2[0], dict)
     f3 = forge.Forge()
     res3 = f3.search(q="Al", info=True)
-    assert type(res3) is tuple
-    assert type(res3[0]) is list
-    assert type(res3[0][0]) is dict
-    assert type(res3[1]) is dict
+    assert isinstance(res3, tuple)
+    assert isinstance(res3[0], list)
+    assert isinstance(res3[0][0], dict)
+    assert isinstance(res3[1], dict)
 
     # Check limit
     f4 = forge.Forge()
@@ -180,9 +180,9 @@ def test_forge_aggregate_source():
     # Test limit
     f1 = forge.Forge()
     res1 = f1.aggregate_source("amcs")
-    assert type(res1) is list
+    assert isinstance(res1, list)
     assert len(res1) > 10000
-    assert type(res1[0]) is dict
+    assert isinstance(res1[0], dict)
 
 
 def test_forge_aggregate():

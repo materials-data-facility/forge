@@ -6,11 +6,11 @@ setup(
     packages=['mdf_forge'],
     description='Materials Data Facility python package',
     long_description="Forge is the Materials Data Facility Python package to interface and leverage the MDF Data Discovery service. Forge allows users to perform simple queries and facilitiates moving and synthesizing results.",
-    python_requires='~=3.6',
     install_requires=[
         "globus-sdk>=1.1.1",
         "requests>=2.18.1",
-        "tqdm>=4.14.0"
+        "tqdm>=4.14.0",
+        "six>=1.10.0"
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -18,7 +18,8 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 2",
         "Topic :: Scientific/Engineering"
     ],
     keywords=[
