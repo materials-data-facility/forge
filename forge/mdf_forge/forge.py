@@ -395,7 +395,6 @@ class Forge:
                 host = dl.get("globus_endpoint", None) if type(dl) is dict else None
 
                 # If the data is on a Globus Endpoint
-                #   LW 9Aug17: Should we at least throw a warning if the data isn't on an endpoint?
                 if host:
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
@@ -444,18 +443,28 @@ class Forge:
                         tasks[host] = globus_sdk.TransferData(self.__transfer_client, host, dest_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
                     filenames.add(local_path)
+                else:
+                    raise globus_sdk.GlobusError("Data not on Globus Endpoint and cannot be transferred with Globus.")
 
         # Submit the jobs
         submissions = []
         for td in tqdm(tasks.values(), desc="Submitting transfers", disable= not verbose):
             result = self.__transfer_client.submit_transfer(td)
             if result["code"] != "Accepted":
-                print("Error submitting transfer:", result["message"])
+                raise globus_sdk.GlobusError("Error submitting transfer:", result["message"])
             else:
                 if wait_for_completion:
                     while not self.__transfer_client.task_wait(result["task_id"], timeout=60, polling_interval=10):
                         if verbose:
                             print("Transferring...")
+                        for event in transfer_client.task_event_list(res["task_id"]):
+                            if event["is_error"]:
+                                transfer_client.cancel_task(res["task_id"])
+                                raise GlobusError("Error: " + event["description"])
+                            if config_data["timeout"] and intervals >= timeout_intervals:
+                                transfer_client.cancel_task(res["task_id"])
+                                raise GlobusError("Transfer timed out.")
+
                 submissions.append(result["task_id"])
         if verbose:
             print("All transfers submitted")
