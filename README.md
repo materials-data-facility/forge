@@ -1,4 +1,6 @@
 # Forge
+[![Build Status](https://travis-ci.org/materials-data-facility/forge.svg?branch=master)](https://travis-ci.org/materials-data-facility/forge) [![PyPI](https://img.shields.io/pypi/v/mdf_forge.svg)](https://pypi.python.org/pypi/mdf-forge)
+
 Forge is the Materials Data Facility Python package to interface and leverage the MDF Data Discovery service. Forge allows users to perform simple queries and facilitiates moving and synthesizing results.
 
 # Installation

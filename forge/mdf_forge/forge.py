@@ -4,6 +4,8 @@ import requests
 import globus_sdk
 from tqdm import tqdm
 
+from six import print_
+
 from mdf_forge import toolbox
 
 # Maximum recommended number of HTTP file transfers
@@ -199,7 +201,7 @@ class Forge:
         self (Forge): For chaining.
         """
         if not sources:
-            print("Error: No sources specified.")
+            print_("Error: No sources specified.")
             return self
         if not isinstance(sources, list):
             sources = [sources]
@@ -218,7 +220,7 @@ class Forge:
         self (Forge): For chaining.
         """
         if not elements:
-            print("Error: No elements specified.")
+            print_("Error: No elements specified.")
             return self
         if not isinstance(elements, list):
             elements = [elements]
@@ -288,15 +290,15 @@ class Forge:
         preserve_dir (bool): If True, the directory structure for the data files will be recreated at the destination.
                              If False, only the data files themselves will be saved.
                             Default False.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
+        verbose (bool): If True, status and progress messages will be print_ed.
+                        If False, only error messages will be print_ed.
                         Default True.
         """
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
-            print("Error: Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
+            print_("Error: Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
             return {
                 "success": False,
                 "message": "Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
@@ -312,10 +314,12 @@ class Forge:
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     try:
-                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                        os.makedirs(os.path.dirname(local_path))
                     # If dest is current dir and preserve_dir=False, there are no dirs to make and os.makedirs() will raise FileNotFoundError.
                     # Since it means all dirs required exist, it can be swallowed.
-                    except FileNotFoundError:
+                    # FileNotFoundError is Python3-specific. IOError is the base class.
+                    # If the dirs exist already, there are not dirs to make and OSError will be raised.
+                    except (IOError, OSError):
                         pass
                     # Check if file already exists, change filename if necessary
                     collisions = 0
@@ -346,7 +350,7 @@ class Forge:
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print("Error", response.status_code, " when attempting to access '", host+remote_path, "'", sep="")
+                        print_("Error", response.status_code, " when attempting to access '", host+remote_path, "'", sep="")
                     else:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
@@ -368,8 +372,8 @@ class Forge:
         wait_for_completion (bool): If True, will block until the transfer is finished.
                                     If False, will not block.
                                     Default True.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
+        verbose (bool): If True, status and progress messages will be print_ed.
+                        If False, only error messages will be print_ed.
                         Default True.
 
         Returns:
@@ -388,6 +392,7 @@ class Forge:
         tasks = {}
         filenames = set()
         for res in tqdm(results, desc="Processing records", disable= not verbose):
+            found = False
             for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True): 
 
                 # Get the location of the data
@@ -395,7 +400,9 @@ class Forge:
                 host = dl.get("globus_endpoint", None) if type(dl) is dict else None
 
                 # If the data is on a Globus Endpoint
+                # This filters keys that are not data links
                 if host:
+                    found = True
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
                     if preserve_dir:
@@ -405,12 +412,13 @@ class Forge:
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
-                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
                     try:
-                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                        os.makedirs(os.path.dirname(local_path))
                     # If dest is current dir and preserve_dir=False, there are no dirs to make and os.makedirs() will raise FileNotFoundError.
                     # Since it means all dirs required exist, it can be swallowed.
-                    except FileNotFoundError:
+                    # FileNotFoundError is Python3-specific. IOError is the base class.
+                    # If the dirs exist already, there are not dirs to make and OSError will be raised.
+                    except (IOError, OSError):
                         pass
 
                     if not preserve_dir:
@@ -443,8 +451,9 @@ class Forge:
                         tasks[host] = globus_sdk.TransferData(self.__transfer_client, host, dest_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
                     filenames.add(local_path)
-                else:
-                    raise globus_sdk.GlobusError("Data not on Globus Endpoint and cannot be transferred with Globus.")
+            if not found:
+                print_("Error on record: No globus_endpoint provided.\nRecord: ", + res)
+
 
         # Submit the jobs
         submissions = []
@@ -456,7 +465,7 @@ class Forge:
                 if wait_for_completion:
                     while not self.__transfer_client.task_wait(result["task_id"], timeout=60, polling_interval=10):
                         if verbose:
-                            print("Transferring...")
+                            print_("Transferring...")
                         for event in transfer_client.task_event_list(res["task_id"]):
                             if event["is_error"]:
                                 transfer_client.cancel_task(res["task_id"])
@@ -467,8 +476,8 @@ class Forge:
 
                 submissions.append(result["task_id"])
         if verbose:
-            print("All transfers submitted")
-            print("Task IDs:", "\n".join(submissions))
+            print_("All transfers submitted")
+            print_("Task IDs:", "\n".join(submissions))
         return submissions
 
     def http_stream(self, results, verbose=True):
@@ -478,8 +487,8 @@ class Forge:
         Arguments:
         results (dict): The records from which files should be fetched.
                         This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
+        verbose (bool): If True, status and progress messages will be print_ed.
+                        If False, only error messages will be print_ed.
                         Default True.
 
         Yields:
@@ -489,11 +498,12 @@ class Forge:
         if type(results) is tuple:
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
-            print("Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
-            return {
+            print_("Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
+            yield {
                 "success": False,
                 "message": "Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries."
                 }
+            return
         for res in results:
             for key in res["mdf"]["links"].keys():
                 dl = res["mdf"]["links"][key]
@@ -510,7 +520,7 @@ class Forge:
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print("Error", response.status_code, " when attempting to access '", host+remote_path, "'", sep="")
+                        print_("Error", response.status_code, " when attempting to access '", host+remote_path, "'", sep="")
                     else:
                         yield response.text
 
@@ -522,8 +532,8 @@ class Forge:
         Arguments:
         results (dict): The records from which files should be fetched.
                         This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
+        verbose (bool): If True, status and progress messages will be print_ed.
+                        If False, only error messages will be print_ed.
                         Default True.
 
         Returns:
@@ -629,10 +639,10 @@ class Query:
         last = self.query.strip(" ()")[-3:]
         # Check that the query has terms
         if not last:
-            print("Error: You must add a term before using .and(). The current query has not been changed.")
+            print_("Error: You must add a term before using .and(). The current query has not been changed.")
         # Check to make sure there is a term before the AND
         elif last == "AND" or last[1:] == "OR":
-            print("Error: You must add a term between each AND or OR. The current query has not been changed.")
+            print_("Error: You must add a term between each AND or OR. The current query has not been changed.")
         else:
             self.query += ") AND (" if close_group else " AND "
         return self
@@ -655,10 +665,10 @@ class Query:
         last = self.query.strip(" ()")[-3:]
         # Check that the query has terms
         if not last:
-            print("Error: You must add a term before using .or(). The current query has not been changed.")
+            print_("Error: You must add a term before using .or(). The current query has not been changed.")
         # Check to make sure there is a term before the OR
         elif last == "AND" or last[1:] == "OR":
-            print("Error: You must add a term between each AND or OR. The current query has not been changed.")
+            print_("Error: You must add a term between each AND or OR. The current query has not been changed.")
         else:
             self.query += ") OR (" if close_group else " OR "
         return self
@@ -685,7 +695,7 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print("Error: No query specified")
+            print_("Error: No query specified")
             return ([], {"error": "No query specified"}) if info else []
         if advanced is None or self.advanced:
             advanced = self.advanced
@@ -728,7 +738,7 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print("Error: No query specified")
+            print_("Error: No query specified")
             return ([], {"error": "No query specified"}) if info else []
 
         q = self.__clean_query_string(q)
