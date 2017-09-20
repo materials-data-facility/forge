@@ -4,6 +4,8 @@ python:
 install:
 - pip install -r requirements.txt
 - pip install mdf_forge
+env:
+- TEST_ENV=travis
 script:
 - travis_wait 30 py.test
 before_install:

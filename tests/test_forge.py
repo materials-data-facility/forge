@@ -222,6 +222,8 @@ def test_forge_http_download():
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
 
 
+# This test does not work on Travis because Travis does not have a local Globus EP
+@pytest.mark.skipif(os.getenv("TEST_ENV", "local") == "travis")
 def test_forge_globus_download():
     f = forge.Forge()
     # Simple case
