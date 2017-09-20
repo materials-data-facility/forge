@@ -1,20 +1,19 @@
 language: python
 python:
-    - '2.7'
-    - '3.2'
-    - '3.3'
-    - '3.4'
-    - '3.5'
-    - '3.6'
+- '2.7'
+- '3.2'
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
 install:
-    - pip install -r requirements.txt
-    - pip install mdf_forge
+- pip install -r requirements.txt
+- pip install mdf_forge
 script:
-    - py.test
+- py.test
 before_install:
-    - openssl aes-256-cbc -K $encrypted_4b438100ad6f_key -iv $encrypted_4b438100ad6f_iv
-     -in .travis.tar.enc -out travis.tar -d
-    - tar xvf travis.tar
-    - mkdir -p ~/mdf/credentials/
-    - mv MDF_Forge_tokens.json ~/mdf/credentials/MDF_Forge_tokens.json
-
+- openssl aes-256-cbc -K $encrypted_4b438100ad6f_key -iv $encrypted_4b438100ad6f_iv
+  -in travis.tar.enc -out travis.tar -d
+- tar xvf travis.tar
+- mkdir -p ~/mdf/credentials/
+- mv MDF_Forge_tokens.json ~/mdf/credentials/MDF_Forge_tokens.json
