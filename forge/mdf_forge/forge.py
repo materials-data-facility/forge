@@ -314,10 +314,12 @@ class Forge:
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     try:
-                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                        os.makedirs(os.path.dirname(local_path))
                     # If dest is current dir and preserve_dir=False, there are no dirs to make and os.makedirs() will raise FileNotFoundError.
                     # Since it means all dirs required exist, it can be swallowed.
-                    except FileNotFoundError:
+                    # FileNotFoundError is Python3-specific. IOError is the base class.
+                    # If the dirs exist already, there are not dirs to make and OSError will be raised.
+                    except (IOError, OSError):
                         pass
                     # Check if file already exists, change filename if necessary
                     collisions = 0
@@ -410,12 +412,13 @@ class Forge:
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
-                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
                     try:
-                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                        os.makedirs(os.path.dirname(local_path))
                     # If dest is current dir and preserve_dir=False, there are no dirs to make and os.makedirs() will raise FileNotFoundError.
                     # Since it means all dirs required exist, it can be swallowed.
-                    except FileNotFoundError:
+                    # FileNotFoundError is Python3-specific. IOError is the base class.
+                    # If the dirs exist already, there are not dirs to make and OSError will be raised.
+                    except (IOError, OSError):
                         pass
 
                     if not preserve_dir:
