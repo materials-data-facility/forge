@@ -17,3 +17,4 @@ before_install:
     - tar xvf travis.tar
     - mkdir -p ~/MDF/credentials/
     - mv MDF_Forge_tokens.json ~/MDF/credentials/MDF_Forge_tokens.json
+    - ls ~/MDF/credentials/
