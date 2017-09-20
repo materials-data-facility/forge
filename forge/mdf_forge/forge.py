@@ -390,6 +390,7 @@ class Forge:
         tasks = {}
         filenames = set()
         for res in tqdm(results, desc="Processing records", disable= not verbose):
+            found = False
             for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True): 
 
                 # Get the location of the data
@@ -397,7 +398,9 @@ class Forge:
                 host = dl.get("globus_endpoint", None) if type(dl) is dict else None
 
                 # If the data is on a Globus Endpoint
+                # This filters keys that are not data links
                 if host:
+                    found = True
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename, depending on preserve_dir
                     if preserve_dir:
@@ -445,8 +448,9 @@ class Forge:
                         tasks[host] = globus_sdk.TransferData(self.__transfer_client, host, dest_ep, verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
                     filenames.add(local_path)
-                else:
-                    raise globus_sdk.GlobusError("Data not on Globus Endpoint and cannot be transferred with Globus.")
+            if not found:
+                print_("Error on record: No globus_endpoint provided.\nRecord: ", + res)
+
 
         # Submit the jobs
         submissions = []
