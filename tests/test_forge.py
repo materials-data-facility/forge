@@ -249,12 +249,12 @@ def test_forge_http_stream():
     # Simple case
     res1 = f.http_stream(example_result1)
     assert isinstance(res1, types.GeneratorType)
-    assert res1.__next__() == "This is a test document for Forge testing. Please do not remove.\n"
+    assert next(res1) == "This is a test document for Forge testing. Please do not remove.\n"
     # With multiple files
     res2 = f.http_stream(example_result2)
     assert isinstance(res2, types.GeneratorType)
-    assert res2.__next__() == "This is a test document for Forge testing. Please do not remove.\n"
-    assert res2.__next__() == "This is a second test document for Forge testing. Please do not remove.\n"
+    assert next(res2) == "This is a test document for Forge testing. Please do not remove.\n"
+    assert next(res2) == "This is a second test document for Forge testing. Please do not remove.\n"
 
 
 def test_forge_http_return():
