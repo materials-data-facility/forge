@@ -10,7 +10,9 @@ python:
 - '3.6'
 install:
 - pip install -r requirements.txt
-- cd forge; pip install mdf_forge
+- cd forge
+- pip install mdf_forge
+- cd ..
 env:
 - TEST_ENV=travis
 script:
