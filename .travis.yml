@@ -1,0 +1,40 @@
+language: python
+python:
+- '2.7'
+- '3.3'
+- '3.4'
+- '3.5'
+- '3.6'
+install:
+- pip install -r requirements.txt
+- cd forge
+- pip install .
+- cd ..
+env:
+- TEST_ENV=travis
+script:
+- travis_wait 30 py.test
+before_install:
+- openssl aes-256-cbc -K $encrypted_4b438100ad6f_key -iv $encrypted_4b438100ad6f_iv
+  -in travis.tar.enc -out travis.tar -d
+- tar xvf travis.tar
+- mkdir -p ~/mdf/credentials/
+- mv MDF_Forge_tokens.json ~/mdf/credentials/MDF_Forge_tokens.json
+notifications:
+  email:
+    recipients:
+    - jgaff@uchicago.edu
+    on_success: never
+    on_failure: always
+  slack:
+    secure: EBiyzMnAMUmX+mrmtC6+UNchEvSeY02I2dhDqj0M9yKg8Q4FBLp5Kn9zhVokbCZGi4CL21u45M8M4+NFR1IFLdr95nVSvHDT4rOKD7wH/E4A7VGYfs8R9oQsbfXJtYhH5Kc1Q4tYKfbQ4VCIyX5uWWUF0wIOTB/ENQpbyKct/vOYAR0w3W30kHp4xFb06BQ/LcmN17OvfmzN1xQuTb2EliD8FqbHiEoyFrInXUwh+ZKh93WOhOGElUmHAxCoBUaqLnWIc4d9eEwPNeRm0TPT0sAcfDsqBc6darG8o70jsBOfLxybvbrcDIcqo4trohe6eJxDWlweejWU0qdfiQq2FrUoOtNtxOoYbXuPJc8YCuR8dgTl9Hu9QfhlvZ7cWHYG3SOTf9BtLvnPSfhFl8Plb3puGt+RGim0h+qnEAQi2Lgr5zh5++JlSErH04FfI9afKAACrZYhD4mNjpzvPfqCU+lOYZv2KD7KjN7JIW4wBicflzGNOcgkWO1cEhuJugijmBhbz55ZRq+9e0lScxhnYuyGOd++r7ll1VFof5o3BmP1efojs+q//TcaTOK35wQt7+8nUhKQGxFasuqwSwC9QZNcAX+9nBe023UBdR7TRYaCDFclZTqS6HmVid4qxDdWjym2+c+svlnm1W5I5qiW/5qLttT7RWHfIOh8uyGndRY=
+    on_success: always
+    on_failure: always
+    on_pull_requests: true
+deploy:
+  provider: pypi
+  user: jgaff
+  on:
+    tags: true
+  password:
+    secure: bSsB+wDgzNQLXGt2gyL3wheGpvRIsPFHxkcYH5vt/G9cELnS25C+AIaqK/tLNj4lsbX0ROjpPgwSX5wQkukFl8rYXc6AswBuz9OT6YifK4Fhp2eqNqR71lAoNze3kIeEInsYKsOegr4WlMKKTpgLOVS2RZe2akBOW7a65NEqDWILMZl6xWsx0aTRgxgsxQ/EX/3SNbBA2d0uE56VHm4DIS7eqkBGCSz2n+UT0wL9jx/bhG3xY2/U/yGC0qiDmm5zsG9Q0yqzKhw7eTEleyvO+X0sQ6PD5wgDvSUBGBBpsRlC7WoGJG7pmCkO6lW4aCWYWn1SSDQO8DsDLypRpEH6V8KnjDpP64mbQ/gvo2fAZJTnruaUudEUJVZNtF4PTthwRDqCyeeyF8PjdEW4EQ4kkZPQTauyPqczeejf39dkr59EnyDd6qmIPUcBKykFuHt5HhWNvoMqskMDbj0N1EAcNVhX6djWCXJ0FsISvp4H1sxWAaVhGc43zMSdcnhum8NeZpT6I4QQdi+Zrykh/mFc1A9oK/7XZHcHzLjDsb7VnbwMtlYntzKAz//ehR40xrWcTLYvs1/2UuvErSXPXDmdICtsSiHr8WnCZtSs7rVuW5PUre+l8C/lEt+wXDB80LQz5CUL7c5cnuWDsI/cH2d3KOj8F589Ob3IVfYAHN+soYY=

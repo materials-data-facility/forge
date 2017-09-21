@@ -10,6 +10,8 @@ from globus_sdk.base import BaseClient, merge_params, slash_join
 from globus_sdk.response import GlobusHTTPResponse
 from tqdm import tqdm
 
+from six import print_
+
 
 
 ###################################################
@@ -41,7 +43,8 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
         "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all" # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
         }
 
     def _get_tokens(client, scopes, app_name, force_refresh=False):
@@ -57,9 +60,9 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             client.oauth2_start_flow(requested_scopes=scopes, refresh_tokens=True)
             authorize_url = client.oauth2_get_authorize_url()
 
-            print("It looks like this is the first time you're accessing this client.\nPlease log in to Globus at this link:\n", authorize_url)
+            print_("It looks like this is the first time you're accessing this client.\nPlease log in to Globus at this link:\n", authorize_url)
             auth_code = input("Copy and paste the authorization code here: ").strip()
-            print("Thanks!")
+            print_("Thanks!")
 
             token_response = client.oauth2_exchange_code_for_tokens(auth_code)
             tokens = token_response.by_resource_server
@@ -118,6 +121,9 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
     if "mdf" in servs:
         mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["data.materialsdatafacility.org"]["refresh_token"], native_client)
         clients["mdf"] = mdf_authorizer
+    if "publish" in servs:
+        publish_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["publish.api.globus.org"]["refresh_token"], native_client)
+        clients["publish"] = DataPublicationClient(authorizer=publish_authorizer)
 
     return clients
 
@@ -144,7 +150,8 @@ def confidential_login(credentials=None):
         "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
         "search": "urn:globus:auth:scope:search.api.globus.org:search",
         "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all" # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+        "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
         }
     # Read credentials
     if type(credentials) is str:
@@ -190,6 +197,8 @@ def confidential_login(credentials=None):
         clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
     if "mdf" in servs:
         clients["mdf"] = conf_authorizer
+    if "publish" in servs:
+        clients["publish"] = DataPublicationClient(authorizer=conf_authorizer)
 
     return clients
 
@@ -205,7 +214,7 @@ def find_files(root, file_pattern=None, verbose=False):
     Arguments:
     root (str): The path to the starting (root) directory.
     file_pattern (str): A regular expression to match files against, or None to match all files. Default None.
-    verbose: If True, will print status messages.
+    verbose: If True, will print_ status messages.
              If False, will remain silent unless there is an error.
              Default False.
 
@@ -234,7 +243,7 @@ def uncompress_tree(root, verbose=False):
 
     Arguments:
     root (str): The path to the starting (root) directory.
-    verbose: If True, will print status messages.
+    verbose: If True, will print_ status messages.
              If False, will remain silent unless there is an error.
              Default False.
     """
@@ -384,12 +393,12 @@ def get_local_ep(transfer_client):
                 return ep_connections[0]["id"]
         else:  # >1 found
             # Prompt user
-            print("Multiple endpoints found:")
+            print_("Multiple endpoints found:")
             count = 0
             for ep in ep_connections:
                 count += 1
-                print(count, ": ", ep["display_name"], "\t", ep["id"])
-            print("\nPlease choose the endpoint on this machine")
+                print_(count, ": ", ep["display_name"], "\t", ep["id"])
+            print_("\nPlease choose the endpoint on this machine")
             ep_num = 0
             while ep_num == 0:
                 usr_choice = input("Enter the number of the correct endpoint (-1 to cancel): ")
@@ -400,12 +409,12 @@ def get_local_ep(transfer_client):
                     elif ep_choice in range(1, count+1):  # Valid selection
                         ep_num = ep_choice  # Break out of while, return valid ID
                     else:  # Invalid number
-                        print("Invalid selection")
+                        print_("Invalid selection")
                 except:
-                    print("Invalid input")
+                    print_("Invalid input")
 
             if ep_num == -1:
-                print("Cancelling")
+                print_("Cancelling")
                 raise SystemExit
             return ep_connections[ep_num-1]["id"]
 
@@ -521,4 +530,55 @@ class SearchClient(BaseClient):
         uri = slash_join(self._base_index_uri(index), "subject")
         params["subject"] = subject
         return self.delete(uri, params=params)
+
+
+class DataPublicationClient(BaseClient):
+    """Publish data with Globus Publish."""
+
+    def __init__(self, base_url="https://publish.globus.org/v1/api/", **kwargs):
+        app_name = kwargs.pop('app_name', 'DataPublication Client v0.1')
+        BaseClient.__init__(self, "datapublication",
+                            app_name=app_name, **kwargs)
+        # base URL lookup will fail, producing None, set it by hand
+        self.base_url = base_url
+        self._headers['Content-Type'] = 'application/json'
+
+    def list_schemas(self, **params):
+        return self.get('schemas', params=params)
+
+    def get_schema(self, schema_id, **params):
+        return self.get('schemas/{}'.format(schema_id), params=params)
+
+    def list_collections(self, **params):
+        try:
+            return self.get('collections', params=params)
+        except Exception as e:
+            print_('FAIL: {}'.format(e))
+
+    def list_datasets(self, collection_id, **params):
+        return self.get('collections/{}/datasets'.format(collection_id),
+                        params=params)
+
+    def push_metadata(self, collection, metadata, **params):
+        return self.post('collections/{}'.format(collection),
+                         json_body=metadata, params=params)
+
+    def get_dataset(self, dataset_id, **params):
+        return self.get('datasets/{}'.format(dataset_id),
+                        params=params)
+
+    def get_submission(self, submission_id, **params):
+        return self.get('submissions/{}'.format(submission_id),
+                        params=params)
+
+    def delete_submission(self, submission_id, **params):
+        return self.delete('submissions/{}'.format(submission_id),
+                           params=params)
+
+    def complete_submission(self, submission_id, **params):
+        return self.post('submissions/{}/submit'.format(submission_id),
+                         params=params)
+
+    def list_submissions(self, **params):
+        return self.get('submissions', params=params)
 

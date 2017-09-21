@@ -4,10 +4,10 @@ requests>=2.18.1
 tqdm>=4.14.0
 
 # refinery requirements
-ase>=3.14.1
-beautifulsoup4>=4.6.0
-jsonschema>=2.6.0
-pymatgen>=2017.6.8
-pymongo>=3.4.0  # For bson.ObjectId
-xmltodict>=0.10.2
+#ase>=3.14.1
+#beautifulsoup4>=4.6.0
+#jsonschema>=2.6.0
+#pymatgen>=2017.6.8
+#pymongo>=3.4.0  # For bson.ObjectId
+#xmltodict>=0.10.2
 
