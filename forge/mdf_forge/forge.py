@@ -134,7 +134,7 @@ class Forge:
         return self
 
 
-    def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, info=False, reset_query=True):
+    def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, offset=0, info=False, reset_query=True):
         """Execute a search and return the results.
 
         Arguments:
@@ -143,6 +143,7 @@ class Forge:
                          If False, only basic fulltext term matches will be supported.
                          Default False.
                          This value can change to True automatically if the query is built using advanced features, such as match_field.
+        offset (int): The number of results to skip before returning the specified limit. The max for this argument is also the SEARCH_LIMIT. Default 0.
         limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
@@ -154,7 +155,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        res = self.__query.search(q=q, advanced=advanced, limit=limit, info=info)
+        res = self.__query.search(q=q, advanced=advanced, limit=limit, offset=offset, info=info)
         if reset_query:
             self.reset_query()
         return res
@@ -674,7 +675,7 @@ class Query:
         return self
 
 
-    def search(self, q=None, advanced=None, limit=10, info=False):
+    def search(self, q=None, advanced=None, limit=10, offset=0, info=False):
         """Execute a search and return the results.
 
         Arguments:
@@ -684,6 +685,7 @@ class Query:
                          Default False.
                          This value can change to True automatically if the query is built using advanced features, such as match_field.
         limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search. Default 10.
+        offset (int): The number of results to skip before returning the specified limit. The max for this argument is also the SEARCH_LIMIT. Default 0.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
                      Default False.
@@ -703,6 +705,8 @@ class Query:
             limit = self.limit or SEARCH_LIMIT
         if limit > SEARCH_LIMIT:
             limit = SEARCH_LIMIT
+        if offset >= SEARCH_LIMIT:
+            offset = SEARCH_LIMIT
 
         q = self.__clean_query_string(q)
 
@@ -710,7 +714,8 @@ class Query:
         qu = {
             "q": q,
             "advanced": advanced,
-            "limit": limit
+            "limit": limit,
+            "offset": offset
             }
         res = toolbox.gmeta_pop(self.__search_client.structured_search(qu), info=info)
         # Add additional info

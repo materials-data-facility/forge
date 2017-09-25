@@ -1,3 +1,4 @@
+mdf_forge
 git+git://github.com/JFChen3/matminer.git
 scikit-learn
 numpy
@@ -6,3 +7,4 @@ globus_sdk
 matplotlib
 tqdm
 pymatgen
+ase
