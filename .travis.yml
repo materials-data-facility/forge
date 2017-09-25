@@ -7,9 +7,7 @@ python:
 - '3.6'
 install:
 - pip install -r requirements.txt
-- cd forge
 - pip install .
-- cd ..
 env:
 - TEST_ENV=travis
 script:
@@ -28,6 +26,8 @@ notifications:
     on_failure: always
   slack:
     secure: h9Pn5T7PPIcoKAu61I7/bigL9A3UdvmF+D92mbEGCr1w+Vk9/TaTwayxNleVLd2ukG9cuMKFJ9lYzDamuHkadKVue7SbyXLp7Gg+n88Vdn5OJ0tSgVG/V4E9qj0S8GSGX1XnBdiMpV8tTqf1CAiNvAu7xA4kstd1WooFIostkk6v3lGIGAr5y4F+Ziz4JozRgJWByMSkx46GEFUFazLpVSz0iIZL1J/Jyzh2D0uo52f8V6kWqXJsyJZXKQYLNZD6sQNk48DcAOZoJPkmJ1MTFuoa2Qi0Re9Q0L8A+n2CZ0B+/4IxWIJFkYIIJ3/Amn7/2pks8+dNcmX0zFPgdxiP/L3LW4AMLe3Y1cTWCDKxjHzdpiMs83ZfrApPZqdAu66F/mLY+kNY9xDtlQ5z9UA/AGkVAO9gARWUHwZNEF4NQ1pN3MSwTwhlDnw/SJXgkWa+5wR7RNDAGbLMaWztphxslOCj/5HeDNA/mMBcb2yoTMsZzMdZRloKkaCx+EjVc7bZlBfo1GVB2AgkASc5zAUn+6w8oTARm2oHDMjJc3c3HvO3rbHteC3y89KcnNWIk7q1KuBz/53JyvQFvc5Iil2yFFKcopS5c7B1tP/gTa1CgrOhLidPr1qISWS31X6UA+7GNmVYJl0kUfWNCDLHBkw4PfhUw894BLsTNB9pIICaEBs=
+    on_success: always
+    on_failure: always
 deploy:
   provider: pypi
   user: jgaff
