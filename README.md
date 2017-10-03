@@ -40,6 +40,9 @@ Documentation is available in the docs directory.
 * Forge requires Python 3 
 * To access data in the MDF, you must have an account recognized by Globus Auth (including Google, ORCiD, many academic institutions, or a [free Globus ID](https://www.globusid.org/create)).
 
+# Contributions
+If you find a bug or want a feature, feel free to open an issue here on GitHub (and please tag it accordingly). If you want to contribute code yourself, we're more than happy to accept merge requests.
+
 
 
 # Support
