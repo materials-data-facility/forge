@@ -37,7 +37,7 @@ More examples are available in the examples directory.
 Documentation is available in the docs directory.
 
 # Requirements
-* Forge requires Python 3 
+* Forge requires Python 2.7 or >=3.3 
 * To access data in the MDF, you must have an account recognized by Globus Auth (including Google, ORCiD, many academic institutions, or a [free Globus ID](https://www.globusid.org/create)).
 
 # Contributions
