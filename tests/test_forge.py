@@ -148,7 +148,10 @@ def check_field(res, field, value):
     some_match = False
     for r in res:
         if field == "mdf.elements":
-            vals = r["mdf"]["elements"]
+            try:
+                vals = r["mdf"]["elements"]
+            except KeyError:
+                vals = []
         elif field == "mdf.source_name":
             vals = [r["mdf"]["source_name"]]
         # If a result does not contain the value, no match
@@ -189,6 +192,71 @@ def test_forge_match_field():
     f2.match_field("mdf.elements", "Al")
     res2 = f2.search()
     assert check_field(res2, "mdf.elements", "Al") == 1
+
+
+def test_forge_exclude_field():
+    f1 = forge.Forge()
+    # Basic usage
+    f1.exclude_field("mdf.elements", "Al")
+    f1.match_field("mdf.source_name", "core_mof")
+    res1 = f1.search()
+    assert check_field(res1, "mdf.elements", "Al") == -1
+
+
+def test_forge_match_range():
+    # Single-value use
+    f1 = forge.Forge()
+    f1.match_range("mdf.elements", "Al", "Al")
+    res1, info1 = f1.search(info=True)
+    assert check_field(res1, "mdf.elements", "Al") == 1
+    f2 = forge.Forge()
+    res2, info2 = f2.search("mdf.elements:Al", advanced=True, info=True)
+    assert info1["total_query_matches"] == info2["total_query_matches"]
+    # Non-matching use, test inclusive
+    f3 = forge.Forge()
+    f3.match_range("mdf.elements", "Al", "Al", inclusive=False)
+    assert f3.search() == []
+    # Actual range
+    f4 = forge.Forge()
+    f4.match_range("mdf.elements", "Al", "Cu")
+    res4, info4 = f4.search(info=True)
+    assert info1["total_query_matches"] < info4["total_query_matches"]
+    assert (check_field(res4, "mdf.elements", "Al") >= 0 or
+            check_field(res4, "mdf.elements", "Cu") >= 0)
+
+
+def test_forge_exclude_range():
+    # Single-value use
+    f1 = forge.Forge()
+    f1.exclude_range("mdf.elements", "Am", "*")
+    f1.exclude_range("mdf.elements", "*", "Ak")
+    res1, info1 = f1.search(info=True)
+    assert (check_field(res1, "mdf.elements", "Al") == 0 or
+            check_field(res1, "mdf.elements", "Al") == 2)
+    f2 = forge.Forge()
+    res2, info2 = f2.search("mdf.elements:Al", advanced=True, info=True)
+    assert info1["total_query_matches"] <= info2["total_query_matches"]
+    # Non-matching use, test inclusive
+    f3 = forge.Forge()
+    f3.exclude_range("mdf.elements", "Am", "*")
+    f3.exclude_range("mdf.elements", "*", "Ak")
+    f3.exclude_range("mdf.elements", "Al", "Al", inclusive=False)
+    res3, info3 = f3.search(info=True)
+    assert info1["total_query_matches"] == info3["total_query_matches"]
+
+
+def test_forge_exclusive_match():
+    f1 = forge.Forge()
+    f1.exclusive_match("mdf.elements", "Al")
+    res1 = f1.search()
+    assert check_field(res1, "mdf.elements", "Al") == 0
+    f2 = forge.Forge()
+    f2.exclusive_match("mdf.elements", ["Al", "Cu"])
+    res2 = f2.search()
+    assert check_field(res2, "mdf.elements", "Al") == 1
+    assert check_field(res2, "mdf.elements", "Cu") == 1
+    assert check_field(res2, "mdf.elements", "Cp") == -1
+    assert check_field(res2, "mdf.elements", "Fe") == -1
 
 
 def test_forge_match_sources():

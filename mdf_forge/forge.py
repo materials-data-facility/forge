@@ -24,20 +24,6 @@ class Forge:
     Public Variables:
     local_ep is the endpoint ID of the local Globus Connect Personal endpoint.
 
-    Methods:
-    __init__ handles authentication with Globus Auth.
-    match_term adds simple terms to the query.
-    match_field adds a field:value pair to the query.
-    match_sources specifies `source_name`s to search for results in.
-    match_elements specifies element abbreviations to match.
-    search executes a search.
-    search_by_elements executes a search for given elements in given sources.
-    aggregate_source returns all records for a given source.
-    reset_query destroys the current query and starts a fresh one.
-    http_download saves the data files associated with results to disk with HTTPS.
-    globus_download saves the data files associated with results to disk with Globus Transfer.
-    http_stream yields a generator to fetch data files in sequence.
-    http_return returns all the data files at once.
     """
     __index = "mdf"
     __services = ["mdf", "transfer", "search"]
@@ -277,11 +263,11 @@ class Forge:
         # Start with removing everything before first value
         self.exclude_range(field, "*", value[0], inclusive=False, new_group=True)
         # Select first value
-        self.include_range(field, value[0], value[0])
+        self.match_range(field, value[0], value[0])
         # Do the rest of the values
         for index, val in enumerate(value[1:]):
             self.exclude_range(field, value[index-1], val, inclusive=False)
-            self.include_range(field, val, val)
+            self.match_range(field, val, val)
         # Add end
         self.exclude_range(field, value[-1], "*", inclusive=False)
 
