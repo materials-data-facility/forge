@@ -84,33 +84,12 @@ class Forge:
 ##  Core functions
 #################################################
 
-    def match_term(self, term, required=True, new_group=False):
-        """Add a term to the query.
-
-        Arguments:
-        term (str): The term to add.
-        required (bool): If True, will add term with AND. If False, will use OR. Default True.
-        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.
-
-        Returns:
-        self (Forge): For chaining.
-        """
-        # If not the start of the query string, add an AND or OR
-        if self.__query.query != "(":
-            if required:
-                self.__query.and_join(new_group)
-            else:
-                self.__query.or_join(new_group)
-        self.__query.term(term)
-        return self
-
-
     def match_field(self, field, value, required=True, new_group=False):
         """Add a field:value term to the query.
         Matches will have field == value.
 
         Arguments:
-        field (str): The field to look in for the value.
+        field (str): The field to check for the value.
             The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
             Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
             If no namespace is provided, the default ("mdf.") will be used.
@@ -122,7 +101,7 @@ class Forge:
         self (Forge): For chaining.
         """
         # If not the start of the query string, add an AND or OR
-        if self.__query.query != "(":
+        if self.__query.initialized:
             if required:
                 self.__query.and_join(new_group)
             else:
@@ -131,6 +110,32 @@ class Forge:
         if "." not in field:
             field = "mdf." + field
         self.__query.field(field, value)
+        return self
+
+
+    def exclude_field(self, field, value, new_group=False):
+        """Exclude a field:value term from the query.
+        Matches will NOT have field == value.
+
+        Arguments:
+        field (str): The field to check for the value.
+            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            If no namespace is provided, the default ("mdf.") will be used.
+        value (str): The value to exclude.
+        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.
+ 
+        Returns:
+        self (Forge): For chaining.
+        """
+        # If not the start of the query string, add an AND
+        # OR would not make much sense for excluding
+        if self.__query.initialized:
+            self.__query.and_join(new_group)
+        # Add default namespacing if not present
+        if "." not in field:
+            field = "mdf." + field
+        self.__query.negate().field(field, value)
         return self
 
 
@@ -189,8 +194,100 @@ class Forge:
 
 
 #################################################
+##  Expanded functions
+#################################################
+    def match_range(self, field, start, stop, inclusive=True, required=True, new_group=False):
+        """Add a field:[some range] term to the query.
+        Matches will have field == value in range.
+
+        Arguments:
+        field (str): The field to check for the value.
+            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            If no namespace is provided, the default ("mdf.") will be used.
+        start (str or int): The starting value. "*" is acceptable to make no lower bound.
+        stop (str or int): The ending value. "*" is acceptable to have no upper bound.
+        inclusive (bool): If True, the start and stop values will be included in the search.
+                          If False, the start and stop values will not be included in the search.
+        required (bool): If True, will add term with AND. If False, will use OR. Default True.
+        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.
+
+        Returns:
+        self (Forge): For chaining.
+        """
+        if inclusive:
+            value = "[" + str(start) + " TO " + str(stop) + "]"
+        else:
+            value = "{" + str(start) + " TO " + str(stop) + "}"
+        self.match_field(field, value, required=required, new_group=new_group)
+        return self
+
+
+    def exclude_range(self, field, start, stop, inclusive=True, new_group=False):
+        """Exclude a field:[some range] term to the query.
+        Matches will have field != values in range.
+
+        Arguments:
+        field (str): The field to check for the value.
+            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            If no namespace is provided, the default ("mdf.") will be used.
+        start (str or int): The starting value. "*" is acceptable to make no lower bound.
+        stop (str or int): The ending value. "*" is acceptable to have no upper bound.
+        inclusive (bool): If True, the start and stop values will not be included in the search.
+                          If False, the start and stop values will be included in the search.
+        new_group (bool): If True, will separate term into new parenthetical group. If False, will not. Default False.
+
+        Returns:
+        self (Forge): For chaining.
+        """
+        if inclusive:
+            value = "[" + str(start) + " TO " + str(stop) + "]"
+        else:
+            value = "{" + str(start) + " TO " + str(stop) + "}"
+        self.exclude_field(field, value, new_group=new_group)
+        return self
+
+
+#################################################
 ##  Helper functions
 #################################################
+
+    def exclusive_match(self, field, value):
+        """Match exactly the given value, with no other data in the field.
+        
+        Arguments:
+        field (str): The field to check for the value.
+            The field must be namespaced according to Elasticsearch rules, which means a dot to dive into dictionaries.
+            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            If no namespace is provided, the default ("mdf.") will be used.
+        value (str or list of str): The value to match exactly.
+
+        Returns:
+        self (Forge): For chaining
+        """
+        if not isinstance(value, list):
+            value = [value]
+        value.sort()
+        # Hacky way to get ES to do exclusive search
+        # Essentially have a big range search that matches NOT anything, except for the actual values
+        # [foo, bar, baz] => NOT {* TO foo} AND [foo TO foo] AND NOT {foo to bar} AND [bar TO bar] AND NOT {bar TO baz} AND [baz TO baz] AND NOT {baz TO *}
+        # Except it must be sorted to not overlap
+        
+        # Start with removing everything before first value
+        self.exclude_range(field, "*", value[0], inclusive=False, new_group=True)
+        # Select first value
+        self.include_range(field, value[0], value[0])
+        # Do the rest of the values
+        for index, val in enumerate(value[1:]):
+            self.exclude_range(field, value[index-1], val, inclusive=False)
+            self.include_range(field, val, val)
+        # Add end
+        self.exclude_range(field, value[-1], "*", inclusive=False)
+
+        # Done
+        return self
+
 
     def match_sources(self, sources):
         """Add sources to match to the query.
@@ -568,6 +665,9 @@ class Query:
         self.query = q
         self.limit = limit
         self.advanced = advanced
+        # initialized is True if something has been added to the query
+        # __init__(), term(), and field() can change this value to True
+        self.initialized = (self.query != "(")
 
 
     def __clean_query_string(self, q):
@@ -577,8 +677,8 @@ class Query:
         q = q.strip().replace("()", "")
         if q.endswith("("):
             q = q[:-1]
-        # Remove misplaced AND/OR at end
-        if q[-3:] == "AND":
+        # Remove misplaced AND/OR/NOT at end
+        if q[-3:] == "AND" or q[-3:] == "NOT":
             q = q[:-3]
         elif q[-2:] == "OR":
             q = q[:-2]
@@ -602,6 +702,7 @@ class Query:
         self (Query): For chaining.
         """
         self.query += term
+        self.initialized = True
         return self
 
 
@@ -620,6 +721,36 @@ class Query:
         self.query += field + ":" + value
         # Field matches are advanced queries
         self.advanced = True
+        self.initialized = True
+        return self
+
+
+    def operator(self, op, close_group=False):
+        """Add operator between terms.
+        There must be a term added before using this method.
+
+        Arguments:
+        op (str): The operator to add. Must be in the OP_LIST defined below.
+        close_group (bool): If True, will end the current parenthetical group and start a new one.
+                            If False, will continue current group.
+                            Example: "(foo AND bar)" is one group.
+                                "(foo) and (bar)" is two groups.
+
+        Returns:
+        self (Query): For chaining.
+        """
+        # List of allowed operators
+        OP_LIST = ["AND", "OR", "NOT"]
+        op = op.upper().strip()
+        last = self.query.strip(" ()")[-3:]
+        if op not in OP_LIST:
+            print_("Error: '", op, "' is not a valid operator.", sep='')
+        else:
+            if close_group:
+                op = ") " + op + " ("
+            else:
+                op = " " + op + " "
+            self.query += op
         return self
 
 
@@ -637,15 +768,10 @@ class Query:
         Returns:
         self (Query): For chaining.
         """
-        last = self.query.strip(" ()")[-3:]
-        # Check that the query has terms
-        if not last:
-            print_("Error: You must add a term before using .and(). The current query has not been changed.")
-        # Check to make sure there is a term before the AND
-        elif last == "AND" or last[1:] == "OR":
-            print_("Error: You must add a term between each AND or OR. The current query has not been changed.")
+        if not self.initialized:
+            print_("Error: You must add a term before adding an operator. The current query has not been changed.")
         else:
-            self.query += ") AND (" if close_group else " AND "
+            self.operator("AND", close_group=close_group)
         return self
 
 
@@ -663,15 +789,16 @@ class Query:
         Returns:
         self (Query): For chaining.
         """
-        last = self.query.strip(" ()")[-3:]
-        # Check that the query has terms
-        if not last:
-            print_("Error: You must add a term before using .or(). The current query has not been changed.")
-        # Check to make sure there is a term before the OR
-        elif last == "AND" or last[1:] == "OR":
-            print_("Error: You must add a term between each AND or OR. The current query has not been changed.")
+        if not self.initialized:
+            print_("Error: You must add a term before adding an operator. The current query has not been changed.")
         else:
-            self.query += ") OR (" if close_group else " OR "
+            self.operator("OR", close_group=close_group)
+        return self
+
+
+    def negate(self):
+        """Negates the next term with NOT."""
+        self.operator("NOT")
         return self
 
 
