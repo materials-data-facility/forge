@@ -27,7 +27,8 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
         Contains:
         app_name (str): Name of script/client. This will form the name of the token cache file.
         services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
-        index: The default Search index. Only required if services contains 'search' or 'search_ingest'.
+        client_id (str): The ID of the client, given when registered with Globus. Default is the MDF Native Clients ID.
+        index (str): The default Search index. Only required if services contains 'search' or 'search_ingest'.
     clear_old_tokens (bool): If True, delete old token file if it exists, forcing user to re-login.
                              If False, use existing token file if there is one.
                              Default False.
@@ -95,7 +96,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             except IOError:
                 raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
 
-    native_client = globus_sdk.NativeAppAuthClient(NATIVE_CLIENT_ID, app_name=creds["app_name"])
+    native_client = globus_sdk.NativeAppAuthClient(creds.get("client_id") or NATIVE_CLIENT_ID, app_name=creds["app_name"])
 
     servs = []
     for serv in creds.get("services", []):
@@ -360,6 +361,52 @@ def gmeta_pop(gmeta, info=False):
 ###################################################
 ##  Globus utilities
 ###################################################
+
+def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None):
+    """Perform a Globus Transfer and monitor for success.
+
+    Arguments:
+    transfer_client (TransferClient): An authenticated Transfer client.
+    source_ep (str): The source Globus Endpoint ID.
+    dest_ep (str): The destination Globus Endpoint ID.
+    path_list (list of tuple of 2 str): A list of tuples containing the paths to transfer as (source, destination).
+        Directory paths must end in a slash, and file paths must not.
+        Example: [("/source/files/file.dat", "/dest/mydocs/doc.dat"), ("/source/all_reports/", "/dest/reports/")]
+    timeout (int): Time, in scores of seconds, to wait for a transfer to complete before erroring. Default None, which will wait until a transfer succeeds or fails.
+
+    Returns:
+    int: 0 on success.
+    """
+    INTERVAL_SEC = 10
+    tdata = globus_sdk.TransferData(transfer_client, source_ep, dest_ep, verify_checksum=True)
+    for item in path_list:
+        # Is not directory
+        if item[0][-1] != "/" and item[1][-1] != "/":
+            tdata.add_item(item[0], item[1])
+        # Is directory
+        elif item[0][-1] == "/" and item[1][-1] == "/":
+            tdata.add_item(item[0], item[1], recursive=True)
+        # Malformed
+        else:
+            raise globus_sdk.GlobusError("Cannot transfer file to directory or vice-versa: " + str(item))
+
+    res = transfer_client.submit_transfer(tdata)
+    if res["code"] != "Accepted":
+        raise globus_sdk.GlobusError("Failed to transfer files: Transfer " + res["code"])
+
+    iterations = 0
+    while not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
+        for event in transfer_client.task_event_list(res["task_id"]):
+            if event["is_error"]:
+                transfer_client.cancel_task(res["task_id"])
+                raise globus_sdk.GlobusError("Error transferring data: " + event["description"])
+            if timeout and iterations >= timeout:
+                transfer_client.cancel_task(res["task_id"])
+                raise globus_sdk.GlobusError("Transfer timed out after " + str(iterations * INTERVAL_SEC) + " seconds.")
+            iterations += 1
+
+    return 0
+
 
 def get_local_ep(transfer_client):
     """Discover the local Globus Connect Personal endpoint's ID, if possible.
