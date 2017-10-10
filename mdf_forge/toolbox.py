@@ -396,7 +396,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
         raise globus_sdk.GlobusError("Failed to transfer files: Transfer " + res["code"])
 
     iterations = 0
-    while timeout >= 0 and not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
+    while timeout is not None and timeout >= 0 and not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
         for event in transfer_client.task_event_list(res["task_id"]):
             if event["is_error"]:
                 transfer_client.cancel_task(res["task_id"])
