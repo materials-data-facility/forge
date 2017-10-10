@@ -373,6 +373,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
         Directory paths must end in a slash, and file paths must not.
         Example: [("/source/files/file.dat", "/dest/mydocs/doc.dat"), ("/source/all_reports/", "/dest/reports/")]
     timeout (int): Time, in scores of seconds, to wait for a transfer to complete before erroring. Default None, which will wait until a transfer succeeds or fails.
+                    If this argument is -1, the transfer will submit but not wait at all. There is then no error checking.
 
     Returns:
     int: 0 on success.
@@ -395,7 +396,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
         raise globus_sdk.GlobusError("Failed to transfer files: Transfer " + res["code"])
 
     iterations = 0
-    while not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
+    while timeout >= 0 and not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
         for event in transfer_client.task_event_list(res["task_id"]):
             if event["is_error"]:
                 transfer_client.cancel_task(res["task_id"])
