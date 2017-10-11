@@ -226,6 +226,8 @@ def find_files(root, file_pattern=None, verbose=False):
         no_root_path (str): The path to the directory containing the file, with the path to the root directory removed.
         filename (str): The name of the file.
     """
+    if not os.path.exists(root):
+        raise ValueError("Path '" + root + "' does not exist.")
     # Add separator to end of root if not already supplied
     root += os.sep if root[-1:] != os.sep else ""
     for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
