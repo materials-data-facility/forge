@@ -483,7 +483,7 @@ def get_local_ep(transfer_client):
 class SearchClient(BaseClient):
     """Access (search and ingest) Globus Search."""
 
-    def __init__(self, base_url="https://search.api.globus.org/", default_index, **kwargs):
+    def __init__(self, default_index, base_url="https://search.api.globus.org/", **kwargs):
         app_name = kwargs.pop('app_name', 'Search Client v0.2')
         BaseClient.__init__(self, "search", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
