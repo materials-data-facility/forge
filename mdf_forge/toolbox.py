@@ -12,6 +12,12 @@ from tqdm import tqdm
 
 from six import print_
 
+SEARCH_INDEX_UUIDS = {
+    "mdf": "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
+    "mdf-test": "c082b745-32ac-4ad2-9cde-92393f6e505c",
+    "dlhub": "847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
+    "dlhub-test": "5c89e0a9-00e5-4171-b415-814fe4d0b8af"
+}
 
 
 ###################################################
@@ -477,13 +483,13 @@ def get_local_ep(transfer_client):
 class SearchClient(BaseClient):
     """Access (search and ingest) Globus Search."""
 
-    def __init__(self, base_url="https://search.api.globus.org/", default_index=None, **kwargs):
+    def __init__(self, base_url="https://search.api.globus.org/", default_index, **kwargs):
         app_name = kwargs.pop('app_name', 'Search Client v0.2')
         BaseClient.__init__(self, "search", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
         self._headers['Content-Type'] = 'application/json'
-        self.default_index = default_index
+        self.default_index = SEARCH_INDEX_UUIDS.get(default_index.strip().lower()) or default_index
 
     def _base_index_uri(self, index):
         index = index or self.default_index
