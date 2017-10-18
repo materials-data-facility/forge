@@ -121,10 +121,10 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
         clients["transfer"] = globus_sdk.TransferClient(authorizer=transfer_authorizer)
     if "search_ingest" in servs:
         ingest_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search_ingest"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=ingest_authorizer)
+        clients["search_ingest"] = SearchClient(index=(kwargs.get("index", None) or creds["index"]), authorizer=ingest_authorizer)
     elif "search" in servs:
         search_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=search_authorizer)
+        clients["search"] = SearchClient(index=(kwargs.get("index", None) or creds["index"]), authorizer=search_authorizer)
     if "mdf" in servs:
         mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["data.materialsdatafacility.org"]["refresh_token"], native_client)
         clients["mdf"] = mdf_authorizer
@@ -199,9 +199,9 @@ def confidential_login(credentials=None):
     if "transfer" in servs:
         clients["transfer"] = globus_sdk.TransferClient(authorizer=conf_authorizer)
     if "search_ingest" in servs:
-        clients["search_ingest"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search_ingest"] = SearchClient(index=creds["index"], authorizer=conf_authorizer)
     elif "search" in servs:
-        clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search"] = SearchClient(index=creds["index"], authorizer=conf_authorizer)
     if "mdf" in servs:
         clients["mdf"] = conf_authorizer
     if "publish" in servs:
@@ -483,25 +483,19 @@ def get_local_ep(transfer_client):
 class SearchClient(BaseClient):
     """Access (search and ingest) Globus Search."""
 
-    def __init__(self, default_index, base_url="https://search.api.globus.org/", **kwargs):
+    def __init__(self, index, base_url="https://search.api.globus.org/", **kwargs):
         app_name = kwargs.pop('app_name', 'Search Client v0.2')
         BaseClient.__init__(self, "search", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
         self._headers['Content-Type'] = 'application/json'
-        self.default_index = SEARCH_INDEX_UUIDS.get(default_index.strip().lower()) or default_index
+        self.index = SEARCH_INDEX_UUIDS.get(index.strip().lower()) or index
 
-    def _base_index_uri(self, index):
-        index = index or self.default_index
-        if not index:
-            raise ValueError(
-                ('You must either pass an explicit index '
-                 'or set a default one at the time that you create '
-                 'a SearchClient'))
-        return '/v1/index/{}'.format(index)
+    def _base_index_uri(self):
+        return '/v1/index/{}'.format(self.index)
 
     def search(self, q, limit=None, offset=None, query_template=None,
-               index=None, advanced=None, **params):
+               advanced=None, **params):
         """
         Perform a simple ``GET`` based search.
 
@@ -513,10 +507,6 @@ class SearchClient(BaseClient):
           ``q`` (*string*)
             The user-query string. Required for simple searches (and most
             advanced searches).
-
-          ``index`` (*string*)
-            Optional unless ``default_index`` was not set.
-            The index to query.
 
           ``limit`` (*int*)
             Optional. The number of results to return.
@@ -535,12 +525,12 @@ class SearchClient(BaseClient):
           ``params``
             Any additional query params to pass. For internal use only.
         """
-        uri = slash_join(self._base_index_uri(index), 'search')
+        uri = slash_join(self._base_index_uri(), 'search')
         merge_params(params, q=q, limit=limit, offset=offset,
                      query_template=query_template, advanced=advanced)
         return self.get(uri, params=params)
 
-    def structured_search(self, data, index=None, **params):
+    def structured_search(self, data, **params):
         """
         Perform a structured, ``POST``-based, search.
 
@@ -549,10 +539,6 @@ class SearchClient(BaseClient):
           ``data`` (*dict*)
             A valid GSearchRequest document to execute.
 
-          ``index`` (*string*)
-            Optional unless ``default_index`` was not set.
-            The index to query.
-
           ``advanced`` (*bool*)
             Use simple query parsing vs. advanced query syntax when
             interpreting the query string. Defaults to False.
@@ -560,10 +546,10 @@ class SearchClient(BaseClient):
           ``params``
             Any additional query params to pass. For internal use only.
         """
-        uri = slash_join(self._base_index_uri(index), 'search')
+        uri = slash_join(self._base_index_uri(), 'search')
         return self.post(uri, json_body=data, params=params)
 
-    def ingest(self, data, index=None, **params):
+    def ingest(self, data, **params):
         """
         Perform a simple ``POST`` based ingest op.
 
@@ -572,18 +558,14 @@ class SearchClient(BaseClient):
           ``data`` (*dict*)
             A valid GIngest document to index.
 
-          ``index`` (*string*)
-            Optional unless ``default_index`` was not set.
-            The search index to send data into.
-
           ``params``
             Any additional query params to pass. For internal use only.
         """
-        uri = slash_join(self._base_index_uri(index), 'ingest')
+        uri = slash_join(self._base_index_uri(), 'ingest')
         return self.post(uri, json_body=data, params=params)
 
-    def remove(self, subject, index=None, **params):
-        uri = slash_join(self._base_index_uri(index), "subject")
+    def remove(self, subject, **params):
+        uri = slash_join(self._base_index_uri(), "subject")
         params["subject"] = subject
         return self.delete(uri, params=params)
 
