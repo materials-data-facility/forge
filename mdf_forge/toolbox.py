@@ -12,11 +12,12 @@ from tqdm import tqdm
 
 from six import print_
 
+# Will uncomment the UUIDs once Search actually handles them as documented
 SEARCH_INDEX_UUIDS = {
-    "mdf": "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
-    "mdf-test": "c082b745-32ac-4ad2-9cde-92393f6e505c",
-    "dlhub": "847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
-    "dlhub-test": "5c89e0a9-00e5-4171-b415-814fe4d0b8af"
+    "mdf": "mdf", #"d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
+    "mdf-test": "mdf-test", #"c082b745-32ac-4ad2-9cde-92393f6e505c",
+    "dlhub": "dlhub", #"847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
+    "dlhub-test": "dlhub-test" #"5c89e0a9-00e5-4171-b415-814fe4d0b8af"
 }
 
 
@@ -568,6 +569,11 @@ class SearchClient(BaseClient):
         uri = slash_join(self._base_index_uri(), "subject")
         params["subject"] = subject
         return self.delete(uri, params=params)
+
+    def mapping(self, **params):
+        """Get the mapping for the index."""
+        uri = "/unstable/index/{}/mapping".format(self.index)
+        return self.get(uri, params=params)
 
 
 class DataPublicationClient(BaseClient):
