@@ -257,8 +257,8 @@ def uncompress_tree(root, verbose=False):
              If False, will remain silent unless there is an error.
              Default False.
     """
-    for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing files", disable= not verbose):
-        for single_file in files:
+    for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing dirs", disable= not verbose):
+        for single_file in tqdm(files, desc="Uncompressing files", disable= not verbose):
             abs_path = os.path.join(path, single_file)
             if tarfile.is_tarfile(abs_path):
                 tar = tarfile.open(abs_path)
@@ -385,7 +385,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
                     If this argument is -1, the transfer will submit but not wait at all. There is then no error checking.
 
     Returns:
-    int: 0 on success.
+    str: ID of the Globus Transfer.
     """
     INTERVAL_SEC = 10
     tdata = globus_sdk.TransferData(transfer_client, source_ep, dest_ep, verify_checksum=True)
@@ -415,7 +415,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
                 raise globus_sdk.GlobusError("Transfer timed out after " + str(iterations * INTERVAL_SEC) + " seconds.")
             iterations += 1
 
-    return 0
+    return res["task_id"]
 
 
 def get_local_ep(transfer_client):
