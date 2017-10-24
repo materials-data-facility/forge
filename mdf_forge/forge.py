@@ -25,21 +25,25 @@ class Forge:
     local_ep is the endpoint ID of the local Globus Connect Personal endpoint.
 
     """
-    __index = "mdf"
+    __default_index = "mdf"
     __services = ["mdf", "transfer", "search"]
     __app_name = "MDF_Forge"
 
-    def __init__(self, **kwargs):
+    def __init__(self, index=__default_index, local_ep=None, **kwargs):
         """Initialize the Forge instance.
 
-        Keyword Arguments:
-        index (str): The Globus Search index to search on.
-        services (list of str): The services to authenticate for.
+        Arguments:
+        index (str): The Globus Search index to search on. Default "mdf".
         local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
+                        If not provided, may be autodetected as possible.
+
+        Keyword Arguments:
+        services (list of str): The services to authenticate for.
+                                Advanced users only.
         """
-        self.__index = kwargs.get('index', self.__index)
+        self.__index = index
+        self.local_ep = local_ep
         self.__services = kwargs.get('services', self.__services)
-        self.local_ep = kwargs.get("local_ep", None)
 
         clients = toolbox.login(credentials={
                                 "app_name": self.__app_name,
@@ -171,6 +175,32 @@ class Forge:
         if reset_query:
             self.reset_query()
         return res
+
+
+    def show_fields(self, block=None):
+        """Retrieve and return the mapping for the given metadata block."
+
+        Arguments:
+        block (str): The top-level field to fetch the mapping for.
+                     Default None, which lists just the blocks.
+
+        Returns:
+        dict: A set of field:datatype pairs.
+        """
+        mapping = self.__query.mapping()
+        if not block:
+            blocks = set()
+            for key in mapping.keys():
+                blocks.add(key.split(".")[0])
+            block_map = {}
+            for b in blocks:
+                block_map[b] = "object"
+        else:
+            block_map = {}
+            for key, value in mapping.items():
+                if key.startswith(block):
+                    block_map[key] = value
+        return block_map
 
 
     def reset_query(self):
@@ -898,4 +928,13 @@ class Query:
                 scroll_pos += scroll_width
 
         return output
+
+
+    def mapping(self):
+        """Fetch the mapping for the current index.
+
+        Returns:
+        dict: The full mapping for the index.
+        """
+        return self.__search_client.mapping()["mappings"]
 

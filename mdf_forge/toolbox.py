@@ -12,6 +12,13 @@ from tqdm import tqdm
 
 from six import print_
 
+# Will uncomment the UUIDs once Search actually handles them as documented
+SEARCH_INDEX_UUIDS = {
+    "mdf": "mdf", #"d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
+    "mdf-test": "mdf-test", #"c082b745-32ac-4ad2-9cde-92393f6e505c",
+    "dlhub": "dlhub", #"847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
+    "dlhub-test": "dlhub-test" #"5c89e0a9-00e5-4171-b415-814fe4d0b8af"
+}
 
 
 ###################################################
@@ -115,10 +122,10 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
         clients["transfer"] = globus_sdk.TransferClient(authorizer=transfer_authorizer)
     if "search_ingest" in servs:
         ingest_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search_ingest"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=ingest_authorizer)
+        clients["search_ingest"] = SearchClient(index=(kwargs.get("index", None) or creds["index"]), authorizer=ingest_authorizer)
     elif "search" in servs:
         search_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search"] = SearchClient(default_index=(creds.get("index", None) or kwargs.get("index", None)), authorizer=search_authorizer)
+        clients["search"] = SearchClient(index=(kwargs.get("index", None) or creds["index"]), authorizer=search_authorizer)
     if "mdf" in servs:
         mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["data.materialsdatafacility.org"]["refresh_token"], native_client)
         clients["mdf"] = mdf_authorizer
@@ -193,9 +200,9 @@ def confidential_login(credentials=None):
     if "transfer" in servs:
         clients["transfer"] = globus_sdk.TransferClient(authorizer=conf_authorizer)
     if "search_ingest" in servs:
-        clients["search_ingest"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search_ingest"] = SearchClient(index=creds["index"], authorizer=conf_authorizer)
     elif "search" in servs:
-        clients["search"] = SearchClient(default_index=creds.get("index", None), authorizer=conf_authorizer)
+        clients["search"] = SearchClient(index=creds["index"], authorizer=conf_authorizer)
     if "mdf" in servs:
         clients["mdf"] = conf_authorizer
     if "publish" in servs:
@@ -226,6 +233,8 @@ def find_files(root, file_pattern=None, verbose=False):
         no_root_path (str): The path to the directory containing the file, with the path to the root directory removed.
         filename (str): The name of the file.
     """
+    if not os.path.exists(root):
+        raise ValueError("Path '" + root + "' does not exist.")
     # Add separator to end of root if not already supplied
     root += os.sep if root[-1:] != os.sep else ""
     for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
@@ -248,8 +257,8 @@ def uncompress_tree(root, verbose=False):
              If False, will remain silent unless there is an error.
              Default False.
     """
-    for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing files", disable= not verbose):
-        for single_file in files:
+    for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing dirs", disable= not verbose):
+        for single_file in tqdm(files, desc="Uncompressing files", disable= not verbose):
             abs_path = os.path.join(path, single_file)
             if tarfile.is_tarfile(abs_path):
                 tar = tarfile.open(abs_path)
@@ -376,7 +385,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
                     If this argument is -1, the transfer will submit but not wait at all. There is then no error checking.
 
     Returns:
-    int: 0 on success.
+    str: ID of the Globus Transfer.
     """
     INTERVAL_SEC = 10
     tdata = globus_sdk.TransferData(transfer_client, source_ep, dest_ep, verify_checksum=True)
@@ -396,7 +405,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
         raise globus_sdk.GlobusError("Failed to transfer files: Transfer " + res["code"])
 
     iterations = 0
-    while timeout >= 0 and not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
+    while timeout is not None and timeout >= 0 and not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
         for event in transfer_client.task_event_list(res["task_id"]):
             if event["is_error"]:
                 transfer_client.cancel_task(res["task_id"])
@@ -406,7 +415,7 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
                 raise globus_sdk.GlobusError("Transfer timed out after " + str(iterations * INTERVAL_SEC) + " seconds.")
             iterations += 1
 
-    return 0
+    return res["task_id"]
 
 
 def get_local_ep(transfer_client):
@@ -475,25 +484,19 @@ def get_local_ep(transfer_client):
 class SearchClient(BaseClient):
     """Access (search and ingest) Globus Search."""
 
-    def __init__(self, base_url="https://search.api.globus.org/", default_index=None, **kwargs):
+    def __init__(self, index, base_url="https://search.api.globus.org/", **kwargs):
         app_name = kwargs.pop('app_name', 'Search Client v0.2')
         BaseClient.__init__(self, "search", app_name=app_name, **kwargs)
         # base URL lookup will fail, producing None, set it by hand
         self.base_url = base_url
         self._headers['Content-Type'] = 'application/json'
-        self.default_index = default_index
+        self.index = SEARCH_INDEX_UUIDS.get(index.strip().lower()) or index
 
-    def _base_index_uri(self, index):
-        index = index or self.default_index
-        if not index:
-            raise ValueError(
-                ('You must either pass an explicit index '
-                 'or set a default one at the time that you create '
-                 'a SearchClient'))
-        return '/v1/index/{}'.format(index)
+    def _base_index_uri(self):
+        return '/v1/index/{}'.format(self.index)
 
     def search(self, q, limit=None, offset=None, query_template=None,
-               index=None, advanced=None, **params):
+               advanced=None, **params):
         """
         Perform a simple ``GET`` based search.
 
@@ -505,10 +508,6 @@ class SearchClient(BaseClient):
           ``q`` (*string*)
             The user-query string. Required for simple searches (and most
             advanced searches).
-
-          ``index`` (*string*)
-            Optional unless ``default_index`` was not set.
-            The index to query.
 
           ``limit`` (*int*)
             Optional. The number of results to return.
@@ -527,12 +526,12 @@ class SearchClient(BaseClient):
           ``params``
             Any additional query params to pass. For internal use only.
         """
-        uri = slash_join(self._base_index_uri(index), 'search')
+        uri = slash_join(self._base_index_uri(), 'search')
         merge_params(params, q=q, limit=limit, offset=offset,
                      query_template=query_template, advanced=advanced)
         return self.get(uri, params=params)
 
-    def structured_search(self, data, index=None, **params):
+    def structured_search(self, data, **params):
         """
         Perform a structured, ``POST``-based, search.
 
@@ -541,10 +540,6 @@ class SearchClient(BaseClient):
           ``data`` (*dict*)
             A valid GSearchRequest document to execute.
 
-          ``index`` (*string*)
-            Optional unless ``default_index`` was not set.
-            The index to query.
-
           ``advanced`` (*bool*)
             Use simple query parsing vs. advanced query syntax when
             interpreting the query string. Defaults to False.
@@ -552,10 +547,10 @@ class SearchClient(BaseClient):
           ``params``
             Any additional query params to pass. For internal use only.
         """
-        uri = slash_join(self._base_index_uri(index), 'search')
+        uri = slash_join(self._base_index_uri(), 'search')
         return self.post(uri, json_body=data, params=params)
 
-    def ingest(self, data, index=None, **params):
+    def ingest(self, data, **params):
         """
         Perform a simple ``POST`` based ingest op.
 
@@ -564,20 +559,21 @@ class SearchClient(BaseClient):
           ``data`` (*dict*)
             A valid GIngest document to index.
 
-          ``index`` (*string*)
-            Optional unless ``default_index`` was not set.
-            The search index to send data into.
-
           ``params``
             Any additional query params to pass. For internal use only.
         """
-        uri = slash_join(self._base_index_uri(index), 'ingest')
+        uri = slash_join(self._base_index_uri(), 'ingest')
         return self.post(uri, json_body=data, params=params)
 
-    def remove(self, subject, index=None, **params):
-        uri = slash_join(self._base_index_uri(index), "subject")
+    def remove(self, subject, **params):
+        uri = slash_join(self._base_index_uri(), "subject")
         params["subject"] = subject
         return self.delete(uri, params=params)
+
+    def mapping(self, **params):
+        """Get the mapping for the index."""
+        uri = "/unstable/index/{}/mapping".format(self.index)
+        return self.get(uri, params=params)
 
 
 class DataPublicationClient(BaseClient):
