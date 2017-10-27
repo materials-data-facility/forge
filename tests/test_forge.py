@@ -375,8 +375,7 @@ def test_forge_http_download():
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
 
 
-# This test does not work on Travis because Travis does not have a local Globus EP
-@pytest.mark.skipif(os.getenv("TEST_ENV", "local") == "travis", reason="Travis CI does not have a Globus Endpoint.")
+@pytest.mark.xfail(reason="Test relies on get_local_ep() which will cause failures if exactly one EP isn't detected.")
 def test_forge_globus_download():
     f = forge.Forge()
     # Simple case
@@ -429,4 +428,12 @@ def test_forge_chaining():
     res1 = f1.search()
     res2 = forge.Forge().match_field("source_name", "cip").match_field("elements", "Al").search()
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
+
+
+def test_forge_show_fields():
+    f1 = forge.Forge()
+    res1 = f1.show_fields()
+    assert "mdf" in res1.keys()
+    res2 = f1.show_fields("mdf")
+    assert "mdf.mdf_id" in res2.keys()
 
