@@ -73,7 +73,6 @@ class Forge:
 #################################################
 ##  Core functions
 #################################################
-
     def match_field(self, field, value, required=True, new_group=False):
         """Add a field:value term to the query.
         Matches will have field == value.
@@ -304,7 +303,6 @@ class Forge:
         # Done
         return self
 
-
     def match_sources(self, sources):
         """Add sources to match to the query.
 
@@ -321,7 +319,6 @@ class Forge:
             sources = [sources]
         self.match_field(field="mdf.source_name", value=",".join(sources), required=True, new_group=True)
         return self
-
 
     def match_elements(self, elements, match_all=True):
         """Add elemental abbreviations to the query.
@@ -349,6 +346,44 @@ class Forge:
             self.match_field(field="mdf.elements", value=",".join(elements), required=True, new_group=True)
         return self
 
+    def match_titles(self, titles):
+        """Add titles to the query.
+
+        Arguments:
+        titles (str or list of str): The titles to match.
+
+        Returns:
+        self (Forge): For chaining.
+        """
+        if not titles:
+            print_("Error: No titles specified.")
+            return self
+        if not isinstance(titles, list):
+            titles = [titles]
+
+        if len(titles) == 1:
+            self.match_field(field="mdf.title", value=titles[0], required=False, new_group=True)
+        else:
+            self.match_field(field="mdf.title", value=",".join(titles), required=False, new_group=True)
+        return self
+
+    def match_contacts(self, contacts):
+        """Add titles to the query.
+
+        Arguments:
+        titles (str or list of str): The contacts to match.
+
+        Returns:
+        self (Forge): For chaining.
+        """
+        if not contacts:
+            print_("Error: No contacts specified.")
+            return self
+        if not isinstance(contacts, list):
+            titles = [contacts]
+
+        self.match_field(field="mdf.data_contact", value=",".join(contacts), required=False, new_group=True)
+        return self
 
 #################################################
 ##  Premade searches
@@ -374,6 +409,39 @@ class Forge:
         """
         return self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info)
 
+    def search_by_titles(self, titles=[], limit=None, info=False):
+        """Execute a search for the given titles.
+        search_by_titles([x]) is equivalent to match_titles([x]).search()
+
+        Arguments:
+        titles (list of str): The titles to match. Default [].
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        info (bool): If False, search will return a list of the results.
+                     If True, search will return a tuple containing the results list, and other information about the query.
+                     Default False.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
+        return self.match_titles(titles).search(limit=limit, info=info)
+
+    def search_by_contacts(self, contacts=[], limit=None, info=False):
+        """Execute a search for the given contact.
+        search_by_contacts([x]) is equivalent to match_contacts([x]).search()
+
+        Arguments:
+        contacts (list of str): The contacts to match. Default [].
+        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        info (bool): If False, search will return a list of the results.
+                     If True, search will return a tuple containing the results list, and other information about the query.
+                     Default False.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
+        return self.match_contacts(contacts).search(limit=limit, info=info)
 
     def aggregate_source(self, sources):
         """Aggregate all records from a given source.
