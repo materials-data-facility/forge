@@ -1,10 +1,9 @@
+matminer
+matplotlib
 mdf_forge
-git+git://github.com/JFChen3/matminer.git
-scikit-learn
 numpy
 pandas
-globus_sdk
-matplotlib
-tqdm
 pymatgen
-ase
+scikit-learn
+seaborn
+tqdm

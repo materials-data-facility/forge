@@ -257,7 +257,9 @@ def uncompress_tree(root, verbose=False):
              If False, will remain silent unless there is an error.
              Default False.
     """
-    for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing dirs", disable= not verbose):
+    for path, dirs, files in os.walk(root):
+        if verbose:
+            print("\nPath:", path)
         for single_file in tqdm(files, desc="Uncompressing files", disable= not verbose):
             abs_path = os.path.join(path, single_file)
             if tarfile.is_tarfile(abs_path):
