@@ -112,7 +112,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             servs += serv.split(" ")
         else:
             servs += list(serv)
-    scopes = " ".join([SCOPES[sc] for sc in servs])
+    scopes = " ".join([AUTH_SCOPES[sc] for sc in servs])
 
     all_tokens = _get_tokens(native_client, scopes, creds["app_name"], force_refresh=clear_old_tokens)
 
@@ -189,17 +189,17 @@ def confidential_login(credentials=None):
     clients = {}
     if "transfer" in servs:
         clients["transfer"] = globus_sdk.TransferClient(
-                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=SCOPES["transfer"]))
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["transfer"]))
     if "search_ingest" in servs:
         clients["search_ingest"] = SearchClient(index=creds["index"],
-                                    authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=SCOPES["search_ingest"]))
+                                    authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["search_ingest"]))
     elif "search" in servs:
         clients["search"] = SearchClient(index=creds["index"],
-                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=SCOPES["search"]))
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["search"]))
     if "mdf" in servs:
-        clients["mdf"] = globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=SCOPES["mdf"])
+        clients["mdf"] = globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["mdf"])
     if "publish" in servs:
-        clients["publish"] = DataPublicationClient(authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=SCOPES["publish"]))
+        clients["publish"] = DataPublicationClient(authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["publish"]))
 
     return clients
 
