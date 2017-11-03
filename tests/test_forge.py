@@ -329,6 +329,13 @@ def test_forge_search_by_elements():
     assert check_field(res1, "mdf.source_name", "oqmd") == 2
 
 
+def test_forge_search_by_titles():
+    f1 = forge.Forge()
+    titles = ["AMCS\ -\ Tungsten","Cytochrome\ QSAR\ -\ C18Cl3N2O"]
+    res1, info1 = f1.search_by_titles(titles, limit=10000, info=True)
+    assert check_field(res1, "mdf.titles", "AMCS\ -\ Tungsten") == 1
+
+
 def test_forge_aggregate_source():
     # Test limit
     f1 = forge.Forge()
