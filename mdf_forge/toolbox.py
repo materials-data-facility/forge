@@ -19,6 +19,13 @@ SEARCH_INDEX_UUIDS = {
     "dlhub": "dlhub", #"847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
     "dlhub-test": "dlhub-test" #"5c89e0a9-00e5-4171-b415-814fe4d0b8af"
 }
+AUTH_SCOPES = {
+    "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
+    "search": "urn:globus:auth:scope:search.api.globus.org:search",
+    "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
+    "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
+    "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
+}
 
 
 ###################################################
@@ -47,13 +54,6 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
     NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
     DEFAULT_CRED_FILENAME = "globus_login.json"
     DEFAULT_CRED_PATH = os.path.expanduser("~/mdf/credentials")
-    SCOPES = {
-        "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
-        "search": "urn:globus:auth:scope:search.api.globus.org:search",
-        "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
-        "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
-        }
 
     def _get_tokens(client, scopes, app_name, force_refresh=False):
         token_path = os.path.join(DEFAULT_CRED_PATH, app_name + "_tokens.json")
@@ -112,7 +112,7 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             servs += serv.split(" ")
         else:
             servs += list(serv)
-    scopes = " ".join([SCOPES[sc] for sc in servs])
+    scopes = " ".join([AUTH_SCOPES[sc] for sc in servs])
 
     all_tokens = _get_tokens(native_client, scopes, creds["app_name"], force_refresh=clear_old_tokens)
 
@@ -154,13 +154,6 @@ def confidential_login(credentials=None):
     """
     DEFAULT_CRED_FILENAME = "confidential_globus_login.json"
     DEFAULT_CRED_PATH = os.path.expanduser("~/mdf/credentials")
-    SCOPES = {
-        "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
-        "search": "urn:globus:auth:scope:search.api.globus.org:search",
-        "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-        "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
-        "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
-        }
     # Read credentials
     if type(credentials) is str:
         try:
@@ -192,21 +185,21 @@ def confidential_login(credentials=None):
             servs += serv.split(" ")
         else:
             servs += list(serv)
-    scopes = " ".join([SCOPES[sc] for sc in servs])
-
-    conf_authorizer = globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes)
 
     clients = {}
     if "transfer" in servs:
-        clients["transfer"] = globus_sdk.TransferClient(authorizer=conf_authorizer)
+        clients["transfer"] = globus_sdk.TransferClient(
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["transfer"]))
     if "search_ingest" in servs:
-        clients["search_ingest"] = SearchClient(index=creds["index"], authorizer=conf_authorizer)
+        clients["search_ingest"] = SearchClient(index=creds["index"],
+                                    authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["search_ingest"]))
     elif "search" in servs:
-        clients["search"] = SearchClient(index=creds["index"], authorizer=conf_authorizer)
+        clients["search"] = SearchClient(index=creds["index"],
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["search"]))
     if "mdf" in servs:
-        clients["mdf"] = conf_authorizer
+        clients["mdf"] = globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["mdf"])
     if "publish" in servs:
-        clients["publish"] = DataPublicationClient(authorizer=conf_authorizer)
+        clients["publish"] = DataPublicationClient(authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["publish"]))
 
     return clients
 
@@ -257,7 +250,9 @@ def uncompress_tree(root, verbose=False):
              If False, will remain silent unless there is an error.
              Default False.
     """
-    for path, dirs, files in tqdm(os.walk(root), desc="Uncompressing dirs", disable= not verbose):
+    for path, dirs, files in os.walk(root):
+        if verbose:
+            print("\nPath:", path)
         for single_file in tqdm(files, desc="Uncompressing files", disable= not verbose):
             abs_path = os.path.join(path, single_file)
             if tarfile.is_tarfile(abs_path):

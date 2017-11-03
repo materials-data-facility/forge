@@ -10,7 +10,7 @@ from mdf_forge import toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
-HTTP_NUM_LIMIT = 10
+HTTP_NUM_LIMIT = 2000
 # Maximum number of results per search allowed by Globus Search
 SEARCH_LIMIT = 10000
 
@@ -608,7 +608,7 @@ class Forge:
                     tasks[host].add_item(remote_path, local_path)
                     filenames.add(local_path)
             if not found:
-                print_("Error on record: No globus_endpoint provided.\nRecord: ", + res)
+                print_("Error on record: No globus_endpoint provided.\nRecord: ", + str(res))
 
 
         # Submit the jobs
@@ -653,6 +653,8 @@ class Forge:
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
+        elif type(results) is not list:
+            results = [results]
         if len(results) > HTTP_NUM_LIMIT:
             print_("Too many results supplied. Use globus_download() for fetching more than " + str(HTTP_NUM_LIMIT) + " entries.")
             yield {

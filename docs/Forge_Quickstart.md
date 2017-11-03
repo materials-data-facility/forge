@@ -1,6 +1,6 @@
 # Forge Quickstart Guide
 ## Install Forge
-The first step is to install Forge. Detailed instructions are available in the [Installation Guide](./Installation_Guide.md) . You only need to install Forge.
+The first step is to install Forge. Detailed instructions are available in the [Installation Guide](./Installation_Guide.md) . The "pip" method is recommended.
 
 ## Import Forge
 Once Forge is installed, it is available for your Python scripts or Jupyter notebooks.
