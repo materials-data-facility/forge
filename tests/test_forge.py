@@ -132,14 +132,14 @@ example_result2 = [{
 
 
 # Helper
-# Field can be "mdf.elements" or "mdf.source_name"
+# Field can be "mdf.elements", "mdf.source_name", "mdf.title", "mdf.data_contact"
 # Return codes:
 #  -1: No match, the value was never found
 #   0: Exclusive match, no values other than argument found
 #   1: Inclusive match, some values other than argument found
 #   2: Partial match, value is found in some but not all results
 def check_field(res, field, value):
-    supported_fields = ["mdf.elements", "mdf.source_name"]
+    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.title", "mdf.data_contact"]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell " + field + "because check_field only works on " + str(supported_fields))
     # If no results, set matches to false
@@ -154,6 +154,10 @@ def check_field(res, field, value):
                 vals = []
         elif field == "mdf.source_name":
             vals = [r["mdf"]["source_name"]]
+        elif field == "mdf.title":
+            vals = [r["mdf"]["title"]]
+        elif field == "mdf.data_contact":
+            vals = [r["mdf"]["data_contact"]]
         # If a result does not contain the value, no match
         if value not in vals:
             all_match = False
@@ -331,9 +335,9 @@ def test_forge_search_by_elements():
 
 def test_forge_search_by_titles():
     f1 = forge.Forge()
-    titles = ["AMCS\ -\ Tungsten","Cytochrome\ QSAR\ -\ C18Cl3N2O"]
+    titles = ["Tungsten"]
     res1, info1 = f1.search_by_titles(titles, limit=10000, info=True)
-    assert check_field(res1, "mdf.titles", "AMCS\ -\ Tungsten") == 1
+    assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 2
 
 
 def test_forge_aggregate_source():
