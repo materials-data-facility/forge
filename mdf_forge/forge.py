@@ -346,11 +346,12 @@ class Forge:
             self.match_field(field="mdf.elements", value=",".join(elements), required=True, new_group=True)
         return self
 
-    def match_titles(self, titles):
+    def match_titles(self, titles, match_all=True):
         """Add titles to the query.
 
         Arguments:
         titles (str or list of str): The titles to match.
+        match_all (bool): If True, will add with AND. If False, will use OR. Default True.
 
         Returns:
         self (Forge): For chaining.
@@ -360,18 +361,26 @@ class Forge:
             return self
         if not isinstance(titles, list):
             titles = [titles]
+        if '' in titles:
+            print_("Error: No title specified.")
+            return self
 
-        if len(titles) == 1:
-            self.match_field(field="mdf.title", value=titles[0], required=False, new_group=True)
+        if match_all:
+            # First title should be in separate group (and required)
+            self.match_field(field="mdf.title", value=titles[0], required=True, new_group=True)
+            # Other titles should stay in that group
+            for title in titles[1:]:
+                self.match_field(field="mdf.title", value=title, required=match_all, new_group=False)
         else:
-            self.match_field(field="mdf.title", value=",".join(titles), required=False, new_group=True)
+            self.match_field(field="mdf.title", value=",".join(titles), required=True, new_group=True)
         return self
 
-    def match_contacts(self, contacts):
-        """Add titles to the query.
+    def match_contacts(self, contacts, match_all=True):
+        """Add contacts to the query.
 
         Arguments:
-        titles (str or list of str): The contacts to match.
+        contacts (str or list of str): The contacts to match.
+        match_all (bool): If True, will add with AND. If False, will use OR. Default True.
 
         Returns:
         self (Forge): For chaining.
@@ -380,9 +389,19 @@ class Forge:
             print_("Error: No contacts specified.")
             return self
         if not isinstance(contacts, list):
-            titles = [contacts]
+            contacts = [contacts]
+        if '' in contacts:
+            print_("Error: No contact specified.")
+            return self
 
-        self.match_field(field="mdf.data_contact", value=",".join(contacts), required=False, new_group=True)
+        if match_all:
+            # First contact should be in separate group (and required)
+            self.match_field(field="mdf.data_contact", value=contacts[0], required=True, new_group=True)
+            # Other contacts should stay in that group
+            for contact in contacts[1:]:
+                self.match_field(field="mdf.data_contact", value=contact, required=match_all, new_group=False)
+        else:
+            self.match_field(field="mdf.data_contact", value=",".join(contacts), required=True, new_group=True)
         return self
 
 #################################################
@@ -409,13 +428,14 @@ class Forge:
         """
         return self.match_elements(elements, match_all=match_all).match_sources(sources).search(limit=limit, info=info)
 
-    def search_by_titles(self, titles=[], limit=None, info=False):
+    def search_by_titles(self, titles=[], limit=None, match_all=True, info=False):
         """Execute a search for the given titles.
         search_by_titles([x]) is equivalent to match_titles([x]).search()
 
         Arguments:
         titles (list of str): The titles to match. Default [].
         limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        match_all (bool): If True, will add titels with AND. If False, will use OR. Default True.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
                      Default False.
@@ -424,15 +444,16 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        return self.match_titles(titles).search(limit=limit, info=info)
+        return self.match_titles(titles, match_all=match_all).search(limit=limit, info=info)
 
-    def search_by_contacts(self, contacts=[], limit=None, info=False):
+    def search_by_contacts(self, contacts=[], limit=None, match_all=True, info=False):
         """Execute a search for the given contact.
         search_by_contacts([x]) is equivalent to match_contacts([x]).search()
 
         Arguments:
         contacts (list of str): The contacts to match. Default [].
         limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        match_all (bool): If True, will add titels with AND. If False, will use OR. Default True.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list, and other information about the query.
                      Default False.
@@ -441,7 +462,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        return self.match_contacts(contacts).search(limit=limit, info=info)
+        return self.match_contacts(contacts, match_all=match_all).search(limit=limit, info=info)
 
     def aggregate_source(self, sources):
         """Aggregate all records from a given source.
