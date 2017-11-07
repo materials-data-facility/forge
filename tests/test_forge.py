@@ -335,9 +335,12 @@ def test_forge_search_by_elements():
 
 def test_forge_search_by_titles():
     f1 = forge.Forge()
+    f2 = forge.Forge()
     titles = ["Tungsten"]
-    res1, info1 = f1.search_by_titles(titles, limit=10000, info=True)
-    assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 2
+    res1, info1 = f1.match_titles(titles).search(limit=10000, info=True)
+    res2, info2 = f2.search_by_titles(titles, limit=10000, info=True)
+    assert check_field(res1, "mdf.title", "Tungsten") == 1
+    assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
 
 
 def test_forge_aggregate_source():
