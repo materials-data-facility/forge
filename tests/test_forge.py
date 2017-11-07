@@ -311,7 +311,7 @@ def test_forge_match_titles():
     res2, info2 = f2.match_titles(titles2).search(limit=10000, info=True)
     assert res2 != []
     check_val2 = check_field(res2, "mdf.title", "AMCS - Tungsten")
-    assert check_val2 == 1 or check_val2 == 2
+    assert check_val2 == 2
 
 def test_forge_search(capsys):
     # Error on no query
