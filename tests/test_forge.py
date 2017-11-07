@@ -295,6 +295,23 @@ def test_forge_match_elements():
     assert check_field(res2, "mdf.elements", "Al") == 1
     assert check_field(res2, "mdf.elements", "Cu") == 1
 
+@pytest.mark.match_titles
+def test_forge_match_titles():
+    # One title
+    f1 = forge.Forge()
+    titles1 = ["\"OQMD - Na1Y2Zr1\""]
+    res1, info1 = f1.match_titles(titles1).search(limit=10000, info=True)
+    assert res1 != []
+    check_val1 = check_field(res1, "mdf.title", "OQMD - Na1Y2Zr1")
+    assert check_val1 == 0 or check_val1 == 1
+
+    # Multiple titles
+    f2 = forge.Forge()
+    titles2 = ["\"AMCS - Tungsten\"", "\"OQMD - Na1Y2Zr1\""]
+    res2, info2 = f2.match_titles(titles2).search(limit=10000, info=True)
+    assert res2 != []
+    check_val2 = check_field(res2, "mdf.title", "AMCS - Tungsten")
+    assert check_val2 == 1 or check_val2 == 2
 
 def test_forge_search(capsys):
     # Error on no query
@@ -320,7 +337,6 @@ def test_forge_search(capsys):
     res4 = f4.search("oqmd", limit=3)
     assert len(res4) == 3
 
-
 def test_forge_search_by_elements():
     f1 = forge.Forge()
     f2 = forge.Forge()
@@ -332,16 +348,16 @@ def test_forge_search_by_elements():
     assert check_field(res1, "mdf.elements", "Al") == 1
     assert check_field(res1, "mdf.source_name", "oqmd") == 2
 
-
+@pytest.mark.search_by_titles
 def test_forge_search_by_titles():
     f1 = forge.Forge()
     f2 = forge.Forge()
-    titles = ["Tungsten"]
-    res1, info1 = f1.match_titles(titles).search(limit=10000, info=True)
-    res2, info2 = f2.search_by_titles(titles, limit=10000, info=True)
-    assert check_field(res1, "mdf.title", "Tungsten") == 1
+    titles1 = ["\"AMCS - Tungsten\""]
+    titles2 = ["Tungsten"]
+    res1, info1 = f1.match_titles(titles1).search(limit=10000, info=True)
+    res2, info2 = f2.search_by_titles(titles2, limit=10000, info=True)
+    assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
     assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
-
 
 def test_forge_aggregate_source():
     # Test limit
