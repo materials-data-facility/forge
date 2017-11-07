@@ -7,7 +7,8 @@ from mdf_forge import toolbox
 
 
 # Manually logging in for Query testing
-query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge", "services": ["search"], "index": "mdf"})["search"]
+query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge", 
+                                        "services": ["search"], "index": "mdf"})["search"]
 
 
 ############################
@@ -28,22 +29,22 @@ def test_query_term():
 
 
 def test_query_field():
-    q = forge.Query(query_search_client)
+    q1 = forge.Query(query_search_client)
     # Single field and return value test
-    assert isinstance(q.field("mdf.source_name", "oqmd"), forge.Query)
-    assert q.query == "(mdf.source_name:oqmd"
+    assert isinstance(q1.field("mdf.source_name", "oqmd"), forge.Query)
+    assert q1.query == "(mdf.source_name:oqmd"
     # Multi-field and grouping test
-    q.and_join(close_group=True).field("dc.title", "sample")
-    assert q.query == "(mdf.source_name:oqmd) AND (dc.title:sample"
+    q1.and_join(close_group=True).field("dc.title", "sample")
+    assert q1.query == "(mdf.source_name:oqmd) AND (dc.title:sample"
     # Negation test
-    q.negate()
-    assert q.query == "(mdf.source_name:oqmd) AND (dc.title:sample NOT "
+    q1.negate()
+    assert q1.query == "(mdf.source_name:oqmd) AND (dc.title:sample NOT "
     # Explicit operator test
     # Makes invalid query for this case
-    q.operator("NOT")
-    assert q.query == "(mdf.source_name:oqmd) AND (dc.title:sample NOT  NOT "
+    q1.operator("NOT")
+    assert q1.query == "(mdf.source_name:oqmd) AND (dc.title:sample NOT  NOT "
     # Ensure advanced is set
-    assert q.advanced
+    assert q1.advanced
 
 
 def test_query_search(capsys):
@@ -85,7 +86,11 @@ def test_query_chaining():
     q1.and_join()
     q1.field("elements", "Al")
     res1 = q1.search(limit=10000)
-    res2 = forge.Query(query_search_client).field("source_name", "cip").and_join().field("elements", "Al").search(limit=10000)
+    res2 = (forge.Query(query_search_client)
+                 .field("source_name", "cip")
+                 .and_join()
+                 .field("elements", "Al")
+                 .search(limit=10000))
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
@@ -139,9 +144,12 @@ example_result2 = [{
 #   1: Inclusive match, some values other than argument found
 #   2: Partial match, value is found in some but not all results
 def check_field(res, field, value):
-    supported_fields = ["mdf.elements", "mdf.source_name"]
+    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type"]
     if field not in supported_fields:
-        raise ValueError("Implement or re-spell " + field + "because check_field only works on " + str(supported_fields))
+        raise ValueError("Implement or re-spell "
+                         + field
+                         + "because check_field only works on " 
+                         + str(supported_fields))
     # If no results, set matches to false
     all_match = (len(res) > 0)
     only_match = (len(res) > 0)
@@ -154,6 +162,10 @@ def check_field(res, field, value):
                 vals = []
         elif field == "mdf.source_name":
             vals = [r["mdf"]["source_name"]]
+        elif field == "mdf.mdf_id":
+            vals = [r["mdf"]["mdf_id"]]
+        elif field == "mdf.resource_type":
+            vals = [r["mdf"]["resource_type"]]
         # If a result does not contain the value, no match
         if value not in vals:
             all_match = False
@@ -276,6 +288,28 @@ def test_forge_match_sources():
     assert check_field(res2, "mdf.source_name", "nist_janaf") == 2
 
 
+def test_forge_match_ids():
+    # Get a couple IDs
+    f0 = forge.Forge()
+    res0 = f0.search("mdf.source_name:nist_janaf", advanced=True, limit=2)
+    id1 = res0[0]["mdf"]["mdf_id"]
+    id2 = res0[1]["mdf"]["mdf_id"]
+    f1 = forge.Forge()
+    # One ID
+    f1.match_ids(id1)
+    res1 = f1.search()
+    assert res1 != []
+    assert check_field(res1, "mdf.mdf_id", id1) == 0
+    # Multi-ID
+    f2 = forge.Forge()
+    f2.match_ids([id1, id2])
+    res2 = f2.search()
+    # res1 is a subset of res2
+    assert len(res2) > len(res1)
+    assert all([r1 in res2 for r1 in res1])
+    assert check_field(res2, "mdf.mdf_id", id2) == 2
+
+
 def test_forge_match_elements():
     f1 = forge.Forge()
     # One element
@@ -290,6 +324,21 @@ def test_forge_match_elements():
     res2 = f2.search()
     assert check_field(res2, "mdf.elements", "Al") == 1
     assert check_field(res2, "mdf.elements", "Cu") == 1
+
+
+def test_forge_match_resource_types():
+    f1 = forge.Forge()
+    # Test one type
+    f1.match_resource_types("record")
+    res1 = f1.search(limit=10)
+    assert check_field(res1, "mdf.resource_type", "record") == 0
+    # Test two types
+    f2 = forge.Forge()
+    f2.match_resource_types(["collection", "dataset"])
+    res2 = f2.search()
+    assert check_field(res2, "mdf.resource_type", "record") == -1
+    #TODO: Re-enable this assert after we get collections in MDF
+#    assert check_field(res2, "mdf.resource_type", "dataset") == 2
 
 
 def test_forge_search(capsys):
@@ -338,6 +387,52 @@ def test_forge_aggregate_source():
     assert isinstance(res1[0], dict)
 
 
+def test_forge_fetch_datasets_from_results():
+    # Get some results
+    # Record from OQMD
+    res01 = forge.Forge().search("mdf.source_name:oqmd AND mdf.resource_type:record",
+                                 advanced=True, limit=1)
+    # Record from OQMD with info
+    res02 = forge.Forge().search("mdf.source_name:oqmd AND mdf.resource_type:record",
+                                 advanced=True, limit=1, info=True)
+    # Records from JANAF
+    res03 = forge.Forge().search("mdf.source_name:nist_janaf AND mdf.resource_type:record",
+                                 advanced=True, limit=2)
+    # Dataset for NIST XPS DB
+    res04 = forge.Forge().search("mdf.source_name:nist_xps_db AND mdf.resource_type:dataset",
+                                 advanced=True)
+
+    # Get the correct dataset entries
+    oqmd = forge.Forge().search("mdf.source_name:oqmd AND mdf.resource_type:dataset",
+                                advanced=True)[0]
+    nist_janaf = forge.Forge().search("mdf.source_name:nist_janaf AND mdf.resource_type:dataset",
+                                      advanced=True)[0]
+
+    # Fetch single dataset
+    f1 = forge.Forge()
+    res1 = f1.fetch_datasets_from_results(res01[0])
+    assert res1[0] == oqmd
+    # Fetch dataset with results + info
+    f2 = forge.Forge()
+    res2 = f2.fetch_datasets_from_results(res02)
+    assert res2[0] == oqmd
+    # Fetch multiple datasets
+    f3 = forge.Forge()
+    rtemp = res01+res03
+    res3 = f3.fetch_datasets_from_results(rtemp)
+    assert len(res3) == 2
+    assert oqmd in res3
+    assert nist_janaf in res3
+    # Fetch dataset from dataset
+    f4 = forge.Forge()
+    res4 = f4.fetch_datasets_from_results(res04)
+    assert res4 == res04
+    # Fetch entries from current query
+    f5 = forge.Forge()
+    f5.match_sources("nist_xps_db")
+    assert f5.fetch_datasets_from_results() == res04
+
+
 def test_forge_aggregate():
     f = forge.Forge()
     r = f.aggregate('mdf.source_name:oqmd AND '
@@ -375,7 +470,7 @@ def test_forge_http_download():
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
 
 
-@pytest.mark.xfail(reason="Test relies on get_local_ep() which will cause failures if exactly one EP isn't detected.")
+@pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
 def test_forge_globus_download():
     f = forge.Forge()
     # Simple case
@@ -418,7 +513,8 @@ def test_forge_http_return():
     # With multiple files
     res2 = f.http_return(example_result2)
     assert isinstance(res2, list)
-    assert res2 == ["This is a test document for Forge testing. Please do not remove.\n", "This is a second test document for Forge testing. Please do not remove.\n"]
+    assert res2 == ["This is a test document for Forge testing. Please do not remove.\n",
+                    "This is a second test document for Forge testing. Please do not remove.\n"]
 
 
 def test_forge_chaining():
