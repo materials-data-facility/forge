@@ -387,7 +387,7 @@ class Forge:
         """Add titles to the query.
 
         Arguments:
-        titles (str or list of str): The titles to match. A user can search with OR for more titles
+        titles (str or list of str): The titles to match.
 
         Returns:
         self (Forge): For chaining.
