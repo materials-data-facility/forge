@@ -144,7 +144,7 @@ example_result2 = [{
 #   1: Inclusive match, some values other than argument found
 #   2: Partial match, value is found in some but not all results
 def check_field(res, field, value):
-    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type"]
+    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type", "mdf.title"]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
                          + field
@@ -166,6 +166,8 @@ def check_field(res, field, value):
             vals = [r["mdf"]["mdf_id"]]
         elif field == "mdf.resource_type":
             vals = [r["mdf"]["resource_type"]]
+        elif field == "mdf.title":
+            vals = [r["mdf"]["title"]]
         # If a result does not contain the value, no match
         if value not in vals:
             all_match = False
@@ -333,14 +335,14 @@ def test_forge_match_titles():
     res1, info1 = f1.match_titles(titles1).search(limit=10000, info=True)
     assert res1 != []
     check_val1 = check_field(res1, "mdf.title", "OQMD - Na1Y2Zr1")
-    assert check_val1 == 0 or check_val1 == 1
+    assert check_val1 == 0
 
     # Multiple titles
     f2 = forge.Forge()
-    titles2 = ["\"AMCS - Tungsten\"", "\"OQMD - Na1Y2Zr1\""]
+    titles2 = ["\"AMCS - Tungsten\"", "\"Cytochrome QSAR\""]
     res2, info2 = f2.match_titles(titles2).search(limit=10000, info=True)
     assert res2 != []
-    check_val2 = check_field(res2, "mdf.title", "AMCS - Tungsten")
+    check_val2 = check_field(res2, "mdf.title", "Cytochrome QSAR - C13F2N6O")
     assert check_val2 == 2
 
 
@@ -400,7 +402,7 @@ def test_forge_search_by_titles():
     f2 = forge.Forge()
     titles1 = ["\"AMCS - Tungsten\""]
     titles2 = ["Tungsten"]
-    res1, info1 = f1.match_titles(titles1).search(limit=10000, info=True)
+    res1, info1 = f1.search_by_titles(titles1, limit=10000, info=True)
     res2, info2 = f2.search_by_titles(titles2, limit=10000, info=True)
     assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
     assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2

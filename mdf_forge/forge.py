@@ -387,7 +387,7 @@ class Forge:
         """Add titles to the query.
 
         Arguments:
-        titles (str): The titles to match.
+        titles (str or list of str): The titles to match. A user can search with OR for more titles
 
         Returns:
         self (Forge): For chaining.
@@ -401,7 +401,9 @@ class Forge:
             print_("Error: No title specified.")
             return self
 
-        self.match_field(field="mdf.title", value=",".join(titles), required=True, new_group=True)
+        self.match_field(field="mdf.title", value=titles[0], required=True, new_group=True)
+        for title in titles[1:]:
+            self.match_field(field="mdf.title", value=title, required=False, new_group=False)
         return self
 
     def match_resource_types(self, types):
