@@ -23,8 +23,10 @@ AUTH_SCOPES = {
     "transfer": "urn:globus:auth:scope:transfer.api.globus.org:all",
     "search": "urn:globus:auth:scope:search.api.globus.org:search",
     "search_ingest": "urn:globus:auth:scope:search.api.globus.org:all",
-    "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all", # urn:globus:auth:scope:api.materialsdatafacility.org:all"
-    "publish": "urn:globus:auth:scope:publish.api.globus.org:all"
+    "mdf": "urn:globus:auth:scope:data.materialsdatafacility.org:all",
+          #"urn:globus:auth:scope:api.materialsdatafacility.org:all"
+    "publish": "https://auth.globus.org/scopes/ab24b500-37a2-4bad-ab66-d8232c18e6e5/publish_api"
+               #"urn:globus:auth:scope:publish.api.globus.org:all"
 }
 
 
@@ -36,20 +38,25 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
     """Login to Globus services
 
     Arguments:
-    credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.
+    credentials (str or dict): A string filename, string JSON, or dictionary
+                                   with credential and config information.
                                By default, looks in ~/mdf/credentials/globus_login.json.
         Contains:
         app_name (str): Name of script/client. This will form the name of the token cache file.
-        services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
-        client_id (str): The ID of the client, given when registered with Globus. Default is the MDF Native Clients ID.
-        index (str): The default Search index. Only required if services contains 'search' or 'search_ingest'.
+        services (list of str): Services to authenticate with.
+                                Services are listed in AUTH_SCOPES.
+        client_id (str): The ID of the client, given when registered with Globus.
+                         Default is the MDF Native Clients ID.
+        index (str): The default Search index.
+                     Only required if services contains 'search' or 'search_ingest'.
     clear_old_tokens (bool): If True, delete old token file if it exists, forcing user to re-login.
                              If False, use existing token file if there is one.
                              Default False.
 
     Returns:
     dict: The clients and authorizers requested, indexed by service name.
-          For example, if login() is told to auth with 'search' then the search client will be in the 'search' field.
+          For example, if login() is told to auth with 'search'
+            then the search client will be in the 'search' field.
     """
     NATIVE_CLIENT_ID = "98bfc684-977f-4670-8669-71f8337688e4"
     DEFAULT_CRED_FILENAME = "globus_login.json"
@@ -68,7 +75,8 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             client.oauth2_start_flow(requested_scopes=scopes, refresh_tokens=True)
             authorize_url = client.oauth2_get_authorize_url()
 
-            print_("It looks like this is the first time you're accessing this client.\nPlease log in to Globus at this link:\n", authorize_url)
+            print_("It looks like this is the first time you're accessing this client.",
+                   "\nPlease log in to Globus at this link:\n", authorize_url)
             auth_code = input("Copy and paste the authorization code here: ").strip()
             print_("Thanks!")
 
@@ -101,9 +109,15 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
                 with open(os.path.join(DEFAULT_CRED_PATH, DEFAULT_CRED_FILENAME)) as cred_file:
                     creds = json.load(cred_file)
             except IOError:
-                raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
+                raise ValueError("Credentials/configuration must be passed as a "
+                                 + "filename string, JSON string, or dictionary, or provided in '"
+                                 + DEFAULT_CRED_FILENAME
+                                 + "' or '"
+                                 + DEFAULT_CRED_PATH
+                                 + "'.")
 
-    native_client = globus_sdk.NativeAppAuthClient(creds.get("client_id") or NATIVE_CLIENT_ID, app_name=creds["app_name"])
+    native_client = (globus_sdk.NativeAppAuthClient(creds.get("client_id")
+                     or NATIVE_CLIENT_ID, app_name=creds["app_name"]))
 
     servs = []
     for serv in creds.get("services", []):
@@ -114,23 +128,38 @@ def login(credentials=None, clear_old_tokens=False, **kwargs):
             servs += list(serv)
     scopes = " ".join([AUTH_SCOPES[sc] for sc in servs])
 
-    all_tokens = _get_tokens(native_client, scopes, creds["app_name"], force_refresh=clear_old_tokens)
+    all_tokens = _get_tokens(native_client, scopes, creds["app_name"],
+                             force_refresh=clear_old_tokens)
 
     clients = {}
     if "transfer" in servs:
-        transfer_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["transfer.api.globus.org"]["refresh_token"], native_client)
+        transfer_authorizer = globus_sdk.RefreshTokenAuthorizer(
+                                    all_tokens["transfer.api.globus.org"]["refresh_token"], 
+                                    native_client)
         clients["transfer"] = globus_sdk.TransferClient(authorizer=transfer_authorizer)
     if "search_ingest" in servs:
-        ingest_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search_ingest"] = SearchClient(index=(kwargs.get("index", None) or creds["index"]), authorizer=ingest_authorizer)
+        ingest_authorizer = globus_sdk.RefreshTokenAuthorizer(
+                                    all_tokens["search.api.globus.org"]["refresh_token"],
+                                    native_client)
+        clients["search_ingest"] = SearchClient(index=(kwargs.get("index", None) 
+                                                                  or creds["index"]),
+                                                authorizer=ingest_authorizer)
     elif "search" in servs:
-        search_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["search.api.globus.org"]["refresh_token"], native_client)
-        clients["search"] = SearchClient(index=(kwargs.get("index", None) or creds["index"]), authorizer=search_authorizer)
+        search_authorizer = globus_sdk.RefreshTokenAuthorizer(
+                                    all_tokens["search.api.globus.org"]["refresh_token"],
+                                    native_client)
+        clients["search"] = SearchClient(index=(kwargs.get("index", None)
+                                                           or creds["index"]),
+                                         authorizer=search_authorizer)
     if "mdf" in servs:
-        mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["data.materialsdatafacility.org"]["refresh_token"], native_client)
+        mdf_authorizer = globus_sdk.RefreshTokenAuthorizer(
+                                all_tokens["data.materialsdatafacility.org"]["refresh_token"],
+                                native_client)
         clients["mdf"] = mdf_authorizer
     if "publish" in servs:
-        publish_authorizer = globus_sdk.RefreshTokenAuthorizer(all_tokens["publish.api.globus.org"]["refresh_token"], native_client)
+        publish_authorizer = globus_sdk.RefreshTokenAuthorizer(
+                                    all_tokens["publish.api.globus.org"]["refresh_token"],
+                                    native_client)
         clients["publish"] = DataPublicationClient(authorizer=publish_authorizer)
 
     return clients
@@ -140,17 +169,21 @@ def confidential_login(credentials=None):
     """Login to Globus services as a confidential client (a client with its own login information).
 
     Arguments:
-    credentials (str or dict): A string filename, string JSON, or dictionary with credential and config information.
-                               By default, looks in ~/mdf/credentials/confidential_globus_login.json.
+    credentials (str or dict): A string filename, string JSON, or dictionary
+                                   with credential and config information.
+                               By default, uses the DEFAULT_CRED_FILENAME and DEFAULT_CRED_PATH.
         Contains:
         client_id (str): The ID of the client.
         client_secret (str): The client's secret for authentication.
-        services (list of str): Services to authenticate with (can be transfer, search, search_ingest, or mdf).
-        index: The default Search index. Only required if services contains 'search' or 'search_ingest'.
+        services (list of str): Services to authenticate with.
+                                Services are listed in AUTH_SCOPES.
+        index: The default Search index.
+               Only required if services contains 'search' or 'search_ingest'.
 
     Returns:
     dict: The clients and authorizers requested, indexed by service name.
-          For example, if login() is told to auth with 'search' then the search client will be in the 'search' field.
+          For example, if login() is told to auth with 'search'
+            then the search client will be in the 'search' field.
     """
     DEFAULT_CRED_FILENAME = "confidential_globus_login.json"
     DEFAULT_CRED_PATH = os.path.expanduser("~/mdf/credentials")
@@ -175,7 +208,12 @@ def confidential_login(credentials=None):
                 with open(os.path.join(DEFAULT_CRED_PATH, DEFAULT_CRED_FILENAME)) as cred_file:
                     creds = json.load(cred_file)
             except IOError:
-                raise ValueError("Credentials/configuration must be passed as a filename string, JSON string, or dictionary, or provided in '" + DEFAULT_CRED_FILENAME + "' or '" + DEFAULT_CRED_PATH + "'.")
+                raise ValueError("Credentials/configuration must be passed as a "
+                                 + "filename string, JSON string, or dictionary, or provided in '"
+                                 + DEFAULT_CRED_FILENAME
+                                 + "' or '"
+                                 + DEFAULT_CRED_PATH
+                                 + "'.")
 
     conf_client = globus_sdk.ConfidentialAppAuthClient(creds["client_id"], creds["client_secret"])
     servs = []
@@ -189,18 +227,26 @@ def confidential_login(credentials=None):
     clients = {}
     if "transfer" in servs:
         clients["transfer"] = globus_sdk.TransferClient(
-                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["transfer"]))
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(
+                                                conf_client,
+                                                scopes=AUTH_SCOPES["transfer"]))
     if "search_ingest" in servs:
         clients["search_ingest"] = SearchClient(index=creds["index"],
-                                    authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["search_ingest"]))
+                                    authorizer=globus_sdk.ClientCredentialsAuthorizer(
+                                                    conf_client,
+                                                    scopes=AUTH_SCOPES["search_ingest"]))
     elif "search" in servs:
         clients["search"] = SearchClient(index=creds["index"],
-                                authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["search"]))
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(
+                                                conf_client,
+                                                scopes=AUTH_SCOPES["search"]))
     if "mdf" in servs:
-        clients["mdf"] = globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["mdf"])
+        clients["mdf"] = globus_sdk.ClientCredentialsAuthorizer(
+                                conf_client, scopes=AUTH_SCOPES["mdf"])
     if "publish" in servs:
-        clients["publish"] = DataPublicationClient(authorizer=globus_sdk.ClientCredentialsAuthorizer(conf_client, scopes=AUTH_SCOPES["publish"]))
-
+        clients["publish"] = DataPublicationClient(
+                                authorizer=globus_sdk.ClientCredentialsAuthorizer(
+                                                conf_client, scopes=AUTH_SCOPES["publish"]))
     return clients
 
 
@@ -214,7 +260,8 @@ def find_files(root, file_pattern=None, verbose=False):
 
     Arguments:
     root (str): The path to the starting (root) directory.
-    file_pattern (str): A regular expression to match files against, or None to match all files. Default None.
+    file_pattern (str): A regular expression to match files against, or None to match all files.
+                        Default None.
     verbose: If True, will print_ status messages.
              If False, will remain silent unless there is an error.
              Default False.
@@ -223,7 +270,8 @@ def find_files(root, file_pattern=None, verbose=False):
     dict: The matching file's path information.
         Contains:
         path (str): The path to the directory containing the file.
-        no_root_path (str): The path to the directory containing the file, with the path to the root directory removed.
+        no_root_path (str): The path to the directory containing the file,
+                            with the path to the root directory removed.
         filename (str): The name of the file.
     """
     if not os.path.exists(root):
@@ -232,7 +280,7 @@ def find_files(root, file_pattern=None, verbose=False):
     root += os.sep if root[-1:] != os.sep else ""
     for path, dirs, files in tqdm(os.walk(root), desc="Finding files", disable= not verbose):
         for one_file in files:
-            if not file_pattern or re.search(file_pattern, one_file):  # Only care about dirs with desired data
+            if not file_pattern or re.search(file_pattern, one_file):
                 yield {
                     "path": path,
                     "filename": one_file,
@@ -267,7 +315,8 @@ def uncompress_tree(root, verbose=False):
                 try:
                     with gzip.open(abs_path) as gz:
                         file_data = gz.read()
-                        # Opens the absolute path, including filename, for writing, but does not include the extension (should be .gz or similar)
+                        # Opens the absolute path, including filename, for writing
+                        # Does not include the extension (should be .gz or similar)
                         with open(abs_path.rsplit('.', 1)[0], 'w') as newfile:
                             newfile.write(str(file_data))
                 # An IOErrorwill occur at gz.read() if the file is not a gzip
@@ -330,12 +379,14 @@ def format_gmeta(data):
 
 def gmeta_pop(gmeta, info=False):
     """Remove GMeta wrapping from a Globus Search result.
-    This function can be called on the raw GlobusHTTPResponse that Search returns, or a string or dictionary representation of it.
+    This function can be called on the raw GlobusHTTPResponse that Search returns, 
+        or a string or dictionary representation of it.
 
     Arguments:
     gmeta (dict, str, or GlobusHTTPResponse): The Globus Search result to unwrap.
     info (bool): If False, gmeta_pop will return a list of the results and discard the metadata.
-                 If True, gmeta_pop will return a tuple containing the results list, and other information about the query.
+                 If True, gmeta_pop will return a tuple containing the results list,
+                    and other information about the query.
                  Default False.
 
     Returns:
@@ -373,11 +424,15 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
     transfer_client (TransferClient): An authenticated Transfer client.
     source_ep (str): The source Globus Endpoint ID.
     dest_ep (str): The destination Globus Endpoint ID.
-    path_list (list of tuple of 2 str): A list of tuples containing the paths to transfer as (source, destination).
+    path_list (list of tuple of 2 str): A list of tuples containing the paths to transfer as
+                                        (source, destination).
         Directory paths must end in a slash, and file paths must not.
-        Example: [("/source/files/file.dat", "/dest/mydocs/doc.dat"), ("/source/all_reports/", "/dest/reports/")]
-    timeout (int): Time, in scores of seconds, to wait for a transfer to complete before erroring. Default None, which will wait until a transfer succeeds or fails.
-                    If this argument is -1, the transfer will submit but not wait at all. There is then no error checking.
+        Example: [("/source/files/file.dat", "/dest/mydocs/doc.dat"),
+                  ("/source/all_reports/", "/dest/reports/")]
+    timeout (int): Time, in scores of seconds, to wait for a transfer to complete before erroring.
+                   Default None, which will wait until a transfer succeeds or fails.
+                   If this argument is -1, the transfer will submit but not wait at all.
+                       There is then no error checking.
 
     Returns:
     str: ID of the Globus Transfer.
@@ -393,21 +448,27 @@ def quick_transfer(transfer_client, source_ep, dest_ep, path_list, timeout=None)
             tdata.add_item(item[0], item[1], recursive=True)
         # Malformed
         else:
-            raise globus_sdk.GlobusError("Cannot transfer file to directory or vice-versa: " + str(item))
+            raise globus_sdk.GlobusError("Cannot transfer file to directory or vice-versa: "
+                                         + str(item))
 
     res = transfer_client.submit_transfer(tdata)
     if res["code"] != "Accepted":
         raise globus_sdk.GlobusError("Failed to transfer files: Transfer " + res["code"])
 
     iterations = 0
-    while timeout is not None and timeout >= 0 and not transfer_client.task_wait(res["task_id"], timeout=INTERVAL_SEC, polling_interval=INTERVAL_SEC):
+    while timeout is not None and timeout >= 0 and not transfer_client.task_wait(
+                                                            res["task_id"],
+                                                            timeout=INTERVAL_SEC,
+                                                            polling_interval=INTERVAL_SEC):
         for event in transfer_client.task_event_list(res["task_id"]):
             if event["is_error"]:
                 transfer_client.cancel_task(res["task_id"])
                 raise globus_sdk.GlobusError("Error transferring data: " + event["description"])
             if timeout and iterations >= timeout:
                 transfer_client.cancel_task(res["task_id"])
-                raise globus_sdk.GlobusError("Transfer timed out after " + str(iterations * INTERVAL_SEC) + " seconds.")
+                raise globus_sdk.GlobusError("Transfer timed out after "
+                                             + str(iterations * INTERVAL_SEC)
+                                             + " seconds.")
             iterations += 1
 
     return res["task_id"]
@@ -421,7 +482,8 @@ def get_local_ep(transfer_client):
 
     Returns:
     str: The local GCP EP ID if it was discovered.
-    If the ID is not discovered, an exception (globus_sdk.GlobusError unless the user cancels the search) will be raised.
+    If the ID is not discovered, an exception will be raised.
+        (globus_sdk.GlobusError unless the user cancels the search)
     """
     pgr_res = transfer_client.endpoint_search(filter_scope="my-endpoints")
     ep_candidates = pgr_res.data
@@ -434,7 +496,8 @@ def get_local_ep(transfer_client):
             return ep_candidates[0]["id"]
     else: # >1 found
         #Filter out disconnected GCP
-        ep_connections = [candidate for candidate in ep_candidates if candidate["gcp_connected"] is not False]
+        ep_connections = [candidate for candidate in ep_candidates 
+                            if candidate["gcp_connected"] is not False]
         #Recheck list
         if len(ep_connections) < 1:  # Nothing found
             raise globus_sdk.GlobusError("Error: No local endpoints running")
