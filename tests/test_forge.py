@@ -326,6 +326,25 @@ def test_forge_match_elements():
     assert check_field(res2, "mdf.elements", "Cu") == 1
 
 
+@pytest.mark.match_tags
+def test_forge_match_tags():
+    # One title
+    f1 = forge.Forge()
+    tags1 = ["DFT"]
+    res1, info1 = f1.match_tags(tags1).search(limit=10000, info=True)
+    assert res1 != []
+    check_val1 = check_field(res1, "mdf.tags", "DFT")
+    assert check_val1 == 0
+
+    # Multiple tags
+    f2 = forge.Forge()
+    tags2 = ["\"Density Functional Theory\"", "DFT"]
+    res2, info2 = f2.match_tags(tags2).search(limit=10000, info=True)
+    assert res2 != []
+    check_val2 = check_field(res2, "mdf.tags", "Density Functional Theory")
+    assert check_val2 == 2
+
+
 def test_forge_match_resource_types():
     f1 = forge.Forge()
     # Test one type
@@ -376,6 +395,18 @@ def test_forge_search_by_elements():
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
     assert check_field(res1, "mdf.elements", "Al") == 1
     assert check_field(res1, "mdf.source_name", "oqmd") == 2
+
+
+@pytest.mark.search_by_tags
+def test_forge_search_by_tags():
+    f1 = forge.Forge()
+    f2 = forge.Forge()
+    tags1 = ["\"Density Functional Theory\""]
+    tags2 = ["DFT"]
+    res1, info1 = f1.search_by_tags(tags1, limit=10000, info=True)
+    res2, info2 = f2.search_by_tags(tags2, limit=10000, info=True)
+    assert check_field(res1, "mdf.tags", "Density Functional Theory") == 0
+    assert check_field(res2, "mdf.tags", "DFT") == 0
 
 
 def test_forge_aggregate_source():
