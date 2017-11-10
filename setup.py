@@ -2,15 +2,15 @@ from setuptools import setup
 
 setup(
     name='mdf_forge',
-    version='0.4.8',
+    version='0.5.0',
     packages=['mdf_forge'],
     description='Materials Data Facility python package',
     long_description="Forge is the Materials Data Facility Python package to interface and leverage the MDF Data Discovery service. Forge allows users to perform simple queries and facilitiates moving and synthesizing results.",
     install_requires=[
-        "globus-sdk>=1.1.1",
-        "requests>=2.18.1",
-        "tqdm>=4.14.0",
-        "six>=1.10.0"
+        "globus-sdk>=1.2.1",
+        "requests>=2.18.4",
+        "tqdm>=4.19.4",
+        "six>=1.11.0"
     ],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
     classifiers=[
