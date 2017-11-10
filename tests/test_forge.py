@@ -386,8 +386,8 @@ def test_forge_match_tags():
     # "source_name": "ge_nanoparticles",
     # "tags": [ "amorphization","density functional theory calculations","Ge nanoparticles",
     #           "high pressure","phase transformation","Raman","X-ray absorption","zip" ]
-    assert check_field(res3, "mdf.tags", "Raman")
-    assert check_field(res3, "mdf.tags", "X-ray absorption")
+    assert check_field(res3, "mdf.tags", "Raman") == 1
+    assert check_field(res3, "mdf.tags", "X-ray absorption") == 1
 
 
 def test_forge_match_resource_types():
