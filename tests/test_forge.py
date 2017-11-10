@@ -386,8 +386,8 @@ def test_forge_match_tags():
     # "source_name": "ge_nanoparticles",
     # "tags": [ "amorphization","density functional theory calculations","Ge nanoparticles",
     #           "high pressure","phase transformation","Raman","X-ray absorption","zip" ]
-    assert check_field(res3, "mdf.tags", "Raman") == 2
-    assert check_field(res3, "mdf.tags", "X-ray absorption") == 2
+    assert check_field(res3, "mdf.tags", "Raman")
+    assert check_field(res3, "mdf.tags", "X-ray absorption")
 
 
 def test_forge_match_resource_types():
@@ -442,7 +442,18 @@ def test_forge_search_by_elements():
     assert check_field(res1, "mdf.source_name", "oqmd") == 2
 
 
-<<<<<<< HEAD
+def test_forge_search_by_titles():
+    f1 = forge.Forge()
+    titles1 = ["\"AMCS - Tungsten\""]
+    res1 = f1.search_by_titles(titles1)
+    assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
+
+    f2 = forge.Forge()
+    titles2 = ["Tungsten"]
+    res2 = f2.search_by_titles(titles2)
+    assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
+
+
 @pytest.mark.search_by_tags
 def test_forge_search_by_tags():
     f1 = forge.Forge()
@@ -460,18 +471,6 @@ def test_forge_search_by_tags():
     # res2 is a subset of res3
     assert len(res3) > len(res2)
     assert all([r in res3 for r in res2]) and any([r in res2 for r in res3])
-=======
-def test_forge_search_by_titles():
-    f1 = forge.Forge()
-    titles1 = ["\"AMCS - Tungsten\""]
-    res1 = f1.search_by_titles(titles1)
-    assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
-
-    f2 = forge.Forge()
-    titles2 = ["Tungsten"]
-    res2 = f2.search_by_titles(titles2)
-    assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
->>>>>>> origin/forge-dev
 
 
 def test_forge_aggregate_source():
