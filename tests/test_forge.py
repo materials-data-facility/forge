@@ -137,14 +137,14 @@ example_result2 = [{
 
 
 # Helper
-# Field can be "mdf.elements" or "mdf.source_name"
+# Field can be "mdf.elements", "mdf.source_name" etc.
 # Return codes:
 #  -1: No match, the value was never found
 #   0: Exclusive match, no values other than argument found
 #   1: Inclusive match, some values other than argument found
 #   2: Partial match, value is found in some but not all results
 def check_field(res, field, value):
-    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type"]
+    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type", "mdf.tags"]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
                          + field
@@ -166,6 +166,12 @@ def check_field(res, field, value):
             vals = [r["mdf"]["mdf_id"]]
         elif field == "mdf.resource_type":
             vals = [r["mdf"]["resource_type"]]
+        elif field == "mdf.tags":
+            # mdf.tags field is a list already
+            try:
+                vals = r["mdf"]["tags"]
+            except KeyError:
+                vals = []
         # If a result does not contain the value, no match
         if value not in vals:
             all_match = False
@@ -328,21 +334,35 @@ def test_forge_match_elements():
 
 @pytest.mark.match_tags
 def test_forge_match_tags():
-    # One title
+    # Get one (the first) tag
+    f0 = forge.Forge()
+    res0 = f0.search("mdf.source_name:trinkle_elastic_fe_bcc", advanced=True, limit=1)
+    tags1 = res0[0]["mdf"]["tags"][0]
+    # One tag
     f1 = forge.Forge()
-    tags1 = ["DFT"]
-    res1, info1 = f1.match_tags(tags1).search(limit=10000, info=True)
+    res1 = f1.match_tags(tags1).search()
     assert res1 != []
-    check_val1 = check_field(res1, "mdf.tags", "DFT")
-    assert check_val1 == 0
+    assert check_field(res1, "mdf.tags", tags1) == 2
+
+    f2 = forge.Forge()
+    tags2 = "\"ab initio\""
+    f2.match_field(field="mdf.tags", value=tags2, required=True, new_group=True)
+    res2 = f2.search()
+    assert res2 != []
+    # there is 'ab' in 'ab initio' ["ab","initio"] list because
+    # check_field() Elastic Search splits ab-initio as well to the same list
+    assert check_field(res2, "mdf.tags", "ab-initio") == 2
 
     # Multiple tags
-    f2 = forge.Forge()
-    tags2 = ["\"Density Functional Theory\"", "DFT"]
-    res2, info2 = f2.match_tags(tags2).search(limit=10000, info=True)
-    assert res2 != []
-    check_val2 = check_field(res2, "mdf.tags", "Density Functional Theory")
-    assert check_val2 == 2
+    f3 = forge.Forge()
+    tags3 = ["\"density functional theory calculations\"", "\"X-ray\""]
+    res3, info3 = f3.match_tags(tags3).search(limit=10, info=True)
+    assert res3 != []
+    # "source_name": "ge_nanoparticles",
+    # "tags": [ "amorphization","density functional theory calculations","Ge nanoparticles",
+    #           "high pressure","phase transformation","Raman","X-ray absorption","zip" ]
+    assert check_field(res3, "mdf.tags", "Raman")
+    assert check_field(res3, "mdf.tags", "X-ray absorption")
 
 
 def test_forge_match_resource_types():
@@ -400,13 +420,20 @@ def test_forge_search_by_elements():
 @pytest.mark.search_by_tags
 def test_forge_search_by_tags():
     f1 = forge.Forge()
+    tags1 = "DFT"
+    res1, info1 = f1.search_by_tags(tags1, limit=10, info=True)
+    assert check_field(res1, "mdf.tags", "DFT") == 2
+
     f2 = forge.Forge()
-    tags1 = ["\"Density Functional Theory\""]
-    tags2 = ["DFT"]
-    res1, info1 = f1.search_by_tags(tags1, limit=10000, info=True)
-    res2, info2 = f2.search_by_tags(tags2, limit=10000, info=True)
-    assert check_field(res1, "mdf.tags", "Density Functional Theory") == 0
-    assert check_field(res2, "mdf.tags", "DFT") == 0
+    tags2 = ["\"Density Functional Theory\"", "\"X-ray\""]
+    res2, info2 = f2.search_by_tags(tags2, limit=100, match_all=True, info=True) #  1 so far
+    f3 = forge.Forge()
+    tags3 = ["\"Density Functional Theory\"", "\"X-ray\""]
+    res3, info3 = f3.search_by_tags(tags3, limit=100, match_all=False, info=True) # 6 so far
+
+    # res2 is a subset of res3
+    assert len(res3) > len(res2)
+    assert all([r in res3 for r in res2]) and any([r in res2 for r in res3])
 
 
 def test_forge_aggregate_source():

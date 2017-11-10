@@ -386,7 +386,7 @@ class Forge:
                              new_group=False)
         return self
 
-    def match_tags(self, tags):
+    def match_tags(self, tags, match_all=True):
         """Add tags to the query.
 
         Arguments:
@@ -398,13 +398,9 @@ class Forge:
         """
 
         if not tags:
-            print_("Error: No tags specified.")
             return self
-        if not isinstance(tags, list):
+        if isinstance(tags, string_types):
             tags = [tags]
-        if '' in tags:
-            print_("Error: No tags specified.")
-            return self
 
         self.match_field(field="mdf.tags", value=tags[0], required=True, new_group=True)
         # Other tags should stay in that group
@@ -412,11 +408,6 @@ class Forge:
             self.match_field(field="mdf.tags", value=tag, required=match_all,
                              new_group=False)
         return self
-
-        #self.match_field(field="mdf.tags", value=tags[0], required=True, new_group=True)
-        #for tag in tags[1:]:
-        #    self.match_field(field="mdf.tags", value=tag, required=False, new_group=False)
-        #return self
 
 
     def match_resource_types(self, types):
