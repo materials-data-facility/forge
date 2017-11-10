@@ -633,6 +633,10 @@ class SearchClient(BaseClient):
         uri = "/unstable/index/{}/mapping".format(self.index)
         return self.get(uri, params=params)
 
+    def delete_by_query(self, data, **params):
+        uri = slash_join(self._base_index_uri(), 'delete_by_query')
+        return self.post(uri, json_body=data, params=params)
+
 
 class DataPublicationClient(BaseClient):
     """Publish data with Globus Publish."""

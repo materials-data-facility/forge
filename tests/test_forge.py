@@ -137,14 +137,24 @@ example_result2 = [{
 
 
 # Helper
+<<<<<<< HEAD
 # Field can be "mdf.elements", "mdf.source_name" etc.
+=======
+>>>>>>> origin/forge-dev
 # Return codes:
 #  -1: No match, the value was never found
 #   0: Exclusive match, no values other than argument found
 #   1: Inclusive match, some values other than argument found
 #   2: Partial match, value is found in some but not all results
 def check_field(res, field, value):
-    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type", "mdf.tags"]
+    supported_fields = [
+        "mdf.elements",
+        "mdf.source_name",
+        "mdf.mdf_id",
+        "mdf.resource_type",
+        "mdf.title",
+        "mdf.tags"
+    ]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
                          + field
@@ -166,12 +176,15 @@ def check_field(res, field, value):
             vals = [r["mdf"]["mdf_id"]]
         elif field == "mdf.resource_type":
             vals = [r["mdf"]["resource_type"]]
+        elif field == "mdf.title":
+            vals = [r["mdf"]["title"]]
         elif field == "mdf.tags":
-            # mdf.tags field is a list already
+            # mdf.tags field is already a list
             try:
                 vals = r["mdf"]["tags"]
             except KeyError:
                 vals = []
+
         # If a result does not contain the value, no match
         if value not in vals:
             all_match = False
@@ -332,6 +345,22 @@ def test_forge_match_elements():
     assert check_field(res2, "mdf.elements", "Cu") == 1
 
 
+def test_forge_match_titles():
+    # One title
+    f1 = forge.Forge()
+    titles1 = ["\"OQMD - Na1Y2Zr1\""]
+    res1 = f1.match_titles(titles1).search()
+    assert res1 != []
+    assert check_field(res1, "mdf.title", "OQMD - Na1Y2Zr1") == 0
+
+    # Multiple titles
+    f2 = forge.Forge()
+    titles2 = ["\"AMCS - Tungsten\"", "\"Cytochrome QSAR\""]
+    res2 = f2.match_titles(titles2).search()
+    assert res2 != []
+    assert check_field(res2, "mdf.title", "Cytochrome QSAR - C13F2N6O") == 2
+
+
 @pytest.mark.match_tags
 def test_forge_match_tags():
     # Get one (the first) tag
@@ -417,6 +446,7 @@ def test_forge_search_by_elements():
     assert check_field(res1, "mdf.source_name", "oqmd") == 2
 
 
+<<<<<<< HEAD
 @pytest.mark.search_by_tags
 def test_forge_search_by_tags():
     f1 = forge.Forge()
@@ -434,6 +464,18 @@ def test_forge_search_by_tags():
     # res2 is a subset of res3
     assert len(res3) > len(res2)
     assert all([r in res3 for r in res2]) and any([r in res2 for r in res3])
+=======
+def test_forge_search_by_titles():
+    f1 = forge.Forge()
+    titles1 = ["\"AMCS - Tungsten\""]
+    res1 = f1.search_by_titles(titles1)
+    assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
+
+    f2 = forge.Forge()
+    titles2 = ["Tungsten"]
+    res2 = f2.search_by_titles(titles2)
+    assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
+>>>>>>> origin/forge-dev
 
 
 def test_forge_aggregate_source():
