@@ -137,10 +137,6 @@ example_result2 = [{
 
 
 # Helper
-<<<<<<< HEAD
-# Field can be "mdf.elements", "mdf.source_name" etc.
-=======
->>>>>>> origin/forge-dev
 # Return codes:
 #  -1: No match, the value was never found
 #   0: Exclusive match, no values other than argument found
@@ -390,8 +386,8 @@ def test_forge_match_tags():
     # "source_name": "ge_nanoparticles",
     # "tags": [ "amorphization","density functional theory calculations","Ge nanoparticles",
     #           "high pressure","phase transformation","Raman","X-ray absorption","zip" ]
-    assert check_field(res3, "mdf.tags", "Raman")
-    assert check_field(res3, "mdf.tags", "X-ray absorption")
+    assert check_field(res3, "mdf.tags", "Raman") == 2
+    assert check_field(res3, "mdf.tags", "X-ray absorption") == 2
 
 
 def test_forge_match_resource_types():
