@@ -137,14 +137,19 @@ example_result2 = [{
 
 
 # Helper
-# Field can be "mdf.elements", "mdf.source_name", "mdf.title", "mdf.data_contact"
 # Return codes:
 #  -1: No match, the value was never found
 #   0: Exclusive match, no values other than argument found
 #   1: Inclusive match, some values other than argument found
 #   2: Partial match, value is found in some but not all results
 def check_field(res, field, value):
-    supported_fields = ["mdf.elements", "mdf.source_name", "mdf.mdf_id", "mdf.resource_type", "mdf.title"]
+    supported_fields = [
+        "mdf.elements",
+        "mdf.source_name",
+        "mdf.mdf_id",
+        "mdf.resource_type",
+        "mdf.title"
+    ]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
                          + field
@@ -332,18 +337,16 @@ def test_forge_match_titles():
     # One title
     f1 = forge.Forge()
     titles1 = ["\"OQMD - Na1Y2Zr1\""]
-    res1, info1 = f1.match_titles(titles1).search(limit=10000, info=True)
+    res1 = f1.match_titles(titles1).search()
     assert res1 != []
-    check_val1 = check_field(res1, "mdf.title", "OQMD - Na1Y2Zr1")
-    assert check_val1 == 0
+    assert check_field(res1, "mdf.title", "OQMD - Na1Y2Zr1") == 0
 
     # Multiple titles
     f2 = forge.Forge()
     titles2 = ["\"AMCS - Tungsten\"", "\"Cytochrome QSAR\""]
-    res2, info2 = f2.match_titles(titles2).search(limit=10000, info=True)
+    res2 = f2.match_titles(titles2).search()
     assert res2 != []
-    check_val2 = check_field(res2, "mdf.title", "Cytochrome QSAR - C13F2N6O")
-    assert check_val2 == 2
+    assert check_field(res2, "mdf.title", "Cytochrome QSAR - C13F2N6O") == 2
 
 
 def test_forge_match_resource_types():
@@ -385,6 +388,7 @@ def test_forge_search(capsys):
     res4 = f4.search("oqmd", limit=3)
     assert len(res4) == 3
 
+
 def test_forge_search_by_elements():
     f1 = forge.Forge()
     f2 = forge.Forge()
@@ -399,12 +403,13 @@ def test_forge_search_by_elements():
 
 def test_forge_search_by_titles():
     f1 = forge.Forge()
-    f2 = forge.Forge()
     titles1 = ["\"AMCS - Tungsten\""]
-    titles2 = ["Tungsten"]
-    res1, info1 = f1.search_by_titles(titles1, limit=10000, info=True)
-    res2, info2 = f2.search_by_titles(titles2, limit=10000, info=True)
+    res1 = f1.search_by_titles(titles1)
     assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
+
+    f2 = forge.Forge()
+    titles2 = ["Tungsten"]
+    res2 = f2.search_by_titles(titles2)
     assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
 
 

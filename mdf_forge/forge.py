@@ -74,6 +74,7 @@ class Forge:
 #################################################
 ##  Core functions
 #################################################
+
     def match_field(self, field, value, required=True, new_group=False):
         """Add a field:value term to the query.
         Matches will have field == value.
@@ -317,6 +318,7 @@ class Forge:
         # Done
         return self
 
+
     def match_sources(self, sources):
         """Add sources to match to the query.
 
@@ -360,6 +362,7 @@ class Forge:
             self.match_field(field="mdf.mdf_id", value=mid, required=False, new_group=False)
         return self
 
+
     def match_elements(self, elements, match_all=True):
         """Add elemental abbreviations to the query.
 
@@ -383,6 +386,7 @@ class Forge:
                              new_group=False)
         return self
 
+
     def match_titles(self, titles):
         """Add titles to the query.
 
@@ -393,18 +397,17 @@ class Forge:
         self (Forge): For chaining.
         """
         if not titles:
-            print_("Error: No title specified.")
             return self
         if not isinstance(titles, list):
             titles = [titles]
         if '' in titles:
-            print_("Error: No title specified.")
             return self
 
         self.match_field(field="mdf.title", value=titles[0], required=True, new_group=True)
         for title in titles[1:]:
             self.match_field(field="mdf.title", value=title, required=False, new_group=False)
         return self
+
 
     def match_resource_types(self, types):
         """Match the given resource types.
@@ -459,15 +462,18 @@ class Forge:
                     .match_sources(sources)
                     .search(limit=limit, info=info))
 
+
     def search_by_titles(self, titles=[], limit=None, info=False):
         """Execute a search for the given titles.
         search_by_titles([x]) is equivalent to match_titles([x]).search()
 
         Arguments:
         titles (list of str): The titles to match. Default [].
-        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        limit (int): The maximum number of results to return.
+                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list, and other information about the query.
+                     If True, search will return a tuple containing the results list,
+                        and other information about the query.
                      Default False.
 
         Returns:
@@ -475,6 +481,7 @@ class Forge:
         tuple (if info=True): The results, and a dictionary of query information.
         """
         return self.match_titles(titles).search(limit=limit, info=info)
+
 
     def aggregate_source(self, sources):
         """Aggregate all records from a given source.
