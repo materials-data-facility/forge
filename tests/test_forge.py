@@ -357,37 +357,33 @@ def test_forge_match_titles():
     assert check_field(res2, "mdf.title", "Cytochrome QSAR - C13F2N6O") == 2
 
 
-@pytest.mark.match_tags
 def test_forge_match_tags():
-    # Get one (the first) tag
+    # Get one tag
     f0 = forge.Forge()
     res0 = f0.search("mdf.source_name:trinkle_elastic_fe_bcc", advanced=True, limit=1)
     tags1 = res0[0]["mdf"]["tags"][0]
     # One tag
     f1 = forge.Forge()
     res1 = f1.match_tags(tags1).search()
-    assert res1 != []
     assert check_field(res1, "mdf.tags", tags1) == 2
 
     f2 = forge.Forge()
     tags2 = "\"ab initio\""
-    f2.match_field(field="mdf.tags", value=tags2, required=True, new_group=True)
+    f2.match_tags(tags2)
     res2 = f2.search()
-    assert res2 != []
-    # there is 'ab' in 'ab initio' ["ab","initio"] list because
-    # check_field() Elastic Search splits ab-initio as well to the same list
+    # Elasticsearch splits ["ab-initio"] into ["ab", "initio"]
     assert check_field(res2, "mdf.tags", "ab-initio") == 2
 
     # Multiple tags
     f3 = forge.Forge()
     tags3 = ["\"density functional theory calculations\"", "\"X-ray\""]
-    res3, info3 = f3.match_tags(tags3).search(limit=10, info=True)
-    assert res3 != []
+    res3 = f3.match_tags(tags3, match_all=True).search()
     # "source_name": "ge_nanoparticles",
     # "tags": [ "amorphization","density functional theory calculations","Ge nanoparticles",
     #           "high pressure","phase transformation","Raman","X-ray absorption","zip" ]
     assert check_field(res3, "mdf.tags", "Raman") == 1
     assert check_field(res3, "mdf.tags", "X-ray absorption") == 1
+    assert check_field(res3, "mdf.tags", "density functional theory calculations") == 1
 
 
 def test_forge_match_resource_types():
@@ -454,23 +450,22 @@ def test_forge_search_by_titles():
     assert check_field(res2, "mdf.title", "AMCS - Tungsten") == 2
 
 
-@pytest.mark.search_by_tags
 def test_forge_search_by_tags():
     f1 = forge.Forge()
     tags1 = "DFT"
-    res1, info1 = f1.search_by_tags(tags1, limit=10, info=True)
+    res1 = f1.search_by_tags(tags1)
     assert check_field(res1, "mdf.tags", "DFT") == 2
 
     f2 = forge.Forge()
     tags2 = ["\"Density Functional Theory\"", "\"X-ray\""]
-    res2, info2 = f2.search_by_tags(tags2, limit=100, match_all=True, info=True) #  1 so far
+    res2 = f2.search_by_tags(tags2, match_all=True)
     f3 = forge.Forge()
     tags3 = ["\"Density Functional Theory\"", "\"X-ray\""]
-    res3, info3 = f3.search_by_tags(tags3, limit=100, match_all=False, info=True) # 6 so far
+    res3 = f3.search_by_tags(tags3, match_all=False)
 
     # res2 is a subset of res3
     assert len(res3) > len(res2)
-    assert all([r in res3 for r in res2]) and any([r in res2 for r in res3])
+    assert all([r in res3 for r in res2])
 
 
 def test_forge_aggregate_source():

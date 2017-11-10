@@ -386,11 +386,12 @@ class Forge:
                              new_group=False)
         return self
 
+
     def match_tags(self, tags, match_all=True):
         """Add tags to the query.
 
         Arguments:
-        tags (str or list of str): The tags (keywords, descriptors for the record to match.
+        tags (str or list of str): The tags (keywords) to match.
         match_all (bool): If True, will add with AND. If False, will use OR. Default True.
 
         Returns:
@@ -403,7 +404,6 @@ class Forge:
             tags = [tags]
 
         self.match_field(field="mdf.tags", value=tags[0], required=True, new_group=True)
-        # Other tags should stay in that group
         for tag in tags[1:]:
             self.match_field(field="mdf.tags", value=tag, required=match_all,
                              new_group=False)
@@ -458,7 +458,7 @@ class Forge:
 ##  Premade searches
 #################################################
 
-    def search_by_elements(self, elements=[], sources=[], limit=None, match_all=True, info=False):
+    def search_by_elements(self, elements, sources=[], limit=None, match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to
             match_elements([x]).match_sources([y]).search()
@@ -486,7 +486,7 @@ class Forge:
                     .search(limit=limit, info=info))
 
 
-    def search_by_titles(self, titles=[], limit=None, info=False):
+    def search_by_titles(self, titles, limit=None, info=False):
         """Execute a search for the given titles.
         search_by_titles([x]) is equivalent to match_titles([x]).search()
 
@@ -503,31 +503,30 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-
         return self.match_titles(titles).search(limit=limit, info=info)
 
 
-    def search_by_tags(self, tags=[], limit=None, match_all=True, info=False):
+    def search_by_tags(self, tags, limit=None, match_all=True, info=False):
         """Execute a search for the given tag.
         search_by_tags([x]) is equivalent to match_tags([x]).search()
 
         Arguments:
         tags (list of str): The tags to match. Default [].
-        limit (int): The maximum number of results to return. The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        limit (int): The maximum number of results to return.
+                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         match_all (bool): If True, will add elements with AND.
                           If False, will use OR.
                           Default True.
         info (bool): If False, search will return a list of the results.
-        If True, search will return a tuple containing the results list, and other information about the query.
+        If True, search will return a tuple containing the results list,
+            and other information about the query.
         Default False.
 
         Returns:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-
-        return (self.match_tags(tags, match_all=match_all)
-                .search(limit=limit, info=info))
+        return self.match_tags(tags, match_all=match_all).search(limit=limit, info=info)
 
 
     def aggregate_source(self, sources):
