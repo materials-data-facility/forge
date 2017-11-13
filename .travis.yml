@@ -14,7 +14,6 @@ install:
 env:
 - TEST_ENV=travis
 script:
-- cd forge
 - travis_wait 30 py.test --cov=mdf_forge
 before_install:
 - openssl aes-256-cbc -K $encrypted_4b438100ad6f_key -iv $encrypted_4b438100ad6f_iv
