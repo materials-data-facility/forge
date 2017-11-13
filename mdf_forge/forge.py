@@ -209,6 +209,15 @@ class Forge:
         return block_map
 
 
+    def current_query(self):
+        """Return the current query string.
+
+        Returns:
+        str: The current query string.
+        """
+        return self.__query.clean_query()
+
+
     def reset_query(self):
         """Destroy the current query and create a fresh one.
         
@@ -423,8 +432,6 @@ class Forge:
             return self
         if not isinstance(titles, list):
             titles = [titles]
-        if '' in titles:
-            return self
 
         self.match_field(field="mdf.title", value=titles[0], required=True, new_group=True)
         for title in titles[1:]:
@@ -610,8 +617,11 @@ class Forge:
                         If False, only error messages will be printed.
                         Default True.
         """
+        # If user submitted single result, make into list
+        if isinstance(results, dict):
+            results = [results]
         # If results have info attached, remove it
-        if type(results) is tuple:
+        elif isinstance(results, tuple):
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
             print_("Error: Too many results supplied. Use globus_download()"
@@ -650,7 +660,8 @@ class Forge:
                     while os.path.exists(local_path):
                         # Find period marking extension, if exists
                         # Will be after last slash
-                        index = local_path.rfind(".", local_path.rfind("/"))
+                        last_slash = local_path.rfind("/")
+                        index = local_path.rfind(".", (last_slash if last_slash != -1 else 0))
                         if index < 0:
                             ext = ""
                         else:
@@ -674,7 +685,7 @@ class Forge:
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error", response.status_code, 
+                        print_("Error ", response.status_code, 
                                " when attempting to access '",
                                host+remote_path, "'", sep="")
                     else:
@@ -927,9 +938,9 @@ class Query:
         """Clean up a query string.
         This method does not access self, so that a search will not change state.
         """
-        q = q.strip().replace("()", "")
+        q = q.replace("()", "").strip()
         if q.endswith("("):
-            q = q[:-1]
+            q = q[:-1].strip()
         # Remove misplaced AND/OR/NOT at end
         if q[-3:] == "AND" or q[-3:] == "NOT":
             q = q[:-3]
@@ -942,7 +953,16 @@ class Query:
         while q.count(")") > q.count("("):
             q = "(" + q
         
-        return q
+        return q.strip()
+
+
+    def clean_query(self):
+        """Returns the current query, cleaned for user consumption,
+
+        Returns:
+        str: The clean current query.
+        """
+        return self.__clean_query_string(self.query)
 
 
     def term(self, term):
@@ -971,10 +991,12 @@ class Query:
         Returns:
         self (Query): For chaining.
         """
-        self.query += field + ":" + value
-        # Field matches are advanced queries
-        self.advanced = True
-        self.initialized = True
+        # Cannot add field:value if one is blank
+        if field and value:
+            self.query += field + ":" + value
+            # Field matches are advanced queries
+            self.advanced = True
+            self.initialized = True
         return self
 
 

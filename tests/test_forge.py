@@ -2,6 +2,7 @@ import os
 import time
 import types
 import pytest
+import globus_sdk
 from mdf_forge import forge
 from mdf_forge import toolbox
 
@@ -14,6 +15,7 @@ query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge",
 ############################
 # Query tests
 ############################
+
 def test_query_term():
     q = forge.Query(query_search_client)
     # Single match test
@@ -45,6 +47,18 @@ def test_query_field():
     assert q1.query == "(mdf.source_name:oqmd) AND (dc.title:sample NOT  NOT "
     # Ensure advanced is set
     assert q1.advanced
+
+    # Test noop on blanks
+    q2 = forge.Query(query_search_client)
+    assert q2.query == "("
+    q2.field(field="", value="value")
+    assert q2.query == "("
+    q2.field(field="field", value="")
+    assert q2.query == "("
+    q2.field(field="", value="")
+    assert q2.query == "("
+    q2.field(field="field", value="value")
+    assert q2.query == "(field:value"
 
 
 def test_query_search(capsys):
@@ -94,12 +108,47 @@ def test_query_chaining():
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
+def test_query_cleaning():
+    # Imbalanced/improper parentheses
+    q1 = forge.Query(query_search_client, q="() term ")
+    assert q1.clean_query() == "term"
+    q2 = forge.Query(query_search_client, q="(term)(")
+    assert q2.clean_query() == "(term)"
+    q3 = forge.Query(query_search_client, q="(term) AND (")
+    assert q3.clean_query() == "(term)"
+    q4 = forge.Query(query_search_client, q="(term AND term2")
+    assert q4.clean_query() == "(term AND term2)"
+    q5 = forge.Query(query_search_client, q="term AND term2)")
+    assert q5.clean_query() == "(term AND term2)"
+    q6 = forge.Query(query_search_client, q="((((term AND term2")
+    assert q6.clean_query == "((((term AND term2))))"
+    q7 = forge.Query(query_search_client, q="term AND term2))))")
+    assert q7.clean_query == "((((term AND term2))))"
+
+    # Correct trailing operators
+    q8 = forge.Query(query_search_client, q="term AND NOT term2 OR")
+    assert q8.clean_query() == "term AND NOT term2"
+    q9 = forge.Query(query_search_client, q="term OR NOT term2 AND")
+    assert q9.clean_query() == "term OR NOT term2"
+    q10 = forge.Query(query_search_client, q="term OR term2 NOT")
+    assert q10.clean_query() == "term OR term2"
+
+
+
 ############################
 # Forge tests
 ############################
 
+# Test properties
+def test_forge_properties():
+    f1 = forge.Forge()
+    assert type(f1.search_client) is toolbox.SearchClient
+    assert type(f1.transfer_client) is globus_sdk.TransferClient
+    assert type(f1.mdf_authorizer) is globus_sdk.RefreshTokenAuthorizer
+
+
 # Sample results for download testing
-example_result1 = [{
+example_result1 = {
         'mdf': {
             'links': {
                 'landing_page': 'https://data.materialsdatafacility.org/test/test_fetch.txt',
@@ -110,7 +159,7 @@ example_result1 = [{
                 }
             }
         }
-    }]
+    }
 example_result2 = [{
         'mdf': {
             'links': {
@@ -130,6 +179,19 @@ example_result2 = [{
                     'globus_endpoint': '82f1b5c6-6e9b-11e5-ba47-22000b92c6ec',
                     'http_host': 'https://data.materialsdatafacility.org',
                     'path': '/test/test_multifetch.txt'
+                }
+            }
+        }
+    }]
+# NOTE: This example file does not exist
+example_result_missing = [{
+        'mdf': {
+            'links': {
+                'landing_page': 'https://data.materialsdatafacility.org/test/missing.txt',
+                'txt': {
+                    'globus_endpoint': '82f1b5c6-6e9b-11e5-ba47-22000b92c6ec',
+                    'http_host': 'https://data.materialsdatafacility.org',
+                    'path': '/test/missing.txt'
                 }
             }
         }
@@ -301,6 +363,9 @@ def test_forge_match_sources():
     assert len(res2) > len(res1)
     assert all([r1 in res2 for r1 in res1])
     assert check_field(res2, "mdf.source_name", "nist_janaf") == 2
+    # No source
+    f3 = forge.Forge()
+    assert f3.match_sources("") == f3
 
 
 def test_forge_match_ids():
@@ -323,6 +388,9 @@ def test_forge_match_ids():
     assert len(res2) > len(res1)
     assert all([r1 in res2 for r1 in res1])
     assert check_field(res2, "mdf.mdf_id", id2) == 2
+    # No id
+    f3 = forge.Forge()
+    assert f3.match_ids("") == f3
 
 
 def test_forge_match_elements():
@@ -339,22 +407,29 @@ def test_forge_match_elements():
     res2 = f2.search()
     assert check_field(res2, "mdf.elements", "Al") == 1
     assert check_field(res2, "mdf.elements", "Cu") == 1
+    # No elements
+    f3 = forge.Forge()
+    assert f3.match_elements("") == f3
 
 
 def test_forge_match_titles():
     # One title
     f1 = forge.Forge()
-    titles1 = ["\"OQMD - Na1Y2Zr1\""]
+    titles1 = '"OQMD - Na1Y2Zr1"'
     res1 = f1.match_titles(titles1).search()
     assert res1 != []
     assert check_field(res1, "mdf.title", "OQMD - Na1Y2Zr1") == 0
 
     # Multiple titles
     f2 = forge.Forge()
-    titles2 = ["\"AMCS - Tungsten\"", "\"Cytochrome QSAR\""]
+    titles2 = ['"AMCS - Tungsten"', '"Cytochrome QSAR"']
     res2 = f2.match_titles(titles2).search()
     assert res2 != []
     assert check_field(res2, "mdf.title", "Cytochrome QSAR - C13F2N6O") == 2
+
+    # No titles
+    f3 = forge.Forge()
+    assert f3.match_titles("") == f3
 
 
 def test_forge_match_tags():
@@ -385,6 +460,10 @@ def test_forge_match_tags():
     assert check_field(res3, "mdf.tags", "X-ray absorption") == 1
     assert check_field(res3, "mdf.tags", "density functional theory calculations") == 1
 
+    # No tag
+    f4 = forge.Forge()
+    assert f4.match_tags("") == f4
+
 
 def test_forge_match_resource_types():
     f1 = forge.Forge()
@@ -399,6 +478,9 @@ def test_forge_match_resource_types():
     assert check_field(res2, "mdf.resource_type", "record") == -1
     #TODO: Re-enable this assert after we get collections in MDF
 #    assert check_field(res2, "mdf.resource_type", "dataset") == 2
+    # Test zero types
+    f3 = forge.Forge()
+    assert f3.match_resource_types("") == f3
 
 
 def test_forge_search(capsys):
@@ -424,6 +506,13 @@ def test_forge_search(capsys):
     f4 = forge.Forge()
     res4 = f4.search("oqmd", limit=3)
     assert len(res4) == 3
+
+    # Check reset_query
+    f5 = forge.Forge()
+    f5.match_field("mdf.source_name", "hopv")
+    res5 = f5.search(reset_query=False)
+    res6 = f5.search()
+    assert all([r in res6 for r in res5]) and all([r in res5 for r in res6])
 
 
 def test_forge_search_by_elements():
@@ -521,14 +610,22 @@ def test_forge_fetch_datasets_from_results():
     f5 = forge.Forge()
     f5.match_sources("nist_xps_db")
     assert f5.fetch_datasets_from_results() == res04
+    # Fetch nothing
+    f6 = forge.Forge()
+    unknown_entry = {"mdf": {"resource_type": "unknown"}}
+    assert f6.fetch_datasets_from_results(unknown_entry) == []
 
 
 def test_forge_aggregate():
-    f = forge.Forge()
-    r = f.aggregate('mdf.source_name:oqmd AND '
-                        '(oqmd.configuration:static OR oqmd.configuration:standard) '
-                        'AND oqmd.converged:True AND oqmd.band_gap.value:>2')
-    assert isinstance(r[0], dict)
+    # Test that aggregate uses the current query properly
+    # And returns results
+    # And respects the reset_query arg
+    f1 = forge.Forge()
+    f1.match_field("mdf.source_name", "nist_xps_db")
+    res1 = f1.aggregate(reset_query=False)
+    assert len(res1) > 10000
+    res2 = f1.aggregate()
+    assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
 def test_forge_reset_query():
@@ -540,24 +637,51 @@ def test_forge_reset_query():
     assert f.search() == []
 
 
-def test_forge_http_download():
+def test_forge_current_query():
+    f = forge.Forge()
+    # Query.clean_query() is already tested, just need to check basic functionality
+    f.match_field("field", "value")
+    assert f.current_query() == "(field:value)"
+
+
+def test_forge_http_download(capsys):
     f = forge.Forge()
     # Simple case
     f.http_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
+
+    # Test conflicting filenames
+    f.http_download(example_result1)
+    assert os.path.exists("./test_fetch(1).txt")
+    f.http_download(example_result1)
+    assert os.path.exists("./test_fetch(2).txt")
     os.remove("./test_fetch.txt")
-    # With dest and preserve_dir
+    os.remove("./test_fetch(1).txt")
+    os.remove("./test_fetch(2).txt")
+
+    # With dest and preserve_dir, and tuple of results
     dest_path = os.path.expanduser("~/mdf")
-    f.http_download(example_result1, dest=dest_path, preserve_dir=True)
+    f.http_download(([example_result1], {"info": None}), dest=dest_path, preserve_dir=True)
     assert os.path.exists(os.path.join(dest_path, "test", "test_fetch.txt"))
     os.remove(os.path.join(dest_path, "test", "test_fetch.txt"))
     os.rmdir(os.path.join(dest_path, "test"))
+
     # With multiple files
     f.http_download(example_result2, dest=dest_path)
     assert os.path.exists(os.path.join(dest_path, "test_fetch.txt"))
     assert os.path.exists(os.path.join(dest_path, "test_multifetch.txt"))
     os.remove(os.path.join(dest_path, "test_fetch.txt"))
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
+
+    # Too many files
+    assert f.http_download(list(range(10001)))["success"] == False
+
+    # "Missing" files
+    f.http_download(example_result_missing)
+    out, err = capsys.readouterr()
+    assert not os.path.exists("./missing.txt")
+    assert ("Error 404 when attempting to access "
+            "'https://data.materialsdatafacility.org/test/missing.txt'") in out
 
 
 @pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
