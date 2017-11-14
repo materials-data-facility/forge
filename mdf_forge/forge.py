@@ -877,8 +877,9 @@ class Forge:
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error", response.status_code, " when attempting to access '",
+                        print_("Error ", response.status_code, " when attempting to access '",
                                host+remote_path, "'", sep="")
+                        yield None
                     else:
                         yield response.text
 
@@ -914,24 +915,24 @@ class Query:
     Terms will not have spaces in between otherwise, and it is desirable to be explicit about
     which terms are required.
     """
-    def __init__(self, search_client, q="(", limit=None, advanced=False):
+    def __init__(self, search_client, q=None, limit=None, advanced=False):
         """Initialize the Query instance.
 
         Arguments:
         search_client (SearchClient): The Globus Search client to use for searching.
         q (str): The query string to start with. Default nothing.
-        limit: The maximum number of results to return. Default None.
-        advanced: If True, will submit query in "advanced" mode ro enable field matches.
-                  If False, only basic fulltext term matches will be supported.
-                  Default False.
+        limit (int): The maximum number of results to return. Default None.
+        advanced (bool): If True, will submit query in "advanced" mode ro enable field matches.
+                         If False, only basic fulltext term matches will be supported.
+                         Default False.
         """
         self.__search_client = search_client
-        self.query = q
+        self.query = q or "("
         self.limit = limit
         self.advanced = advanced
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
-        self.initialized = (self.query != "(")
+        self.initialized = not self.query == "("
 
 
     def __clean_query_string(self, q):
@@ -1017,7 +1018,6 @@ class Query:
         # List of allowed operators
         OP_LIST = ["AND", "OR", "NOT"]
         op = op.upper().strip()
-        last = self.query.strip(" ()")[-3:]
         if op not in OP_LIST:
             print_("Error: '", op, "' is not a valid operator.", sep='')
         else:
@@ -1107,8 +1107,8 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print_("Error: No query specified")
-            return ([], {"error": "No query specified"}) if info else []
+            print_("Error: No query")
+            return ([], {"error": "No query"}) if info else []
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
@@ -1135,7 +1135,7 @@ class Query:
 
 
     def aggregate(self, q=None, scroll_size=SEARCH_LIMIT):
-        """Gather all record results that match a specific query
+        """Gather all results that match a specific query
 
         Note that all aggregate queries run in advanced mode.
 
@@ -1150,11 +1150,11 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print_("Error: No query specified")
-            return ([], {"error": "No query specified"}) if info else []
+            print_("Error: No query")
+            return []
 
         q = self.__clean_query_string(q)
-
+        #TODO: Remove record restriction (all entries require scroll_id)
         q += " AND mdf.resource_type:record"
 
         # Get the total number of records
@@ -1163,6 +1163,8 @@ class Query:
 
         # Scroll until all results are found
         output = []
+
+        #TODO: scroll_pos = 0 (when all entries have scroll_id)
         scroll_pos = 1
         with tqdm(total=total) as pbar:
             while len(output) < total:

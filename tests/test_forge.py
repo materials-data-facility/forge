@@ -16,6 +16,20 @@ query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge",
 # Query tests
 ############################
 
+def test_query_init():
+    q1 = forge.Query(query_search_client)
+    assert q1.query == "("
+    assert q1.limit == None
+    assert q1.advanced == False
+    assert q1.initialized == False
+
+    q2 = forge.Query(query_search_client, q="mdf.source_name:oqmd", limit=5, advanced=True)
+    assert q2.query == "mdf.source_name:oqmd"
+    assert q2.limit == 5
+    assert q2.advanced == True
+    assert q2.initialized == True
+
+
 def test_query_term():
     q = forge.Query(query_search_client)
     # Single match test
@@ -61,12 +75,59 @@ def test_query_field():
     assert q2.query == "(field:value"
 
 
+def test_query_operator(capsys):
+    q1 = forge.Query(query_search_client)
+    assert q1.query == "("
+    # Add bad operator
+    assert q1.operator("FOO") == q1
+    out, err = capsys.readouterr()
+    assert "Error: 'FOO' is not a valid operator"
+    assert q1.query == "("
+    # Test operator cleaning
+    q1.operator("   and ")
+    assert q1.query == "( AND "
+    # Test close_group
+    q1.operator("OR", close_group=True)
+    assert q1.query == "( AND ) OR ("
+
+
+def test_query_and_join(capsys):
+    q1 = forge.Query(query_search_client)
+    # Test not initialized
+    assert q1.and_join() == q1
+    out, err = capsys.readouterr()
+    assert ("Error: You must add a term before adding an operator. "
+            "The current query has not been changed.") in out
+    # Regular join
+    q1.term("foo").and_join()
+    assert q1.query == "(foo AND "
+    # close_group
+    q1.term("bar").and_join(close_group=True)
+    assert q1.query == "(foo AND bar) AND ("
+
+
+def test_query_or_join(capsys):
+    q1 = forge.Query(query_search_client)
+    # Test not initialized
+    assert q1.or_join() == q1
+    out, err = capsys.readouterr()
+    assert ("Error: You must add a term before adding an operator. "
+            "The current query has not been changed.") in out
+    # Regular join
+    q1.term("foo").or_join()
+    assert q1.query == "(foo OR "
+    # close_group
+    q1.term("bar").or_join(close_group=True)
+    assert q1.query == "(foo OR bar) OR ("
+
+
 def test_query_search(capsys):
     # Error on no query
     q1 = forge.Query(query_search_client)
     assert q1.search() == []
     out, err = capsys.readouterr()
-    assert "Error: No query specified" in out
+    assert "Error: No query" in out
+    assert q1.search(info=True) == ([], {"error": "No query"})
 
     # Return info if requested
     q2 = forge.Query(query_search_client)
@@ -85,13 +146,29 @@ def test_query_search(capsys):
     res4 = q4.search("oqmd", limit=3)
     assert len(res4) == 3
 
+    # Check limit correction
+    q5 = forge.Query(query_search_client)
+    res5 = q5.search("nist_xps_db", limit=20000)
+    assert len(res5) == 10000
 
-def test_query_aggregate():
-    q = forge.Query(query_search_client)
-    r = q.aggregate('mdf.source_name:oqmd AND '
-                        '(oqmd.configuration:static OR oqmd.configuration:standard) '
-                        'AND oqmd.converged:True AND oqmd.band_gap.value:>2')
-    assert isinstance(r[0], dict)
+
+def test_query_aggregate(capsys):
+    q1 = forge.Query(query_search_client)
+    # Error on no query
+    assert q1.aggregate() == []
+    out, err = capsys.readouterr()
+    assert "Error: No query" in out
+
+    # Basic aggregation
+    res1 = q1.aggregate("mdf.source_name:nist_xps_db")
+    assert len(res1) > 10000
+    assert isinstance(res1[0], dict)
+
+    # Multi-dataset aggregation
+    q2 = forge.Query(query_search_client)
+    res2 = q2.aggregate("(mdf.source_name:nist_xps_db OR mdf.source_name:nist_janaf)")
+    assert len(res2) > 10000
+    assert len(res2) > len(res1)
 
 
 def test_query_chaining():
@@ -488,7 +565,7 @@ def test_forge_search(capsys):
     f1 = forge.Forge()
     assert f1.search() == []
     out, err = capsys.readouterr()
-    assert "Error: No query specified" in out
+    assert "Error: No query" in out
 
     # Return info if requested
     f2 = forge.Forge()
@@ -705,17 +782,33 @@ def test_forge_globus_download():
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
 
 
-def test_forge_http_stream():
-    f = forge.Forge()
+def test_forge_http_stream(capsys):
+    f1 = forge.Forge()
     # Simple case
-    res1 = f.http_stream(example_result1)
+    res1 = f1.http_stream(example_result1)
     assert isinstance(res1, types.GeneratorType)
     assert next(res1) == "This is a test document for Forge testing. Please do not remove.\n"
     # With multiple files
-    res2 = f.http_stream(example_result2)
+    res2 = f1.http_stream((example_result2, {"info":{}}))
     assert isinstance(res2, types.GeneratorType)
     assert next(res2) == "This is a test document for Forge testing. Please do not remove.\n"
     assert next(res2) == "This is a second test document for Forge testing. Please do not remove.\n"
+    # Too many results
+    res3 = f1.http_stream(list(range(10001)))
+    assert next(res3)["success"] == False
+    out, err = capsys.readouterr()
+    assert ("Too many results supplied. Use globus_download() for "
+            "fetching more than 2000 entries.") in out
+    with pytest.raises(StopIteration):
+        next(res3)
+
+    # "Missing" files
+    f2 = forge.Forge()
+    assert next(f2.http_stream(example_result_missing)) is None
+    out, err = capsys.readouterr()
+    assert not os.path.exists("./missing.txt")
+    assert ("Error 404 when attempting to access "
+            "'https://data.materialsdatafacility.org/test/missing.txt'") in out
 
 
 def test_forge_http_return():
