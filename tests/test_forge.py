@@ -211,7 +211,8 @@ def check_field(res, field, value):
         "mdf.mdf_id",
         "mdf.resource_type",
         "mdf.title",
-        "mdf.tags"
+        "mdf.tags",
+        "mdf.year"
     ]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
@@ -242,6 +243,8 @@ def check_field(res, field, value):
                 vals = r["mdf"]["tags"]
             except KeyError:
                 vals = []
+        elif field == "mdf.year":
+            vals = [r["mdf"]["year"]]
 
         # If a result does not contain the value, no match
         if value not in vals:
@@ -465,6 +468,21 @@ def test_forge_match_tags():
     assert f4.match_tags("") == f4
 
 
+def test_forge_match_years():
+    # One year of data/results
+    f1 = forge.Forge()
+    years1 = "2015"
+    res1 = f1.match_years(years1).search()
+    assert res1 != []
+    assert check_field(res1, "mdf.year", "2015") == 0
+
+    # Multiple years
+    f2 = forge.Forge()
+    years2 = ["2015","2011"]
+    res2 = f2.match_years(years2, match_all=True).search()
+    assert check_field(res2, "mdf.years", "2011") == 2
+
+
 def test_forge_match_resource_types():
     f1 = forge.Forge()
     # Test one type
@@ -555,6 +573,18 @@ def test_forge_search_by_tags():
     # res2 is a subset of res3
     assert len(res3) > len(res2)
     assert all([r in res3 for r in res2])
+
+
+def test_forge_search_by_years():
+    f1 = forge.Forge()
+    years1 = ["20111"]
+    res1 = f1.search_by_years(years1)
+    assert check_field(res1, "mdf.year", "2011") == 0
+
+    f2 = forge.Forge()
+    years2 = ["2020"]
+    res2 = f2.search_by_years(years2)
+    assert check_field(res2, "mdf.year", "2020") == 2
 
 
 def test_forge_aggregate_source():

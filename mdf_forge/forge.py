@@ -448,7 +448,10 @@ class Forge:
 
         Arguments:
         years (int, str or list of int or str): The years or range to match.
-
+        match_all (bool) of 1) list of years:  If True, will add with AND. If False, will use OR.
+                            2) min, max range: If True, the start and stop values will be included in the search. If False,
+                                                        neither of them will be included.
+                            Default True.
         Returns:
         self (Forge): For chaining.
         """
@@ -459,14 +462,15 @@ class Forge:
 
         year_start = "*"; year_stop = "*"
         for year in years:
+            year = str(year)
             if year.isdigit() and len(year) == 4:
-                years_new = years_new.append(year)
+                years_new = years_new.append(str(year))
             elif "min=" in year and year[4:4].isdigit() and len(year) == 8:
                 year_start = year[4:4]
             elif "max=" in year and year[4:4].isdigit() and len(year) == 8:
                 year_stop = year[4:4]
             else:
-                print("A year is not a valid input of 'yyyy', 'min=yyyy', or 'max=yyyy' types")
+                print("A year is not a valid input of 'yyyy', 'min=yyyy', or 'max=yyyy' type")
                 return self
 
         if year_start == "*" and year_stop == "*":
