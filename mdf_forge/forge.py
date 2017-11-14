@@ -439,6 +439,54 @@ class Forge:
         return self
 
 
+    def match_years(self, years, match_all=True):
+        """Add years and limits to the query.
+        Options:
+        match_year(2005)
+        match_year([2005, 2010]) either 2005 or 2010
+        match_year(min=1999, max=2005), if no min everything up to the year, if no max everything up to now
+
+        Arguments:
+        years (str or list of str): The years or range to match.
+
+        Returns:
+        self (Forge): For chaining.
+        """
+        if not years:
+            return self
+        if not isinstance(years, list):
+            years = [years]
+
+        year_start = "*"; year_stop = "*"
+        for year in years:
+            if year.isdigit() and len(year) == 4:
+                years_new = years_new.append(year)
+            elif "min=" in year and year[4:4].isdigit() and len(year) == 8:
+                year_start = year[4:4]
+            elif "max=" in year and year[4:4].isdigit() and len(year) == 8:
+                year_stop = year[4:4]
+            else:
+                print("A year is not a valid input of 'yyyy', 'min=yyyy', or 'max=yyyy' types")
+                return self
+
+        if year_start == "*" and year_stop == "*":
+            self.match_field(field="mdf.year", value=years_new[0], required=True, new_group=True)
+            for year in years_new[1:]:
+                self.match_field(field="mdf.year", value=year, required=match_all,
+                                 new_group=False)
+        else:
+            self.match_range(self, field="mdf.year", start=year_start, stop=year_stop, inclusive=match_all, required=True,
+                             new_group=False)
+        return self
+
+
+    def valid_year(year):
+        if year and year.isdigit():
+            year = int(year)
+            if year >= 1900 and year <= 2020:
+                return year
+
+
     def match_resource_types(self, types):
         """Match the given resource types.
 
@@ -534,6 +582,29 @@ class Forge:
         tuple (if info=True): The results, and a dictionary of query information.
         """
         return self.match_tags(tags, match_all=match_all).search(limit=limit, info=info)
+
+
+    def search_by_years(self, years, limit=None, match_all=True, info=False):
+        """Execute a search for the given year or years.
+        search_by_years([x]) is equivalent to match_years([x]).search()
+
+        Arguments:
+        years (list of str): The years to match. Default [].
+        limit (int): The maximum number of results to return.
+                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+        match_all (bool): If True, will add elements with AND.
+                          If False, will use OR.
+                          Default True.
+        info (bool): If False, search will return a list of the results.
+        If True, search will return a tuple containing the results list,
+            and other information about the query.
+        Default False.
+
+        Returns:
+        list (if info=False): The results.
+        tuple (if info=True): The results, and a dictionary of query information.
+        """
+        return self.match_year(years, match_all=match_all).search(limit=limit, info=info)
 
 
     def aggregate_source(self, sources):
