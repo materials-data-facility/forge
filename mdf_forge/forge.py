@@ -447,7 +447,7 @@ class Forge:
         match_year(min=1999, max=2005), if no min everything up to the year, if no max everything up to now
 
         Arguments:
-        years (str or list of str): The years or range to match.
+        years (int, str or list of int or str): The years or range to match.
 
         Returns:
         self (Forge): For chaining.
