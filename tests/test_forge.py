@@ -121,9 +121,9 @@ def test_query_cleaning():
     q5 = forge.Query(query_search_client, q="term AND term2)")
     assert q5.clean_query() == "(term AND term2)"
     q6 = forge.Query(query_search_client, q="((((term AND term2")
-    assert q6.clean_query == "((((term AND term2))))"
+    assert q6.clean_query() == "((((term AND term2))))"
     q7 = forge.Query(query_search_client, q="term AND term2))))")
-    assert q7.clean_query == "((((term AND term2))))"
+    assert q7.clean_query() == "((((term AND term2))))"
 
     # Correct trailing operators
     q8 = forge.Query(query_search_client, q="term AND NOT term2 OR")
