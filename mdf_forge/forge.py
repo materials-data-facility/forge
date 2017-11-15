@@ -1151,8 +1151,7 @@ class Query:
         q += " AND mdf.resource_type:record"
 
         # Get the total number of records
-        result = self.__search_client.search(q, limit=0, advanced=True)
-        total = result['total']
+        total = self.search(q, limit=0, advanced=True, info=True)[1]["total_query_matches"]
 
         # Scroll until all results are found
         output = []
@@ -1169,22 +1168,30 @@ class Query:
                 #   scroll width is much smaller than that maximum
                 scroll_width = scroll_size
                 while True:
-                    result_records = self.__search_client.search("(" + q
-                                        + ') AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
-                                            scroll_pos, scroll_pos + scroll_width),
-                                        advanced=True, limit=SEARCH_LIMIT)
+                    struct_query = {
+                        "q": "(" + q + ') AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
+                                            scroll_pos, scroll_pos+scroll_width),
+                        "advanced": True,
+                        "limit": SEARCH_LIMIT,
+                        "offset": 0
+                        }
+                    query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
+                                            scroll_pos, scroll_pos+scroll_width)
+                    results, info = self.search(query, advanced=True, info=True)
 
                     # Check to make sure that all the matching records were returned
-                    if result_records['total'] <= result_records['count']:
+                    if info["total_query_matches"] <= len(results):
                         break
 
                     # If not, reduce the scroll width
-                    scroll_width = int(scroll_width * (result_records['count']
-                                                       / result_records['total']))
+                    # new_width is proportional with the proportion of results returned
+                    new_width = scroll_width * (len(results) // info["total_query_matches"])
+                    # scroll_width should never be 0, and should only be 1 in rare circumstances
+                    scroll_width = new_width if new_width > 1 else max(scroll_width//2, 1)
 
                 # Append the results to the output
-                output.extend(toolbox.gmeta_pop(result_records))
-                pbar.update(result_records['count'])
+                output.extend(results)
+                pbar.update(len(results))
                 scroll_pos += scroll_width
 
         return output
