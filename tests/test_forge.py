@@ -4,7 +4,7 @@ import types
 import pytest
 import globus_sdk
 from mdf_forge import forge
-from mdf_forge import toolbox
+from mdf_toolbox import toolbox
 
 
 # Manually logging in for Query testing

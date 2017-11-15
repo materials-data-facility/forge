@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from six import print_, string_types
 
-from mdf_forge import toolbox
+from mdf_toolbox import toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
