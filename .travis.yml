@@ -6,9 +6,8 @@ python:
 - '3.5'
 - '3.6'
 install:
-- pip install -r requirements.txt
-- pip install pytest pytest-cov coveralls
 - pip install -e .
+- pip install pytest pytest-cov coveralls
 env:
 - TEST_ENV=travis
 script:
