@@ -468,19 +468,28 @@ def test_forge_match_tags():
     assert f4.match_tags("") == f4
 
 
-def test_forge_match_years():
+def test_forge_match_years(capfd):
     # One year of data/results
     f1 = forge.Forge()
     years1 = "2015"
     res1 = f1.match_years(years1).search()
     assert res1 != []
-    assert check_field(res1, "mdf.year", "2015") == 0
+    assert check_field(res1, "mdf.year", 2015) == 0
 
     # Multiple years
     f2 = forge.Forge()
-    years2 = ["2015","2011"]
-    res2 = f2.match_years(years2, match_all=True).search()
-    assert check_field(res2, "mdf.years", "2011") == 2
+    years2 = [2015,"2011"]
+    # match_all=False (2011 OR 2015)
+    res2 = f2.match_years(years2, match_all=False).search()
+    assert check_field(res2, "mdf.year", 2011) == 2
+
+    # Wrong input
+    f3 = forge.Forge()
+    years3 = ["20x5"]
+    res3 = f3.match_years(years3, match_all=False).search()
+    out, err = capfd.readouterr()
+    msg_err = "Year is not a valid input" in out
+    assert msg_err == True
 
 
 def test_forge_match_resource_types():
@@ -577,14 +586,12 @@ def test_forge_search_by_tags():
 
 def test_forge_search_by_years():
     f1 = forge.Forge()
-    years1 = ["20111"]
+    years1 = ["min=2015","max=2016"]
     res1 = f1.search_by_years(years1)
-    assert check_field(res1, "mdf.year", "2011") == 0
-
-    f2 = forge.Forge()
-    years2 = ["2020"]
-    res2 = f2.search_by_years(years2)
-    assert check_field(res2, "mdf.year", "2020") == 2
+    r1 = check_field(res1, "mdf.year", 2015) == 2
+    r2 = check_field(res1, "mdf.year", 2016) == 2
+    r3 = check_field(res1, "mdf.year", 2017) == -1
+    assert all(r==True for r in [r1, r2, r3])
 
 
 def test_forge_aggregate_source():

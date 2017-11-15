@@ -461,16 +461,17 @@ class Forge:
             years = [years]
 
         year_start = "*"; year_stop = "*"
+        years_new = []
         for year in years:
             year = str(year)
             if year.isdigit() and len(year) == 4:
-                years_new = years_new.append(str(year))
-            elif "min=" in year and year[4:4].isdigit() and len(year) == 8:
-                year_start = year[4:4]
-            elif "max=" in year and year[4:4].isdigit() and len(year) == 8:
-                year_stop = year[4:4]
+                years_new.append(str(year))
+            elif "min=" in year and year[4:8].isdigit() and len(year) == 8:
+                year_start = year[4:8]
+            elif "max=" in year and year[4:8].isdigit() and len(year) == 8:
+                year_stop = year[4:8]
             else:
-                print("A year is not a valid input of 'yyyy', 'min=yyyy', or 'max=yyyy' type")
+                print("Year is not a valid input; use 'yyyy', 'min=yyyy', or 'max=yyyy'.")
                 return self
 
         if year_start == "*" and year_stop == "*":
@@ -479,16 +480,9 @@ class Forge:
                 self.match_field(field="mdf.year", value=year, required=match_all,
                                  new_group=False)
         else:
-            self.match_range(self, field="mdf.year", start=year_start, stop=year_stop, inclusive=match_all, required=True,
+            self.match_range(field="mdf.year", start=year_start, stop=year_stop, inclusive=match_all, required=True,
                              new_group=False)
         return self
-
-
-    def valid_year(year):
-        if year and year.isdigit():
-            year = int(year)
-            if year >= 1900 and year <= 2020:
-                return year
 
 
     def match_resource_types(self, types):
@@ -608,7 +602,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        return self.match_year(years, match_all=match_all).search(limit=limit, info=info)
+        return self.match_years(years, match_all=match_all).search(limit=limit, info=info)
 
 
     def aggregate_source(self, sources):
