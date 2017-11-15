@@ -13,9 +13,6 @@ Untitled*.ipynb
 */dist/*
 *.egg*
 
-
-prototypes/forge_sandbox.ipynb
-
 travis.tar
 .coverage
 

@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from six import print_, string_types
 
-from mdf_forge import toolbox
+from mdf_toolbox import toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
@@ -126,7 +126,7 @@ class Forge:
         return self
 
 
-    def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, offset=0, info=False,
+    def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, info=False,
                reset_query=True):
         """Execute a search and return the results.
 
@@ -140,8 +140,6 @@ class Forge:
                             if the query is built with helpers.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        offset (int): The number of results to skip before returning the specified limit.
-                      The max for this argument is also the SEARCH_LIMIT. Default 0.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list
                         and other information about the query.
@@ -154,7 +152,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        res = self.__query.search(q=q, advanced=advanced, limit=limit, offset=offset, info=info)
+        res = self.__query.search(q=q, advanced=advanced, limit=limit, info=info)
         if reset_query:
             self.reset_query()
         return res
@@ -942,8 +940,9 @@ class Forge:
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error", response.status_code, " when attempting to access '",
+                        print_("Error ", response.status_code, " when attempting to access '",
                                host+remote_path, "'", sep="")
+                        yield None
                     else:
                         yield response.text
 
@@ -979,24 +978,24 @@ class Query:
     Terms will not have spaces in between otherwise, and it is desirable to be explicit about
     which terms are required.
     """
-    def __init__(self, search_client, q="(", limit=None, advanced=False):
+    def __init__(self, search_client, q=None, limit=None, advanced=False):
         """Initialize the Query instance.
 
         Arguments:
         search_client (SearchClient): The Globus Search client to use for searching.
         q (str): The query string to start with. Default nothing.
-        limit: The maximum number of results to return. Default None.
-        advanced: If True, will submit query in "advanced" mode ro enable field matches.
-                  If False, only basic fulltext term matches will be supported.
-                  Default False.
+        limit (int): The maximum number of results to return. Default None.
+        advanced (bool): If True, will submit query in "advanced" mode ro enable field matches.
+                         If False, only basic fulltext term matches will be supported.
+                         Default False.
         """
         self.__search_client = search_client
-        self.query = q
+        self.query = q or "("
         self.limit = limit
         self.advanced = advanced
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
-        self.initialized = (self.query != "(")
+        self.initialized = not self.query == "("
 
 
     def __clean_query_string(self, q):
@@ -1082,7 +1081,6 @@ class Query:
         # List of allowed operators
         OP_LIST = ["AND", "OR", "NOT"]
         op = op.upper().strip()
-        last = self.query.strip(" ()")[-3:]
         if op not in OP_LIST:
             print_("Error: '", op, "' is not a valid operator.", sep='')
         else:
@@ -1144,7 +1142,7 @@ class Query:
         return self
 
 
-    def search(self, q=None, advanced=None, limit=SEARCH_LIMIT, offset=0, info=False):
+    def search(self, q=None, advanced=None, limit=SEARCH_LIMIT, info=False):
         """Execute a search and return the results.
 
         Arguments:
@@ -1157,9 +1155,6 @@ class Query:
                             the query is built with helpers.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        offset (int): The number of results to skip before returning the specified limit.
-                      The max for this argument is also the SEARCH_LIMIT.
-                      Default 0.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list
                         and other information about the query.
@@ -1172,16 +1167,14 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print_("Error: No query specified")
-            return ([], {"error": "No query specified"}) if info else []
+            print_("Error: No query")
+            return ([], {"error": "No query"}) if info else []
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
             limit = self.limit or SEARCH_LIMIT
         if limit > SEARCH_LIMIT:
             limit = SEARCH_LIMIT
-        if offset >= SEARCH_LIMIT:
-            offset = SEARCH_LIMIT
 
         q = self.__clean_query_string(q)
 
@@ -1190,7 +1183,7 @@ class Query:
             "q": q,
             "advanced": advanced,
             "limit": limit,
-            "offset": offset
+            "offset": 0
             }
         res = toolbox.gmeta_pop(self.__search_client.structured_search(qu), info=info)
         # Add additional info
@@ -1200,7 +1193,7 @@ class Query:
 
 
     def aggregate(self, q=None, scroll_size=SEARCH_LIMIT):
-        """Gather all record results that match a specific query
+        """Gather all results that match a specific query
 
         Note that all aggregate queries run in advanced mode.
 
@@ -1215,19 +1208,20 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print_("Error: No query specified")
-            return ([], {"error": "No query specified"}) if info else []
+            print_("Error: No query")
+            return []
 
         q = self.__clean_query_string(q)
-
+        #TODO: Remove record restriction (all entries require scroll_id)
         q += " AND mdf.resource_type:record"
 
         # Get the total number of records
-        result = self.__search_client.search(q, limit=0, advanced=True)
-        total = result['total']
+        total = self.search(q, limit=0, advanced=True, info=True)[1]["total_query_matches"]
 
         # Scroll until all results are found
         output = []
+
+        #TODO: scroll_pos = 0 (when all entries have scroll_id)
         scroll_pos = 1
         with tqdm(total=total) as pbar:
             while len(output) < total:
@@ -1239,22 +1233,30 @@ class Query:
                 #   scroll width is much smaller than that maximum
                 scroll_width = scroll_size
                 while True:
-                    result_records = self.__search_client.search("(" + q
-                                        + ') AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
-                                            scroll_pos, scroll_pos + scroll_width),
-                                        advanced=True, limit=SEARCH_LIMIT)
+                    struct_query = {
+                        "q": "(" + q + ') AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
+                                            scroll_pos, scroll_pos+scroll_width),
+                        "advanced": True,
+                        "limit": SEARCH_LIMIT,
+                        "offset": 0
+                        }
+                    query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
+                                            scroll_pos, scroll_pos+scroll_width)
+                    results, info = self.search(query, advanced=True, info=True)
 
                     # Check to make sure that all the matching records were returned
-                    if result_records['total'] <= result_records['count']:
+                    if info["total_query_matches"] <= len(results):
                         break
 
                     # If not, reduce the scroll width
-                    scroll_width = int(scroll_width * (result_records['count']
-                                                       / result_records['total']))
+                    # new_width is proportional with the proportion of results returned
+                    new_width = scroll_width * (len(results) // info["total_query_matches"])
+                    # scroll_width should never be 0, and should only be 1 in rare circumstances
+                    scroll_width = new_width if new_width > 1 else max(scroll_width//2, 1)
 
                 # Append the results to the output
-                output.extend(toolbox.gmeta_pop(result_records))
-                pbar.update(result_records['count'])
+                output.extend(results)
+                pbar.update(len(results))
                 scroll_pos += scroll_width
 
         return output

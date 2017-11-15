@@ -6,13 +6,12 @@ python:
 - '3.5'
 - '3.6'
 install:
-- pip install -r requirements.txt
-- pip install pytest pytest-cov coveralls
 - pip install -e .
+- pip install pytest pytest-cov coveralls
 env:
 - TEST_ENV=travis
 script:
-- travis_wait 30 py.test
+- travis_wait 50 py.test
 before_install:
 - openssl aes-256-cbc -K $encrypted_4b438100ad6f_key -iv $encrypted_4b438100ad6f_iv
   -in travis.tar.enc -out travis.tar -d
@@ -39,4 +38,4 @@ deploy:
     tags: true
   distributions: sdist bdist_wheel
   password:
-    secure: Bao2ot8PG8VX8EjzQ9kgLmzQIkepGf4o3VPM1IhUuYjlos3cpVtCn1Vqn1GLShdJzKXrgkAo12A0qkxt9T0Mx/hwYtkY4mlg/0wTo8DAKq96Gy6kjb9xlXw+DpeoVwHOUkibCRIPd+QC3z5Ut36l/xAR31xJ8BDhIkD7MaVZXwgB2ykG3tElL63peFCMVPhS7HmZ9Hf+11b73MPdlG8j/gNReDtd9vCU/LmGrjiHukB3nQLYmmVnCvbfwQdUJ3t2B9BpNlRUwcfqLOyTFIQoWlo+GkkyhTsafWEhHMQgsZvcti5PPlgbUSrUK1fUc5+/gRRsn6RJ0Bof+njXmgVmgOA4XGRsO+/L4Dfe9gXAleR1lx/lIzkh9hPot870w+65WIQs4tdSx9cShXHx+d6uv3eWkzPhCzWZwrK5DL4M5oXRSpojA8MPzuYsTsWaOdCHXj6g7KymdHRqgi7QPWJGvOf/Gs+xHaLcSKMZz/uLBVFyTCjcy3vyv48n3HljZTLYNp6tpV77Yo5i/qNtQJ7Tb853L/iBosGQd2DMVxGvbJbhu7grdgA5wt/nGOKLNLDYc7AmgSQoWh3un5/c0cTQYQo8e13fLC43FTKTQthsalZNBfLcaCDVJ6KvKMh/kF11pYfTQ8hDzpGsFklthXvu9zggS1I4sHwbYjb6Z7lAle0=
+    secure: ap4GShL/gmptUyRbJS6ZC7AY6WfdB08zt2KpkN5Qw7LAj7AxZLcPCc7Hr+bFpb3P3f5iOHcZHRXnKJhkr/nYw9QtBuVwcD8k6ZZzCCfXBTHrLOV6z1c6texRcuzYCG2lVCEMRmfBhryVWPrdswf6jnFt9+sWsNgTd0kVaj/BMumWWFH7S5MPckiQ0RSZfBrhNgQ1WZov5zMxotP5jJylOVPJeeNlKBpjvP1t2u8J+fYuogenNqdG2dGA2B3jIbrZUfhvVqGu7h7GOevPFoE0y4kC4X3WWnSS22KCxn038OdhqFmfW4MZRGJ9Xh9oWJDP3pKgJ3jSBrLYUKm240wVCoWvOsez8Ixxzit8jJYkzSE6foVSe4Xf12moHChjt4JqAY+Kj8uLe5IRAEwj/OrJcL2bjYhj+TkI+9yu8z8VaaxNRJim4B6GPeOOFXX/AkyOdXYgw0yZo0gNE3KmPJCvU6hAVIJAA1d0fZVWiyHCHH3AGOFNJChPXWbsnfGpganhAp660y9JFOQOeD9MCVF5CppY5/5QFhGIGilUuEZijWRBldcG70hDAeU9P6JNunnV2jvrpdfk5Z+0QkM4unJYGQcEnVU/gJWxN3335j5xWSgJR3qPsZ2G2vr8IL/LNLS3dj8S+xShpQChGMvD2ZtSYR4q97rC4guEjQydkfZjYSA=
