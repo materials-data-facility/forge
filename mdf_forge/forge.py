@@ -441,10 +441,6 @@ class Forge:
 
     def match_years(self, years, match_all=True):
         """Add years and limits to the query.
-        Options:
-        match_year(2005)
-        match_year([2005, 2010]) either 2005 or 2010
-        match_year(min=1999, max=2005), if no min everything up to the year, if no max everything up to now
 
         Arguments:
         years (int, str or list of int or str): The years or range to match.
