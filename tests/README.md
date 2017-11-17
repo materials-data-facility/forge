@@ -1,7 +1,7 @@
 *NOTE: These tests are still in development, and should not be expected to properly cover all test cases yet.*
 ## MDF Tests
 This directory contains the tests for the `mdf_forge` package.
-The tests cover the `Forge` and `Query` classes as well as the utilities in the `toolbox` module.
+The tests cover the `Forge` and `Query` classes.
 
 ### Running the tests
 Python 3 must be installed. Go to https://www.python.org/downloads/ to download Python 3.
