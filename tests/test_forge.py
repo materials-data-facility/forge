@@ -544,7 +544,7 @@ def test_forge_match_tags():
     f4 = forge.Forge()
     assert f4.match_tags("") == f4
 
-
+@pytest.mark.match_years
 def test_forge_match_years(capfd):
     # One year of data/results
     f1 = forge.Forge()
@@ -557,13 +557,13 @@ def test_forge_match_years(capfd):
     f2 = forge.Forge()
     years2 = [2015,"2011"]
     # match_all=False (2011 OR 2015)
-    res2 = f2.match_years(years2, include=False).search()
+    res2 = f2.match_years(years2, inclusive=False).search()
     assert check_field(res2, "mdf.year", 2011) == 2
 
     # Wrong input
     f3 = forge.Forge()
     years3 = ["20x5"]
-    res3 = f3.match_years(years3, include=False).search()
+    res3 = f3.match_years(years3, inclusive=False).search()
     out, err = capfd.readouterr()
     msg_err = "Year is not a valid input" in out
     assert msg_err == True
@@ -660,7 +660,7 @@ def test_forge_search_by_tags():
     assert len(res3) > len(res2)
     assert all([r in res3 for r in res2])
 
-
+@pytest.mark.search_by_years
 def test_forge_search_by_years():
     f1 = forge.Forge()
     res1 = f1.search_by_years(min=2015,max=2016)
@@ -668,12 +668,12 @@ def test_forge_search_by_years():
     r2 = check_field(res1, "mdf.year", 2016) == 2
     r3 = check_field(res1, "mdf.year", 2017) == -1
     assert all(r==True for r in [r1, r2, r3])
-
     f2 = forge.Forge()
-    res2 = f2.search_by_years(max=1960,include=False)
+    res2 = f2.search_by_years(max=1960,inclusive=False)
     assert check_field(res2, "mdf.year", 1959) == 2
-
-
+    f3 = forge.Forge()
+    res3 = f3.search_by_years(min=-0, max="-10",inclusive=True)
+    assert check_field(res3, "mdf.year", 2010) == -1
 
 def test_forge_aggregate_source():
     # Test limit

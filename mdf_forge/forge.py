@@ -437,14 +437,14 @@ class Forge:
         return self
 
 
-    def match_years(self, years=[], min = None, max = None, include=True):
+    def match_years(self, years=None, min = None, max = None, inclusive=True):
         """Add years and limits to the query.
 
         Arguments:
-        years   (int, str or list of int or str): The years to match. Default [].
-        min     (int of str): The lower range of years to match..
-        max     (int of str): The upper range of years to match.
-        include (bool): If True, will add min and max years to the range. If False, they will be excluded.
+        years   (int or string, or list of int or strings): The years to match.
+        min     (int or string): The lower range of years to match.
+        max     (int or string): The upper range of years to match.
+        inclusive (bool): If True, will add min and max years to the range. If False, they will be excluded.
                           Default True.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
@@ -454,39 +454,44 @@ class Forge:
         Returns:
         self (Forge): For chaining.
         """
-        if not years and not min and not max:
+        if years is None and min is None and max is None:
             print_("Year is not a valid input.")
             return self
 
-        if years:
+        if years is not None:
+            if not years:
+                return self
             if not isinstance(years, list):
                 years = [years]
             years_new = []
             for year in years:
-                year = str(year)
-                if year.isdigit() and len(year) == 4:
-                    years_new.append(str(year))
-                else:
-                    print_("Year is not a valid input; use 'yyyy'.")
+                try:
+                    year = int(year)
+                    print(year)
+                    years_new.append(year)
+                except:
+                    print_("Year is not a valid input.")
                     return self
 
-            self.match_field(field="mdf.year", value=years_new[0], required=True, new_group=True)
+            self.match_field(field="mdf.year", value=str(years_new[0]), required=True, new_group=True)
             for year in years_new[1:]:
-                self.match_field(field="mdf.year", value=year, required=False, new_group=False)
+                self.match_field(field="mdf.year", value=str(year), required=False, new_group=False)
         else:
             year_start = "*"; year_stop = "*"
-            if min:
-                year_start = str(min)
-                if not year_start.isdigit() or not len(year_start) == 4:
-                    print_("Year is not a valid input; use min='yyyy'.")
+            if min is not None:
+                try:
+                    year_start = int(min)
+                except:
+                    print_("Year is not a valid input.")
                     return self
-            if max:
-                year_stop = str(max)
-                if not year_stop.isdigit() or not len(year_stop) == 4:
-                    print_("Year is not a valid input; use max='yyyy'.")
+            if max is not None:
+                try:
+                    year_stop = int(max)
+                except:
+                    print_("Year is not a valid input.")
                     return self
 
-            self.match_range(field="mdf.year", start=year_start, stop=year_stop, inclusive=include, required=True,
+            self.match_range(field="mdf.year", start=str(year_start), stop=str(year_stop), inclusive=inclusive, required=True,
                          new_group=False)
         return self
 
@@ -588,15 +593,15 @@ class Forge:
         return self.match_tags(tags, match_all=match_all).search(limit=limit, info=info)
 
 
-    def search_by_years(self, years=[], min=None, max=None, include=True, limit=None, info=False):
+    def search_by_years(self, years=None, min=None, max=None, inclusive=True, limit=None, info=False):
         """Execute a search for the given year or years.
         search_by_years([x]) is equivalent to match_years([x]).search()
 
         Arguments:
-        years   (int, str or list of int or str): The years to match.
-        min     (int of str): The lower range of years to match..
-        max     (int of str): The upper range of years to match.
-        include (bool): If True, will add min and max years to the range. If False, they will be excluded.
+        years   (int or string, or list of int or strings): The years to match.
+        min     (int or string): The lower range of years to match.
+        max     (int or string): The upper range of years to match.
+        inclusive (bool): If True, will add min and max years to the range. If False, they will be excluded.
                           Default True.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
@@ -608,7 +613,7 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        return self.match_years(years, min, max, include=include).search(limit=limit, info=info)
+        return self.match_years(years, min, max, inclusive=inclusive).search(limit=limit, info=info)
 
 
     def aggregate_source(self, sources):
