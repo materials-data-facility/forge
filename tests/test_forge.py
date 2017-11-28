@@ -1,5 +1,4 @@
 import os
-import time
 import types
 import pytest
 import globus_sdk
@@ -8,26 +7,23 @@ from mdf_toolbox import toolbox
 
 
 # Manually logging in for Query testing
-query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge", 
-                                        "services": ["search"], "index": "mdf"})["search"]
+query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge",
+                                                 "services": ["search"],
+                                                 "index": "mdf"})["search"]
 
-
-############################
-# Query tests
-############################
 
 def test_query_init():
     q1 = forge.Query(query_search_client)
     assert q1.query == "("
-    assert q1.limit == None
-    assert q1.advanced == False
-    assert q1.initialized == False
+    assert q1.limit is None
+    assert q1.advanced is False
+    assert q1.initialized is False
 
     q2 = forge.Query(query_search_client, q="mdf.source_name:oqmd", limit=5, advanced=True)
     assert q2.query == "mdf.source_name:oqmd"
     assert q2.limit == 5
-    assert q2.advanced == True
-    assert q2.initialized == True
+    assert q2.advanced is True
+    assert q2.initialized is True
 
 
 def test_query_term():
@@ -35,7 +31,7 @@ def test_query_term():
     # Single match test
     assert isinstance(q.term("term1"), forge.Query)
     assert q.query == "(term1"
-    assert q.initialized == True
+    assert q.initialized is True
     # Multi-match test
     q.and_join().term("term2")
     assert q.query == "(term1 AND term2"
@@ -211,11 +207,6 @@ def test_query_cleaning():
     assert q10.clean_query() == "term OR term2"
 
 
-
-############################
-# Forge tests
-############################
-
 # Test properties
 def test_forge_properties():
     f1 = forge.Forge()
@@ -293,7 +284,7 @@ def check_field(res, field, value):
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
                          + field
-                         + "because check_field only works on " 
+                         + "because check_field only works on "
                          + str(supported_fields))
     # If no results, set matches to false
     all_match = (len(res) > 0)
@@ -332,16 +323,16 @@ def check_field(res, field, value):
             some_match = True
 
     if only_match:
-        #print("Exclusive match")
+        # Exclusive match
         return 0
     elif all_match:
-        #print("Inclusive match")
+        # Inclusive match
         return 1
     elif some_match:
-        #print("Partial match")
+        # Partial match
         return 2
     else:
-        #print("No match")
+        # No match
         return -1
 
 
@@ -553,7 +544,7 @@ def test_forge_match_resource_types():
     f2.match_resource_types(["collection", "dataset"])
     res2 = f2.search()
     assert check_field(res2, "mdf.resource_type", "record") == -1
-    #TODO: Re-enable this assert after we get collections in MDF
+    # TODO: Re-enable this assert after we get collections in MDF
 #    assert check_field(res2, "mdf.resource_type", "dataset") == 2
     # Test zero types
     f3 = forge.Forge()
@@ -751,7 +742,7 @@ def test_forge_http_download(capsys):
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
 
     # Too many files
-    assert f.http_download(list(range(10001)))["success"] == False
+    assert f.http_download(list(range(10001)))["success"] is False
 
     # "Missing" files
     f.http_download(example_result_missing)
@@ -765,7 +756,7 @@ def test_forge_http_download(capsys):
 def test_forge_globus_download():
     f = forge.Forge()
     # Simple case
-    res1 = f.globus_download(example_result1)
+    f.globus_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
     os.remove("./test_fetch.txt")
     # With dest and preserve_dir
@@ -789,13 +780,13 @@ def test_forge_http_stream(capsys):
     assert isinstance(res1, types.GeneratorType)
     assert next(res1) == "This is a test document for Forge testing. Please do not remove.\n"
     # With multiple files
-    res2 = f1.http_stream((example_result2, {"info":{}}))
+    res2 = f1.http_stream((example_result2, {"info": {}}))
     assert isinstance(res2, types.GeneratorType)
     assert next(res2) == "This is a test document for Forge testing. Please do not remove.\n"
     assert next(res2) == "This is a second test document for Forge testing. Please do not remove.\n"
     # Too many results
     res3 = f1.http_stream(list(range(10001)))
-    assert next(res3)["success"] == False
+    assert next(res3)["success"] is False
     out, err = capsys.readouterr()
     assert ("Too many results supplied. Use globus_download() for "
             "fetching more than 2000 entries.") in out
@@ -839,4 +830,3 @@ def test_forge_show_fields():
     assert "mdf" in res1.keys()
     res2 = f1.show_fields("mdf")
     assert "mdf.mdf_id" in res2.keys()
-
