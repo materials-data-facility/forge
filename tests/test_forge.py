@@ -535,7 +535,7 @@ def test_forge_match_tags():
     f4 = forge.Forge()
     assert f4.match_tags("") == f4
 
-@pytest.mark.match_years
+
 def test_forge_match_years(capfd):
     # One year of data/results
     f1 = forge.Forge()
@@ -651,7 +651,7 @@ def test_forge_search_by_tags():
     assert len(res3) > len(res2)
     assert all([r in res3 for r in res2])
 
-@pytest.mark.search_by_years
+
 def test_forge_search_by_years():
     f1 = forge.Forge()
     res1 = f1.search_by_years(min=2015,max=2016)
