@@ -7,10 +7,11 @@ python:
 - '3.6'
 install:
 - pip install -e .
-- pip install pytest pytest-cov coveralls
+- pip install pytest pytest-cov coveralls flake8
 env:
 - TEST_ENV=travis
 script:
+- flake8 .
 - travis_wait 50 py.test
 before_install:
 - openssl aes-256-cbc -K $encrypted_4b438100ad6f_key -iv $encrypted_4b438100ad6f_iv

@@ -55,25 +55,22 @@ class Forge:
 
         self.__query = Query(self.__search_client)
 
-
     @property
     def search_client(self):
         return self.__search_client
 
-
     @property
     def transfer_client(self):
         return self.__transfer_client
-
 
     @property
     def mdf_authorizer(self):
         return self.__mdf_authorizer
 
 
-#################################################
-##  Core functions
-#################################################
+# ***********************************************
+# * Core functions
+# ***********************************************
 
     def match_field(self, field, value, required=True, new_group=False):
         """Add a field:value term to the query.
@@ -101,7 +98,6 @@ class Forge:
         self.__query.field(field, value)
         return self
 
-
     def exclude_field(self, field, value, new_group=False):
         """Exclude a field:value term from the query.
         Matches will NOT have field == value.
@@ -125,7 +121,6 @@ class Forge:
         self.__query.negate().field(field, value)
         return self
 
-
     def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, info=False,
                reset_query=True):
         """Execute a search and return the results.
@@ -136,7 +131,7 @@ class Forge:
         advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
                          If False, only basic fulltext term matches will be supported.
                          Default False.
-                         This value will change to True automatically 
+                         This value will change to True automatically
                             if the query is built with helpers.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
@@ -156,7 +151,6 @@ class Forge:
         if reset_query:
             self.reset_query()
         return res
-
 
     def aggregate(self, q=None, scroll_size=SEARCH_LIMIT, reset_query=True):
         """Perform an advanced query, and return all matching results.
@@ -179,7 +173,6 @@ class Forge:
         if reset_query:
             self.reset_query()
         return res
-
 
     def show_fields(self, block=None):
         """Retrieve and return the mapping for the given metadata block.
@@ -206,7 +199,6 @@ class Forge:
                     block_map[key] = value
         return block_map
 
-
     def current_query(self):
         """Return the current query string.
 
@@ -215,10 +207,9 @@ class Forge:
         """
         return self.__query.clean_query()
 
-
     def reset_query(self):
         """Destroy the current query and create a fresh one.
-        
+
         Returns:
         None: Does not return self because this method should not be chained.
         """
@@ -226,9 +217,9 @@ class Forge:
         self.__query = Query(self.__search_client)
 
 
-#################################################
-##  Expanded functions
-#################################################
+# ***********************************************
+# * Expanded functions
+# ***********************************************
 
     def match_range(self, field, start, stop, inclusive=True, required=True, new_group=False):
         """Add a field:[some range] term to the query.
@@ -257,7 +248,6 @@ class Forge:
         self.match_field(field, value, required=required, new_group=new_group)
         return self
 
-
     def exclude_range(self, field, start, stop, inclusive=True, new_group=False):
         """Exclude a field:[some range] term to the query.
         Matches will have field != values in range.
@@ -285,13 +275,13 @@ class Forge:
         return self
 
 
-#################################################
-##  Helper functions
-#################################################
+# ***********************************************
+# * Helper functions
+# ***********************************************
 
     def exclusive_match(self, field, value):
         """Match exactly the given value, with no other data in the field.
-        
+
         Arguments:
         field (str): The field to check for the value.
             The field must be namespaced according to Elasticsearch rules using the dot syntax.
@@ -307,11 +297,11 @@ class Forge:
         # Hacky way to get ES to do exclusive search
         # Essentially have a big range search that matches NOT anything
         # Except for the actual values
-        # Example: [foo, bar, baz] => 
+        # Example: [foo, bar, baz] =>
         #   (NOT {* TO foo} AND [foo TO foo] AND NOT {foo to bar} AND [bar TO bar]
         #    AND NOT {bar TO baz} AND [baz TO baz] AND NOT {baz TO *})
         # Except it must be sorted to not overlap
-        
+
         # Start with removing everything before first value
         self.exclude_range(field, "*", value[0], inclusive=False, new_group=True)
         # Select first value
@@ -325,13 +315,12 @@ class Forge:
         # Done
         return self
 
-
     def match_sources(self, sources):
         """Add sources to match to the query.
 
         Arguments:
         sources (str or list of str): The sources to match.
- 
+
         Returns:
         self (Forge): For chaining.
         """
@@ -346,7 +335,6 @@ class Forge:
         for src in sources[1:]:
             self.match_field(field="mdf.source_name", value=src, required=False, new_group=False)
         return self
-
 
     def match_ids(self, mdf_ids):
         """Match all the IDs in the given mdf_id list.
@@ -369,14 +357,13 @@ class Forge:
             self.match_field(field="mdf.mdf_id", value=mid, required=False, new_group=False)
         return self
 
-
     def match_elements(self, elements, match_all=True):
         """Add elemental abbreviations to the query.
 
         Arguments:
         elements (str or list of str): The elements to match.
         match_all (bool): If True, will add with AND. If False, will use OR. Default True.
- 
+
         Returns:
         self (Forge): For chaining.
         """
@@ -392,7 +379,6 @@ class Forge:
             self.match_field(field="mdf.elements", value=element, required=match_all,
                              new_group=False)
         return self
-
 
     def match_tags(self, tags, match_all=True):
         """Add tags to the query.
@@ -415,7 +401,6 @@ class Forge:
             self.match_field(field="mdf.tags", value=tag, required=match_all,
                              new_group=False)
         return self
-
 
     def match_titles(self, titles):
         """Add titles to the query.
@@ -516,11 +501,11 @@ class Forge:
         for rt in types[1:]:
             self.match_field(field="mdf.resource_type", value=rt, required=False, new_group=False)
         return self
-        
 
-#################################################
-##  Premade searches
-#################################################
+
+# ***********************************************
+# * Premade searches
+# ***********************************************
 
     def search_by_elements(self, elements, sources=[], limit=None, match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
@@ -533,7 +518,7 @@ class Forge:
         sources (list of str): The sources to match. Default [].
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        match_all (bool): If True, will add elements with AND. 
+        match_all (bool): If True, will add elements with AND.
                           If False, will use OR.
                           Default True.
         info (bool): If False, search will return a list of the results.
@@ -548,7 +533,6 @@ class Forge:
         return (self.match_elements(elements, match_all=match_all)
                     .match_sources(sources)
                     .search(limit=limit, info=info))
-
 
     def search_by_titles(self, titles, limit=None, info=False):
         """Execute a search for the given titles.
@@ -568,7 +552,6 @@ class Forge:
         tuple (if info=True): The results, and a dictionary of query information.
         """
         return self.match_titles(titles).search(limit=limit, info=info)
-
 
     def search_by_tags(self, tags, limit=None, match_all=True, info=False):
         """Execute a search for the given tag.
@@ -623,12 +606,11 @@ class Forge:
 
         Arguments:
         sources (str or list of str): The source to aggregate.
-        
+
         Returns:
         list of dict: All of the records from the source.
         """
         return self.match_sources(sources).aggregate()
-
 
     def fetch_datasets_from_results(self, entries=None, query=None, reset_query=True):
         """Retrieve the dataset entries for given records.
@@ -675,9 +657,9 @@ class Forge:
         return self.match_ids(list(ds_ids)).search()
 
 
-#################################################
-##  Data retrieval functions
-#################################################
+# ***********************************************
+# * Data retrieval functions
+# ***********************************************
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
         """Download data files from the provided results using HTTPS.
@@ -715,7 +697,7 @@ class Forge:
                             + str(HTTP_NUM_LIMIT)
                             + " entries.")
                 }
-        for res in tqdm(results, desc="Fetching files", disable= not verbose):
+        for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
             for key in res["mdf"]["links"].keys():
                 dl = res["mdf"]["links"][key]
                 host = dl.get("http_host", None) if type(dl) is dict else None
@@ -724,7 +706,7 @@ class Forge:
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
                         local_path = os.path.normpath(dest + "/" + dl["path"])
-                    else: 
+                    else:
                         local_path = os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
@@ -765,14 +747,13 @@ class Forge:
                         self.response = requests.get(host+remote_path, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error ", response.status_code, 
+                        print_("Error ", response.status_code,
                                " when attempting to access '",
                                host+remote_path, "'", sep="")
                     else:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
                             output.write(response.content)
-
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
                         wait_for_completion=True, verbose=True):
@@ -785,7 +766,7 @@ class Forge:
         dest (str): The destination path for the data files on the local machine.
                     Default current directory.
         preserve_dir (bool): If True, the directory structure for the data files will be
-                                recreated at the destination. The path to the new files 
+                                recreated at the destination. The path to the new files
                                 will be relative to the `dest` path
                              If False, only the data files themselves will be saved.
                              Default False.
@@ -797,7 +778,7 @@ class Forge:
                         Default True.
 
         Returns:
-        list of str: task IDs of the Gloubs transfers
+        list of str: task IDs of the Globus transfers
         """
         dest = os.path.abspath(dest)
         # If results have info attached, remove it
@@ -811,10 +792,9 @@ class Forge:
         # Assemble the transfer data
         tasks = {}
         filenames = set()
-        for res in tqdm(results, desc="Processing records", disable= not verbose):
+        for res in tqdm(results, desc="Processing records", disable=(not verbose)):
             found = False
-            for key in tqdm(res["mdf"]["links"].keys(), desc="Fetching files", disable=True): 
-
+            for key in res["mdf"]["links"].keys():
                 # Get the location of the data
                 dl = res["mdf"]["links"][key]
                 host = dl.get("globus_endpoint", None) if type(dl) is dict else None
@@ -826,12 +806,12 @@ class Forge:
                     remote_path = dl["path"]
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                       # remote_path is absolute, so os.path.join does not work
-                        local_path = os.path.abspath(dest + remote_path) 
+                        # remote_path is absolute, so os.path.join does not work
+                        local_path = os.path.abspath(dest + remote_path)
                     else:
                         local_path = os.path.abspath(
-                                        os.path.join(dest, 
-                                            os.path.basename(remote_path)))
+                                        os.path.join(dest,
+                                                     os.path.basename(remote_path)))
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
@@ -874,16 +854,16 @@ class Forge:
                     #           if need be, send it early
                     if host not in tasks.keys():
                         tasks[host] = globus_sdk.TransferData(self.__transfer_client,
-                                            host, dest_ep, verify_checksum=True)
+                                                              host, dest_ep,
+                                                              verify_checksum=True)
                     tasks[host].add_item(remote_path, local_path)
                     filenames.add(local_path)
             if not found:
                 print_("Error on record: No globus_endpoint provided.\nRecord: ", + str(res))
 
-
         # Submit the jobs
         submissions = []
-        for td in tqdm(tasks.values(), desc="Submitting transfers", disable= not verbose):
+        for td in tqdm(tasks.values(), desc="Submitting transfers", disable=(not verbose)):
             result = self.__transfer_client.submit_transfer(td)
             if result["code"] != "Accepted":
                 raise globus_sdk.GlobusError("Error submitting transfer:", result["message"])
@@ -893,20 +873,16 @@ class Forge:
                                                                polling_interval=10):
                         if verbose:
                             print_("Transferring...")
-                        for event in transfer_client.task_event_list(res["task_id"]):
+                        for event in self.__transfer_client.task_event_list(res["task_id"]):
                             if event["is_error"]:
-                                transfer_client.cancel_task(res["task_id"])
-                                raise GlobusError("Error: " + event["description"])
-                            if config_data["timeout"] and intervals >= timeout_intervals:
-                                transfer_client.cancel_task(res["task_id"])
-                                raise GlobusError("Transfer timed out.")
+                                self.__transfer_client.cancel_task(res["task_id"])
+                                raise globus_sdk.GlobusError("Error: " + event["description"])
 
                 submissions.append(result["task_id"])
         if verbose:
             print_("All transfers submitted")
             print_("Task IDs:", "\n".join(submissions))
         return submissions
-
 
     def http_stream(self, results, verbose=True):
         """Yield data files from the provided results using HTTPS, through a generator.
@@ -963,7 +939,6 @@ class Forge:
                     else:
                         yield response.text
 
-
     def http_return(self, results, verbose=True):
         """Return data files from the provided results using HTTPS.
         For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(),
@@ -982,12 +957,11 @@ class Forge:
         return list(self.http_stream(results, verbose=verbose))
 
 
-
 class Query:
     """The Query class is meant for internal Forge use. Users should not instantiate
             a Query object directly, as Forge already manages a Query,
             but advanced users may do so at their own risk.
-            Using Query directly is an unsupported behavior 
+            Using Query directly is an unsupported behavior
             and may have unexpected results or unlisted changes in the future.
 
     Queries may end up wrapped in parentheses, which has no direct effect on the search.
@@ -1002,7 +976,7 @@ class Query:
         search_client (SearchClient): The Globus Search client to use for searching.
         q (str): The query string to start with. Default nothing.
         limit (int): The maximum number of results to return. Default None.
-        advanced (bool): If True, will submit query in "advanced" mode ro enable field matches.
+        advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
                          If False, only basic fulltext term matches will be supported.
                          Default False.
         """
@@ -1013,7 +987,6 @@ class Query:
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
         self.initialized = not self.query == "("
-
 
     def __clean_query_string(self, q):
         """Clean up a query string.
@@ -1033,9 +1006,8 @@ class Query:
             q += ")"
         while q.count(")") > q.count("("):
             q = "(" + q
-        
-        return q.strip()
 
+        return q.strip()
 
     def clean_query(self):
         """Returns the current query, cleaned for user consumption,
@@ -1044,7 +1016,6 @@ class Query:
         str: The clean current query.
         """
         return self.__clean_query_string(self.query)
-
 
     def term(self, term):
         """Add a term to the query.
@@ -1059,7 +1030,6 @@ class Query:
         self.initialized = True
         return self
 
-
     def field(self, field, value):
         """Add a field:value term to the query.
         Matches will have field == value.
@@ -1068,7 +1038,7 @@ class Query:
         Arguments:
         field (str): The field to look in for the value.
         value (str): The value to match.
- 
+
         Returns:
         self (Query): For chaining.
         """
@@ -1079,7 +1049,6 @@ class Query:
             self.advanced = True
             self.initialized = True
         return self
-
 
     def operator(self, op, close_group=False):
         """Add operator between terms.
@@ -1108,7 +1077,6 @@ class Query:
             self.query += op
         return self
 
-
     def and_join(self, close_group=False):
         """Combine terms with AND.
         There must be a term added before using this method.
@@ -1129,7 +1097,6 @@ class Query:
         else:
             self.operator("AND", close_group=close_group)
         return self
-
 
     def or_join(self, close_group=False):
         """Combine terms with OR.
@@ -1152,12 +1119,10 @@ class Query:
             self.operator("OR", close_group=close_group)
         return self
 
-
     def negate(self):
         """Negates the next term with NOT."""
         self.operator("NOT")
         return self
-
 
     def search(self, q=None, advanced=None, limit=SEARCH_LIMIT, info=False):
         """Execute a search and return the results.
@@ -1208,7 +1173,6 @@ class Query:
             res[1]["query"] = qu
         return res
 
-
     def aggregate(self, q=None, scroll_size=SEARCH_LIMIT):
         """Gather all results that match a specific query
 
@@ -1229,7 +1193,7 @@ class Query:
             return []
 
         q = self.__clean_query_string(q)
-        #TODO: Remove record restriction (all entries require scroll_id)
+        # TODO: Remove record restriction (all entries require scroll_id)
         q += " AND mdf.resource_type:record"
 
         # Get the total number of records
@@ -1238,7 +1202,7 @@ class Query:
         # Scroll until all results are found
         output = []
 
-        #TODO: scroll_pos = 0 (when all entries have scroll_id)
+        # TODO: scroll_pos = 0 (when all entries have scroll_id)
         scroll_pos = 1
         with tqdm(total=total) as pbar:
             while len(output) < total:
@@ -1250,13 +1214,6 @@ class Query:
                 #   scroll width is much smaller than that maximum
                 scroll_width = scroll_size
                 while True:
-                    struct_query = {
-                        "q": "(" + q + ') AND mdf.scroll_id:>=%d AND mdf.scroll_id:<%d' % (
-                                            scroll_pos, scroll_pos+scroll_width),
-                        "advanced": True,
-                        "limit": SEARCH_LIMIT,
-                        "offset": 0
-                        }
                     query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
                                             scroll_pos, scroll_pos+scroll_width)
                     results, info = self.search(query, advanced=True, info=True)
@@ -1278,7 +1235,6 @@ class Query:
 
         return output
 
-
     def mapping(self):
         """Fetch the mapping for the current index.
 
@@ -1286,4 +1242,3 @@ class Query:
         dict: The full mapping for the index.
         """
         return self.__search_client.mapping()["mappings"]
-
