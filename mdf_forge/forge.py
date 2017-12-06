@@ -95,7 +95,7 @@ class Forge:
                 self.__query.and_join(new_group)
             else:
                 self.__query.or_join(new_group)
-        self.__query.field(field, value)
+        self.__query.field(str(field), str(value))
         return self
 
     def exclude_field(self, field, value, new_group=False):
@@ -118,7 +118,7 @@ class Forge:
         # OR would not make much sense for excluding
         if self.__query.initialized:
             self.__query.and_join(new_group)
-        self.__query.negate().field(field, value)
+        self.__query.negate().field(str(field), str(value))
         return self
 
     def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, info=False,
@@ -221,7 +221,8 @@ class Forge:
 # * Expanded functions
 # ***********************************************
 
-    def match_range(self, field, start, stop, inclusive=True, required=True, new_group=False):
+    def match_range(self, field, start="*", stop="*", inclusive=True,
+                    required=True, new_group=False):
         """Add a field:[some range] term to the query.
         Matches will have field == value in range.
 
@@ -241,6 +242,15 @@ class Forge:
         Returns:
         self (Forge): For chaining.
         """
+        # Accept None as *
+        if start is None:
+            start = "*"
+        if stop is None:
+            stop = "*"
+        # No-op on *-*
+        if start == "*" and stop == "*":
+            return self
+
         if inclusive:
             value = "[" + str(start) + " TO " + str(stop) + "]"
         else:
@@ -248,7 +258,8 @@ class Forge:
         self.match_field(field, value, required=required, new_group=new_group)
         return self
 
-    def exclude_range(self, field, start, stop, inclusive=True, new_group=False):
+    def exclude_range(self, field, start="*", stop="*", inclusive=True,
+                      required=True, new_group=False):
         """Exclude a field:[some range] term to the query.
         Matches will have field != values in range.
 
@@ -267,6 +278,15 @@ class Forge:
         Returns:
         self (Forge): For chaining.
         """
+        # Accept None as *
+        if start is None:
+            start = "*"
+        if stop is None:
+            stop = "*"
+        # No-op on *-*
+        if start == "*" and stop == "*":
+            return self
+
         if inclusive:
             value = "[" + str(start) + " TO " + str(stop) + "]"
         else:
@@ -421,65 +441,57 @@ class Forge:
             self.match_field(field="mdf.title", value=title, required=False, new_group=False)
         return self
 
-    def match_years(self, years=None, min=None, max=None, inclusive=True):
+    def match_years(self, years=None, start=None, stop=None, inclusive=True):
         """Add years and limits to the query.
 
         Arguments:
         years   (int or string, or list of int or strings): The years to match.
-        min     (int or string): The lower range of years to match.
-        max     (int or string): The upper range of years to match.
-        inclusive (bool): If True, will add min and max years to the range.
+                    Note that this argument overrides the start, stop, and inclusive arguments.
+        start   (int or string): The lower range of years to match.
+        stop    (int or string): The upper range of years to match.
+        inclusive (bool): If True, the start and stop values will be included in the search.
                           If False, they will be excluded.
                           Default True.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list,
-                        and other information about the query. Default False.
         Returns:
         self (Forge): For chaining.
         """
-        if years is None and min is None and max is None:
-            print_("Year is not a valid input.")
+        # If nothing supplied, nothing to match
+        if years is None and start is None and stop is None:
             return self
 
-        if years is not None:
-            if not years:
-                return self
+        if years is not None and years != []:
             if not isinstance(years, list):
                 years = [years]
-            years_new = []
+            years_int = []
             for year in years:
                 try:
-                    year = int(year)
-                    print(year)
-                    years_new.append(year)
+                    y_int = int(year)
+                    years_int.append(y_int)
                 except ValueError:
-                    print_("Year is not a valid input.")
-                    return self
+                    print_("Invalid year: '", year, "'", sep="")
 
-            self.match_field(field="mdf.year", value=str(years_new[0]), required=True,
-                             new_group=True)
-            for year in years_new[1:]:
-                self.match_field(field="mdf.year", value=str(year), required=False, new_group=False)
+            # Only match years if valid years were supplied
+            if len(years_int) > 0:
+                self.match_field(field="mdf.year", value=years_int[0], required=True,
+                                 new_group=True)
+                for year in years_int[1:]:
+                    self.match_field(field="mdf.year", value=year, required=False, new_group=False)
         else:
-            year_start = "*"
-            year_stop = "*"
-            if min is not None:
+            if start is not None:
                 try:
-                    year_start = int(min)
+                    start = int(start)
                 except ValueError:
-                    print_("Year is not a valid input.")
-                    return self
-            if max is not None:
+                    print_("Invalid start year: '", start, "'", sep="")
+                    start = None
+            if stop is not None:
                 try:
-                    year_stop = int(max)
+                    stop = int(stop)
                 except ValueError:
-                    print_("Year is not a valid input.")
-                    return self
+                    print_("Invalid stop year: '", stop, "'", sep="")
+                    stop = None
 
-            self.match_range(field="mdf.year", start=str(year_start), stop=str(year_stop),
-                             inclusive=inclusive, required=True, new_group=False)
+            self.match_range(field="mdf.year", start=start, stop=stop,
+                             inclusive=inclusive, required=True, new_group=True)
         return self
 
     def match_resource_types(self, types):
@@ -575,30 +587,6 @@ class Forge:
         tuple (if info=True): The results, and a dictionary of query information.
         """
         return self.match_tags(tags, match_all=match_all).search(limit=limit, info=info)
-
-    def search_by_years(self, years=None, min=None, max=None, inclusive=True, limit=None,
-                        info=False):
-        """Execute a search for the given year or years.
-        search_by_years([x]) is equivalent to match_years([x]).search()
-
-        Arguments:
-        years   (int or string, or list of int or strings): The years to match.
-        min     (int or string): The lower range of years to match.
-        max     (int or string): The upper range of years to match.
-        inclusive (bool): If True, will add min and max years to the range.
-                          If False, they will be excluded.
-                          Default True.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list,
-                        and other information about the query. Default False.
-
-        Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
-        """
-        return self.match_years(years, min, max, inclusive=inclusive).search(limit=limit, info=info)
 
     def aggregate_source(self, sources):
         """Aggregate all records from a given source.
