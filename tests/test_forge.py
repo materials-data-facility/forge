@@ -279,7 +279,8 @@ def check_field(res, field, value):
         "mdf.mdf_id",
         "mdf.resource_type",
         "mdf.title",
-        "mdf.tags"
+        "mdf.tags",
+        "mdf.year"
     ]
     if field not in supported_fields:
         raise ValueError("Implement or re-spell "
@@ -310,6 +311,8 @@ def check_field(res, field, value):
                 vals = r["mdf"]["tags"]
             except KeyError:
                 vals = []
+        elif field == "mdf.year":
+            vals = [r["mdf"]["year"]]
 
         # If a result does not contain the value, no match
         if value not in vals:
@@ -533,6 +536,30 @@ def test_forge_match_tags():
     assert f4.match_tags("") == f4
 
 
+def test_forge_match_years(capfd):
+    # One year of data/results
+    f1 = forge.Forge()
+    years1 = ["2015"]
+    res1 = f1.match_years(years1).search(limit=10)
+    assert res1 != []
+    assert check_field(res1, "mdf.year", 2015) == 0
+
+    # Multiple years
+    f2 = forge.Forge()
+    years2 = [2015, "2011"]
+    # match_all=False (2011 OR 2015)
+    res2 = f2.match_years(years2, inclusive=False).search()
+    assert check_field(res2, "mdf.year", 2011) == 2
+
+    # Wrong input
+    f3 = forge.Forge()
+    years3 = ["20x5"]
+    f3.match_years(years3, inclusive=False).search()
+    out, err = capfd.readouterr()
+    msg_err = "Year is not a valid input" in out
+    assert msg_err is True
+
+
 def test_forge_match_resource_types():
     f1 = forge.Forge()
     # Test one type
@@ -623,6 +650,21 @@ def test_forge_search_by_tags():
     # res2 is a subset of res3
     assert len(res3) > len(res2)
     assert all([r in res3 for r in res2])
+
+
+def test_forge_search_by_years():
+    f1 = forge.Forge()
+    res1 = f1.search_by_years(min=2015, max=2016)
+    r1 = check_field(res1, "mdf.year", 2015) == 2
+    r2 = check_field(res1, "mdf.year", 2016) == 2
+    r3 = check_field(res1, "mdf.year", 2017) == -1
+    assert all(r is True for r in [r1, r2, r3])
+    f2 = forge.Forge()
+    res2 = f2.search_by_years(max=1960, inclusive=False)
+    assert check_field(res2, "mdf.year", 1959) == 2
+    f3 = forge.Forge()
+    res3 = f3.search_by_years(min=-0, max="-10", inclusive=True)
+    assert check_field(res3, "mdf.year", 2010) == -1
 
 
 def test_forge_aggregate_source():
