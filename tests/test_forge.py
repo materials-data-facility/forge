@@ -554,10 +554,10 @@ def test_forge_match_years(capfd):
     # Wrong input
     f3 = forge.Forge()
     years3 = ["20x5"]
-    res3 = f3.match_years(years3, inclusive=False).search() # noqa
+    f3.match_years(years3, inclusive=False).search()
     out, err = capfd.readouterr()
     msg_err = "Year is not a valid input" in out
-    assert msg_err == True # noqa
+    assert msg_err is True
 
 
 def test_forge_match_resource_types():
@@ -658,7 +658,7 @@ def test_forge_search_by_years():
     r1 = check_field(res1, "mdf.year", 2015) == 2
     r2 = check_field(res1, "mdf.year", 2016) == 2
     r3 = check_field(res1, "mdf.year", 2017) == -1
-    assert all(r == True for r in [r1, r2, r3]) # noqa
+    assert all(r is True for r in [r1, r2, r3])
     f2 = forge.Forge()
     res2 = f2.search_by_years(max=1960, inclusive=False)
     assert check_field(res2, "mdf.year", 1959) == 2
