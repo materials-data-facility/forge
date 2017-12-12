@@ -862,9 +862,9 @@ class Forge:
                                                                polling_interval=10):
                         if verbose:
                             print_("Transferring...")
-                        for event in self.__transfer_client.task_event_list(res["task_id"]):
+                        for event in self.__transfer_client.task_event_list(result["task_id"]):
                             if event["is_error"]:
-                                self.__transfer_client.cancel_task(res["task_id"])
+                                self.__transfer_client.cancel_task(result["task_id"])
                                 raise globus_sdk.GlobusError("Error: " + event["description"])
 
                 submissions.append(result["task_id"])
@@ -1187,6 +1187,10 @@ class Query:
 
         # Get the total number of records
         total = self.search(q, limit=0, advanced=True, info=True)[1]["total_query_matches"]
+
+        # If aggregate is unnecessary, use Search automatically instead
+        if total <= SEARCH_LIMIT:
+            return self.search(q, limit=SEARCH_LIMIT, advanced=True)
 
         # Scroll until all results are found
         output = []

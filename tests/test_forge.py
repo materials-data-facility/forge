@@ -715,8 +715,10 @@ def test_forge_aggregate():
     f.match_field("mdf.source_name", "nist_xps_db")
     res1 = f.aggregate(reset_query=False)
     assert len(res1) > 10000
+    assert check_field(res1, "mdf.source_name", "nist_xps_db") == 0
     res2 = f.aggregate()
-    assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
+    assert len(res2) == len(res1)
+    assert check_field(res2, "mdf.source_name", "nist_xps_db") == 0
 
 
 def test_forge_reset_query():
