@@ -16,6 +16,36 @@ cd forge
 pip install -e .
 ```
 
+### Jupyter Environment
+We use Docker to create a pre-built container for the
+[scipy Jupyter environment](https://hub.docker.com/r/jupyter/scipy-notebook/)
+along with Forge and required dependencies.
+
+To build a docker image
+```
+git clone https://github.com/materials-data-facility/forge.git
+cd forge
+docker build -t forge-notebook .
+docker run -it --rm -p 8888:8888 forge-notebook
+```
+
+Note that by default the docker image runs with no authentication. This is not
+recommended if the service is accessible from the internet. You can secure
+your service by generating a key:
+
+```
+% openssl rand -base64 32
+```
+
+And passing that key as an environment variable to the docker container:
+
+```
+% docker run -it --rm -e APP_TOKEN=yourtoken -p 8888:8888 forge-notebook
+```
+
+You can then visit http://localhost:8888 to launch a forge notebook. All of the
+examples from this repo can be found in the `work/examples` folder in Jupyter.
+
 # Examples
 
 ```python
