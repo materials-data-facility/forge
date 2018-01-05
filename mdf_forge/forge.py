@@ -935,10 +935,11 @@ class Forge:
         """
         if self.__anonymous:
             print_("Error: Anonymous HTTP download not yet supported.")
-            return {
+            yield {
                 "success": False,
                 "message": "Anonymous HTTP download not yet supported."
                 }
+            return
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]

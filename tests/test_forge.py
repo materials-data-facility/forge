@@ -889,7 +889,9 @@ def test_forge_anonymous(capsys):
     out, err = capsys.readouterr()
     assert "Error: Anonymous Globus Transfer not supported." in out
     # http_stream
-    with pytest.raises(StopIteration):
-        next(f.http_stream({}))
+    res = f.http_stream({})
+    assert next(res)["success"] is False
     out, err = capsys.readouterr()
     assert "Error: Anonymous HTTP download not yet supported." in out
+    with pytest.raises(StopIteration):
+        next(res)
