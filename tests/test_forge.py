@@ -631,6 +631,10 @@ def test_forge_search(capsys):
     res6 = f.search()
     assert all([r in res6 for r in res5]) and all([r in res5 for r in res6])
 
+    # Check default index
+    f2 = forge.Forge()
+    assert f2.search("data", limit=1, info=True)[1]["index"] == "mdf"
+
 
 def test_forge_search_by_elements():
     f = forge.Forge(index="mdf")
@@ -850,20 +854,6 @@ def test_forge_http_stream(capsys):
             "'https://data.materialsdatafacility.org/test/missing.txt'") in out
 
 
-def test_forge_http_return():
-    f = forge.Forge(index="mdf")
-    # Simple case
-    res1 = f.http_return(example_result1)
-    assert isinstance(res1, list)
-    assert res1 == ["This is a test document for Forge testing. Please do not remove.\n"]
-
-    # With multiple files
-    res2 = f.http_return(example_result2)
-    assert isinstance(res2, list)
-    assert res2 == ["This is a test document for Forge testing. Please do not remove.\n",
-                    "This is a second test document for Forge testing. Please do not remove.\n"]
-
-
 def test_forge_chaining():
     f = forge.Forge(index="mdf")
     f.match_field("source_name", "cip")
@@ -879,3 +869,27 @@ def test_forge_show_fields():
     assert "mdf" in res1.keys()
     res2 = f.show_fields("mdf")
     assert "mdf.mdf_id" in res2.keys()
+
+
+def test_forge_anonymous(capsys):
+    f = forge.Forge(anonymous=True)
+    # Test search
+    assert len(f.search("mdf.source_name:oqmd", advanced=True, limit=300)) == 300
+
+    # Test aggregation
+    assert len(f.aggregate("mdf.source_name:nist_xps_db")) > 10000
+
+    # Error on auth-only functions
+    # http_download
+    assert f.http_download({})["success"] is False
+    out, err = capsys.readouterr()
+    assert "Error: Anonymous HTTP download not yet supported." in out
+    # globus_download
+    assert f.globus_download({})["success"] is False
+    out, err = capsys.readouterr()
+    assert "Error: Anonymous Globus Transfer not supported." in out
+    # http_stream
+    with pytest.raises(StopIteration):
+        next(f.http_stream({}))
+    out, err = capsys.readouterr()
+    assert "Error: Anonymous HTTP download not yet supported." in out

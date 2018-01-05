@@ -692,7 +692,18 @@ class Forge:
         verbose (bool): If True, status and progress messages will be printed.
                         If False, only error messages will be printed.
                         Default True.
+
+        Returns:
+        dict: success (bool): True if the operation succeeded.
+                              False if it failed (implies message).
+              message (str): The error message. Not present when success is True.
         """
+        if self.__anonymous:
+            print_("Error: Anonymous HTTP download not yet supported.")
+            return {
+                "success": False,
+                "message": "Anonymous HTTP download not yet supported."
+                }
         # If user submitted single result, make into list
         if isinstance(results, dict):
             results = [results]
@@ -768,6 +779,9 @@ class Forge:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
                             output.write(response.content)
+        return {
+            "success": True
+            }
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
                         wait_for_completion=True, verbose=True):
@@ -787,13 +801,19 @@ class Forge:
         wait_for_completion (bool): If True, will block until the transfer is finished.
                                     If False, will not block.
                                     Default True.
-        verbose (bool): If True, status and progress messages will be print_ed.
-                        If False, only error messages will be print_ed.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
                         Default True.
 
         Returns:
         list of str: task IDs of the Globus transfers
         """
+        if self.__anonymous:
+            print_("Error: Anonymous Globus Transfer not supported.")
+            return {
+                "success": False,
+                "message": "Anonymous Globus Transfer not supported."
+                }
         dest = os.path.abspath(dest)
         # If results have info attached, remove it
         if type(results) is tuple:
@@ -906,13 +926,19 @@ class Forge:
         Arguments:
         results (dict): The records from which files should be fetched.
                         This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be print_ed.
-                        If False, only error messages will be print_ed.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
                         Default True.
 
         Yields:
         str: Text of each data file.
         """
+        if self.__anonymous:
+            print_("Error: Anonymous HTTP download not yet supported.")
+            return {
+                "success": False,
+                "message": "Anonymous HTTP download not yet supported."
+                }
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
@@ -952,23 +978,6 @@ class Forge:
                         yield None
                     else:
                         yield response.text
-
-    def http_return(self, results, verbose=True):
-        """Return data files from the provided results using HTTPS.
-        For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(),
-            which uses Globus Transfer.
-
-        Arguments:
-        results (dict): The records from which files should be fetched.
-                        This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be print_ed.
-                        If False, only error messages will be print_ed.
-                        Default True.
-
-        Returns:
-        list of str: Text data of the data files.
-        """
-        return list(self.http_stream(results, verbose=verbose))
 
 
 class Query:
