@@ -2,14 +2,14 @@ import os
 import types
 import pytest
 import globus_sdk
+from globus_sdk.exc import SearchAPIError
 from mdf_forge import forge
 from mdf_toolbox import toolbox
 
 
 # Manually logging in for Query testing
 query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge",
-                                                 "services": ["search"],
-                                                 "index": "mdf"})["search"]
+                                                 "services": ["search"]})["search"]
 
 
 def test_query_init():
@@ -77,7 +77,7 @@ def test_query_operator(capsys):
     # Add bad operator
     assert q.operator("FOO") == q
     out, err = capsys.readouterr()
-    assert "Error: 'FOO' is not a valid operator"
+    assert "Error: 'FOO' is not a valid operator" in out
     assert q.query == "("
     # Test operator cleaning
     q.operator("   and ")
@@ -120,28 +120,47 @@ def test_query_or_join(capsys):
 def test_query_search(capsys):
     # Error on no query
     q = forge.Query(query_search_client)
-    assert q.search() == []
+    assert q.search(index="mdf") == []
     out, err = capsys.readouterr()
     assert "Error: No query" in out
     assert q.search(info=True) == ([], {"error": "No query"})
 
+    # Error on no index
+    assert q.search(q="abc") == []
+    out, err = capsys.readouterr()
+    assert "Error: No index specified" in out
+    assert q.search(q="abc", info=True) == ([], {"error": "No index"})
+
     # Return info if requested
-    res2 = q.search(q="Al", info=False)
+    res2 = q.search(q="Al", index="mdf", info=False)
     assert isinstance(res2, list)
     assert isinstance(res2[0], dict)
-    res3 = q.search(q="Al", info=True)
+    res3 = q.search(q="Al", index="mdf", info=True)
     assert isinstance(res3, tuple)
     assert isinstance(res3[0], list)
     assert isinstance(res3[0][0], dict)
     assert isinstance(res3[1], dict)
 
     # Check limit
-    res4 = q.search("oqmd", limit=3)
+    res4 = q.search("oqmd", index="mdf", limit=3)
     assert len(res4) == 3
 
     # Check limit correction
-    res5 = q.search("nist_xps_db", limit=20000)
+    res5 = q.search("nist_xps_db", index="mdf", limit=20000)
     assert len(res5) == 10000
+
+    # Test index translation
+    # mdf = d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c
+    res6 = q.search(q="data", index="mdf", limit=1, info=True)
+    assert len(res6[0]) == 1
+    assert res6[1]["index"] == "mdf"
+    assert res6[1]["index_uuid"] == "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c"
+    res7 = q.search(q="data", index="d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c", limit=1, info=True)
+    assert len(res7[0]) == 1
+    assert res7[1]["index"] == "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c"
+    assert res7[1]["index_uuid"] == "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c"
+    with pytest.raises(SearchAPIError):
+        q.search(q="data", index="invalid", limit=1, info=True)
 
 
 def test_query_aggregate(capsys):
@@ -152,12 +171,13 @@ def test_query_aggregate(capsys):
     assert "Error: No query" in out
 
     # Basic aggregation
-    res1 = q.aggregate("mdf.source_name:nist_xps_db")
+    res1 = q.aggregate("mdf.source_name:nist_xps_db", index="mdf")
     assert len(res1) > 10000
     assert isinstance(res1[0], dict)
 
     # Multi-dataset aggregation
-    res2 = q.aggregate("(mdf.source_name:nist_xps_db OR mdf.source_name:nist_janaf)")
+    res2 = q.aggregate("(mdf.source_name:nist_xps_db OR mdf.source_name:nist_janaf)",
+                       index="mdf")
     assert len(res2) > 10000
     assert len(res2) > len(res1)
 
@@ -167,12 +187,12 @@ def test_query_chaining():
     q.field("source_name", "cip")
     q.and_join()
     q.field("elements", "Al")
-    res1 = q.search(limit=10000)
+    res1 = q.search(limit=10000, index="mdf")
     res2 = (forge.Query(query_search_client)
                  .field("source_name", "cip")
                  .and_join()
                  .field("elements", "Al")
-                 .search(limit=10000))
+                 .search(limit=10000, index="mdf"))
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
@@ -204,8 +224,8 @@ def test_query_cleaning():
 
 # Test properties
 def test_forge_properties():
-    f = forge.Forge()
-    assert type(f.search_client) is toolbox.SearchClient
+    f = forge.Forge(index="mdf")
+    assert type(f.search_client) is globus_sdk.SearchClient
     assert type(f.transfer_client) is globus_sdk.TransferClient
     assert type(f.mdf_authorizer) is globus_sdk.RefreshTokenAuthorizer
 
@@ -335,7 +355,7 @@ def check_field(res, field, value):
 
 
 def test_forge_match_field():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Basic usage
     f.match_field("mdf.source_name", "nist_janaf")
     res1 = f.search()
@@ -350,7 +370,7 @@ def test_forge_match_field():
 
 
 def test_forge_exclude_field():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Basic usage
     f.exclude_field("mdf.elements", "Al")
     f.match_field("mdf.source_name", "core_mof")
@@ -360,7 +380,7 @@ def test_forge_exclude_field():
 
 def test_forge_match_range():
     # Single-value use
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     f.match_range("mdf.elements", "Al", "Al")
     res1, info1 = f.search(info=True)
     assert check_field(res1, "mdf.elements", "Al") == 1
@@ -385,7 +405,7 @@ def test_forge_match_range():
 
 def test_forge_exclude_range():
     # Single-value use
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     f.exclude_range("mdf.elements", "Am", "*")
     f.exclude_range("mdf.elements", "*", "Ak")
     res1, info1 = f.search(info=True)
@@ -407,7 +427,7 @@ def test_forge_exclude_range():
 
 
 def test_forge_exclusive_match():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     f.exclusive_match("mdf.elements", "Al")
     res1 = f.search()
     assert check_field(res1, "mdf.elements", "Al") == 0
@@ -421,7 +441,7 @@ def test_forge_exclusive_match():
 
 
 def test_forge_match_sources():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # One source
     f.match_sources("nist_janaf")
     res1 = f.search()
@@ -442,7 +462,7 @@ def test_forge_match_sources():
 
 def test_forge_match_ids():
     # Get a couple IDs
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     res0 = f.search("mdf.source_name:nist_janaf", advanced=True, limit=2)
     id1 = res0[0]["mdf"]["mdf_id"]
     id2 = res0[1]["mdf"]["mdf_id"]
@@ -466,7 +486,7 @@ def test_forge_match_ids():
 
 
 def test_forge_match_elements():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # One element
     f.match_elements("Al")
     res1 = f.search()
@@ -486,7 +506,7 @@ def test_forge_match_elements():
 
 def test_forge_match_titles():
     # One title
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     titles1 = '"OQMD - Na1Y2Zr1"'
     res1 = f.match_titles(titles1).search()
     assert res1 != []
@@ -504,7 +524,7 @@ def test_forge_match_titles():
 
 def test_forge_match_tags():
     # Get one tag
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     res0 = f.search("mdf.source_name:trinkle_elastic_fe_bcc", advanced=True, limit=1)
     tags1 = res0[0]["mdf"]["tags"][0]
 
@@ -534,7 +554,7 @@ def test_forge_match_tags():
 
 def test_forge_match_years(capfd):
     # One year of data/results
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     years1 = "2015"
     res1 = f.match_years(years1).search(limit=10)
     assert res1 != []
@@ -566,7 +586,7 @@ def test_forge_match_years(capfd):
 
 
 def test_forge_match_resource_types():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Test one type
     f.match_resource_types("record")
     res1 = f.search(limit=10)
@@ -585,7 +605,7 @@ def test_forge_match_resource_types():
 
 def test_forge_search(capsys):
     # Error on no query
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     assert f.search() == []
     out, err = capsys.readouterr()
     assert "Error: No query" in out
@@ -613,7 +633,7 @@ def test_forge_search(capsys):
 
 
 def test_forge_search_by_elements():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     elements = ["Cu", "Al"]
     sources = ["oqmd", "nist_xps_db"]
     res1, info1 = f.match_sources(sources).match_elements(elements).search(limit=10000, info=True)
@@ -624,7 +644,7 @@ def test_forge_search_by_elements():
 
 
 def test_forge_search_by_titles():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     titles1 = ["\"AMCS - Tungsten\""]
     res1 = f.search_by_titles(titles1)
     assert check_field(res1, "mdf.title", "AMCS - Tungsten") == 0
@@ -635,7 +655,7 @@ def test_forge_search_by_titles():
 
 
 def test_forge_search_by_tags():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     tags1 = "DFT"
     res1 = f.search_by_tags(tags1)
     assert check_field(res1, "mdf.tags", "DFT") == 2
@@ -653,7 +673,7 @@ def test_forge_search_by_tags():
 
 def test_forge_aggregate_source():
     # Test limit
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     res1 = f.aggregate_source("amcs")
     assert isinstance(res1, list)
     assert len(res1) > 10000
@@ -662,7 +682,7 @@ def test_forge_aggregate_source():
 
 def test_forge_fetch_datasets_from_results():
     # Get some results
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Record from OQMD
     res01 = f.search("mdf.source_name:oqmd AND mdf.resource_type:record", advanced=True, limit=1)
     # Record from OQMD with info
@@ -711,7 +731,7 @@ def test_forge_aggregate():
     # Test that aggregate uses the current query properly
     # And returns results
     # And respects the reset_query arg
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     f.match_field("mdf.source_name", "nist_xps_db")
     res1 = f.aggregate(reset_query=False)
     assert len(res1) > 10000
@@ -722,7 +742,7 @@ def test_forge_aggregate():
 
 
 def test_forge_reset_query():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Term will return results
     f.match_field("elements", "Al")
     f.reset_query()
@@ -731,14 +751,14 @@ def test_forge_reset_query():
 
 
 def test_forge_current_query():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Query.clean_query() is already tested, just need to check basic functionality
     f.match_field("field", "value")
     assert f.current_query() == "(field:value)"
 
 
 def test_forge_http_download(capsys):
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Simple case
     f.http_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
@@ -779,7 +799,7 @@ def test_forge_http_download(capsys):
 
 @pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
 def test_forge_globus_download():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Simple case
     f.globus_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
@@ -801,7 +821,7 @@ def test_forge_globus_download():
 
 
 def test_forge_http_stream(capsys):
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Simple case
     res1 = f.http_stream(example_result1)
     assert isinstance(res1, types.GeneratorType)
@@ -831,7 +851,7 @@ def test_forge_http_stream(capsys):
 
 
 def test_forge_http_return():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     # Simple case
     res1 = f.http_return(example_result1)
     assert isinstance(res1, list)
@@ -845,7 +865,7 @@ def test_forge_http_return():
 
 
 def test_forge_chaining():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     f.match_field("source_name", "cip")
     f.match_field("elements", "Al")
     res1 = f.search()
@@ -854,7 +874,7 @@ def test_forge_chaining():
 
 
 def test_forge_show_fields():
-    f = forge.Forge()
+    f = forge.Forge(index="mdf")
     res1 = f.show_fields()
     assert "mdf" in res1.keys()
     res2 = f.show_fields("mdf")
