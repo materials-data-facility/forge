@@ -170,6 +170,11 @@ def test_query_aggregate(capsys):
     out, err = capsys.readouterr()
     assert "Error: No query" in out
 
+    # Error on no index
+    assert q.aggregate(q="abc") == []
+    out, err = capsys.readouterr()
+    assert "Error: No index specified" in out
+
     # Basic aggregation
     res1 = q.aggregate("mdf.source_name:nist_xps_db", index="mdf")
     assert len(res1) > 10000
@@ -180,6 +185,10 @@ def test_query_aggregate(capsys):
                        index="mdf")
     assert len(res2) > 10000
     assert len(res2) > len(res1)
+
+    # Unnecessary aggregation fallback to .search()
+    # Check success in Coveralls
+    assert len(q.aggregate("mdf.source_name:hopv")) < 10000
 
 
 def test_query_chaining():
@@ -552,24 +561,31 @@ def test_forge_match_tags():
     assert f.match_tags("") == f
 
 
-def test_forge_match_years(capfd):
+def test_forge_match_years(capsys):
     # One year of data/results
     f = forge.Forge(index="mdf")
-    years1 = "2015"
-    res1 = f.match_years(years1).search(limit=10)
+    res1 = f.match_years("2015").search()
     assert res1 != []
     assert check_field(res1, "mdf.year", 2015) == 0
 
     # Multiple years
-    years2 = ["2015", 2011]
-    res2 = f.match_years(years2).search()
+    res2 = f.match_years(years=["2015", 2011]).search()
     assert check_field(res2, "mdf.year", 2011) == 2
 
     # Wrong input
-    years3 = ["20x5"]
-    f.match_years(years3).search()
-    out, err = capfd.readouterr()
+    f.match_years(["20x5"]).search()
+    out, err = capsys.readouterr()
     assert "Invalid year: '20x5'" in out
+
+    f.match_years(start="20x5").search()
+    out, err = capsys.readouterr()
+    assert "Invalid start year: '20x5'" in out
+
+    f.match_years(stop="20x5").search()
+    out, err = capsys.readouterr()
+    assert "Invalid stop year: '20x5'" in out
+
+    assert f.match_years() == f
 
     # Test range
     res4 = f.match_years(start=2015, stop=2015, inclusive=True).search()
@@ -611,7 +627,7 @@ def test_forge_search(capsys):
     assert "Error: No query" in out
 
     # Return info if requested
-    res2 = f.search(q="Al", info=False)
+    res2 = f.search(q="Al", info=False, index="mdf")
     assert isinstance(res2, list)
     assert isinstance(res2[0], dict)
 
@@ -737,7 +753,7 @@ def test_forge_aggregate():
     # And respects the reset_query arg
     f = forge.Forge(index="mdf")
     f.match_field("mdf.source_name", "nist_xps_db")
-    res1 = f.aggregate(reset_query=False)
+    res1 = f.aggregate(reset_query=False, index="mdf")
     assert len(res1) > 10000
     assert check_field(res1, "mdf.source_name", "nist_xps_db") == 0
     res2 = f.aggregate()
@@ -867,7 +883,7 @@ def test_forge_show_fields():
     f = forge.Forge(index="mdf")
     res1 = f.show_fields()
     assert "mdf" in res1.keys()
-    res2 = f.show_fields("mdf")
+    res2 = f.show_fields(block="mdf", index="mdf")
     assert "mdf.mdf_id" in res2.keys()
 
 
