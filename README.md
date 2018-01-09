@@ -30,7 +30,7 @@ r = mdf.search("materials commons")
 r_2 = mdf.search_by_elements(elements=["Al","Cu"], sources=["oqmd"])
 ```
 
-More examples are available in the examples directory.
+More examples are available in the docs/examples directory.
 
 
 # Documentation
