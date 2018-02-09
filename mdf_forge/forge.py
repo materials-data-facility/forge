@@ -1298,7 +1298,5 @@ class Query:
         dict: The full mapping for the index.
         """
         return (self.__search_client.get(
-                    # TODO: Re-enable when Search handles index UUIDs
-                    # "/unstable/index/{}/mapping".format(self.__translate_index(index)))
-                    "/unstable/index/{}/mapping".format(index))
+                    "/unstable/index/{}/mapping".format(self.__translate_index(index)))
                 ["mappings"])
