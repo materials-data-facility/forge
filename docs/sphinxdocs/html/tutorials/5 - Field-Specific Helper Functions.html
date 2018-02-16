@@ -1,0 +1,1065 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Field-Specific Query Builders &#8212; mdf-forge 0.5.1 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Retrieval" href="6 - Data Retrieval Functions.html" />
+    <link rel="prev" title="Generally Useful Help" href="4 - General Helper Functions.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="6 - Data Retrieval Functions.html" title="Data Retrieval"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="4 - General Helper Functions.html" title="Generally Useful Help"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tutorials.html" accesskey="U">Tutorials</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Field-Specific Query Builders</a><ul>
+<li><a class="reference internal" href="#match_sources">match_sources</a></li>
+<li><a class="reference internal" href="#match_elements">match_elements</a></li>
+<li><a class="reference internal" href="#match_resource_types">match_resource_types</a></li>
+<li><a class="reference internal" href="#match_ids">match_ids</a></li>
+<li><a class="reference internal" href="#match_titles">match_titles</a></li>
+<li><a class="reference internal" href="#match_tags">match_tags</a></li>
+<li><a class="reference internal" href="#match_years">match_years</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Premade-Searches">Premade Searches</a><ul>
+<li><a class="reference internal" href="#search_by_elements">search_by_elements</a></li>
+<li><a class="reference internal" href="#search_by_titles">search_by_titles</a></li>
+<li><a class="reference internal" href="#search_by_tags">search_by_tags</a></li>
+<li><a class="reference internal" href="#aggregate_source">aggregate_source</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="4 - General Helper Functions.html"
+                        title="previous chapter">Generally Useful Help</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="6 - Data Retrieval Functions.html"
+                        title="next chapter">Data Retrieval</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorials/5 - Field-Specific Helper Functions.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">mdf_forge.forge</span> <span class="kn">import</span> <span class="n">Forge</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span> <span class="o">=</span> <span class="n">Forge</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Field-Specific-Query-Builders">
+<h1>Field-Specific Query Builders<a class="headerlink" href="#Field-Specific-Query-Builders" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="match_sources">
+<h2>match_sources<a class="headerlink" href="#match_sources" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_sources()</span></code> matches values against the <code class="docutils literal notranslate"><span class="pre">&quot;mdf.source_name&quot;</span></code>
+field. It is equivalent to chaining
+<code class="docutils literal notranslate"><span class="pre">match_field(&quot;mdf.source_name&quot;,</span> <span class="pre">value)</span></code> for each value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_sources</span><span class="p">(</span><span class="s2">&quot;oqmd&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="match_elements">
+<h2>match_elements<a class="headerlink" href="#match_elements" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_elements()</span></code> matches values against the <code class="docutils literal notranslate"><span class="pre">&quot;mdf.elements&quot;</span></code>
+field. It is equivalent to chaining
+<code class="docutils literal notranslate"><span class="pre">match_field(&quot;mdf.elements&quot;,</span> <span class="pre">value)</span></code> for each value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_elements</span><span class="p">([</span><span class="s2">&quot;Al&quot;</span><span class="p">,</span> <span class="s2">&quot;Cu&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="match_resource_types">
+<h2>match_resource_types<a class="headerlink" href="#match_resource_types" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_resource_types()</span></code> matches values against the
+<code class="docutils literal notranslate"><span class="pre">&quot;mdf.resource_types&quot;</span></code> field. It is equivalent to chaining
+<code class="docutils literal notranslate"><span class="pre">match_field(&quot;mdf.resource_types&quot;,</span> <span class="pre">value)</span></code> for each value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_resource_types</span><span class="p">(</span><span class="s2">&quot;record&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;collection&#39;: &#39;OQMD&#39;,
+  &#39;composition&#39;: &#39;Al2Cu1&#39;,
+  &#39;elements&#39;: [&#39;Al&#39;, &#39;Cu&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T14:19:13.058498Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://oqmd.org/analysis/calculation/17664&#39;,
+   &#39;metadata&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/107544/static/metadata.json&#39;},
+   &#39;outcar&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/107544/static/OUTCAR&#39;},
+   &#39;parent_id&#39;: &#39;5984824ba5ea60170af49754&#39;},
+  &#39;mdf_id&#39;: &#39;59848261a5ea60172af4a8c2&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 4462,
+  &#39;source_name&#39;: &#39;oqmd&#39;,
+  &#39;tags&#39;: [&#39;metadata&#39;, &#39;outcar&#39;],
+  &#39;title&#39;: &#39;OQMD - Al2Cu1&#39;},
+ &#39;oqmd&#39;: {&#39;band_gap&#39;: {&#39;units&#39;: &#39;eV&#39;, &#39;value&#39;: 0.0},
+  &#39;configuration&#39;: &#39;static&#39;,
+  &#39;converged&#39;: True,
+  &#39;crossreference&#39;: {&#39;icsd&#39;: 107544},
+  &#39;delta_e&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -0.15628721},
+  &#39;magnetic_moment&#39;: {&#39;units&#39;: &#39;bohr/atom&#39;},
+  &#39;spacegroup&#39;: 69,
+  &#39;stability&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: 0.018707923333333},
+  &#39;total_energy&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -3.89209998333333},
+  &#39;volume&#39;: {&#39;units&#39;: &#39;angstrom^3/atom&#39;, &#39;value&#39;: 14.7911}}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="match_ids">
+<h2>match_ids<a class="headerlink" href="#match_ids" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_ids()</span></code> matches values against the <code class="docutils literal notranslate"><span class="pre">&quot;mdf.mdf_id&quot;</span></code> field. It is
+equivalent to chaining <code class="docutils literal notranslate"><span class="pre">match_field(&quot;mdf.mdf_id&quot;,</span> <span class="pre">value)</span></code> for each
+value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">an_id</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;mdf&quot;</span><span class="p">][</span><span class="s2">&quot;mdf_id&quot;</span><span class="p">]</span>
+<span class="n">mdf</span><span class="o">.</span><span class="n">match_ids</span><span class="p">(</span><span class="n">an_id</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[8]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[{&#39;mdf&#39;: {&#39;collection&#39;: &#39;OQMD&#39;,
+   &#39;composition&#39;: &#39;Al1Cu3&#39;,
+   &#39;elements&#39;: [&#39;Al&#39;, &#39;Cu&#39;],
+   &#39;ingest_date&#39;: &#39;2017-08-04T14:19:02.238752Z&#39;,
+   &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://oqmd.org/analysis/calculation/8950&#39;,
+    &#39;metadata&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+     &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+     &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/150823/static/metadata.json&#39;},
+    &#39;outcar&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+     &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+     &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/150823/static/OUTCAR&#39;},
+    &#39;parent_id&#39;: &#39;5984824ba5ea60170af49754&#39;},
+   &#39;mdf_id&#39;: &#39;59848256a5ea60172af49f39&#39;,
+   &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+   &#39;resource_type&#39;: &#39;record&#39;,
+   &#39;scroll_id&#39;: 2021,
+   &#39;source_name&#39;: &#39;oqmd&#39;,
+   &#39;tags&#39;: [&#39;metadata&#39;, &#39;outcar&#39;],
+   &#39;title&#39;: &#39;OQMD - Al1Cu3&#39;},
+  &#39;oqmd&#39;: {&#39;band_gap&#39;: {&#39;units&#39;: &#39;eV&#39;, &#39;value&#39;: 0.0},
+   &#39;configuration&#39;: &#39;static&#39;,
+   &#39;converged&#39;: True,
+   &#39;crossreference&#39;: {&#39;icsd&#39;: 150823},
+   &#39;delta_e&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -0.1675233825},
+   &#39;magnetic_moment&#39;: {&#39;units&#39;: &#39;bohr/atom&#39;},
+   &#39;spacegroup&#39;: 225,
+   &#39;stability&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: 0.02138741875},
+   &#39;total_energy&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -3.8909277975},
+   &#39;volume&#39;: {&#39;units&#39;: &#39;angstrom^3/atom&#39;, &#39;value&#39;: 12.3364}}}]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="match_titles">
+<h2>match_titles<a class="headerlink" href="#match_titles" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_titles()</span></code> matches values against the <code class="docutils literal notranslate"><span class="pre">&quot;mdf.title&quot;</span></code> field. It
+is equivalent to chaining <code class="docutils literal notranslate"><span class="pre">match_field(&quot;mdf.title&quot;,</span> <span class="pre">value)</span></code> for each
+value.</p>
+<p>Remember, values with special characters (like spaces) need to be
+wrapped in double quotes.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_titles</span><span class="p">(</span><span class="s1">&#39;&quot;The Open Quantum Materials Database&quot;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[9]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[10]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[{&#39;mdf&#39;: {&#39;author&#39;: [{&#39;family_name&#39;: &#39;Wolverton&#39;,
+     &#39;full_name&#39;: &#39;Chris Wolverton&#39;,
+     &#39;given_name&#39;: &#39;Chris&#39;,
+     &#39;institution&#39;: &#39;Northwestern University&#39;},
+    {&#39;family_name&#39;: &#39;Kirklin&#39;,
+     &#39;full_name&#39;: &#39;Scott Kirklin&#39;,
+     &#39;given_name&#39;: &#39;Scott&#39;,
+     &#39;institution&#39;: &#39;Northwestern University&#39;},
+    {&#39;family_name&#39;: &#39;Hegde&#39;,
+     &#39;full_name&#39;: &#39;Vinay Hegde&#39;,
+     &#39;given_name&#39;: &#39;Vinay&#39;,
+     &#39;institution&#39;: &#39;Northwestern University&#39;},
+    {&#39;family_name&#39;: &#39;Ward&#39;,
+     &#39;full_name&#39;: &#39;Logan Ward&#39;,
+     &#39;given_name&#39;: &#39;Logan&#39;,
+     &#39;institution&#39;: &#39;Northwestern University&#39;,
+     &#39;orcid&#39;: &#39;https://orcid.org/0000-0002-1323-5939&#39;}],
+   &#39;citation&#39;: [&#39;Saal, J. E., Kirklin, S., Aykol, M., Meredig, B., and Wolverton, C. &quot;Materials Design and Discovery with High-Throughput Density Functional Theory: The Open Quantum Materials Database (OQMD)&quot;, JOM 65, 1501-1509 (2013). doi:10.1007/s11837-013-0755-4&#39;,
+    &#39;Kirklin, S., Saal, J.E., Meredig, B., Thompson, A., Doak, J.W., Aykol, M., Rühl, S. and Wolverton, C. &quot;The Open Quantum Materials Database (OQMD): assessing the accuracy of DFT formation energies&quot;, npj Computational Materials 1, 15010 (2015). doi:10.1038/npjcompumats.2015.10&#39;],
+   &#39;collection&#39;: &#39;OQMD&#39;,
+   &#39;data_contact&#39;: {&#39;email&#39;: &#39;oqmd.questions@gmail.com&#39;,
+    &#39;family_name&#39;: &#39;Wolverton&#39;,
+    &#39;full_name&#39;: &#39;Chris Wolverton&#39;,
+    &#39;given_name&#39;: &#39;Chris&#39;,
+    &#39;institution&#39;: &#39;Northwestern University&#39;},
+   &#39;data_contributor&#39;: [{&#39;email&#39;: &#39;jgaff@uchicago.edu&#39;,
+     &#39;family_name&#39;: &#39;Gaff&#39;,
+     &#39;full_name&#39;: &#39;Jonathon Gaff&#39;,
+     &#39;github&#39;: &#39;jgaff&#39;,
+     &#39;given_name&#39;: &#39;Jonathon&#39;,
+     &#39;institution&#39;: &#39;The University of Chicago&#39;}],
+   &#39;description&#39;: &#39;The OQMD is a database of DFT-calculated thermodynamic and structural properties.&#39;,
+   &#39;ingest_date&#39;: &#39;2017-08-04T14:18:51.560728Z&#39;,
+   &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://oqmd.org/&#39;,
+    &#39;publication&#39;: [&#39;http://dx.doi.org/10.1007/s11837-013-0755-4&#39;,
+     &#39;http://dx.doi.org/10.1038/npjcompumats.2015.10&#39;]},
+   &#39;mdf_id&#39;: &#39;5984824ba5ea60170af49754&#39;,
+   &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+   &#39;resource_type&#39;: &#39;dataset&#39;,
+   &#39;source_name&#39;: &#39;oqmd&#39;,
+   &#39;tags&#39;: [&#39;dft&#39;],
+   &#39;title&#39;: &#39;The Open Quantum Materials Database&#39;,
+   &#39;year&#39;: 2013}}]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="match_tags">
+<h2>match_tags<a class="headerlink" href="#match_tags" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_tags()</span></code> matches values against the <code class="docutils literal notranslate"><span class="pre">&quot;mdf.tags&quot;</span></code> field. It is
+equivalent to chaining <code class="docutils literal notranslate"><span class="pre">match_field(&quot;mdf.tags&quot;,</span> <span class="pre">value)</span></code> for each
+value.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_tags</span><span class="p">(</span><span class="s2">&quot;DFT&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[11]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[12]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;author&#39;: [{&#39;email&#39;: &#39;mfelling@illinois.edu&#39;,
+    &#39;family_name&#39;: &#39;Fellinger&#39;,
+    &#39;full_name&#39;: &#39;Michael Fellinger&#39;,
+    &#39;given_name&#39;: &#39;Michael&#39;,
+    &#39;institution&#39;: &#39;University of Illinois&#39;},
+   {&#39;family_name&#39;: &#39;Trinkle&#39;,
+    &#39;full_name&#39;: &#39;Dallas Trinkle&#39;,
+    &#39;given_name&#39;: &#39;Dallas&#39;,
+    &#39;institution&#39;: &#39;University of Illinois&#39;},
+   {&#39;family_name&#39;: &#39;Hector Jr.&#39;,
+    &#39;full_name&#39;: &#39;Louis Hector Jr.&#39;,
+    &#39;given_name&#39;: &#39;Louis&#39;,
+    &#39;institution&#39;: &#39;General Motors&#39;}],
+  &#39;citation&#39;: [&#39;M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Comp. Mat. Sci. 126, 503 (2017).&#39;,
+   &#39;M. R. Fellinger, L. G. Hector Jr., and D. R. Trinkle, Data in Brief 10, 147 (2017).&#39;],
+  &#39;collection&#39;: &#39;Elastic Fe BCC&#39;,
+  &#39;data_contact&#39;: {&#39;email&#39;: &#39;mfelling@illinois.edu&#39;,
+   &#39;family_name&#39;: &#39;Fellinger&#39;,
+   &#39;full_name&#39;: &#39;Michael Fellinger&#39;,
+   &#39;given_name&#39;: &#39;Michael&#39;,
+   &#39;institution&#39;: &#39;University of Illinois&#39;},
+  &#39;data_contributor&#39;: [{&#39;email&#39;: &#39;jgaff@uchicago.edu&#39;,
+    &#39;family_name&#39;: &#39;Gaff&#39;,
+    &#39;full_name&#39;: &#39;Jonathon Gaff&#39;,
+    &#39;github&#39;: &#39;jgaff&#39;,
+    &#39;given_name&#39;: &#39;Jonathon&#39;,
+    &#39;institution&#39;: &#39;The University of Chicago&#39;}],
+  &#39;description&#39;: &#39;We introduce a solute strain misfit tensor that quantifies how solutes change the lattice parameter.&#39;,
+  &#39;ingest_date&#39;: &#39;2017-08-04T19:51:21.076837Z&#39;,
+  &#39;license&#39;: &#39;http://creativecommons.org/publicdomain/zero/1.0/&#39;,
+  &#39;links&#39;: {&#39;data_doi&#39;: &#39;http://hdl.handle.net/11256/671&#39;,
+   &#39;landing_page&#39;: &#39;https://materialsdata.nist.gov/dspace/xmlui/handle/11256/671&#39;,
+   &#39;publication&#39;: [&#39;http://dx.doi.org/10.1016/j.commatsci.2016.09.040&#39;,
+    &#39;http://dx.doi.org/10.1016/j.dib.2016.11.092&#39;]},
+  &#39;mdf_id&#39;: &#39;5984d039f2c0043894245abb&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;dataset&#39;,
+  &#39;source_name&#39;: &#39;trinkle_elastic_fe_bcc&#39;,
+  &#39;tags&#39;: [&#39;dft&#39;],
+  &#39;title&#39;: &#39;Ab initio calculations of the lattice parameter and elastic stiffness coefficients of bcc Fe with solutes&#39;,
+  &#39;year&#39;: 2017}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="match_years">
+<h2>match_years<a class="headerlink" href="#match_years" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">match_years()</span></code> matches values against the <code class="docutils literal notranslate"><span class="pre">&quot;mdf.year&quot;</span></code> field.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_years</span><span class="p">([</span><span class="s2">&quot;2015&quot;</span><span class="p">,</span> <span class="mi">2010</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[13]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[14]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;collection&#39;: &#39;PPPDB&#39;,
+  &#39;composition&#39;: &#39;C8H8 C7H7N&#39;,
+  &#39;description&#39;: &#39;Chi Parameter for poly(styrene) and poly(4-vinylpyridine)&#39;,
+  &#39;elements&#39;: [&#39;H&#39;, &#39;N&#39;, &#39;C&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T20:56:39.045371Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://pppdb.uchicago.edu?&amp;id=164&#39;,
+   &#39;parent_id&#39;: &#39;5984df58f2c004392664b14c&#39;,
+   &#39;publication&#39;: [&#39;10.1021/ma1006792&#39;]},
+  &#39;mdf_id&#39;: &#39;5984df87f2c004392664b15e&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;raw&#39;: &#39;{&quot;doi&quot;: &quot;10.1021/ma1006792&quot;, &quot;type&quot;: &quot;Type 1&quot;, &quot;temperature&quot;: 160.0, &quot;tempunit&quot;: &quot;Celsius&quot;, &quot;chinumber&quot;: 0.3, &quot;chierror&quot;: 0.0, &quot;chia&quot;: 0.0, &quot;chiaerror&quot;: 0.0, &quot;chib&quot;: 0.0, &quot;chiberror&quot;: 0.0, &quot;chic&quot;: 0.0, &quot;chicerror&quot;: 0.0, &quot;notes&quot;: &quot;&quot;, &quot;indirect&quot;: 1, &quot;reference&quot;: &quot;DOI: 10.1021/ma062516u; DOI: 10.1021/ma702780c&quot;, &quot;compound1&quot;: &quot;poly(styrene)&quot;, &quot;compound2&quot;: &quot;poly(4-vinylpyridine)&quot;, &quot;authors&quot;: &quot;Biplab K. Kuila, E. Bhoje Gowd, and Manfred Stamm&quot;, &quot;date&quot;: &quot;August 19, 2010&quot;, &quot;pppdb_id&quot;: 164}&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 18,
+  &#39;source_name&#39;: &#39;pppdb&#39;,
+  &#39;tags&#39;: [&#39;poly(styrene)&#39;, &#39;poly(4-vinylpyridine)&#39;],
+  &#39;title&#39;: &#39;PPPDB - Chi Parameter for poly(styrene) and poly(4-vinylpyridine)&#39;,
+  &#39;year&#39;: 2010},
+ &#39;pppdb&#39;: {&#39;authors&#39;: &#39;Biplab K. Kuila, E. Bhoje Gowd, and Manfred Stamm&#39;,
+  &#39;chierror&#39;: 0.0,
+  &#39;chinumber&#39;: 0.3,
+  &#39;date&#39;: &#39;August 19, 2010&#39;,
+  &#39;id&#39;: 164,
+  &#39;reference&#39;: &#39;DOI: 10.1021/ma062516u; DOI: 10.1021/ma702780c&#39;,
+  &#39;temperature&#39;: 160.0,
+  &#39;tempunit&#39;: &#39;Celsius&#39;,
+  &#39;type&#39;: &#39;Type 1&#39;}}
+</pre></div>
+</div>
+</div>
+<p>You can also specify a range of years.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_years</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">2014</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">2016</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[15]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7f64a5facd30&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[16]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;collection&#39;: &#39;PPPDB&#39;,
+  &#39;composition&#39;: &#39;C7H7N C7H8&#39;,
+  &#39;description&#39;: &#39;could not access cited reference for method&#39;,
+  &#39;elements&#39;: [&#39;H&#39;, &#39;N&#39;, &#39;C&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T21:06:57.080792Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://pppdb.uchicago.edu?&amp;id=606&#39;,
+   &#39;parent_id&#39;: &#39;5984df58f2c004392664b14c&#39;,
+   &#39;publication&#39;: [&#39;10.1021/acs.macromol.5b01261&#39;]},
+  &#39;mdf_id&#39;: &#39;5984e1f1f2c004392664b2cc&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;raw&#39;: &#39;{&quot;doi&quot;: &quot;10.1021/acs.macromol.5b01261&quot;, &quot;type&quot;: &quot;Type 1&quot;, &quot;temperature&quot;: 0.0, &quot;tempunit&quot;: &quot;&quot;, &quot;chinumber&quot;: 1.01, &quot;chierror&quot;: 0.0, &quot;chia&quot;: 0.0, &quot;chiaerror&quot;: 0.0, &quot;chib&quot;: 0.0, &quot;chiberror&quot;: 0.0, &quot;chic&quot;: 0.0, &quot;chicerror&quot;: 0.0, &quot;notes&quot;: &quot;could not access cited reference for method&quot;, &quot;indirect&quot;: 1, &quot;reference&quot;: &quot;ISBN: 0-471-16628-6&quot;, &quot;compound1&quot;: &quot;poly(4-vinylpyridine)&quot;, &quot;compound2&quot;: &quot;toluene&quot;, &quot;authors&quot;: &quot;Renhua Deng, Hui Li, Fuxin Liang, Jintao Zhu, Baohui Li, Xiaolin Xie, and Zhenzhong Yang &quot;, &quot;date&quot;: &quot;August 6, 2015&quot;, &quot;pppdb_id&quot;: 606}&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 384,
+  &#39;source_name&#39;: &#39;pppdb&#39;,
+  &#39;tags&#39;: [&#39;poly(4-vinylpyridine)&#39;, &#39;toluene&#39;],
+  &#39;title&#39;: &#39;PPPDB - Chi Parameter for poly(4-vinylpyridine) and toluene&#39;,
+  &#39;year&#39;: 2015},
+ &#39;pppdb&#39;: {&#39;authors&#39;: &#39;Renhua Deng, Hui Li, Fuxin Liang, Jintao Zhu, Baohui Li, Xiaolin Xie, and Zhenzhong Yang &#39;,
+  &#39;chierror&#39;: 0.0,
+  &#39;chinumber&#39;: 1.01,
+  &#39;date&#39;: &#39;August 6, 2015&#39;,
+  &#39;id&#39;: 606,
+  &#39;reference&#39;: &#39;ISBN: 0-471-16628-6&#39;,
+  &#39;temperature&#39;: 0.0,
+  &#39;tempunit&#39;: &#39;&#39;,
+  &#39;type&#39;: &#39;Type 1&#39;}}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Premade-Searches">
+<h1>Premade Searches<a class="headerlink" href="#Premade-Searches" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="search_by_elements">
+<h2>search_by_elements<a class="headerlink" href="#search_by_elements" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">search_by_elements()</span></code> executes a search for the provided elements in
+the provided sources and returns the results. Note that calling
+<code class="docutils literal notranslate"><span class="pre">search()</span></code> is not required, as this helper function already performs
+the search.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search_by_elements</span><span class="p">([</span><span class="s2">&quot;Al&quot;</span><span class="p">,</span> <span class="s2">&quot;Cu&quot;</span><span class="p">],</span> <span class="n">sources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;oqmd&quot;</span><span class="p">])</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[17]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;collection&#39;: &#39;OQMD&#39;,
+  &#39;composition&#39;: &#39;Al2Cu1&#39;,
+  &#39;elements&#39;: [&#39;Al&#39;, &#39;Cu&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T14:19:13.058498Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://oqmd.org/analysis/calculation/17664&#39;,
+   &#39;metadata&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/107544/static/metadata.json&#39;},
+   &#39;outcar&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/107544/static/OUTCAR&#39;},
+   &#39;parent_id&#39;: &#39;5984824ba5ea60170af49754&#39;},
+  &#39;mdf_id&#39;: &#39;59848261a5ea60172af4a8c2&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 4462,
+  &#39;source_name&#39;: &#39;oqmd&#39;,
+  &#39;tags&#39;: [&#39;metadata&#39;, &#39;outcar&#39;],
+  &#39;title&#39;: &#39;OQMD - Al2Cu1&#39;},
+ &#39;oqmd&#39;: {&#39;band_gap&#39;: {&#39;units&#39;: &#39;eV&#39;, &#39;value&#39;: 0.0},
+  &#39;configuration&#39;: &#39;static&#39;,
+  &#39;converged&#39;: True,
+  &#39;crossreference&#39;: {&#39;icsd&#39;: 107544},
+  &#39;delta_e&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -0.15628721},
+  &#39;magnetic_moment&#39;: {&#39;units&#39;: &#39;bohr/atom&#39;},
+  &#39;spacegroup&#39;: 69,
+  &#39;stability&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: 0.018707923333333},
+  &#39;total_energy&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -3.89209998333333},
+  &#39;volume&#39;: {&#39;units&#39;: &#39;angstrom^3/atom&#39;, &#39;value&#39;: 14.7911}}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="search_by_titles">
+<h2>search_by_titles<a class="headerlink" href="#search_by_titles" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">search_by_titles()</span></code> executes a search for the provided elements in
+the provided sources and returns the results.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search_by_titles</span><span class="p">([</span><span class="s1">&#39;&quot;JANAF Thermochemical Tables&quot;&#39;</span><span class="p">])</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[18]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;author&#39;: [{&#39;family_name&#39;: &#39;Chase, Jr.&#39;,
+    &#39;full_name&#39;: &#39;Malcolm Chase, Jr.&#39;,
+    &#39;given_name&#39;: &#39;Malcolm&#39;,
+    &#39;institution&#39;: &#39;National Institute of Standards and Technology&#39;}],
+  &#39;citation&#39;: [&#39;M. W. Chase, Jr., JANAF Thermochemical Tables Third Edition, J. Phys. Chem. Ref. Data, Vol. 14, Suppl. 1, 1985.&#39;],
+  &#39;collection&#39;: &#39;NIST-JANAF&#39;,
+  &#39;data_contact&#39;: {&#39;email&#39;: &#39;evelyn.brown@nist.gov&#39;,
+   &#39;family_name&#39;: &#39;Brown&#39;,
+   &#39;full_name&#39;: &#39;Evelyn Brown&#39;,
+   &#39;given_name&#39;: &#39;Evelyn&#39;,
+   &#39;institution&#39;: &#39;National Institute of Standards and Technology&#39;},
+  &#39;data_contributor&#39;: [{&#39;email&#39;: &#39;jgaff@uchicago.edu&#39;,
+    &#39;family_name&#39;: &#39;Gaff&#39;,
+    &#39;full_name&#39;: &#39;Jonathon Gaff&#39;,
+    &#39;github&#39;: &#39;jgaff&#39;,
+    &#39;given_name&#39;: &#39;Jonathon&#39;,
+    &#39;institution&#39;: &#39;The University of Chicago&#39;}],
+  &#39;description&#39;: &#39;DISCLAIMER: NIST uses its best efforts to deliver a high quality copy of the Database and to verify that the data contained therein have been selected on the basis of sound scientific judgement. However, NIST makes no warranties to that effect, and NIST shall not be liable for any damage that may result from errors or omissions in the Database.&#39;,
+  &#39;ingest_date&#39;: &#39;2017-08-04T19:34:26.282241Z&#39;,
+  &#39;license&#39;: &#39;Copyright 1986 by the U.S. Department of Commerce on behalf of the United States. All rights reserved.&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://kinetics.nist.gov/janaf/&#39;},
+  &#39;mdf_id&#39;: &#39;5984cc42f2c00438337919d7&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;dataset&#39;,
+  &#39;source_name&#39;: &#39;nist_janaf&#39;,
+  &#39;tags&#39;: [&#39;Thermochemical&#39;],
+  &#39;title&#39;: &#39;NIST-JANAF Thermochemical Tables&#39;,
+  &#39;year&#39;: 1985}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="search_by_tags">
+<h2>search_by_tags<a class="headerlink" href="#search_by_tags" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">search_by_tags()</span></code> executes a search for the provided tags in the
+provided sources and returns the results.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search_by_tags</span><span class="p">([</span><span class="s2">&quot;dft&quot;</span><span class="p">,</span> <span class="s2">&quot;simulation&quot;</span><span class="p">])</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[19]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;author&#39;: [{&#39;email&#39;: &#39;wjoost@umd.edu&#39;,
+    &#39;family_name&#39;: &#39;Joost&#39;,
+    &#39;full_name&#39;: &#39;William Joost&#39;,
+    &#39;given_name&#39;: &#39;William&#39;,
+    &#39;institution&#39;: &#39;University of Maryland&#39;},
+   {&#39;family_name&#39;: &#39;Ankem&#39;,
+    &#39;full_name&#39;: &#39;Sreeramamurthy Ankem&#39;,
+    &#39;given_name&#39;: &#39;Sreeramamurthy&#39;,
+    &#39;institution&#39;: &#39;University of Maryland&#39;},
+   {&#39;family_name&#39;: &#39;Kuklja&#39;,
+    &#39;full_name&#39;: &#39;Maija Kuklja&#39;,
+    &#39;given_name&#39;: &#39;Maija&#39;,
+    &#39;institution&#39;: &#39;University of Maryland&#39;}],
+  &#39;citation&#39;: [&#39;W.J. Joost, S. Ankem, M.M. Kuklja &quot;A modified embedded atom method potential for the titanium-oxygen system&quot; Modelling and Simulation in Materials Science and Engineering Vol. 23, pp. 015006 (2015) doi:10.1088/0965-0393/23/1/015006&#39;],
+  &#39;collection&#39;: &#39;Ti-O MEAM Model&#39;,
+  &#39;data_contact&#39;: {&#39;email&#39;: &#39;wjoost@umd.edu&#39;,
+   &#39;family_name&#39;: &#39;Joost&#39;,
+   &#39;full_name&#39;: &#39;William Joost&#39;,
+   &#39;given_name&#39;: &#39;William&#39;,
+   &#39;institution&#39;: &#39;University of Maryland&#39;},
+  &#39;data_contributor&#39;: [{&#39;email&#39;: &#39;jgaff@uchicago.edu&#39;,
+    &#39;family_name&#39;: &#39;Gaff&#39;,
+    &#39;full_name&#39;: &#39;Jonathon Gaff&#39;,
+    &#39;github&#39;: &#39;jgaff&#39;,
+    &#39;given_name&#39;: &#39;Jonathon&#39;,
+    &#39;institution&#39;: &#39;The University of Chicago&#39;}],
+  &#39;description&#39;: &#39;The files included here are:\n             1) LAMMPS and VASP input files describing the structures specified in the article.\n              2) LAMMPS and VASP output files describing the calculation results and the output structures.\n               3) A Python script used in this study to perform a brute force search of the parameter space for the Ti-O MEAM potential. Further details are provided in the article, and in the script.\n                4) The Ti, O and Ti-O potential files in LAMMPS MEAM format&#39;,
+  &#39;ingest_date&#39;: &#39;2017-08-04T19:50:45.686503Z&#39;,
+  &#39;links&#39;: {&#39;data_doi&#39;: &#39;http://hdl.handle.net/11115/244&#39;,
+   &#39;landing_page&#39;: &#39;https://materialsdata.nist.gov/dspace/xmlui/handle/11115/244&#39;,
+   &#39;publication&#39;: [&#39;https:/dx.doi.org/10.1088/0965-0393/23/1/015006&#39;]},
+  &#39;mdf_id&#39;: &#39;5984d015f2c004388b77e807&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;dataset&#39;,
+  &#39;source_name&#39;: &#39;ti_o_meam_model&#39;,
+  &#39;tags&#39;: [&#39;dft&#39;, &#39;atom-scale simulation&#39;],
+  &#39;title&#39;: &#39;A Modified Embedded Atom Method Potential for the Titanium-Oxygen System&#39;,
+  &#39;year&#39;: 2014}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="aggregate_source">
+<h2>aggregate_source<a class="headerlink" href="#aggregate_source" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aggregate_source()</span></code> fetches and returns all the records for a
+provided <code class="docutils literal notranslate"><span class="pre">&quot;mdf.source_name&quot;</span></code> value. Calling <code class="docutils literal notranslate"><span class="pre">search()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">aggregate()</span></code> is not required, as this helper function does that for
+you. Please note that it is not possible to use the <code class="docutils literal notranslate"><span class="pre">limit</span></code> argument
+with this helper function, so you may get back a large number of
+results.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">aggregate_source</span><span class="p">(</span><span class="s2">&quot;fe_cr_al_oxidation&quot;</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+1401it [00:01, 787.20it/s]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[20]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;fe_cr_al_oxidation&#39;: {&#39;atomic_composition_percent&#39;: {&#39;Al&#39;: 3.1,
+   &#39;Cr&#39;: 26.5,
+   &#39;Fe&#39;: 70.5},
+  &#39;temperature_k&#39;: 420.0},
+ &#39;mdf&#39;: {&#39;collection&#39;: &#39;Fe-Cr-Al Oxidation Studies&#39;,
+  &#39;composition&#39;: &#39;FeCrAl&#39;,
+  &#39;elements&#39;: [&#39;Cr&#39;, &#39;Fe&#39;, &#39;Al&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T21:26:53.296946Z&#39;,
+  &#39;links&#39;: {&#39;csv&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/Fe_Cr_Al_data/420 K/420 K Point 104.txt&#39;},
+   &#39;landing_page&#39;: &#39;https://materialsdata.nist.gov/dspace/xmlui/handle/11256/836#104&#39;,
+   &#39;parent_id&#39;: &#39;5984e69cf2c00439c790bf54&#39;},
+  &#39;mdf_id&#39;: &#39;5984e69df2c00439c790bfbc&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 104,
+  &#39;source_name&#39;: &#39;fe_cr_al_oxidation&#39;,
+  &#39;tags&#39;: [&#39;csv&#39;],
+  &#39;title&#39;: &#39;Fe-Cr-Al Oxidation - 420 K Point 104&#39;}}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="6 - Data Retrieval Functions.html" title="Data Retrieval"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="4 - General Helper Functions.html" title="Generally Useful Help"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tutorials.html" >Tutorials</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Apache License, Version 2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,895 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Compile the Training Set &#8212; mdf-forge 0.5.1 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example Statistics" href="Example Statistics - MDF Datasets.html" />
+    <link rel="prev" title="Example Analysis" href="Example Analysis - Fe-Cr-Al Oxidation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Example Statistics - MDF Datasets.html" title="Example Statistics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Example Analysis - Fe-Cr-Al Oxidation.html" title="Example Analysis"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../examples.html" accesskey="U">Examples</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Compile the Training Set</a><ul>
+<li><a class="reference internal" href="#Build-an-ML-model">Build an ML model</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Part-1:-Compute-Representation">Part 1: Compute Representation</a></li>
+<li><a class="reference internal" href="#Part-2:-Tuning-Model-Hyper-parameters">Part 2: Tuning Model Hyper-parameters</a></li>
+<li><a class="reference internal" href="#Part-3:-Cross-validation-Test">Part 3: Cross-validation Test</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Example Analysis - Fe-Cr-Al Oxidation.html"
+                        title="previous chapter">Example Analysis</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Example Statistics - MDF Datasets.html"
+                        title="next chapter">Example Statistics</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/examples/Example Machine Learning - OQMD.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Train a Model to Predict Formation Energy using the MDF</span>
+<span class="n">This</span> <span class="n">notebook</span> <span class="n">demonstrates</span> <span class="n">how</span> <span class="n">to</span> <span class="n">create</span> <span class="n">an</span> <span class="n">model</span> <span class="n">to</span> <span class="n">predict</span> <span class="n">the</span> <span class="n">formation</span> <span class="n">energy</span> <span class="n">of</span> <span class="n">crystalline</span> <span class="n">materials</span> <span class="n">using</span> <span class="n">data</span> <span class="kn">from</span> <span class="nn">the</span> <span class="nn">MDF.</span> <span class="nn">Specifically</span><span class="p">,</span> <span class="n">we</span> <span class="n">will</span> <span class="n">use</span> <span class="n">data</span> <span class="kn">from</span> <span class="nn">the</span> <span class="nn">OQMD</span> <span class="nn">and</span> <span class="nn">train</span> <span class="nn">a</span> <span class="nn">model</span> <span class="nn">using</span> <span class="nn">the</span> <span class="nn">technique</span> <span class="nn">describe</span> <span class="nn">in</span> <span class="nn">a</span> <span class="nn">recent</span> <span class="nn">paper</span> <span class="nn">by</span> <span class="p">[</span><span class="n">Ward</span> <span class="o">*</span><span class="n">et</span> <span class="n">al</span><span class="o">.*</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">nature</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">articles</span><span class="o">/</span><span class="n">npjcompumats201628</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="kn">from</span> <span class="nn">mdf_forge.forge</span> <span class="kn">import</span> <span class="n">Forge</span>
+
+<span class="kn">from</span> <span class="nn">matminer.featurizers</span> <span class="kn">import</span> <span class="n">composition</span> <span class="k">as</span> <span class="n">cf</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LogNorm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Composition</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core.periodic_table</span> <span class="kn">import</span> <span class="n">Element</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">cross_val_predict</span><span class="p">,</span> <span class="n">GridSearchCV</span><span class="p">,</span> <span class="n">ShuffleSplit</span>
+
+<span class="o">%</span><span class="k">matplotlib</span> inline
+</pre></div>
+</div>
+</div>
+<p>Settings to change</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">quick_demo</span> <span class="o">=</span> <span class="bp">True</span> <span class="c1"># Whether to run an faster version of this demo</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1">## Get OQMD Training Set</span>
+<span class="n">Ward</span> <span class="n">_et</span> <span class="n">al</span><span class="o">.</span><span class="n">_</span> <span class="n">trained</span> <span class="n">their</span> <span class="n">machine</span> <span class="n">learning</span> <span class="n">models</span> <span class="n">on</span> <span class="n">the</span> <span class="n">formation</span> <span class="n">enthalpies</span> <span class="n">of</span> <span class="n">crystalline</span> <span class="n">compounds</span> <span class="n">form</span> <span class="n">the</span> <span class="p">[</span><span class="n">OQMD</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">oqmd</span><span class="o">.</span><span class="n">org</span><span class="p">)</span><span class="o">.</span> <span class="n">Here</span><span class="p">,</span> <span class="n">we</span> <span class="n">extract</span> <span class="n">the</span> <span class="n">data</span> <span class="n">using</span> <span class="n">the</span> <span class="n">copy</span> <span class="n">of</span> <span class="n">the</span> <span class="n">OQMD</span> <span class="n">available</span> <span class="n">through</span> <span class="n">the</span> <span class="n">MDF</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1">### Download the Data</span>
+<span class="n">We</span> <span class="n">first</span> <span class="n">create</span> <span class="n">a</span> <span class="sb">`Forge`</span> <span class="n">instance</span><span class="p">,</span> <span class="n">which</span> <span class="n">simplifies</span> <span class="n">performing</span> <span class="n">search</span> <span class="n">queries</span> <span class="n">against</span> <span class="n">the</span> <span class="n">MDF</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span> <span class="o">=</span> <span class="n">Forge</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Then, we get all the converged results from the OQMD</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">query_string</span> <span class="o">=</span> <span class="s1">&#39;mdf.source_name:oqmd AND (oqmd.configuration:static OR oqmd.configuration:standard) AND oqmd.converged:True&#39;</span>
+<span class="k">if</span> <span class="n">quick_demo</span><span class="p">:</span>
+    <span class="n">query_string</span> <span class="o">+=</span> <span class="s2">&quot; AND mdf.scroll_id:&lt;10000&quot;</span>
+<span class="n">result_records</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">query_string</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%d</span><span class="s1"> compounds&#39;</span><span class="o">%</span><span class="k">len</span>(result_records))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 6847/6847 [00:13&lt;00:00, 509.65it/s]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Found 6847 compounds
+</pre></div></div>
+</div>
+<p>Each of these results contain the key metadata of these OQMD
+compositions.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">result_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;collection&#39;: &#39;OQMD&#39;,
+  &#39;composition&#39;: &#39;Sn1V3&#39;,
+  &#39;elements&#39;: [&#39;Sn&#39;, &#39;V&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T14:19:33.498270Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://oqmd.org/analysis/calculation/29415&#39;,
+   &#39;metadata&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/106098/static/metadata.json&#39;},
+   &#39;outcar&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/oqmd/data/home/oqmd/libraries/icsd/106098/static/OUTCAR&#39;},
+   &#39;parent_id&#39;: &#39;5984824ba5ea60170af49754&#39;},
+  &#39;mdf_id&#39;: &#39;59848275a5ea60172af4b9b9&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 8805,
+  &#39;source_name&#39;: &#39;oqmd&#39;,
+  &#39;tags&#39;: [&#39;metadata&#39;, &#39;outcar&#39;],
+  &#39;title&#39;: &#39;OQMD - Sn1V3&#39;},
+ &#39;oqmd&#39;: {&#39;band_gap&#39;: {&#39;units&#39;: &#39;eV&#39;, &#39;value&#39;: 0.0},
+  &#39;configuration&#39;: &#39;static&#39;,
+  &#39;converged&#39;: True,
+  &#39;crossreference&#39;: {&#39;icsd&#39;: 106098},
+  &#39;delta_e&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -0.0441507529628007},
+  &#39;magnetic_moment&#39;: {&#39;units&#39;: &#39;bohr/atom&#39;, &#39;value&#39;: 0.0121028875},
+  &#39;spacegroup&#39;: 194,
+  &#39;stability&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: 0.0353108012499996},
+  &#39;total_energy&#39;: {&#39;units&#39;: &#39;eV/atom&#39;, &#39;value&#39;: -7.72840820375},
+  &#39;volume&#39;: {&#39;units&#39;: &#39;angstrom^3/atom&#39;, &#39;value&#39;: 15.4878}}}
+</pre></div>
+</div>
+</div>
+<div class="section" id="Compile-the-Training-Set">
+<h1>Compile the Training Set<a class="headerlink" href="#Compile-the-Training-Set" title="Permalink to this headline">¶</a></h1>
+<p>First transform the data into a Pandas DataFrame, then get only the
+lowest-energy compound at each composition</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mdf&#39;</span><span class="p">][</span><span class="s1">&#39;links&#39;</span><span class="p">][</span><span class="s1">&#39;landing_page&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result_records</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;oqmd_url&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<p>Get the composition and <span class="math notranslate">\(\Delta H_f\)</span></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the composition, structure, band gap, and stability of an entry given its search result</span>
+
+<span class="sd">    :param entry: dict, metadata for an entry as returned by Globus search</span>
+<span class="sd">    :return: Several items</span>
+<span class="sd">        - str, composition of the material</span>
+<span class="sd">        - float, formation energy of material</span>
+<span class="sd">        - float, Energy per atom (eV/atom)&quot;&quot;&quot;</span>
+
+    <span class="c1"># Get the metadata as a dict</span>
+    <span class="n">oqmd_data</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;oqmd&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Return results</span>
+    <span class="k">return</span> <span class="n">entry</span><span class="p">[</span><span class="s1">&#39;mdf&#39;</span><span class="p">][</span><span class="s1">&#39;composition&#39;</span><span class="p">],</span> \
+        <span class="n">oqmd_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;delta_e&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">),</span> \
+        <span class="n">oqmd_data</span><span class="p">[</span><span class="s1">&#39;total_energy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;composition&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">get_data</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result_records</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<p>Convert compositions to <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code> objects</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;composition_pmg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;composition&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Composition</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<p>Remove the result records from memory</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">del</span> <span class="n">result_records</span>
+</pre></div>
+</div>
+</div>
+<p>Remove compounds w/o a <code class="docutils literal notranslate"><span class="pre">delta_e</span></code> measurement.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">,</span> <span class="s1">&#39;energy&#39;</span><span class="p">]:</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">original_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">~</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">())]</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Removed </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> entires&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">original_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">original_count</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Removed 1/6847 entires
+</pre></div></div>
+</div>
+<p>Get only the groundstate and each composition</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="o">%%</span><span class="k">time</span>
+original_count = len(data)
+data[&#39;composition_str&#39;] = data[&#39;composition_pmg&#39;].apply(lambda x: x.reduced_formula)
+data.sort_values(&#39;energy&#39;, ascending=True, inplace=True)
+data.drop_duplicates(&#39;composition_str&#39;, keep=&#39;first&#39;, inplace=True)
+print(&#39;Removed %d/%d entires&#39;%(original_count - len(data), original_count))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\Users\ward6\Miniconda3\lib\site-packages\pymatgen\core\periodic_table.py:407: UserWarning: No electronegativity for He. Setting to infinity. This has no physical meaning, and is mainly done to avoid errors caused by the code expecting a float.
+  % self.symbol)
+C:\Users\ward6\Miniconda3\lib\site-packages\pymatgen\core\periodic_table.py:407: UserWarning: No electronegativity for Ne. Setting to infinity. This has no physical meaning, and is mainly done to avoid errors caused by the code expecting a float.
+  % self.symbol)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Removed 1014/6846 entires
+Wall time: 783 ms
+</pre></div></div>
+</div>
+<p>Remove crazy high <span class="math notranslate">\(\Delta H_f\)</span> values</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="o">%%</span><span class="k">time</span>
+original_size = len(data)
+data.query(&#39;delta_e &lt;= 5&#39;, inplace=True)
+print(&#39;Removed %d/%d entires&#39;%(original_count - len(data), original_count))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Removed 1014/6846 entires
+Wall time: 13 ms
+</pre></div></div>
+</div>
+<div class="section" id="Build-an-ML-model">
+<h2>Build an ML model<a class="headerlink" href="#Build-an-ML-model" title="Permalink to this headline">¶</a></h2>
+<p>In this part of the notebook, we build a ML model using
+<a class="reference external" href="http://scikit-learn.org/stable/">scikit-learn</a> and evaluate its
+performance using cross-validation.</p>
+</div>
+</div>
+<div class="section" id="Part-1:-Compute-Representation">
+<h1>Part 1: Compute Representation<a class="headerlink" href="#Part-1:-Compute-Representation" title="Permalink to this headline">¶</a></h1>
+<p>The first step in building a ML model is to convert the raw materials
+data (here: the composition) into the required input for an ML model: a
+finite list of quantitative attributes. In this example, we use the
+“general-purpose” attributes of <a class="reference external" href="https://www.nature.com/articles/npjcompumats201628">Ward *et al*
+2016</a>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">feature_calculators</span> <span class="o">=</span> <span class="p">[</span><span class="n">cf</span><span class="o">.</span><span class="n">Stoichiometry</span><span class="p">(),</span> <span class="n">cf</span><span class="o">.</span><span class="n">ElementProperty</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="s2">&quot;magpie&quot;</span><span class="p">),</span> \
+                      <span class="n">cf</span><span class="o">.</span><span class="n">ValenceOrbital</span><span class="p">(</span><span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;frac&#39;</span><span class="p">]),</span> <span class="n">cf</span><span class="o">.</span><span class="n">IonProperty</span><span class="p">()]</span>
+</pre></div>
+</div>
+</div>
+<p>Get the feature names</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">feature_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">feature_labels</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">feature_calculators</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<p>Compute the features</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="o">%%</span><span class="k">time</span>
+for fc in feature_calculators:
+    data = fc.featurize_dataframe(data, col_id=&#39;composition_pmg&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Wall time: 48.5 s
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">print</span><span class="p">(</span><span class="s1">&#39;Generated </span><span class="si">%d</span><span class="s1"> features&#39;</span><span class="o">%</span><span class="k">len</span>(feature_labels))
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Training set size:&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">feature_labels</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Generated 145 features
+Training set size: 5832x145
+</pre></div></div>
+</div>
+<p>Remove entries with <code class="docutils literal notranslate"><span class="pre">NaN</span></code> or <code class="docutils literal notranslate"><span class="pre">infinite</span></code> features</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">original_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">~</span> <span class="n">data</span><span class="p">[</span><span class="n">feature_labels</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Removed </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> entires&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">original_count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">original_count</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Removed 2/5832 entires
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Part-2:-Tuning-Model-Hyper-parameters">
+<h1>Part 2: Tuning Model Hyper-parameters<a class="headerlink" href="#Part-2:-Tuning-Model-Hyper-parameters" title="Permalink to this headline">¶</a></h1>
+<p>For brevity, we will only consider one ML algorithm in this example:
+<a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor">random
+forest</a>.
+The “random forest” algorithm works by training many different decision
+tree models, where each is trained on a different subset of the dataset
+. Here, we tune one of the major parameters of the algoritm: the number
+features considered at each split in each decision tree</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">20</span> <span class="k">if</span> <span class="n">quick_demo</span> <span class="k">else</span> <span class="mi">150</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+                     <span class="n">param_grid</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">max_features</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">15</span><span class="p">)),</span>
+                     <span class="n">scoring</span><span class="o">=</span><span class="s1">&#39;neg_mean_squared_error&#39;</span><span class="p">,</span><span class="n">cv</span><span class="o">=</span><span class="n">ShuffleSplit</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">feature_labels</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[21]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>GridSearchCV(cv=ShuffleSplit(n_splits=1, random_state=None, test_size=0.1, train_size=None),
+       error_score=&#39;raise&#39;,
+       estimator=RandomForestRegressor(bootstrap=True, criterion=&#39;mse&#39;, max_depth=None,
+           max_features=&#39;auto&#39;, max_leaf_nodes=None,
+           min_impurity_decrease=0.0, min_impurity_split=None,
+           min_samples_leaf=1, min_samples_split=2,
+           min_weight_fraction_leaf=0.0, n_estimators=20, n_jobs=-1,
+           oob_score=False, random_state=None, verbose=0, warm_start=False),
+       fit_params=None, iid=True, n_jobs=1,
+       param_grid={&#39;max_features&#39;: range(8, 15)}, pre_dispatch=&#39;2*n_jobs&#39;,
+       refit=True, return_train_score=&#39;warn&#39;,
+       scoring=&#39;neg_mean_squared_error&#39;, verbose=0)
+</pre></div>
+</div>
+</div>
+<p>Plot the tuning results. This shows the CV score as a function of the
+parameter we tuned “max features”</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">best_score_</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[22]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>-0.047349072432448604
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="c1"># Plot the score as a function of alpha</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">[</span><span class="s1">&#39;param_max_features&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+          <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">[</span><span class="s1">&#39;mean_test_score&#39;</span><span class="p">]))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">model</span><span class="o">.</span><span class="n">best_params_</span><span class="p">[</span><span class="s1">&#39;max_features&#39;</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">model</span><span class="o">.</span><span class="n">best_score_</span><span class="p">]),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Max. Features&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;RMSE (eV/atom)&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[23]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Text(0,0.5,&#39;RMSE (eV/atom)&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_Example_Machine_Learning_-_OQMD_42_1.png" src="../_images/examples_Example_Machine_Learning_-_OQMD_42_1.png" />
+</div>
+</div>
+<p>Save our best model</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">best_estimator_</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Part-3:-Cross-validation-Test">
+<h1>Part 3: Cross-validation Test<a class="headerlink" href="#Part-3:-Cross-validation-Test" title="Permalink to this headline">¶</a></h1>
+<p>Quantify the performance of this model using 10-fold cross-validation</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">cv_prediction</span> <span class="o">=</span> <span class="n">cross_val_predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">feature_labels</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">],</span> <span class="n">cv</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Compute aggregate statistics</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">for</span> <span class="n">scorer</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;r2_score&#39;</span><span class="p">,</span> <span class="s1">&#39;mean_absolute_error&#39;</span><span class="p">,</span> <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">]:</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span><span class="n">scorer</span><span class="p">)(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">],</span> <span class="n">cv_prediction</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">scorer</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+r2_score 0.876058126274
+mean_absolute_error 0.178085812522
+mean_squared_error 0.0828029123798
+</pre></div></div>
+</div>
+<p>Plot the individual predictions</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">hist2d</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;delta_e&#39;</span><span class="p">]),</span> <span class="n">cv_prediction</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">LogNorm</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">176</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">())</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">())</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">(),</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">(),</span> <span class="s1">&#39;k--&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;DFT $\Delta H_f$ (eV)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;ML $\Delta H_f$ (eV)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;oqmd_cv.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">320</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_Example_Machine_Learning_-_OQMD_50_0.png" src="../_images/examples_Example_Machine_Learning_-_OQMD_50_0.png" />
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Example Statistics - MDF Datasets.html" title="Example Statistics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Example Analysis - Fe-Cr-Al Oxidation.html" title="Example Analysis"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../examples.html" >Examples</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Apache License, Version 2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+    </div>
+  </body>
+</html>

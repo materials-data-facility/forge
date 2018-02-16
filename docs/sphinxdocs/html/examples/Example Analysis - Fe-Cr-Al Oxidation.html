@@ -1,0 +1,516 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Example Analysis &#8212; mdf-forge 0.5.1 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Compile the Training Set" href="Example Machine Learning - OQMD.html" />
+    <link rel="prev" title="Aggregating data with MDF" href="Example Aggregations.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Example Machine Learning - OQMD.html" title="Compile the Training Set"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Example Aggregations.html" title="Aggregating data with MDF"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../examples.html" accesskey="U">Examples</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Example Analysis</a><ul>
+<li><a class="reference internal" href="#A-high-throughput-investigation-of-Fe–Cr–Al-as-a-novel-high-temperature-coating-for-nuclear-cladding-materials">A high-throughput investigation of Fe–Cr–Al as a novel high-temperature coating for nuclear cladding materials</a><ul>
+<li><a class="reference internal" href="#Retrieve-Records">Retrieve Records</a></li>
+<li><a class="reference internal" href="#Download-data-using-HTTP">Download data using HTTP</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Aggregate-Results">Aggregate Results</a></li>
+<li><a class="reference internal" href="#Plot-Results-in-Various-Ways">Plot Results in Various Ways</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Example Aggregations.html"
+                        title="previous chapter">Aggregating data with MDF</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Example Machine Learning - OQMD.html"
+                        title="next chapter">Compile the Training Set</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/examples/Example Analysis - Fe-Cr-Al Oxidation.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="section" id="Example-Analysis">
+<h1>Example Analysis<a class="headerlink" href="#Example-Analysis" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="A-high-throughput-investigation-of-Fe–Cr–Al-as-a-novel-high-temperature-coating-for-nuclear-cladding-materials">
+<h2>A high-throughput investigation of Fe–Cr–Al as a novel high-temperature coating for nuclear cladding materials<a class="headerlink" href="#A-high-throughput-investigation-of-Fe–Cr–Al-as-a-novel-high-temperature-coating-for-nuclear-cladding-materials" title="Permalink to this headline">¶</a></h2>
+<p>Article Link</p>
+<p>“Bunn, Jonathan Kenneth, Randy L. Fang, Mark R. Albing, Apurva Mehta,
+Matthew J. Kramer, Matthew F. Besser, and Jason R. Hattrick-Simpers.”A
+high-throughput investigation of Fe–Cr–Al as a novel high-temperature
+coating for nuclear cladding materials.” Nanotechnology 26, no. 27
+(2015): 274003.”</p>
+<p>Example: We want to plot some of the data from the above study using
+MDF.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="kn">from</span> <span class="nn">mdf_forge.forge</span> <span class="kn">import</span> <span class="n">Forge</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="kn">as</span> <span class="nn">sns</span>
+
+<span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="n">sns</span><span class="o">.</span><span class="n">set_context</span><span class="p">(</span><span class="s1">&#39;poster&#39;</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Retrieve-Records">
+<h3>Retrieve Records<a class="headerlink" href="#Retrieve-Records" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span> <span class="o">=</span> <span class="n">Forge</span><span class="p">()</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span><span class="s2">&quot;fe_cr_al_oxidation&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.resource_type&quot;</span><span class="p">,</span> <span class="s2">&quot;record&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Found {results} matches&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">results</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Found 1401 matches
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;fe_cr_al_oxidation&#39;: {&#39;atomic_composition_percent&#39;: {&#39;Al&#39;: 3.1,
+   &#39;Cr&#39;: 26.5,
+   &#39;Fe&#39;: 70.5},
+  &#39;temperature_k&#39;: 420.0},
+ &#39;mdf&#39;: {&#39;collection&#39;: &#39;Fe-Cr-Al Oxidation Studies&#39;,
+  &#39;composition&#39;: &#39;FeCrAl&#39;,
+  &#39;elements&#39;: [&#39;Cr&#39;, &#39;Fe&#39;, &#39;Al&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T21:26:53.296946Z&#39;,
+  &#39;links&#39;: {&#39;csv&#39;: {&#39;globus_endpoint&#39;: &#39;82f1b5c6-6e9b-11e5-ba47-22000b92c6ec&#39;,
+    &#39;http_host&#39;: &#39;https://data.materialsdatafacility.org&#39;,
+    &#39;path&#39;: &#39;/collections/Fe_Cr_Al_data/420 K/420 K Point 104.txt&#39;},
+   &#39;landing_page&#39;: &#39;https://materialsdata.nist.gov/dspace/xmlui/handle/11256/836#104&#39;,
+   &#39;parent_id&#39;: &#39;5984e69cf2c00439c790bf54&#39;},
+  &#39;mdf_id&#39;: &#39;5984e69df2c00439c790bfbc&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 104,
+  &#39;source_name&#39;: &#39;fe_cr_al_oxidation&#39;,
+  &#39;tags&#39;: [&#39;csv&#39;],
+  &#39;title&#39;: &#39;Fe-Cr-Al Oxidation - 420 K Point 104&#39;}}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Download-data-using-HTTP">
+<h3>Download data using HTTP<a class="headerlink" href="#Download-data-using-HTTP" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">format_get_cr_al_params</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="n">tmp_d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;atomic_composition_percent&#39;</span><span class="p">]:</span>
+        <span class="n">tmp_d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;atomic_composition_percent&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span>
+    <span class="n">tmp_d</span><span class="p">[</span><span class="s1">&#39;temperature_k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;temperature_k&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;temperature_k&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;Room&quot;</span> <span class="k">else</span> <span class="mf">297.15</span>  <span class="c1"># Avg room temp</span>
+    <span class="k">return</span> <span class="n">tmp_d</span>
+
+<span class="k">def</span> <span class="nf">get_fe_cr_al</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">mdf</span><span class="o">.</span><span class="n">http_stream</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">format_get_cr_al_params</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;fe_cr_al_oxidation&#39;</span><span class="p">])</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">res</span><span class="p">),</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;twotheta&quot;</span><span class="p">,</span><span class="s2">&quot;counts&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+
+<span class="n">n_workers</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">n_points</span> <span class="o">=</span> <span class="mi">300</span>
+
+<span class="n">mp</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">n_workers</span><span class="p">)</span>
+<span class="n">mdf_data</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_fe_cr_al</span><span class="p">,</span> <span class="n">res</span><span class="p">[:</span><span class="n">n_points</span><span class="p">])</span>
+<span class="n">mp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">mp</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Aggregate-Results">
+<h1>Aggregate Results<a class="headerlink" href="#Aggregate-Results" title="Permalink to this headline">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1">## Choose peak integration range (this is ~ a range for the Fe3O4 oxide)</span>
+
+<span class="n">integration_peak</span> <span class="o">=</span> <span class="mf">42.8</span>
+<span class="n">integration_width</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">integration_range</span> <span class="o">=</span> <span class="p">(</span><span class="n">integration_peak</span><span class="o">-</span><span class="n">integration_width</span><span class="p">,</span><span class="n">integration_peak</span><span class="o">+</span><span class="n">integration_width</span><span class="p">)</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">df_tmp</span> <span class="ow">in</span> <span class="n">mdf_data</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:{},</span><span class="s2">&quot;aggregation&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+    <span class="n">result</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="n">agg</span> <span class="o">=</span> <span class="n">df_tmp</span><span class="p">[(</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">twotheta</span><span class="o">&gt;</span><span class="n">integration_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span>
+                 <span class="p">(</span><span class="n">df_tmp</span><span class="o">.</span><span class="n">twotheta</span><span class="o">&lt;</span><span class="n">integration_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])][</span><span class="s1">&#39;counts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">result</span><span class="p">[</span><span class="s1">&#39;aggregation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agg</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+<span class="c1"># Calculate normalization of the aggregation</span>
+<span class="n">m</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;aggregation&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+    <span class="n">r</span><span class="p">[</span><span class="s2">&quot;aggregation_norm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;aggregation&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">m</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Plot-Results-in-Various-Ways">
+<h1>Plot Results in Various Ways<a class="headerlink" href="#Plot-Results-in-Various-Ways" title="Permalink to this headline">¶</a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;Al&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+<span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;Cr&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+<span class="n">s</span> <span class="o">=</span> <span class="p">[[</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;aggregation_norm&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">1000</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Al Atomic %&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Cr Atomic %&quot;</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_Example_Analysis_-_Fe-Cr-Al_Oxidation_10_0.png" src="../_images/examples_Example_Analysis_-_Fe-Cr-Al_Oxidation_10_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">jointplot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;kde&quot;</span><span class="p">,</span>
+                   <span class="n">shade</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stat_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">set_axis_labels</span><span class="p">(</span><span class="s2">&quot;Al Atomic %&quot;</span><span class="p">,</span> <span class="s2">&quot;Cr Atomic %&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_Example_Analysis_-_Fe-Cr-Al_Oxidation_12_0.png" src="../_images/examples_Example_Analysis_-_Fe-Cr-Al_Oxidation_12_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">jointplot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;hex&quot;</span><span class="p">,</span>
+                   <span class="n">gridsize</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">stat_func</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span><span class="o">.</span><span class="n">set_axis_labels</span><span class="p">(</span><span class="s2">&quot;Al Atomic %&quot;</span><span class="p">,</span> <span class="s2">&quot;Cr Atomic %&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/examples_Example_Analysis_-_Fe-Cr-Al_Oxidation_13_0.png" src="../_images/examples_Example_Analysis_-_Fe-Cr-Al_Oxidation_13_0.png" />
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Example Machine Learning - OQMD.html" title="Compile the Training Set"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Example Aggregations.html" title="Aggregating data with MDF"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../examples.html" >Examples</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Apache License, Version 2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+    </div>
+  </body>
+</html>
