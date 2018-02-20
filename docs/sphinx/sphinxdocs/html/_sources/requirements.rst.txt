@@ -1,0 +1,7 @@
+Package requirements
+--------------------
+
+* globus-sdk>=1.2.1
+* requests>=2.18.4
+* tqdm>=4.19.4
+* six>=1.11.0

@@ -1,0 +1,1007 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Generally Useful Help &#8212; mdf-forge 0.5.1 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Field-Specific Query Builders" href="5 - Field-Specific Helper Functions.html" />
+    <link rel="prev" title="More Query Builders" href="3 - Expanded Query Builder Functions.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="5 - Field-Specific Helper Functions.html" title="Field-Specific Query Builders"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="3 - Expanded Query Builder Functions.html" title="More Query Builders"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tutorials.html" accesskey="U">Tutorials</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Generally Useful Help</a><ul>
+<li><a class="reference internal" href="#current_query">current_query</a></li>
+<li><a class="reference internal" href="#reset_query">reset_query</a></li>
+<li><a class="reference internal" href="#Query-info">Query info</a></li>
+<li><a class="reference internal" href="#Repeat-a-query">Repeat a query</a></li>
+<li><a class="reference internal" href="#show_fields">show_fields</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Fetching-Datasets">Fetching Datasets</a><ul>
+<li><a class="reference internal" href="#fetch_datasets_from_results">fetch_datasets_from_results</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Aggregations">Aggregations</a><ul>
+<li><a class="reference internal" href="#aggregate">aggregate</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="3 - Expanded Query Builder Functions.html"
+                        title="previous chapter">More Query Builders</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="5 - Field-Specific Helper Functions.html"
+                        title="next chapter">Field-Specific Query Builders</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tutorials/4 - General Helper Functions.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">mdf_forge.forge</span> <span class="kn">import</span> <span class="n">Forge</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span> <span class="o">=</span> <span class="n">Forge</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Generally-Useful-Help">
+<h1>Generally Useful Help<a class="headerlink" href="#Generally-Useful-Help" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="current_query">
+<h2>current_query<a class="headerlink" href="#current_query" title="Permalink to this headline">¶</a></h2>
+<p>You can see the query you’re currently building with
+<code class="docutils literal notranslate"><span class="pre">current_query()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="s2">&quot;oqmd&quot;</span><span class="p">)</span>
+<span class="n">mdf</span><span class="o">.</span><span class="n">current_query</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&#39;(mdf.source_name:oqmd)&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="reset_query">
+<h2>reset_query<a class="headerlink" href="#reset_query" title="Permalink to this headline">¶</a></h2>
+<p>If you have a query in memory that you don’t want, you can use
+<code class="docutils literal notranslate"><span class="pre">reset_query()</span></code> to start a new query. This method will clear the
+current query entirely.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">reset_query</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">current_query</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&#39;&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Query-info">
+<h2>Query info<a class="headerlink" href="#Query-info" title="Permalink to this headline">¶</a></h2>
+<p>We can build a query using <code class="docutils literal notranslate"><span class="pre">exclude_field()</span></code> and <code class="docutils literal notranslate"><span class="pre">match_field()</span></code> and
+execute it with <code class="docutils literal notranslate"><span class="pre">search()</span></code>. But if you are interested in knowing more
+about the query, including the actual query string that was made, you
+can use the <code class="docutils literal notranslate"><span class="pre">info=True</span></code> argument to <code class="docutils literal notranslate"><span class="pre">search()</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">exclude_field</span><span class="p">(</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="s2">&quot;sluschi&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="s2">&quot;Al&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exclude_field</span><span class="p">(</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="s2">&quot;oqmd&quot;</span><span class="p">)</span>
+<span class="n">res</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>When you use the <code class="docutils literal notranslate"><span class="pre">info=True</span></code> argument, <code class="docutils literal notranslate"><span class="pre">search()</span></code> will return a
+tuple instead of a list. The first element in the tuple will be the same
+list of results you’re used to, but the second tuple element will be a
+dictionary of query info.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;collection&#39;: &#39;AMCS&#39;,
+  &#39;composition&#39;: &#39;Al4&#39;,
+  &#39;elements&#39;: [&#39;Al&#39;],
+  &#39;ingest_date&#39;: &#39;2017-08-04T19:07:56.890584Z&#39;,
+  &#39;links&#39;: {&#39;cif&#39;: {&#39;http_host&#39;: &#39;http://rruff.geo.arizona.edu&#39;,
+    &#39;path&#39;: &#39;/AMS/xtal_data/CIFfiles/19141.cif&#39;},
+   &#39;dif&#39;: {&#39;http_host&#39;: &#39;http://rruff.geo.arizona.edu&#39;,
+    &#39;path&#39;: &#39;/AMS/xtal_data/DIFfiles/19141.txt&#39;},
+   &#39;landing_page&#39;: &#39;http://rruff.geo.arizona.edu/AMS/minerals/Aluminum#18135&#39;,
+   &#39;parent_id&#39;: &#39;5984c125f2c0043771d1507c&#39;},
+  &#39;mdf_id&#39;: &#39;5984c60cf2c0043771d19753&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;record&#39;,
+  &#39;scroll_id&#39;: 18135,
+  &#39;source_name&#39;: &#39;amcs&#39;,
+  &#39;tags&#39;: [&#39;Aluminum&#39;, &#39;cif&#39;, &#39;dif&#39;],
+  &#39;title&#39;: &#39;AMCS - Aluminum&#39;}}
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">info</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[8]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;query&#39;: {&#39;advanced&#39;: True,
+  &#39;limit&#39;: 10,
+  &#39;offset&#39;: 0,
+  &#39;q&#39;: &#39;( NOT mdf.source_name:sluschi AND mdf.elements:Al AND  NOT mdf.source_name:oqmd)&#39;},
+ &#39;total_query_matches&#39;: 18170}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Repeat-a-query">
+<h2>Repeat a query<a class="headerlink" href="#Repeat-a-query" title="Permalink to this headline">¶</a></h2>
+<p>You can stop a query from being cleared out of memory after a search by
+using the <code class="docutils literal notranslate"><span class="pre">reset_query=False</span></code> argument.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="s2">&quot;nist_xps_db&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[9]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;mdf_forge.forge.Forge at 0x7faa2d990748&gt;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">reset_query</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">info</span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">][</span><span class="s2">&quot;q&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[10]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&#39;(mdf.source_name:nist_xps_db)&#39;
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">info</span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">][</span><span class="s2">&quot;q&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[11]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&#39;(mdf.source_name:nist_xps_db)&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="show_fields">
+<h2>show_fields<a class="headerlink" href="#show_fields" title="Permalink to this headline">¶</a></h2>
+<p>How do you know what fields there are to search on? Use
+<code class="docutils literal notranslate"><span class="pre">show_fields()</span></code> to find out. If you just call <code class="docutils literal notranslate"><span class="pre">show_fields()</span></code> by
+itself, it will show you all of the top-level blocks (such as “mdf”).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">show_fields</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[12]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;dss_tox&#39;: &#39;object&#39;,
+ &#39;fe_cr_al_oxidation&#39;: &#39;object&#39;,
+ &#39;gdb9_14&#39;: &#39;object&#39;,
+ &#39;header&#39;: &#39;object&#39;,
+ &#39;hopv&#39;: &#39;object&#39;,
+ &#39;jcap_xps_spectral_db&#39;: &#39;object&#39;,
+ &#39;md_17&#39;: &#39;object&#39;,
+ &#39;mdf&#39;: &#39;object&#39;,
+ &#39;metadata&#39;: &#39;object&#39;,
+ &#39;mpi_mainz&#39;: &#39;object&#39;,
+ &#39;natural_fiber_composite_tensile&#39;: &#39;object&#39;,
+ &#39;nist_janaf&#39;: &#39;object&#39;,
+ &#39;oqmd&#39;: &#39;object&#39;,
+ &#39;pppdb&#39;: &#39;object&#39;,
+ &#39;qm_mdt_c&#39;: &#39;object&#39;,
+ &#39;quinary_alloys&#39;: &#39;object&#39;,
+ &#39;xafs_sl&#39;: &#39;object&#39;}
+</pre></div>
+</div>
+</div>
+<p>If you give <code class="docutils literal notranslate"><span class="pre">show_fields()</span></code> a top-level block, it will show you the
+mapping for that block, including the expected datatypes.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">show_fields</span><span class="p">(</span><span class="s2">&quot;mdf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[13]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf.author.email&#39;: &#39;text&#39;,
+ &#39;mdf.author.family_name&#39;: &#39;text&#39;,
+ &#39;mdf.author.full_name&#39;: &#39;text&#39;,
+ &#39;mdf.author.given_name&#39;: &#39;text&#39;,
+ &#39;mdf.author.instituition&#39;: &#39;text&#39;,
+ &#39;mdf.author.institution&#39;: &#39;text&#39;,
+ &#39;mdf.author.orcid&#39;: &#39;text&#39;,
+ &#39;mdf.citation&#39;: &#39;text&#39;,
+ &#39;mdf.collection&#39;: &#39;text&#39;,
+ &#39;mdf.composition&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.email&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.family_name&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.full_name&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.given_name&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.instituition&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.institution&#39;: &#39;text&#39;,
+ &#39;mdf.data_contact.orcid&#39;: &#39;text&#39;,
+ &#39;mdf.data_contributor.email&#39;: &#39;text&#39;,
+ &#39;mdf.data_contributor.family_name&#39;: &#39;text&#39;,
+ &#39;mdf.data_contributor.full_name&#39;: &#39;text&#39;,
+ &#39;mdf.data_contributor.github&#39;: &#39;text&#39;,
+ &#39;mdf.data_contributor.given_name&#39;: &#39;text&#39;,
+ &#39;mdf.data_contributor.institution&#39;: &#39;text&#39;,
+ &#39;mdf.description&#39;: &#39;text&#39;,
+ &#39;mdf.elements&#39;: &#39;text&#39;,
+ &#39;mdf.ingest_date&#39;: &#39;date&#39;,
+ &#39;mdf.license&#39;: &#39;text&#39;,
+ &#39;mdf.links.DSC_data.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.DSC_data.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.DSC_data.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.Neutron_data.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.Neutron_data.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.Neutron_data.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3Au2C2_sg166-42atom_cut500.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3Au2C2_sg166-42atom_cut500.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3Au2C2_sg166-42atom_cut500.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3Au2C2_sg194_cut500.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3Au2C2_sg194_cut500.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3Au2C2_sg194_cut500.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3AuC2_cut500.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3AuC2_cut500.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_Ti3AuC2_cut500.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_bandstructure.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_bandstructure.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_bandstructure.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_cutoff-400eV.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_cutoff-400eV.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_cutoff-400eV.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_cutoff-500eV.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_cutoff-500eV.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_cutoff-500eV.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_normal.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_normal.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_normal.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_scf.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_scf.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_scf.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-irbit-coupling.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-irbit-coupling.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-irbit-coupling.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling-001.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling-001.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling-001.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling-100.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling-100.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling-100.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling_001.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling_001.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling_001.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling_100.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling_100.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.OUTCAR_spin-orbit-coupling_100.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.SEM_images.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.SEM_images.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.SEM_images.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_101a.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_101a.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_101a.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_151a.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_151a.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_151a.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_201a.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_201a.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.TEM_images_201a.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.ThermoCalc_TCNI5.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.ThermoCalc_TCNI5.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.ThermoCalc_TCNI5.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.ThermoCalc_TTNI8.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.ThermoCalc_TTNI8.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.ThermoCalc_TTNI8.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.XY.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.XY.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.XY.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.castep-castep.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.castep-castep.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.castep-castep.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.castep-cell.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.castep-cell.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.castep-cell.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.cif.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.cif.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.cif.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.csv.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.csv.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.csv.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.data_doi&#39;: &#39;text&#39;,
+ &#39;mdf.links.data_link.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.data_link.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.dataset.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.dataset.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.dif.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.dif.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.energy.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.energy.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.energy.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.file.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.file.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.gro.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.gro.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.gro.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.jpg.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.jpg.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.jpg.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.jpg2.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.jpg2.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.jpg2.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.klh.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.klh.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.klh.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.landing_page&#39;: &#39;text&#39;,
+ &#39;mdf.links.log.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.log.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.log.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.metadata.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.metadata.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.metadata.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.mol2.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.mol2.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.mol2.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.molecule.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.molecule.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.molecule.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.mrc.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.mrc.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.mrc.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.mrc2.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.mrc2.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.mrc2.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.original.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.original.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.original.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.outcar.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.outcar.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.outcar.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.output.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.output.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.output.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.parent_id&#39;: &#39;text&#39;,
+ &#39;mdf.links.pdb.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.pdb.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.pdb.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.pdf.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.pdf.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.publication&#39;: &#39;text&#39;,
+ &#39;mdf.links.qe.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.qe.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.qe.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.sdf.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.sdf.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.sdf.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.tar.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.tar.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.tar_bz2.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.tar_bz2.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.tar_gz.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.tar_gz.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.txt.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.txt.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.txt.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.vasp.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.vasp.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.vasp.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.xdi.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.xdi.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.xlsx.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.xlsx.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.xlsx.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.xslx.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.xslx.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.xye.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.xye.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.xye.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.xyz.globus_endpoint&#39;: &#39;text&#39;,
+ &#39;mdf.links.xyz.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.xyz.path&#39;: &#39;text&#39;,
+ &#39;mdf.links.zip.http_host&#39;: &#39;text&#39;,
+ &#39;mdf.links.zip.path&#39;: &#39;text&#39;,
+ &#39;mdf.mdf_id&#39;: &#39;text&#39;,
+ &#39;mdf.metadata_version&#39;: &#39;text&#39;,
+ &#39;mdf.raw&#39;: &#39;text&#39;,
+ &#39;mdf.repository&#39;: &#39;text&#39;,
+ &#39;mdf.resource_type&#39;: &#39;text&#39;,
+ &#39;mdf.scroll_id&#39;: &#39;long&#39;,
+ &#39;mdf.source_name&#39;: &#39;text&#39;,
+ &#39;mdf.tags&#39;: &#39;text&#39;,
+ &#39;mdf.title&#39;: &#39;text&#39;,
+ &#39;mdf.year&#39;: &#39;long&#39;}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Fetching-Datasets">
+<h1>Fetching Datasets<a class="headerlink" href="#Fetching-Datasets" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="fetch_datasets_from_results">
+<h2>fetch_datasets_from_results<a class="headerlink" href="#fetch_datasets_from_results" title="Permalink to this headline">¶</a></h2>
+<p>This method allows you to automatically collect all the datasets that
+have records returned from a search. In other words, if you search for
+<code class="docutils literal notranslate"><span class="pre">mdf.elements:Al</span></code> and a <em>record</em> from OQMD is returned, you can pass
+that record to <code class="docutils literal notranslate"><span class="pre">fetch_datasets_from_results()</span></code> and get the OQMD
+<em>dataset</em> entry back.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">records</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;mdf.tags:outcar AND mdf.resource_type:record&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">fetch_datasets_from_results</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[15]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;author&#39;: [{&#39;email&#39;: &#39;gibbons.dayna@epa.gov&#39;,
+    &#39;family_name&#39;: &#39;Gibbons&#39;,
+    &#39;full_name&#39;: &#39;Dayna Gibbons&#39;,
+    &#39;given_name&#39;: &#39;Dayna&#39;,
+    &#39;institution&#39;: &#39;US EPA Research&#39;}],
+  &#39;citation&#39;: [&#39;Richard, A M. AND C. R. Williams. DISTRIBUTED STRUCTURE-SEARCHABLE TOXICITY (DSSTOX) PUBLIC DATABASE NETWORK: A PROPOSAL. MUTATION RESEARCH NEW FRONTIERS ISSUE 499(1):27-52, (2001).&#39;],
+  &#39;collection&#39;: &#39;DSS Tox&#39;,
+  &#39;data_contact&#39;: {&#39;email&#39;: &#39;gibbons.dayna@epa.gov&#39;,
+   &#39;family_name&#39;: &#39;Gibbons&#39;,
+   &#39;full_name&#39;: &#39;Dayna Gibbons&#39;,
+   &#39;given_name&#39;: &#39;Dayna&#39;,
+   &#39;institution&#39;: &#39;US EPA Research&#39;},
+  &#39;data_contributor&#39;: [{&#39;email&#39;: &#39;dep78@uchicago.edu&#39;,
+    &#39;family_name&#39;: &#39;Pike&#39;,
+    &#39;full_name&#39;: &#39;Evan Pike&#39;,
+    &#39;github&#39;: &#39;dep78&#39;,
+    &#39;given_name&#39;: &#39;Evan&#39;,
+    &#39;institution&#39;: &#39;The University of Chicago&#39;}],
+  &#39;description&#39;: &#39;DSSTox provides a high quality public chemistry resource for supporting improved predictive toxicology. A distinguishing feature of this effort is the accurate mapping of bioassay and physicochemical property data associated with chemical substances to their corresponding chemical structures.&#39;,
+  &#39;ingest_date&#39;: &#39;2017-08-09T17:29:37.655346Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;https://www.epa.gov/chemical-research/distributed-structure-searchable-toxicity-dsstox-database&#39;,
+   &#39;publication&#39;: [&#39;http://cfpub.epa.gov/si/si_lab_search_results.cfm?SIType=PR&amp;TIMSType=Journal&amp;showCriteria=0&amp;view=citation&amp;sortBy=pubDateYear&amp;keyword=DssTox&#39;,
+    &#39;https://www.epa.gov/chemical-research/toxicity-forecasting&#39;,
+    &#39;https://www.epa.gov/chemical-research/toxicology-testing-21st-century-tox21&#39;,
+    &#39;http://actor.epa.gov/dashboard/&#39;,
+    &#39;https://www.epa.gov/chemical-research/chemistry-dashboard&#39;]},
+  &#39;mdf_id&#39;: &#39;598b4681bf9d988c4c3c151c&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;dataset&#39;,
+  &#39;source_name&#39;: &#39;dss_tox&#39;,
+  &#39;title&#39;: &#39;Distributed Structure-Searchable Toxicity (DSSTox) Database&#39;,
+  &#39;year&#39;: 2016}}
+</pre></div>
+</div>
+</div>
+<p>If you don’t want to keep the results at all, you can also use
+<code class="docutils literal notranslate"><span class="pre">fetch_datasets_from_results()</span></code> to execute a search and use those
+results instead of passing it your own results.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="s2">&quot;Al&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">fetch_datasets_from_results</span><span class="p">()</span>
+<span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[16]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;mdf&#39;: {&#39;author&#39;: [{&#39;email&#39;: &#39;qhong@alumni.caltech.edu&#39;,
+    &#39;family_name&#39;: &#39;Hong&#39;,
+    &#39;full_name&#39;: &#39;Qi-Jun Hong&#39;,
+    &#39;given_name&#39;: &#39;Qi-Jun&#39;,
+    &#39;institution&#39;: &#39;Brown University&#39;},
+   {&#39;email&#39;: &#39;avdw@alum.mit.edu&#39;,
+    &#39;family_name&#39;: &#39;van de Walle&#39;,
+    &#39;full_name&#39;: &#39;Axel van de Walle&#39;,
+    &#39;given_name&#39;: &#39;Axel&#39;,
+    &#39;institution&#39;: &#39;Brown University&#39;}],
+  &#39;citation&#39;: [&#39;Qi-Jun Hong, Axel van de Walle, A user guide for SLUSCHI: Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces, Calphad, Volume 52, March 2016, Pages 88-97, ISSN 0364-5916, http://doi.org/10.1016/j.calphad.2015.12.003.&#39;],
+  &#39;collection&#39;: &#39;SLUSCHI&#39;,
+  &#39;data_contact&#39;: {&#39;email&#39;: &#39;qhong@alumni.caltech.edu&#39;,
+   &#39;family_name&#39;: &#39;Hong&#39;,
+   &#39;full_name&#39;: &#39;Qi-Jun Hong&#39;,
+   &#39;given_name&#39;: &#39;Qi-Jun&#39;,
+   &#39;institution&#39;: &#39;Brown University&#39;},
+  &#39;data_contributor&#39;: [{&#39;email&#39;: &#39;jgaff@uchicago.edu&#39;,
+    &#39;family_name&#39;: &#39;Gaff&#39;,
+    &#39;full_name&#39;: &#39;Jonathon Gaff&#39;,
+    &#39;github&#39;: &#39;jgaff&#39;,
+    &#39;given_name&#39;: &#39;Jonathon&#39;,
+    &#39;institution&#39;: &#39;The University of Chicago&#39;}],
+  &#39;description&#39;: &#39;Although various approaches for melting point calculations from first principles have been proposed and employed for years, their practical implementation has hitherto remained a complex and time-consuming process. The SLUSCHI code (Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces) drastically simplifies this procedure into an automated package, by implementing the recently-developed small-size coexistence method and putting together a series of steps that lead to final melting point evaluation. Based on density functional theory, SLUSCHI employs Born–Oppenheimer molecular dynamics techniques under the isobaric–isothermal (NPT) ensemble, with interface to the first-principles code VASP.&#39;,
+  &#39;ingest_date&#39;: &#39;2017-08-04T19:43:39.345950Z&#39;,
+  &#39;links&#39;: {&#39;landing_page&#39;: &#39;http://blogs.brown.edu/qhong/?page_id=102&#39;,
+   &#39;publication&#39;: [&#39;https://doi.org/10.1016/j.calphad.2015.12.003&#39;]},
+  &#39;mdf_id&#39;: &#39;5984ce6bf2c004385fd54cd4&#39;,
+  &#39;metadata_version&#39;: &#39;0.3.2&#39;,
+  &#39;resource_type&#39;: &#39;dataset&#39;,
+  &#39;source_name&#39;: &#39;sluschi&#39;,
+  &#39;tags&#39;: [&#39;Melting temperature calculation&#39;,
+   &#39;Density functional theory&#39;,
+   &#39;Automated code&#39;],
+  &#39;title&#39;: &#39;Solid and Liquid in Ultra Small Coexistence with Hovering Interfaces&#39;,
+  &#39;year&#39;: 2015}}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Aggregations">
+<h1>Aggregations<a class="headerlink" href="#Aggregations" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="aggregate">
+<h2>aggregate<a class="headerlink" href="#aggregate" title="Permalink to this headline">¶</a></h2>
+<p>Queries submitted with <code class="docutils literal notranslate"><span class="pre">search()</span></code> are limited to returning 10,000
+results. If this limit is too low, you can use <code class="docutils literal notranslate"><span class="pre">aggregate()</span></code> to
+retrieve <em>all</em> results from a query, no matter how many. Please be
+careful with this function, as you can easily accidentally retrieve a
+very large number of results without meaning to. Consider using
+<code class="docutils literal notranslate"><span class="pre">search(your_query,</span> <span class="pre">limit=0,</span> <span class="pre">info=True)</span></code> (see above) first to discover
+how many results you will get beforehand.</p>
+<p>For this example, we will see how many results the query will retrieve
+before aggregating.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">mdf</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.source_name&quot;</span><span class="p">,</span> <span class="s2">&quot;oqmd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match_field</span><span class="p">(</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="s2">&quot;Pb&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exclude_field</span><span class="p">(</span><span class="s2">&quot;mdf.elements&quot;</span><span class="p">,</span> <span class="s2">&quot;Al&quot;</span><span class="p">)</span>
+<span class="n">res</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">reset_query</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Number of results:&quot;</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;total_query_matches&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Number of results: 23269
+</pre></div></div>
+</div>
+<p>Assuming we want all of these results, we can use <code class="docutils literal notranslate"><span class="pre">aggregate()</span></code> on the
+same query.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mdf</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Number of results:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+100%|██████████| 23269/23269 [01:00&lt;00:00, 388.45it/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Number of results: 23269
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+
+</pre></div></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="5 - Field-Specific Helper Functions.html" title="Field-Specific Query Builders"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="3 - Expanded Query Builder Functions.html" title="More Query Builders"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mdf-forge 0.5.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tutorials.html" >Tutorials</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright Apache License, Version 2.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+    </div>
+  </body>
+</html>
