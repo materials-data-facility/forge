@@ -26,7 +26,8 @@ class Forge:
         * **index is** the Globus Search index to be used.
     """
     __default_index = "mdf"
-    __services = ["mdf", "transfer", "search"]
+    __auth_services = ["mdf", "transfer", "search"]
+    __anon_services = ["search"]
     __app_name = "MDF_Forge"
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
@@ -50,11 +51,11 @@ class Forge:
         self.index = index
         self.local_ep = local_ep
 
-        services = kwargs.get('services', self.__services)
-
         if self.__anonymous:
+            services = kwargs.get('services', self.__anon_services)
             clients = toolbox.anonymous_login(services)
         else:
+            services = kwargs.get('services', self.__auth_services)
             clients = toolbox.login(credentials={
                                     "app_name": self.__app_name,
                                     "services": services,
