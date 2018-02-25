@@ -23,35 +23,45 @@ class Forge:
 
     Public Variables:
     local_ep is the endpoint ID of the local Globus Connect Personal endpoint.
-
+    index is the Globus Search index to be used.
     """
     __default_index = "mdf"
-    __services = ["mdf", "transfer", "search"]
+    __auth_services = ["mdf", "transfer", "search"]
+    __anon_services = ["search"]
     __app_name = "MDF_Forge"
 
-    def __init__(self, index=__default_index, local_ep=None, **kwargs):
+    def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
         """Initialize the Forge instance.
 
         Arguments:
         index (str): The Globus Search index to search on. Default "mdf".
         local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
                         If not provided, may be autodetected as possible.
+        anonymous (bool): If True, will not authenticate with Globus Auth.
+                          If False, will require authentication.
+                          Please note that authentication is required for some Forge
+                              functionality, including using Globus Transfer.
 
         Keyword Arguments:
         services (list of str): The services to authenticate for.
                                 Advanced users only.
         """
-        self.__index = index
+        self.__anonymous = anonymous
+        self.index = index
         self.local_ep = local_ep
-        self.__services = kwargs.get('services', self.__services)
 
-        clients = toolbox.login(credentials={
-                                "app_name": self.__app_name,
-                                "services": self.__services,
-                                "index": self.__index})
-        self.__search_client = clients["search"]
-        self.__transfer_client = clients["transfer"]
-        self.__mdf_authorizer = clients["mdf"]
+        if self.__anonymous:
+            services = kwargs.get('services', self.__anon_services)
+            clients = toolbox.anonymous_login(services)
+        else:
+            services = kwargs.get('services', self.__auth_services)
+            clients = toolbox.login(credentials={
+                                    "app_name": self.__app_name,
+                                    "services": services,
+                                    "index": self.index})
+        self.__search_client = clients.get("search")
+        self.__transfer_client = clients.get("transfer")
+        self.__mdf_authorizer = clients.get("mdf")
 
         self.__query = Query(self.__search_client)
 
@@ -95,7 +105,7 @@ class Forge:
                 self.__query.and_join(new_group)
             else:
                 self.__query.or_join(new_group)
-        self.__query.field(field, value)
+        self.__query.field(str(field), str(value))
         return self
 
     def exclude_field(self, field, value, new_group=False):
@@ -118,16 +128,17 @@ class Forge:
         # OR would not make much sense for excluding
         if self.__query.initialized:
             self.__query.and_join(new_group)
-        self.__query.negate().field(field, value)
+        self.__query.negate().field(str(field), str(value))
         return self
 
-    def search(self, q=None, advanced=False, limit=SEARCH_LIMIT, info=False,
+    def search(self, q=None, index=None, advanced=False, limit=SEARCH_LIMIT, info=False,
                reset_query=True):
         """Execute a search and return the results.
 
         Arguments:
         q (str): The query to execute. Defaults to the current query, if any.
                  There must be some query to execute.
+        index (str): The Globus Search index to search on. Defaults to the current index.
         advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
                          If False, only basic fulltext term matches will be supported.
                          Default False.
@@ -147,12 +158,14 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        res = self.__query.search(q=q, advanced=advanced, limit=limit, info=info)
+        if not index:
+            index = self.index
+        res = self.__query.search(q=q, index=index, advanced=advanced, limit=limit, info=info)
         if reset_query:
             self.reset_query()
         return res
 
-    def aggregate(self, q=None, scroll_size=SEARCH_LIMIT, reset_query=True):
+    def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT, reset_query=True):
         """Perform an advanced query, and return all matching results.
         Will automatically preform multiple queries in order to retrieve all results.
 
@@ -161,6 +174,7 @@ class Forge:
         Arguments:
         q (str): The query to execute. Defaults to the current query, if any.
                  There must be some query to execute.
+        index (str): The Globus Search index to search on. Defaults to the current index.
         scroll_size (int): Minimum number of records returned per query
         reset_query (bool): If True, will destroy the query after execution and start a fresh one.
                             If False, will keep the current query alive.
@@ -169,22 +183,27 @@ class Forge:
         Returns:
         list of dict: All matching records
         """
-        res = self.__query.aggregate(q=q, scroll_size=scroll_size)
+        if not index:
+            index = self.index
+        res = self.__query.aggregate(q=q, index=index, scroll_size=scroll_size)
         if reset_query:
             self.reset_query()
         return res
 
-    def show_fields(self, block=None):
+    def show_fields(self, block=None, index=None):
         """Retrieve and return the mapping for the given metadata block.
 
         Arguments:
         block (str): The top-level field to fetch the mapping for.
                      Default None, which lists just the blocks.
+        index (str): The Globus Search index to map. Defaults to the current index.
 
         Returns:
         dict: A set of field:datatype pairs.
         """
-        mapping = self.__query.mapping()
+        if not index:
+            index = self.index
+        mapping = self.__query.mapping(index=index)
         if not block:
             blocks = set()
             for key in mapping.keys():
@@ -221,7 +240,8 @@ class Forge:
 # * Expanded functions
 # ***********************************************
 
-    def match_range(self, field, start, stop, inclusive=True, required=True, new_group=False):
+    def match_range(self, field, start="*", stop="*", inclusive=True,
+                    required=True, new_group=False):
         """Add a field:[some range] term to the query.
         Matches will have field == value in range.
 
@@ -241,6 +261,15 @@ class Forge:
         Returns:
         self (Forge): For chaining.
         """
+        # Accept None as *
+        if start is None:
+            start = "*"
+        if stop is None:
+            stop = "*"
+        # No-op on *-*
+        if start == "*" and stop == "*":
+            return self
+
         if inclusive:
             value = "[" + str(start) + " TO " + str(stop) + "]"
         else:
@@ -248,7 +277,8 @@ class Forge:
         self.match_field(field, value, required=required, new_group=new_group)
         return self
 
-    def exclude_range(self, field, start, stop, inclusive=True, new_group=False):
+    def exclude_range(self, field, start="*", stop="*", inclusive=True,
+                      required=True, new_group=False):
         """Exclude a field:[some range] term to the query.
         Matches will have field != values in range.
 
@@ -267,6 +297,15 @@ class Forge:
         Returns:
         self (Forge): For chaining.
         """
+        # Accept None as *
+        if start is None:
+            start = "*"
+        if stop is None:
+            stop = "*"
+        # No-op on *-*
+        if start == "*" and stop == "*":
+            return self
+
         if inclusive:
             value = "[" + str(start) + " TO " + str(stop) + "]"
         else:
@@ -421,6 +460,59 @@ class Forge:
             self.match_field(field="mdf.title", value=title, required=False, new_group=False)
         return self
 
+    def match_years(self, years=None, start=None, stop=None, inclusive=True):
+        """Add years and limits to the query.
+
+        Arguments:
+        years   (int or string, or list of int or strings): The years to match.
+                    Note that this argument overrides the start, stop, and inclusive arguments.
+        start   (int or string): The lower range of years to match.
+        stop    (int or string): The upper range of years to match.
+        inclusive (bool): If True, the start and stop values will be included in the search.
+                          If False, they will be excluded.
+                          Default True.
+        Returns:
+        self (Forge): For chaining.
+        """
+        # If nothing supplied, nothing to match
+        if years is None and start is None and stop is None:
+            return self
+
+        if years is not None and years != []:
+            if not isinstance(years, list):
+                years = [years]
+            years_int = []
+            for year in years:
+                try:
+                    y_int = int(year)
+                    years_int.append(y_int)
+                except ValueError:
+                    print_("Invalid year: '", year, "'", sep="")
+
+            # Only match years if valid years were supplied
+            if len(years_int) > 0:
+                self.match_field(field="mdf.year", value=years_int[0], required=True,
+                                 new_group=True)
+                for year in years_int[1:]:
+                    self.match_field(field="mdf.year", value=year, required=False, new_group=False)
+        else:
+            if start is not None:
+                try:
+                    start = int(start)
+                except ValueError:
+                    print_("Invalid start year: '", start, "'", sep="")
+                    start = None
+            if stop is not None:
+                try:
+                    stop = int(stop)
+                except ValueError:
+                    print_("Invalid stop year: '", stop, "'", sep="")
+                    stop = None
+
+            self.match_range(field="mdf.year", start=start, stop=stop,
+                             inclusive=inclusive, required=True, new_group=True)
+        return self
+
     def match_resource_types(self, types):
         """Match the given resource types.
 
@@ -447,7 +539,8 @@ class Forge:
 # * Premade searches
 # ***********************************************
 
-    def search_by_elements(self, elements, sources=[], limit=None, match_all=True, info=False):
+    def search_by_elements(self, elements, sources=[], index=None, limit=None,
+                           match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to
             match_elements([x]).match_sources([y]).search()
@@ -456,6 +549,7 @@ class Forge:
         Arguments:
         elements (list of str): The elements to match. Default [].
         sources (list of str): The sources to match. Default [].
+        index (str): The Globus Search index to search on. Defaults to the current index.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         match_all (bool): If True, will add elements with AND.
@@ -472,14 +566,15 @@ class Forge:
         """
         return (self.match_elements(elements, match_all=match_all)
                     .match_sources(sources)
-                    .search(limit=limit, info=info))
+                    .search(index=index, limit=limit, info=info))
 
-    def search_by_titles(self, titles, limit=None, info=False):
+    def search_by_titles(self, titles, index=None, limit=None, info=False):
         """Execute a search for the given titles.
         search_by_titles([x]) is equivalent to match_titles([x]).search()
 
         Arguments:
         titles (list of str): The titles to match. Default [].
+        index (str): The Globus Search index to search on. Defaults to the current index.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         info (bool): If False, search will return a list of the results.
@@ -491,14 +586,15 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        return self.match_titles(titles).search(limit=limit, info=info)
+        return self.match_titles(titles).search(index=index, limit=limit, info=info)
 
-    def search_by_tags(self, tags, limit=None, match_all=True, info=False):
+    def search_by_tags(self, tags, index=None, limit=None, match_all=True, info=False):
         """Execute a search for the given tag.
         search_by_tags([x]) is equivalent to match_tags([x]).search()
 
         Arguments:
         tags (list of str): The tags to match. Default [].
+        index (str): The Globus Search index to search on. Defaults to the current index.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
         match_all (bool): If True, will add elements with AND.
@@ -513,20 +609,23 @@ class Forge:
         list (if info=False): The results.
         tuple (if info=True): The results, and a dictionary of query information.
         """
-        return self.match_tags(tags, match_all=match_all).search(limit=limit, info=info)
+        return self.match_tags(tags, match_all=match_all).search(index=index,
+                                                                 limit=limit,
+                                                                 info=info)
 
-    def aggregate_source(self, sources):
+    def aggregate_source(self, sources, index=None):
         """Aggregate all records from a given source.
         There is no limit to the number of results returned.
         Please beware of aggregating very large datasets.
 
         Arguments:
         sources (str or list of str): The source to aggregate.
+        index (str): The Globus Search index to search on. Defaults to the current index.
 
         Returns:
         list of dict: All of the records from the source.
         """
-        return self.match_sources(sources).aggregate()
+        return self.match_sources(sources).aggregate(index=index)
 
     def fetch_datasets_from_results(self, entries=None, query=None, reset_query=True):
         """Retrieve the dataset entries for given records.
@@ -594,7 +693,18 @@ class Forge:
         verbose (bool): If True, status and progress messages will be printed.
                         If False, only error messages will be printed.
                         Default True.
+
+        Returns:
+        dict: success (bool): True if the operation succeeded.
+                              False if it failed (implies message).
+              message (str): The error message. Not present when success is True.
         """
+        if self.__anonymous:
+            print_("Error: Anonymous HTTP download not yet supported.")
+            return {
+                "success": False,
+                "message": "Anonymous HTTP download not yet supported."
+                }
         # If user submitted single result, make into list
         if isinstance(results, dict):
             results = [results]
@@ -670,6 +780,9 @@ class Forge:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
                             output.write(response.content)
+        return {
+            "success": True
+            }
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
                         wait_for_completion=True, verbose=True):
@@ -689,13 +802,19 @@ class Forge:
         wait_for_completion (bool): If True, will block until the transfer is finished.
                                     If False, will not block.
                                     Default True.
-        verbose (bool): If True, status and progress messages will be print_ed.
-                        If False, only error messages will be print_ed.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
                         Default True.
 
         Returns:
         list of str: task IDs of the Globus transfers
         """
+        if self.__anonymous:
+            print_("Error: Anonymous Globus Transfer not supported.")
+            return {
+                "success": False,
+                "message": "Anonymous Globus Transfer not supported."
+                }
         dest = os.path.abspath(dest)
         # If results have info attached, remove it
         if type(results) is tuple:
@@ -789,9 +908,9 @@ class Forge:
                                                                polling_interval=10):
                         if verbose:
                             print_("Transferring...")
-                        for event in self.__transfer_client.task_event_list(res["task_id"]):
+                        for event in self.__transfer_client.task_event_list(result["task_id"]):
                             if event["is_error"]:
-                                self.__transfer_client.cancel_task(res["task_id"])
+                                self.__transfer_client.cancel_task(result["task_id"])
                                 raise globus_sdk.GlobusError("Error: " + event["description"])
 
                 submissions.append(result["task_id"])
@@ -808,13 +927,20 @@ class Forge:
         Arguments:
         results (dict): The records from which files should be fetched.
                         This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be print_ed.
-                        If False, only error messages will be print_ed.
+        verbose (bool): If True, status and progress messages will be printed.
+                        If False, only error messages will be printed.
                         Default True.
 
         Yields:
         str: Text of each data file.
         """
+        if self.__anonymous:
+            print_("Error: Anonymous HTTP download not yet supported.")
+            yield {
+                "success": False,
+                "message": "Anonymous HTTP download not yet supported."
+                }
+            return
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
@@ -855,23 +981,6 @@ class Forge:
                     else:
                         yield response.text
 
-    def http_return(self, results, verbose=True):
-        """Return data files from the provided results using HTTPS.
-        For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(),
-            which uses Globus Transfer.
-
-        Arguments:
-        results (dict): The records from which files should be fetched.
-                        This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be print_ed.
-                        If False, only error messages will be print_ed.
-                        Default True.
-
-        Returns:
-        list of str: Text data of the data files.
-        """
-        return list(self.http_stream(results, verbose=verbose))
-
 
 class Query:
     """The Query class is meant for internal Forge use. Users should not instantiate
@@ -883,7 +992,7 @@ class Query:
     Queries may end up wrapped in parentheses, which has no direct effect on the search.
     Adding terms must be chained with .and() or .or().
     Terms will not have spaces in between otherwise, and it is desirable to be explicit about
-    which terms are required.
+        which terms are required.
     """
     def __init__(self, search_client, q=None, limit=None, advanced=False):
         """Initialize the Query instance.
@@ -903,6 +1012,19 @@ class Query:
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
         self.initialized = not self.query == "("
+        # Search index UUIDs, which are required instead of names
+        self.__index_uuids = {
+            "mdf": "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
+            "mdf-test": "c082b745-32ac-4ad2-9cde-92393f6e505c",
+            "dlhub": "847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
+            "dlhub-test": "5c89e0a9-00e5-4171-b415-814fe4d0b8af"
+            }
+
+    def __translate_index(self, index):
+        """Translate a known Globus Search index into the index UUID.
+        The UUID is now the only way to access indices.
+        """
+        return self.__index_uuids.get(index.strip().lower(), index)
 
     def __clean_query_string(self, q):
         """Clean up a query string.
@@ -1040,12 +1162,13 @@ class Query:
         self.operator("NOT")
         return self
 
-    def search(self, q=None, advanced=None, limit=SEARCH_LIMIT, info=False):
+    def search(self, q=None, index=None, advanced=None, limit=SEARCH_LIMIT, info=False):
         """Execute a search and return the results.
 
         Arguments:
         q (str): The query to execute. Defaults to the current query, if any.
                  There must be some query to execute.
+        index (str): The Globus Search index to search on. Required.
         advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
                          If False, only basic fulltext term matches will be supported.
                          Default False.
@@ -1067,6 +1190,11 @@ class Query:
         if not q.strip("()"):
             print_("Error: No query")
             return ([], {"error": "No query"}) if info else []
+        if index is None:
+            print_("Error: No index specified")
+            return ([], {"error": "No index"}) if info else []
+        else:
+            uuid_index = self.__translate_index(index)
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
@@ -1083,13 +1211,15 @@ class Query:
             "limit": limit,
             "offset": 0
             }
-        res = toolbox.gmeta_pop(self.__search_client.structured_search(qu), info=info)
+        res = toolbox.gmeta_pop(self.__search_client.post_search(uuid_index, qu), info=info)
         # Add additional info
         if info:
             res[1]["query"] = qu
+            res[1]["index"] = index
+            res[1]["index_uuid"] = uuid_index
         return res
 
-    def aggregate(self, q=None, scroll_size=SEARCH_LIMIT):
+    def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT):
         """Gather all results that match a specific query
 
         Note that all aggregate queries run in advanced mode.
@@ -1107,13 +1237,21 @@ class Query:
         if not q.strip("()"):
             print_("Error: No query")
             return []
+        if index is None:
+            print_("Error: No index specified")
+            return []
 
         q = self.__clean_query_string(q)
         # TODO: Remove record restriction (all entries require scroll_id)
         q += " AND mdf.resource_type:record"
 
         # Get the total number of records
-        total = self.search(q, limit=0, advanced=True, info=True)[1]["total_query_matches"]
+        total = self.search(q, index=index, limit=0, advanced=True,
+                            info=True)[1]["total_query_matches"]
+
+        # If aggregate is unnecessary, use Search automatically instead
+        if total <= SEARCH_LIMIT:
+            return self.search(q, index=index, limit=SEARCH_LIMIT, advanced=True)
 
         # Scroll until all results are found
         output = []
@@ -1132,7 +1270,7 @@ class Query:
                 while True:
                     query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
                                             scroll_pos, scroll_pos+scroll_width)
-                    results, info = self.search(query, advanced=True, info=True)
+                    results, info = self.search(query, index=index, advanced=True, info=True)
 
                     # Check to make sure that all the matching records were returned
                     if info["total_query_matches"] <= len(results):
@@ -1151,10 +1289,15 @@ class Query:
 
         return output
 
-    def mapping(self):
-        """Fetch the mapping for the current index.
+    def mapping(self, index):
+        """Fetch the mapping for the specified index.
+
+        Arguments:
+        index (str): The index to map.
 
         Returns:
         dict: The full mapping for the index.
         """
-        return self.__search_client.mapping()["mappings"]
+        return (self.__search_client.get(
+                    "/unstable/index/{}/mapping".format(self.__translate_index(index)))
+                ["mappings"])
