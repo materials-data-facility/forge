@@ -4,12 +4,12 @@ import pytest
 import globus_sdk
 from globus_sdk.exc import SearchAPIError
 from mdf_forge import forge
-from mdf_toolbox import toolbox
+import mdf_toolbox
 
 
 # Manually logging in for Query testing
-query_search_client = toolbox.login(credentials={"app_name": "MDF_Forge",
-                                                 "services": ["search"]})["search"]
+query_search_client = mdf_toolbox.login(credentials={"app_name": "MDF_Forge",
+                                                     "services": ["search"]})["search"]
 
 
 def test_query_init():
