@@ -6,6 +6,7 @@
 Untitled*.ipynb
 
 *.cache*
+.pytest_cache*
 
 *temp/*
 

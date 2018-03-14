@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from six import print_, string_types
 
-from mdf_toolbox import toolbox
+import mdf_toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
@@ -26,7 +26,8 @@ class Forge:
     index is the Globus Search index to be used.
     """
     __default_index = "mdf"
-    __services = ["mdf", "transfer", "search"]
+    __auth_services = ["mdf", "transfer", "search"]
+    __anon_services = ["search"]
     __app_name = "MDF_Forge"
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
@@ -49,12 +50,12 @@ class Forge:
         self.index = index
         self.local_ep = local_ep
 
-        services = kwargs.get('services', self.__services)
-
         if self.__anonymous:
-            clients = toolbox.anonymous_login(services)
+            services = kwargs.get('services', self.__anon_services)
+            clients = mdf_toolbox.anonymous_login(services)
         else:
-            clients = toolbox.login(credentials={
+            services = kwargs.get('services', self.__auth_services)
+            clients = mdf_toolbox.login(credentials={
                                     "app_name": self.__app_name,
                                     "services": services,
                                     "index": self.index})
@@ -820,7 +821,7 @@ class Forge:
             results = results[0]
         if not dest_ep:
             if not self.local_ep:
-                self.local_ep = toolbox.get_local_ep(self.__transfer_client)
+                self.local_ep = mdf_toolbox.get_local_ep(self.__transfer_client)
             dest_ep = self.local_ep
 
         # Assemble the transfer data
@@ -1210,7 +1211,7 @@ class Query:
             "limit": limit,
             "offset": 0
             }
-        res = toolbox.gmeta_pop(self.__search_client.post_search(uuid_index, qu), info=info)
+        res = mdf_toolbox.gmeta_pop(self.__search_client.post_search(uuid_index, qu), info=info)
         # Add additional info
         if info:
             res[1]["query"] = qu
@@ -1298,7 +1299,5 @@ class Query:
         dict: The full mapping for the index.
         """
         return (self.__search_client.get(
-                    # TODO: Re-enable when Search handles index UUIDs
-                    # "/unstable/index/{}/mapping".format(self.__translate_index(index)))
-                    "/unstable/index/{}/mapping".format(index))
+                    "/unstable/index/{}/mapping".format(self.__translate_index(index)))
                 ["mappings"])
