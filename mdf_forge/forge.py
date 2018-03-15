@@ -354,24 +354,25 @@ class Forge:
         # Done
         return self
 
-    def match_sources(self, sources):
+    def match_source_names(self, source_names):
         """Add sources to match to the query.
 
         Arguments:
-        sources (str or list of str): The sources to match.
+        source_names (str or list of str): The source_names to match.
 
         Returns:
         self (Forge): For chaining.
         """
-        # If no sources are supplied, nothing to match
-        if not sources:
+        # If no source_names are supplied, nothing to match
+        if not source_names:
             return self
-        if isinstance(sources, string_types):
-            sources = [sources]
+        if isinstance(source_names, string_types):
+            source_names = [source_names]
         # First source should be in new group and required
-        self.match_field(field="mdf.source_name", value=sources[0], required=True, new_group=True)
+        self.match_field(field="mdf.source_name", value=source_names[0],
+                         required=True, new_group=True)
         # Other sources should stay in that group, and not be required
-        for src in sources[1:]:
+        for src in source_names[1:]:
             self.match_field(field="mdf.source_name", value=src, required=False, new_group=False)
         return self
 
@@ -412,32 +413,11 @@ class Forge:
         if isinstance(elements, string_types):
             elements = [elements]
         # First element should be in new group and required
-        self.match_field(field="mdf.elements", value=elements[0], required=True, new_group=True)
+        self.match_field(field="material.elements", value=elements[0],
+                         required=True, new_group=True)
         # Other elements should stay in that group
         for element in elements[1:]:
-            self.match_field(field="mdf.elements", value=element, required=match_all,
-                             new_group=False)
-        return self
-
-    def match_tags(self, tags, match_all=True):
-        """Add tags to the query.
-
-        Arguments:
-        tags (str or list of str): The tags (keywords) to match.
-        match_all (bool): If True, will add with AND. If False, will use OR. Default True.
-
-        Returns:
-        self (Forge): For chaining.
-        """
-
-        if not tags:
-            return self
-        if isinstance(tags, string_types):
-            tags = [tags]
-
-        self.match_field(field="mdf.tags", value=tags[0], required=True, new_group=True)
-        for tag in tags[1:]:
-            self.match_field(field="mdf.tags", value=tag, required=match_all,
+            self.match_field(field="material.elements", value=element, required=match_all,
                              new_group=False)
         return self
 
@@ -455,9 +435,9 @@ class Forge:
         if not isinstance(titles, list):
             titles = [titles]
 
-        self.match_field(field="mdf.title", value=titles[0], required=True, new_group=True)
+        self.match_field(field="dc.titles.title", value=titles[0], required=True, new_group=True)
         for title in titles[1:]:
-            self.match_field(field="mdf.title", value=title, required=False, new_group=False)
+            self.match_field(field="dc.titles.title", value=title, required=False, new_group=False)
         return self
 
     def match_years(self, years=None, start=None, stop=None, inclusive=True):
@@ -491,10 +471,11 @@ class Forge:
 
             # Only match years if valid years were supplied
             if len(years_int) > 0:
-                self.match_field(field="mdf.year", value=years_int[0], required=True,
+                self.match_field(field="dc.publicationYear", value=years_int[0], required=True,
                                  new_group=True)
                 for year in years_int[1:]:
-                    self.match_field(field="mdf.year", value=year, required=False, new_group=False)
+                    self.match_field(field="dc.publicationYear",
+                                     value=year, required=False, new_group=False)
         else:
             if start is not None:
                 try:
@@ -509,7 +490,7 @@ class Forge:
                     print_("Invalid stop year: '", stop, "'", sep="")
                     stop = None
 
-            self.match_range(field="mdf.year", start=start, stop=stop,
+            self.match_range(field="dc.publicationYear", start=start, stop=stop,
                              inclusive=inclusive, required=True, new_group=True)
         return self
 
@@ -539,16 +520,16 @@ class Forge:
 # * Premade searches
 # ***********************************************
 
-    def search_by_elements(self, elements, sources=[], index=None, limit=None,
+    def search_by_elements(self, elements, source_names=[], index=None, limit=None,
                            match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to
-            match_elements([x]).match_sources([y]).search()
+            match_elements([x]).match_source_names([y]).search()
         Note that this method does use terms from the current query.
 
         Arguments:
         elements (list of str): The elements to match. Default [].
-        sources (list of str): The sources to match. Default [].
+        source_names (list of str): The sources to match. Default [].
         index (str): The Globus Search index to search on. Defaults to the current index.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
@@ -565,7 +546,7 @@ class Forge:
         tuple (if info=True): The results, and a dictionary of query information.
         """
         return (self.match_elements(elements, match_all=match_all)
-                    .match_sources(sources)
+                    .match_source_names(source_names)
                     .search(index=index, limit=limit, info=info))
 
     def search_by_titles(self, titles, index=None, limit=None, info=False):
@@ -588,44 +569,19 @@ class Forge:
         """
         return self.match_titles(titles).search(index=index, limit=limit, info=info)
 
-    def search_by_tags(self, tags, index=None, limit=None, match_all=True, info=False):
-        """Execute a search for the given tag.
-        search_by_tags([x]) is equivalent to match_tags([x]).search()
-
-        Arguments:
-        tags (list of str): The tags to match. Default [].
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        match_all (bool): If True, will add elements with AND.
-                          If False, will use OR.
-                          Default True.
-        info (bool): If False, search will return a list of the results.
-        If True, search will return a tuple containing the results list,
-            and other information about the query.
-        Default False.
-
-        Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
-        """
-        return self.match_tags(tags, match_all=match_all).search(index=index,
-                                                                 limit=limit,
-                                                                 info=info)
-
-    def aggregate_source(self, sources, index=None):
+    def aggregate_sources(self, source_names, index=None):
         """Aggregate all records from a given source.
         There is no limit to the number of results returned.
         Please beware of aggregating very large datasets.
 
         Arguments:
-        sources (str or list of str): The source to aggregate.
+        source_names (str or list of str): The source to aggregate.
         index (str): The Globus Search index to search on. Defaults to the current index.
 
         Returns:
         list of dict: All of the records from the source.
         """
-        return self.match_sources(sources).aggregate(index=index)
+        return self.match_source_names(source_names).aggregate(index=index)
 
     def fetch_datasets_from_results(self, entries=None, query=None, reset_query=True):
         """Retrieve the dataset entries for given records.
@@ -1012,19 +968,6 @@ class Query:
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
         self.initialized = not self.query == "("
-        # Search index UUIDs, which are required instead of names
-        self.__index_uuids = {
-            "mdf": "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
-            "mdf-test": "c082b745-32ac-4ad2-9cde-92393f6e505c",
-            "dlhub": "847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
-            "dlhub-test": "5c89e0a9-00e5-4171-b415-814fe4d0b8af"
-            }
-
-    def __translate_index(self, index):
-        """Translate a known Globus Search index into the index UUID.
-        The UUID is now the only way to access indices.
-        """
-        return self.__index_uuids.get(index.strip().lower(), index)
 
     def __clean_query_string(self, q):
         """Clean up a query string.
@@ -1194,7 +1137,7 @@ class Query:
             print_("Error: No index specified")
             return ([], {"error": "No index"}) if info else []
         else:
-            uuid_index = self.__translate_index(index)
+            uuid_index = mdf_toolbox.translate_index(index)
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
@@ -1299,5 +1242,5 @@ class Query:
         dict: The full mapping for the index.
         """
         return (self.__search_client.get(
-                    "/unstable/index/{}/mapping".format(self.__translate_index(index)))
+                    "/unstable/index/{}/mapping".format(mdf_toolbox.translate_index(index)))
                 ["mappings"])
