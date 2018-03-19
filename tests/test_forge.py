@@ -586,7 +586,7 @@ def test_forge_search(capsys):
     assert len(res4) == 3
 
     # Check reset_query
-    f.match_field("mdf.source_name", "hopv")
+    f.match_field("mdf.source_name", "ta_melting")
     res5 = f.search(reset_query=False)
     res6 = f.search()
     assert all([r in res6 for r in res5]) and all([r in res5 for r in res6])
@@ -624,7 +624,7 @@ def test_forge_search_by_titles():
 def test_forge_aggregate_sources():
     # Test limit
     f = forge.Forge(index="mdf")
-    res1 = f.aggregate_sources("amcs")
+    res1 = f.aggregate_sources("nist_xps_db")
     assert isinstance(res1, list)
     assert len(res1) > 10000
     assert isinstance(res1[0], dict)
