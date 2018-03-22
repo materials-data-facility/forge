@@ -601,7 +601,7 @@ def test_forge_search_by_elements():
     elements = ["Cu", "Al"]
     sources = ["oqmd", "nist_xps_db"]
     res1, info1 = f.match_source_names(sources).match_elements(elements).search(limit=10000,
-                                                                                 info=True)
+                                                                                info=True)
     res2, info2 = f.search_by_elements(elements, sources, limit=10000, info=True)
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
     assert check_field(res1, "material.elements", "Al") == 1

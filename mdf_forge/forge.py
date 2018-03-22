@@ -1,16 +1,16 @@
 import os
 
-import requests
 import globus_sdk
+import mdf_toolbox
+import requests
+from six import print_, string_types
+from six.moves.urllib.parse import urlparse
 from tqdm import tqdm
 
-from six import print_, string_types
-
-import mdf_toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
-HTTP_NUM_LIMIT = 2000
+HTTP_NUM_LIMIT = 50
 # Maximum number of results per search allowed by Globus Search
 SEARCH_LIMIT = 10000
 
@@ -680,16 +680,15 @@ class Forge:
                             + " entries.")
                 }
         for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
-            for key in res["mdf"]["links"].keys():
-                dl = res["mdf"]["links"][key]
-                host = dl.get("http_host", None) if type(dl) is dict else None
-                if host:
-                    remote_path = dl["path"]
+            for dl in res.get("files", []):
+                url = dl.get("url", None)
+                if url:
+                    remote_path = urlparse(url).path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                        local_path = os.path.normpath(dest + "/" + dl["path"])
+                        local_path = os.path.normpath(dest + "/" + remote_path)
                     else:
-                        local_path = os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
+                        local_path = os.path.normpath(dest + "/" + os.path.basename(remote_path))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     try:
@@ -721,17 +720,17 @@ class Forge:
                             local_path = local_path + new_add + ext
                     headers = {}
                     self.__mdf_authorizer.set_authorization_header(headers)
-                    response = requests.get(host+remote_path, headers=headers)
+                    response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
                         self.__mdf_authorizer.handle_missing_authorization()
                         self.__mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(host+remote_path, headers=headers)
+                        self.response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error ", response.status_code,
-                               " when attempting to access '",
-                               host+remote_path, "'", sep="")
+                        print_("Error {} when attempting to access '{}'".format(
+                                                                            response.status_code,
+                                                                            url))
                     else:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
@@ -784,25 +783,20 @@ class Forge:
         tasks = {}
         filenames = set()
         for res in tqdm(results, desc="Processing records", disable=(not verbose)):
-            found = False
-            for key in res["mdf"]["links"].keys():
+            for dl in res.get("files", []):
                 # Get the location of the data
-                dl = res["mdf"]["links"][key]
-                host = dl.get("globus_endpoint", None) if type(dl) is dict else None
-
+                globus_link = dl.get("globus", None)
                 # If the data is on a Globus Endpoint
-                # This filters keys that are not data links
-                if host:
-                    found = True
-                    remote_path = dl["path"]
+                if globus_link:
+                    ep_id = urlparse(globus_link).netloc
+                    ep_path = urlparse(globus_link).path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                        # remote_path is absolute, so os.path.join does not work
-                        local_path = os.path.abspath(dest + remote_path)
+                        # ep_path is absolute, so os.path.join does not work
+                        local_path = os.path.abspath(dest + ep_path)
                     else:
                         local_path = os.path.abspath(
-                                        os.path.join(dest,
-                                                     os.path.basename(remote_path)))
+                                        os.path.join(dest, os.path.basename(ep_path)))
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
@@ -843,14 +837,12 @@ class Forge:
                     #           Globus might timeout before it can be completely uploaded
                     #        So, we need to be able to check the size of the TD object and,
                     #           if need be, send it early
-                    if host not in tasks.keys():
-                        tasks[host] = globus_sdk.TransferData(self.__transfer_client,
-                                                              host, dest_ep,
-                                                              verify_checksum=True)
-                    tasks[host].add_item(remote_path, local_path)
+                    if ep_id not in tasks.keys():
+                        tasks[ep_id] = globus_sdk.TransferData(self.__transfer_client,
+                                                               ep_id, dest_ep,
+                                                               verify_checksum=True)
+                    tasks[ep_id].add_item(ep_path, local_path)
                     filenames.add(local_path)
-            if not found:
-                print_("Error on record: No globus_endpoint provided.\nRecord: ", + str(res))
 
         # Submit the jobs
         submissions = []
@@ -916,23 +908,21 @@ class Forge:
                 }
             return
         for res in results:
-            for key in res["mdf"]["links"].keys():
-                dl = res["mdf"]["links"][key]
-                host = dl.get("http_host", None) if type(dl) is dict else None
-                if host:
-                    remote_path = dl["path"]
+            for dl in res.get("files", []):
+                url = dl.get("url", None)
+                if url:
                     headers = {}
                     self.__mdf_authorizer.set_authorization_header(headers)
-                    response = requests.get(host+remote_path, headers=headers)
+                    response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
                         self.__mdf_authorizer.handle_missing_authorization()
                         self.__mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(host+remote_path, headers=headers)
+                        self.response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
                         print_("Error ", response.status_code, " when attempting to access '",
-                               host+remote_path, "'", sep="")
+                               url, "'", sep="")
                         yield None
                     else:
                         yield response.text
