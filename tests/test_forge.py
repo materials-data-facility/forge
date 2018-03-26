@@ -639,14 +639,14 @@ def test_forge_fetch_datasets_from_results():
     res02 = f.search("mdf.source_name:oqmd AND mdf.resource_type:record",
                      advanced=True, limit=1, info=True)
     # Records from JANAF
-    res03 = f.search("mdf.source_name:nist_janaf AND mdf.resource_type:record",
+    res03 = f.search("mdf.source_name:khazana_vasp AND mdf.resource_type:record",
                      advanced=True, limit=2)
     # Dataset for NIST XPS DB
     res04 = f.search("mdf.source_name:nist_xps_db AND mdf.resource_type:dataset", advanced=True)
 
     # Get the correct dataset entries
     oqmd = f.search("mdf.source_name:oqmd AND mdf.resource_type:dataset", advanced=True)[0]
-    nist_janaf = f.search("mdf.source_name:nist_janaf AND mdf.resource_type:dataset",
+    khazana_vasp = f.search("mdf.source_name:khazana_vasp AND mdf.resource_type:dataset",
                           advanced=True)[0]
 
     # Fetch single dataset
@@ -662,7 +662,7 @@ def test_forge_fetch_datasets_from_results():
     res3 = f.fetch_datasets_from_results(rtemp)
     assert len(res3) == 2
     assert oqmd in res3
-    assert nist_janaf in res3
+    assert khazana_vasp in res3
 
     # Fetch dataset from dataset
     res4 = f.fetch_datasets_from_results(res04)
