@@ -1,16 +1,16 @@
 import os
 
-import requests
 import globus_sdk
+import mdf_toolbox
+import requests
+from six import print_, string_types
+from six.moves.urllib.parse import urlparse
 from tqdm import tqdm
 
-from six import print_, string_types
-
-from mdf_toolbox import toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
-HTTP_NUM_LIMIT = 2000
+HTTP_NUM_LIMIT = 50
 # Maximum number of results per search allowed by Globus Search
 SEARCH_LIMIT = 10000
 
@@ -52,10 +52,10 @@ class Forge:
 
         if self.__anonymous:
             services = kwargs.get('services', self.__anon_services)
-            clients = toolbox.anonymous_login(services)
+            clients = mdf_toolbox.anonymous_login(services)
         else:
             services = kwargs.get('services', self.__auth_services)
-            clients = toolbox.login(credentials={
+            clients = mdf_toolbox.login(credentials={
                                     "app_name": self.__app_name,
                                     "services": services,
                                     "index": self.index})
@@ -354,24 +354,25 @@ class Forge:
         # Done
         return self
 
-    def match_sources(self, sources):
+    def match_source_names(self, source_names):
         """Add sources to match to the query.
 
         Arguments:
-        sources (str or list of str): The sources to match.
+        source_names (str or list of str): The source_names to match.
 
         Returns:
         self (Forge): For chaining.
         """
-        # If no sources are supplied, nothing to match
-        if not sources:
+        # If no source_names are supplied, nothing to match
+        if not source_names:
             return self
-        if isinstance(sources, string_types):
-            sources = [sources]
+        if isinstance(source_names, string_types):
+            source_names = [source_names]
         # First source should be in new group and required
-        self.match_field(field="mdf.source_name", value=sources[0], required=True, new_group=True)
+        self.match_field(field="mdf.source_name", value=source_names[0],
+                         required=True, new_group=True)
         # Other sources should stay in that group, and not be required
-        for src in sources[1:]:
+        for src in source_names[1:]:
             self.match_field(field="mdf.source_name", value=src, required=False, new_group=False)
         return self
 
@@ -412,32 +413,11 @@ class Forge:
         if isinstance(elements, string_types):
             elements = [elements]
         # First element should be in new group and required
-        self.match_field(field="mdf.elements", value=elements[0], required=True, new_group=True)
+        self.match_field(field="material.elements", value=elements[0],
+                         required=True, new_group=True)
         # Other elements should stay in that group
         for element in elements[1:]:
-            self.match_field(field="mdf.elements", value=element, required=match_all,
-                             new_group=False)
-        return self
-
-    def match_tags(self, tags, match_all=True):
-        """Add tags to the query.
-
-        Arguments:
-        tags (str or list of str): The tags (keywords) to match.
-        match_all (bool): If True, will add with AND. If False, will use OR. Default True.
-
-        Returns:
-        self (Forge): For chaining.
-        """
-
-        if not tags:
-            return self
-        if isinstance(tags, string_types):
-            tags = [tags]
-
-        self.match_field(field="mdf.tags", value=tags[0], required=True, new_group=True)
-        for tag in tags[1:]:
-            self.match_field(field="mdf.tags", value=tag, required=match_all,
+            self.match_field(field="material.elements", value=element, required=match_all,
                              new_group=False)
         return self
 
@@ -455,9 +435,9 @@ class Forge:
         if not isinstance(titles, list):
             titles = [titles]
 
-        self.match_field(field="mdf.title", value=titles[0], required=True, new_group=True)
+        self.match_field(field="dc.titles.title", value=titles[0], required=True, new_group=True)
         for title in titles[1:]:
-            self.match_field(field="mdf.title", value=title, required=False, new_group=False)
+            self.match_field(field="dc.titles.title", value=title, required=False, new_group=False)
         return self
 
     def match_years(self, years=None, start=None, stop=None, inclusive=True):
@@ -491,10 +471,11 @@ class Forge:
 
             # Only match years if valid years were supplied
             if len(years_int) > 0:
-                self.match_field(field="mdf.year", value=years_int[0], required=True,
+                self.match_field(field="dc.publicationYear", value=years_int[0], required=True,
                                  new_group=True)
                 for year in years_int[1:]:
-                    self.match_field(field="mdf.year", value=year, required=False, new_group=False)
+                    self.match_field(field="dc.publicationYear",
+                                     value=year, required=False, new_group=False)
         else:
             if start is not None:
                 try:
@@ -509,7 +490,7 @@ class Forge:
                     print_("Invalid stop year: '", stop, "'", sep="")
                     stop = None
 
-            self.match_range(field="mdf.year", start=start, stop=stop,
+            self.match_range(field="dc.publicationYear", start=start, stop=stop,
                              inclusive=inclusive, required=True, new_group=True)
         return self
 
@@ -539,16 +520,16 @@ class Forge:
 # * Premade searches
 # ***********************************************
 
-    def search_by_elements(self, elements, sources=[], index=None, limit=None,
+    def search_by_elements(self, elements, source_names=[], index=None, limit=None,
                            match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to
-            match_elements([x]).match_sources([y]).search()
+            match_elements([x]).match_source_names([y]).search()
         Note that this method does use terms from the current query.
 
         Arguments:
         elements (list of str): The elements to match. Default [].
-        sources (list of str): The sources to match. Default [].
+        source_names (list of str): The sources to match. Default [].
         index (str): The Globus Search index to search on. Defaults to the current index.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
@@ -565,7 +546,7 @@ class Forge:
         tuple (if info=True): The results, and a dictionary of query information.
         """
         return (self.match_elements(elements, match_all=match_all)
-                    .match_sources(sources)
+                    .match_source_names(source_names)
                     .search(index=index, limit=limit, info=info))
 
     def search_by_titles(self, titles, index=None, limit=None, info=False):
@@ -588,44 +569,19 @@ class Forge:
         """
         return self.match_titles(titles).search(index=index, limit=limit, info=info)
 
-    def search_by_tags(self, tags, index=None, limit=None, match_all=True, info=False):
-        """Execute a search for the given tag.
-        search_by_tags([x]) is equivalent to match_tags([x]).search()
-
-        Arguments:
-        tags (list of str): The tags to match. Default [].
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        match_all (bool): If True, will add elements with AND.
-                          If False, will use OR.
-                          Default True.
-        info (bool): If False, search will return a list of the results.
-        If True, search will return a tuple containing the results list,
-            and other information about the query.
-        Default False.
-
-        Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
-        """
-        return self.match_tags(tags, match_all=match_all).search(index=index,
-                                                                 limit=limit,
-                                                                 info=info)
-
-    def aggregate_source(self, sources, index=None):
+    def aggregate_sources(self, source_names, index=None):
         """Aggregate all records from a given source.
         There is no limit to the number of results returned.
         Please beware of aggregating very large datasets.
 
         Arguments:
-        sources (str or list of str): The source to aggregate.
+        source_names (str or list of str): The source to aggregate.
         index (str): The Globus Search index to search on. Defaults to the current index.
 
         Returns:
         list of dict: All of the records from the source.
         """
-        return self.match_sources(sources).aggregate(index=index)
+        return self.match_source_names(source_names).aggregate(index=index)
 
     def fetch_datasets_from_results(self, entries=None, query=None, reset_query=True):
         """Retrieve the dataset entries for given records.
@@ -724,16 +680,15 @@ class Forge:
                             + " entries.")
                 }
         for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
-            for key in res["mdf"]["links"].keys():
-                dl = res["mdf"]["links"][key]
-                host = dl.get("http_host", None) if type(dl) is dict else None
-                if host:
-                    remote_path = dl["path"]
+            for dl in res.get("files", []):
+                url = dl.get("url", None)
+                if url:
+                    remote_path = urlparse(url).path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                        local_path = os.path.normpath(dest + "/" + dl["path"])
+                        local_path = os.path.normpath(dest + "/" + remote_path)
                     else:
-                        local_path = os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
+                        local_path = os.path.normpath(dest + "/" + os.path.basename(remote_path))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     try:
@@ -765,17 +720,17 @@ class Forge:
                             local_path = local_path + new_add + ext
                     headers = {}
                     self.__mdf_authorizer.set_authorization_header(headers)
-                    response = requests.get(host+remote_path, headers=headers)
+                    response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
                         self.__mdf_authorizer.handle_missing_authorization()
                         self.__mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(host+remote_path, headers=headers)
+                        self.response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error ", response.status_code,
-                               " when attempting to access '",
-                               host+remote_path, "'", sep="")
+                        print_("Error {} when attempting to access '{}'".format(
+                                                                            response.status_code,
+                                                                            url))
                     else:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
@@ -821,32 +776,27 @@ class Forge:
             results = results[0]
         if not dest_ep:
             if not self.local_ep:
-                self.local_ep = toolbox.get_local_ep(self.__transfer_client)
+                self.local_ep = mdf_toolbox.get_local_ep(self.__transfer_client)
             dest_ep = self.local_ep
 
         # Assemble the transfer data
         tasks = {}
         filenames = set()
         for res in tqdm(results, desc="Processing records", disable=(not verbose)):
-            found = False
-            for key in res["mdf"]["links"].keys():
+            for dl in res.get("files", []):
                 # Get the location of the data
-                dl = res["mdf"]["links"][key]
-                host = dl.get("globus_endpoint", None) if type(dl) is dict else None
-
+                globus_link = dl.get("globus", None)
                 # If the data is on a Globus Endpoint
-                # This filters keys that are not data links
-                if host:
-                    found = True
-                    remote_path = dl["path"]
+                if globus_link:
+                    ep_id = urlparse(globus_link).netloc
+                    ep_path = urlparse(globus_link).path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                        # remote_path is absolute, so os.path.join does not work
-                        local_path = os.path.abspath(dest + remote_path)
+                        # ep_path is absolute, so os.path.join does not work
+                        local_path = os.path.abspath(dest + ep_path)
                     else:
                         local_path = os.path.abspath(
-                                        os.path.join(dest,
-                                                     os.path.basename(remote_path)))
+                                        os.path.join(dest, os.path.basename(ep_path)))
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
@@ -887,14 +837,12 @@ class Forge:
                     #           Globus might timeout before it can be completely uploaded
                     #        So, we need to be able to check the size of the TD object and,
                     #           if need be, send it early
-                    if host not in tasks.keys():
-                        tasks[host] = globus_sdk.TransferData(self.__transfer_client,
-                                                              host, dest_ep,
-                                                              verify_checksum=True)
-                    tasks[host].add_item(remote_path, local_path)
+                    if ep_id not in tasks.keys():
+                        tasks[ep_id] = globus_sdk.TransferData(self.__transfer_client,
+                                                               ep_id, dest_ep,
+                                                               verify_checksum=True)
+                    tasks[ep_id].add_item(ep_path, local_path)
                     filenames.add(local_path)
-            if not found:
-                print_("Error on record: No globus_endpoint provided.\nRecord: ", + str(res))
 
         # Submit the jobs
         submissions = []
@@ -960,23 +908,21 @@ class Forge:
                 }
             return
         for res in results:
-            for key in res["mdf"]["links"].keys():
-                dl = res["mdf"]["links"][key]
-                host = dl.get("http_host", None) if type(dl) is dict else None
-                if host:
-                    remote_path = dl["path"]
+            for dl in res.get("files", []):
+                url = dl.get("url", None)
+                if url:
                     headers = {}
                     self.__mdf_authorizer.set_authorization_header(headers)
-                    response = requests.get(host+remote_path, headers=headers)
+                    response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
                         self.__mdf_authorizer.handle_missing_authorization()
                         self.__mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(host+remote_path, headers=headers)
+                        self.response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
                         print_("Error ", response.status_code, " when attempting to access '",
-                               host+remote_path, "'", sep="")
+                               url, "'", sep="")
                         yield None
                     else:
                         yield response.text
@@ -1012,19 +958,6 @@ class Query:
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
         self.initialized = not self.query == "("
-        # Search index UUIDs, which are required instead of names
-        self.__index_uuids = {
-            "mdf": "d6cc98c3-ff53-4ee2-b22b-c6f945c0d30c",
-            "mdf-test": "c082b745-32ac-4ad2-9cde-92393f6e505c",
-            "dlhub": "847c9105-18a0-4ffb-8a71-03dd76dfcc9d",
-            "dlhub-test": "5c89e0a9-00e5-4171-b415-814fe4d0b8af"
-            }
-
-    def __translate_index(self, index):
-        """Translate a known Globus Search index into the index UUID.
-        The UUID is now the only way to access indices.
-        """
-        return self.__index_uuids.get(index.strip().lower(), index)
 
     def __clean_query_string(self, q):
         """Clean up a query string.
@@ -1194,7 +1127,7 @@ class Query:
             print_("Error: No index specified")
             return ([], {"error": "No index"}) if info else []
         else:
-            uuid_index = self.__translate_index(index)
+            uuid_index = mdf_toolbox.translate_index(index)
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
@@ -1211,7 +1144,7 @@ class Query:
             "limit": limit,
             "offset": 0
             }
-        res = toolbox.gmeta_pop(self.__search_client.post_search(uuid_index, qu), info=info)
+        res = mdf_toolbox.gmeta_pop(self.__search_client.post_search(uuid_index, qu), info=info)
         # Add additional info
         if info:
             res[1]["query"] = qu
@@ -1299,5 +1232,5 @@ class Query:
         dict: The full mapping for the index.
         """
         return (self.__search_client.get(
-                    "/unstable/index/{}/mapping".format(self.__translate_index(index)))
+                    "/unstable/index/{}/mapping".format(mdf_toolbox.translate_index(index)))
                 ["mappings"])
