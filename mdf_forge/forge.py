@@ -1,4 +1,5 @@
 import os
+import re
 
 import globus_sdk
 import mdf_toolbox
@@ -26,7 +27,7 @@ class Forge:
     index is the Globus Search index to be used.
     """
     __default_index = "mdf"
-    __auth_services = ["mdf", "transfer", "search"]
+    __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
 
@@ -61,7 +62,8 @@ class Forge:
                                     "index": self.index})
         self.__search_client = clients.get("search")
         self.__transfer_client = clients.get("transfer")
-        self.__mdf_authorizer = clients.get("mdf")
+        self.__data_mdf_authorizer = clients.get("data_mdf")
+        self.__petrel_authorizer = clients.get("petrel")
 
         self.__query = Query(self.__search_client)
 
@@ -75,7 +77,7 @@ class Forge:
 
     @property
     def mdf_authorizer(self):
-        return self.__mdf_authorizer
+        return self.__data_mdf_authorizer
 
 
 # ***********************************************
@@ -368,6 +370,9 @@ class Forge:
             return self
         if isinstance(source_names, string_types):
             source_names = [source_names]
+        # If no version supplied, add * to each source name to match all versions
+        source_names = [(sn+"*" if re.search(".*_v[0-9]+", sn) is None else sn)
+                        for sn in source_names]
         # First source should be in new group and required
         self.match_field(field="mdf.source_name", value=source_names[0],
                          required=True, new_group=True)
@@ -719,12 +724,12 @@ class Forge:
                         else:
                             local_path = local_path + new_add + ext
                     headers = {}
-                    self.__mdf_authorizer.set_authorization_header(headers)
+                    self.__data_mdf_authorizer.set_authorization_header(headers)
                     response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.__mdf_authorizer.handle_missing_authorization()
-                        self.__mdf_authorizer.set_authorization_header(headers)
+                        self.__data_mdf_authorizer.handle_missing_authorization()
+                        self.__data_mdf_authorizer.set_authorization_header(headers)
                         self.response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
@@ -892,7 +897,7 @@ class Forge:
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
-        elif type(results) is not list:
+        if type(results) is not list:
             results = [results]
         if len(results) > HTTP_NUM_LIMIT:
             print_("Too many results supplied. Use globus_download()"
@@ -912,12 +917,12 @@ class Forge:
                 url = dl.get("url", None)
                 if url:
                     headers = {}
-                    self.__mdf_authorizer.set_authorization_header(headers)
+                    self.__data_mdf_authorizer.set_authorization_header(headers)
                     response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.__mdf_authorizer.handle_missing_authorization()
-                        self.__mdf_authorizer.set_authorization_header(headers)
+                        self.__data_mdf_authorizer.handle_missing_authorization()
+                        self.__data_mdf_authorizer.set_authorization_header(headers)
                         self.response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
