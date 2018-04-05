@@ -62,8 +62,8 @@ class Forge:
                                     "index": self.index})
         self.__search_client = clients.get("search")
         self.__transfer_client = clients.get("transfer")
-        self.__data_mdf_authorizer = clients.get("data_mdf")
-        self.__petrel_authorizer = clients.get("petrel")
+        self.__data_mdf_authorizer = clients.get("data_mdf", globus_sdk.NullAuthorizer())
+        self.__petrel_authorizer = clients.get("petrel", globus_sdk.NullAuthorizer())
 
         self.__query = Query(self.__search_client)
 
@@ -688,7 +688,8 @@ class Forge:
             for dl in res.get("files", []):
                 url = dl.get("url", None)
                 if url:
-                    remote_path = urlparse(url).path
+                    parsed_url = urlparse(url)
+                    remote_path = parsed_url.path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
                         local_path = os.path.normpath(dest + "/" + remote_path)
@@ -724,13 +725,21 @@ class Forge:
                         else:
                             local_path = local_path + new_add + ext
                     headers = {}
-                    self.__data_mdf_authorizer.set_authorization_header(headers)
+                    # Check for Petrel vs. NCSA url for authorizer
+                    # Petrel
+                    if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                        authorizer = self.__petrel_authorizer
+                    elif parsed_url.netloc == "data.materialsdatafacility.org":
+                        authorizer = self.__data_mdf_authorizer
+                    else:
+                        authorizer = globus_sdk.NullAuthorizer()
+                    authorizer.set_authorization_header(headers)
                     response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.__data_mdf_authorizer.handle_missing_authorization()
-                        self.__data_mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(url, headers=headers)
+                        authorizer.handle_missing_authorization()
+                        authorizer.set_authorization_header(headers)
+                        response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
                         print_("Error {} when attempting to access '{}'".format(
@@ -916,14 +925,23 @@ class Forge:
             for dl in res.get("files", []):
                 url = dl.get("url", None)
                 if url:
+                    parsed_url = urlparse(url)
                     headers = {}
-                    self.__data_mdf_authorizer.set_authorization_header(headers)
+                    # Check for Petrel vs. NCSA url for authorizer
+                    # Petrel
+                    if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                        authorizer = self.__petrel_authorizer
+                    elif parsed_url.netloc == "data.materialsdatafacility.org":
+                        authorizer = self.__data_mdf_authorizer
+                    else:
+                        authorizer = globus_sdk.NullAuthorizer()
+                    authorizer.set_authorization_header(headers)
                     response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.__data_mdf_authorizer.handle_missing_authorization()
-                        self.__data_mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(url, headers=headers)
+                        authorizer.handle_missing_authorization()
+                        authorizer.set_authorization_header(headers)
+                        response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
                         print_("Error ", response.status_code, " when attempting to access '",

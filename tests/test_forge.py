@@ -258,6 +258,20 @@ example_result2 = [{
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
         "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
     }]
+}, {
+    "files": [{
+        "globus": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
+                   "/MDF/mdf_connect/test_files/petrel_fetch.txt"),
+        "url": ("https://e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org"
+                "/MDF/mdf_connect/test_files/petrel_fetch.txt")
+    }]
+}, {
+    "files": [{
+        "globus": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
+                   "/MDF/mdf_connect/test_files/petrel_multifetch.txt"),
+        "url": ("https://e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org"
+                "/MDF/mdf_connect/test_files/petrel_multifetch.txt")
+    }]
 }]
 example_result3 = {
     "files": [{
@@ -266,13 +280,23 @@ example_result3 = {
     }, {
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
         "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
+    }, {
+        "globus": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
+                   "/MDF/mdf_connect/test_files/petrel_fetch.txt"),
+        "url": ("https://e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org"
+                "/MDF/mdf_connect/test_files/petrel_fetch.txt")
+    }, {
+        "globus": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
+                   "/MDF/mdf_connect/test_files/petrel_multifetch.txt"),
+        "url": ("https://e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org"
+                "/MDF/mdf_connect/test_files/petrel_multifetch.txt")
     }]
 }
 # NOTE: This example file does not exist
 example_result_missing = {
     "files": [{
-        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/missing.txt",
-        "url": "https://data.materialsdatafacility.org/test/missing.txt"
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/should_not_exist.txt",
+        "url": "https://data.materialsdatafacility.org/test/should_not_exist.txt"
     }]
 }
 
@@ -725,24 +749,34 @@ def test_forge_http_download(capsys):
     f.http_download(example_result2, dest=dest_path)
     assert os.path.exists(os.path.join(dest_path, "test_fetch.txt"))
     assert os.path.exists(os.path.join(dest_path, "test_multifetch.txt"))
+    assert os.path.exists(os.path.join(dest_path, "petrel_fetch.txt"))
+    assert os.path.exists(os.path.join(dest_path, "petrel_multifetch.txt"))
     os.remove(os.path.join(dest_path, "test_fetch.txt"))
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
+    os.remove(os.path.join(dest_path, "petrel_fetch.txt"))
+    os.remove(os.path.join(dest_path, "petrel_multifetch.txt"))
 
     f.http_download(example_result3, dest=dest_path)
     assert os.path.exists(os.path.join(dest_path, "test_fetch.txt"))
     assert os.path.exists(os.path.join(dest_path, "test_multifetch.txt"))
+    assert os.path.exists(os.path.join(dest_path, "petrel_fetch.txt"))
+    assert os.path.exists(os.path.join(dest_path, "petrel_multifetch.txt"))
     os.remove(os.path.join(dest_path, "test_fetch.txt"))
     os.remove(os.path.join(dest_path, "test_multifetch.txt"))
+    os.remove(os.path.join(dest_path, "petrel_fetch.txt"))
+    os.remove(os.path.join(dest_path, "petrel_multifetch.txt"))
 
     # Too many files
     assert f.http_download(list(range(10001)))["success"] is False
+    out, err = capsys.readouterr()
+    assert "Too many results supplied. Use globus_download()" in out
 
     # "Missing" files
     f.http_download(example_result_missing)
     out, err = capsys.readouterr()
-    assert not os.path.exists("./missing.txt")
+    assert not os.path.exists("./should_not_exist.txt")
     assert ("Error 404 when attempting to access "
-            "'https://data.materialsdatafacility.org/test/missing.txt'") in out
+            "'https://data.materialsdatafacility.org/test/should_not_exist.txt'") in out
 
 
 @pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
@@ -786,9 +820,13 @@ def test_forge_http_stream(capsys):
     assert isinstance(res2, types.GeneratorType)
     assert next(res2) == "This is a test document for Forge testing. Please do not remove.\n"
     assert next(res2) == "This is a second test document for Forge testing. Please do not remove.\n"
+    assert next(res2) == "This is a test document for Forge testing. Please do not remove.\n"
+    assert next(res2) == "This is a second test document for Forge testing. Please do not remove.\n"
 
     res3 = f.http_stream((example_result3, {"info": {}}))
     assert isinstance(res3, types.GeneratorType)
+    assert next(res3) == "This is a test document for Forge testing. Please do not remove.\n"
+    assert next(res3) == "This is a second test document for Forge testing. Please do not remove.\n"
     assert next(res3) == "This is a test document for Forge testing. Please do not remove.\n"
     assert next(res3) == "This is a second test document for Forge testing. Please do not remove.\n"
 
@@ -796,17 +834,16 @@ def test_forge_http_stream(capsys):
     res4 = f.http_stream(list(range(10001)))
     assert next(res4)["success"] is False
     out, err = capsys.readouterr()
-    assert ("Too many results supplied. Use globus_download() for "
-            "fetching more than") in out
+    assert "Too many results supplied. Use globus_download()" in out
     with pytest.raises(StopIteration):
         next(res4)
 
     # "Missing" files
     assert next(f.http_stream(example_result_missing)) is None
     out, err = capsys.readouterr()
-    assert not os.path.exists("./missing.txt")
+    assert not os.path.exists("./should_not_exist.txt")
     assert ("Error 404 when attempting to access "
-            "'https://data.materialsdatafacility.org/test/missing.txt'") in out
+            "'https://data.materialsdatafacility.org/test/should_not_exist.txt'") in out
 
 
 def test_forge_chaining():
