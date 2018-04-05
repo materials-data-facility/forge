@@ -1,16 +1,17 @@
 import os
+import re
 
-import requests
 import globus_sdk
+import mdf_toolbox
+import requests
+from six import print_, string_types
+from six.moves.urllib.parse import urlparse
 from tqdm import tqdm
 
-from six import print_, string_types
-
-import mdf_toolbox
 
 # Maximum recommended number of HTTP file transfers
 # Large transfers are much better suited to Globus Transfer use
-HTTP_NUM_LIMIT = 2000
+HTTP_NUM_LIMIT = 50
 # Maximum number of results per search allowed by Globus Search
 SEARCH_LIMIT = 10000
 
@@ -26,7 +27,7 @@ class Forge:
         * **index is** the Globus Search index to be used.
     """
     __default_index = "mdf"
-    __auth_services = ["mdf", "transfer", "search"]
+    __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
 
@@ -62,7 +63,8 @@ class Forge:
                                     "index": self.index})
         self.__search_client = clients.get("search")
         self.__transfer_client = clients.get("transfer")
-        self.__mdf_authorizer = clients.get("mdf")
+        self.__data_mdf_authorizer = clients.get("data_mdf", globus_sdk.NullAuthorizer())
+        self.__petrel_authorizer = clients.get("petrel", globus_sdk.NullAuthorizer())
 
         self.__query = Query(self.__search_client)
 
@@ -76,7 +78,7 @@ class Forge:
 
     @property
     def mdf_authorizer(self):
-        return self.__mdf_authorizer
+        return self.__data_mdf_authorizer
 
 
 # ***********************************************
@@ -375,6 +377,9 @@ class Forge:
             return self
         if isinstance(source_names, string_types):
             source_names = [source_names]
+        # If no version supplied, add * to each source name to match all versions
+        source_names = [(sn+"*" if re.search(".*_v[0-9]+", sn) is None else sn)
+                        for sn in source_names]
         # First source should be in new group and required
         self.match_field(field="mdf.source_name", value=source_names[0],
                          required=True, new_group=True)
@@ -694,16 +699,16 @@ class Forge:
                             + " entries.")
                 }
         for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
-            for key in res["mdf"]["links"].keys():
-                dl = res["mdf"]["links"][key]
-                host = dl.get("http_host", None) if type(dl) is dict else None
-                if host:
-                    remote_path = dl["path"]
+            for dl in res.get("files", []):
+                url = dl.get("url", None)
+                if url:
+                    parsed_url = urlparse(url)
+                    remote_path = parsed_url.path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                        local_path = os.path.normpath(dest + "/" + dl["path"])
+                        local_path = os.path.normpath(dest + "/" + remote_path)
                     else:
-                        local_path = os.path.normpath(dest + "/" + os.path.basename(dl["path"]))
+                        local_path = os.path.normpath(dest + "/" + os.path.basename(remote_path))
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
                     try:
@@ -734,18 +739,26 @@ class Forge:
                         else:
                             local_path = local_path + new_add + ext
                     headers = {}
-                    self.__mdf_authorizer.set_authorization_header(headers)
-                    response = requests.get(host+remote_path, headers=headers)
+                    # Check for Petrel vs. NCSA url for authorizer
+                    # Petrel
+                    if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                        authorizer = self.__petrel_authorizer
+                    elif parsed_url.netloc == "data.materialsdatafacility.org":
+                        authorizer = self.__data_mdf_authorizer
+                    else:
+                        authorizer = globus_sdk.NullAuthorizer()
+                    authorizer.set_authorization_header(headers)
+                    response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.__mdf_authorizer.handle_missing_authorization()
-                        self.__mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(host+remote_path, headers=headers)
+                        authorizer.handle_missing_authorization()
+                        authorizer.set_authorization_header(headers)
+                        response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error ", response.status_code,
-                               " when attempting to access '",
-                               host+remote_path, "'", sep="")
+                        print_("Error {} when attempting to access '{}'".format(
+                                                                            response.status_code,
+                                                                            url))
                     else:
                         # Write out the binary response content
                         with open(local_path, 'wb') as output:
@@ -798,25 +811,20 @@ class Forge:
         tasks = {}
         filenames = set()
         for res in tqdm(results, desc="Processing records", disable=(not verbose)):
-            found = False
-            for key in res["mdf"]["links"].keys():
+            for dl in res.get("files", []):
                 # Get the location of the data
-                dl = res["mdf"]["links"][key]
-                host = dl.get("globus_endpoint", None) if type(dl) is dict else None
-
+                globus_link = dl.get("globus", None)
                 # If the data is on a Globus Endpoint
-                # This filters keys that are not data links
-                if host:
-                    found = True
-                    remote_path = dl["path"]
+                if globus_link:
+                    ep_id = urlparse(globus_link).netloc
+                    ep_path = urlparse(globus_link).path
                     # local_path should be either dest + whole path or dest + filename
                     if preserve_dir:
-                        # remote_path is absolute, so os.path.join does not work
-                        local_path = os.path.abspath(dest + remote_path)
+                        # ep_path is absolute, so os.path.join does not work
+                        local_path = os.path.abspath(dest + ep_path)
                     else:
                         local_path = os.path.abspath(
-                                        os.path.join(dest,
-                                                     os.path.basename(remote_path)))
+                                        os.path.join(dest, os.path.basename(ep_path)))
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
@@ -857,14 +865,12 @@ class Forge:
                     #           Globus might timeout before it can be completely uploaded
                     #        So, we need to be able to check the size of the TD object and,
                     #           if need be, send it early
-                    if host not in tasks.keys():
-                        tasks[host] = globus_sdk.TransferData(self.__transfer_client,
-                                                              host, dest_ep,
-                                                              verify_checksum=True)
-                    tasks[host].add_item(remote_path, local_path)
+                    if ep_id not in tasks.keys():
+                        tasks[ep_id] = globus_sdk.TransferData(self.__transfer_client,
+                                                               ep_id, dest_ep,
+                                                               verify_checksum=True)
+                    tasks[ep_id].add_item(ep_path, local_path)
                     filenames.add(local_path)
-            if not found:
-                print_("Error on record: No globus_endpoint provided.\nRecord: ", + str(res))
 
         # Submit the jobs
         submissions = []
@@ -914,7 +920,7 @@ class Forge:
         # If results have info attached, remove it
         if type(results) is tuple:
             results = results[0]
-        elif type(results) is not list:
+        if type(results) is not list:
             results = [results]
         if len(results) > HTTP_NUM_LIMIT:
             print_("Too many results supplied. Use globus_download()"
@@ -930,23 +936,30 @@ class Forge:
                 }
             return
         for res in results:
-            for key in res["mdf"]["links"].keys():
-                dl = res["mdf"]["links"][key]
-                host = dl.get("http_host", None) if type(dl) is dict else None
-                if host:
-                    remote_path = dl["path"]
+            for dl in res.get("files", []):
+                url = dl.get("url", None)
+                if url:
+                    parsed_url = urlparse(url)
                     headers = {}
-                    self.__mdf_authorizer.set_authorization_header(headers)
-                    response = requests.get(host+remote_path, headers=headers)
+                    # Check for Petrel vs. NCSA url for authorizer
+                    # Petrel
+                    if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                        authorizer = self.__petrel_authorizer
+                    elif parsed_url.netloc == "data.materialsdatafacility.org":
+                        authorizer = self.__data_mdf_authorizer
+                    else:
+                        authorizer = globus_sdk.NullAuthorizer()
+                    authorizer.set_authorization_header(headers)
+                    response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
-                        self.__mdf_authorizer.handle_missing_authorization()
-                        self.__mdf_authorizer.set_authorization_header(headers)
-                        self.response = requests.get(host+remote_path, headers=headers)
+                        authorizer.handle_missing_authorization()
+                        authorizer.set_authorization_header(headers)
+                        response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
                         print_("Error ", response.status_code, " when attempting to access '",
-                               host+remote_path, "'", sep="")
+                               url, "'", sep="")
                         yield None
                     else:
                         yield response.text
