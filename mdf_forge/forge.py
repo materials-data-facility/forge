@@ -541,19 +541,19 @@ class Forge:
             match_elements([x]).match_source_names([y]).search()
         Note that this method does use terms from the current query.
 
-        Arguments:
-        elements (list of str): The elements to match. Default [].
-        source_names (list of str): The sources to match. Default [].
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        match_all (bool): If True, will add elements with AND.
-                          If False, will use OR.
-                          Default True.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list,
+        Args:
+            elements (list of str): The elements to match. Default **[]**.
+            source_names (list of str): The sources to match. Default **[]**.
+            index (str): The Globus Search index to search on. Defaults to the current index.
+            limit (int): The maximum number of results to return.
+                    The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+            match_all (bool): If **True**, will add elements with AND.
+                    If **False**, will use OR.
+                    Default **True**.
+            info (bool): If **False**, search will return a list of the results.
+                     If **True**, search will return a tuple containing the results list,
                         and other information about the query.
-                     Default False.
+                     Default **False**.
 
         Returns:
             list (if info=False): The results.
@@ -561,7 +561,7 @@ class Forge:
             tuple (if info=True): The results, and a dictionary of query information.
 
         Note:
-             This method does use terms from the current query.
+            This method does use terms from the current query.
         """
         return (self.match_elements(elements, match_all=match_all)
                     .match_source_names(source_names)
@@ -593,9 +593,9 @@ class Forge:
         There is no limit to the number of results returned.
         Please beware of aggregating very large datasets.
 
-        Arguments:
-        source_names (str or list of str): The source to aggregate.
-        index (str): The Globus Search index to search on. Defaults to the current index.
+        Args:
+            source_names (str or list of str): The source to aggregate.
+            index (str): The Globus Search index to search on. Defaults to the current index.
 
         Returns:
             list of dict: All of the records from the source.
