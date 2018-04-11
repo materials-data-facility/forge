@@ -14,6 +14,8 @@ from tqdm import tqdm
 HTTP_NUM_LIMIT = 50
 # Maximum number of results per search allowed by Globus Search
 SEARCH_LIMIT = 10000
+# Maximum number of results to return when advanced=False
+NONADVANCED_LIMIT = 10
 
 
 class Forge:
@@ -1118,7 +1120,7 @@ class Query:
         self.operator("NOT")
         return self
 
-    def search(self, q=None, index=None, advanced=None, limit=SEARCH_LIMIT, info=False):
+    def search(self, q=None, index=None, advanced=None, limit=None, info=False):
         """Execute a search and return the results.
 
         Arguments:
@@ -1132,6 +1134,8 @@ class Query:
                             the query is built with helpers.
         limit (int): The maximum number of results to return.
                      The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+                     The default for advanced-mode queries is SEARCH_LIMIT.
+                     The default for non-advanced queries is NONADVANCED_LIMIT.
         info (bool): If False, search will return a list of the results.
                      If True, search will return a tuple containing the results list
                         and other information about the query.
@@ -1154,7 +1158,7 @@ class Query:
         if advanced is None or self.advanced:
             advanced = self.advanced
         if limit is None:
-            limit = self.limit or SEARCH_LIMIT
+            limit = self.limit or (SEARCH_LIMIT if advanced else NONADVANCED_LIMIT)
         if limit > SEARCH_LIMIT:
             limit = SEARCH_LIMIT
 
