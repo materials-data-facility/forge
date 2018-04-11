@@ -625,7 +625,7 @@ class Forge:
             # For records, extract the parent_id
             # Most entries should be records here
             if entry["mdf"]["resource_type"] == "record":
-                ds_ids.add(entry["mdf"]["links"]["parent_id"])
+                ds_ids.add(entry["mdf"]["parent_id"])
             # For datasets, extract the mdf_id
             elif entry["mdf"]["resource_type"] == "dataset":
                 ds_ids.add(entry["mdf"]["mdf_id"])
