@@ -896,7 +896,7 @@ def test_forge_anonymous(capsys):
         next(res)
 
 
-def test_get_dataset_version(capsys):
+def test_get_dataset_version():
     # Get the version number of the OQMD
     f = forge.Forge()
     hits = f.search('mdf.source_name:oqmd_v* AND mdf.resource_type:dataset',
@@ -904,6 +904,5 @@ def test_get_dataset_version(capsys):
     assert hits[0]['mdf']['version'] == f.get_dataset_version('oqmd')
 
     # Test invalid source_name
-    assert f.get_dataset_version('notreal') == -1
-    out, err = capsys.readouterr()
-    assert "No such dataset found" in out
+    with pytest.raises(ValueError):
+        f.get_dataset_version('notreal')

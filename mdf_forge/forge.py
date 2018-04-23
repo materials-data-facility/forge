@@ -652,12 +652,10 @@ class Forge:
 
         # Some error checking
         if len(hits) == 0:
-            print_("No such dataset found: " + source_name)
-            return -1
+            raise ValueError("No such dataset found: " + source_name)
         elif len(hits) > 1:
-            print_(("Matched multiple datasets with source_name '{}'. If you believe this "
-                    "is an error, please contact MDF support for help.").format(source_name))
-            return -1
+            raise ValueError("Unexpectedly matched multiple datasets with source_name '{}'. "
+                             "Please contact MDF support.".format(source_name))
         else:
             return hits[0]['mdf']['version']
 
