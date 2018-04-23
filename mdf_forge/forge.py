@@ -637,7 +637,7 @@ class Forge:
         return self.match_ids(list(ds_ids)).search()
 
     def get_dataset_version(self, source_name):
-        """Get the version of a certain dataset
+        """Get the version of a certain dataset.
 
         Arguments:
         source_name (string): Name of the dataset
@@ -652,10 +652,14 @@ class Forge:
 
         # Some error checking
         if len(hits) == 0:
-            raise Exception('No such dataset found: ' + source_name)
+            print_("No such dataset found: " + source_name)
+            return -1
         elif len(hits) > 1:
-            raise Exception('Matched >1 dataset. Please contact MDF developers')
-        return hits[0]['mdf']['version']
+            print_(("Matched multiple datasets with source_name '{}'. If you believe this "
+                    "is an error, please contact MDF support for help.").format(source_name))
+            return -1
+        else:
+            return hits[0]['mdf']['version']
 
 
 # ***********************************************
