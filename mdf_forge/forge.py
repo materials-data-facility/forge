@@ -32,6 +32,8 @@ class Forge:
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
+    __transfer_interval = 60  # 1 minute, in seconds
+    __inactivity_time = 1 * 60 * 60  # 1 hour, in seconds
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
         """Initialize the Forge instance.
@@ -634,6 +636,29 @@ class Forge:
                 pass
         return self.match_ids(list(ds_ids)).search()
 
+    def get_dataset_version(self, source_name):
+        """Get the version of a certain dataset.
+
+        Arguments:
+        source_name (string): Name of the dataset
+
+        Returns:
+        int: Version of the dataset in question
+        """
+
+        hits = self.search("mdf.source_name:{}_v* AND"
+                           " mdf.resource_type:dataset".format(source_name),
+                           advanced=True, limit=2)
+
+        # Some error checking
+        if len(hits) == 0:
+            raise ValueError("No such dataset found: " + source_name)
+        elif len(hits) > 1:
+            raise ValueError("Unexpectedly matched multiple datasets with source_name '{}'. "
+                             "Please contact MDF support.".format(source_name))
+        else:
+            return hits[0]['mdf']['version']
+
 
 # ***********************************************
 # * Data retrieval functions
@@ -756,7 +781,7 @@ class Forge:
             }
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
-                        wait_for_completion=True, verbose=True):
+                        inactivity_time=None, verbose=True):
         """Download data files from the provided results using Globus Transfer.
         This method requires Globus Connect to be installed on the destination endpoint.
 
@@ -765,16 +790,20 @@ class Forge:
                         This should be the return value of a search method.
         dest (str): The destination path for the data files on the local machine.
                     Default current directory.
+        dest_ep (str): The destination endpoint ID.
+                       Default local GCP.
         preserve_dir (bool): If True, the directory structure for the data files will be
                                 recreated at the destination. The path to the new files
                                 will be relative to the `dest` path
                              If False, only the data files themselves will be saved.
                              Default False.
-        wait_for_completion (bool): If True, will block until the transfer is finished.
-                                    If False, will not block.
-                                    Default True.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
+        inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
+                               before being cancelled.
+                               Default self.__inactivity_time.
+        verbose (bool): If True, status and progress messages will be printed,
+                            and errors will prompt for continuation confirmation.
+                        If False, only error messages will be printed,
+                            and the Transfer will always continue.
                         Default True.
 
         Returns:
@@ -794,16 +823,20 @@ class Forge:
             if not self.local_ep:
                 self.local_ep = mdf_toolbox.get_local_ep(self.__transfer_client)
             dest_ep = self.local_ep
+        if not inactivity_time:
+            inactivity_time = self.__inactivity_time
 
         # Assemble the transfer data
         tasks = {}
         filenames = set()
+        links_processed = set()
         for res in tqdm(results, desc="Processing records", disable=(not verbose)):
             for dl in res.get("files", []):
                 # Get the location of the data
                 globus_link = dl.get("globus", None)
                 # If the data is on a Globus Endpoint
-                if globus_link:
+                if globus_link and globus_link not in links_processed:
+                    links_processed.add(globus_link)
                     ep_id = urlparse(globus_link).netloc
                     ep_path = urlparse(globus_link).path
                     # local_path should be either dest + whole path or dest + filename
@@ -847,41 +880,53 @@ class Forge:
                             else:
                                 local_path = local_path + new_add + ext
 
-                    # Add data to a transfer data object
-                    #   LW 11Aug17: TODO, handle transfers with huge number of files
-                    #      - If a TransferData object is too large,
-                    #           Globus might timeout before it can be completely uploaded
-                    #        So, we need to be able to check the size of the TD object and,
-                    #           if need be, send it early
+                    # Add data to list of transfer files
                     if ep_id not in tasks.keys():
-                        tasks[ep_id] = globus_sdk.TransferData(self.__transfer_client,
-                                                               ep_id, dest_ep,
-                                                               verify_checksum=True)
-                    tasks[ep_id].add_item(ep_path, local_path)
+                        tasks[ep_id] = []
+                    tasks[ep_id].append((ep_path, local_path))
                     filenames.add(local_path)
 
         # Submit the jobs
-        submissions = []
-        for td in tqdm(tasks.values(), desc="Submitting transfers", disable=(not verbose)):
-            result = self.__transfer_client.submit_transfer(td)
-            if result["code"] != "Accepted":
-                raise globus_sdk.GlobusError("Error submitting transfer:", result["message"])
-            else:
-                if wait_for_completion:
-                    while not self.__transfer_client.task_wait(result["task_id"], timeout=60,
-                                                               polling_interval=10):
+        success = 0
+        failed = 0
+        for task_ep, task_paths in tqdm(tasks.items(), desc="Transferring data",
+                                        disable=(not verbose)):
+            transfer = mdf_toolbox.custom_transfer(self.__transfer_client, task_ep, dest_ep,
+                                                   task_paths, interval=self.__transfer_interval,
+                                                   inactivity_time=inactivity_time)
+            cont = True
+            # Prime loop
+            event = next(transfer)
+            try:
+                # Loop ends on StopIteration from generator exhaustion
+                while True:
+                    if not event["success"]:
+                        print_("Error: {} - {}" + event["error"])
                         if verbose:
-                            print_("Transferring...")
-                        for event in self.__transfer_client.task_event_list(result["task_id"]):
-                            if event["is_error"]:
-                                self.__transfer_client.cancel_task(result["task_id"])
-                                raise globus_sdk.GlobusError("Error: " + event["description"])
+                            # Allow user to abort transfer if verbose, else cont is always True
+                            user_cont = input("Continue Transfer (y/n)?\n")
+                            cont = (user_cont.strip().lower() == "y"
+                                    or user_cont.strip().lower() == "yes")
+                    event = transfer.send(cont)
+            except StopIteration:
+                pass
+            if not event["success"]:
+                print_("Error transferring to '{}': {} - {}".format(task_ep, event["code"],
+                                                                    event["description"]))
+                failed += 1
+                # Allow cancellation of remaining Transfers if Transfer are remaining
+                if verbose and tasks.keys()[-1] != task_ep:
+                    user_cont = input("Continue Transfer (y/n)?\n")
+                    if not (user_cont.strip().lower() == "y"
+                            or user_cont.strip().lower() == "yes"):
+                        break
+            else:
+                success += 1
 
-                submissions.append(result["task_id"])
         if verbose:
-            print_("All transfers submitted")
-            print_("Task IDs:", "\n".join(submissions))
-        return submissions
+            print_(("All transfers processed\n{} transfers succeeded\n"
+                    "{} transfers failed").format(success, failed))
+        return
 
     def http_stream(self, results, verbose=True):
         """Yield data files from the provided results using HTTPS, through a generator.

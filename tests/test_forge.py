@@ -894,3 +894,15 @@ def test_forge_anonymous(capsys):
     assert "Error: Anonymous HTTP download not yet supported." in out
     with pytest.raises(StopIteration):
         next(res)
+
+
+def test_get_dataset_version():
+    # Get the version number of the OQMD
+    f = forge.Forge()
+    hits = f.search('mdf.source_name:oqmd_v* AND mdf.resource_type:dataset',
+                    advanced=True, limit=1)
+    assert hits[0]['mdf']['version'] == f.get_dataset_version('oqmd')
+
+    # Test invalid source_name
+    with pytest.raises(ValueError):
+        f.get_dataset_version('notreal')
