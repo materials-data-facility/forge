@@ -712,76 +712,83 @@ class Forge:
                             + " entries.")
                 }
         for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
-            for dl in res.get("files", []):
-                url = dl.get("url", None)
-                if url:
-                    parsed_url = urlparse(url)
-                    remote_path = parsed_url.path
-                    # local_path should be either dest + whole path or dest + filename
-                    if preserve_dir:
-                        local_path = os.path.normpath(dest + "/" + remote_path)
-                    else:
-                        local_path = os.path.normpath(dest + "/" + os.path.basename(remote_path))
-                    # Make dirs for storing the file if they don't exist
-                    # preserve_dir doesn't matter; local_path has accounted for it already
-                    try:
-                        os.makedirs(os.path.dirname(local_path))
-                    # If dest is current dir and preserve_dir=False, there are no dirs to make.
-                    # os.makedirs() will raise FileNotFoundError (Python3 subclass of IOError).
-                    # Since it means all dirs required exist, it can be swallowed.
-                    except (IOError, OSError):
-                        pass
-                    # Check if file already exists, change filename if necessary
-                    collisions = 0
-                    while os.path.exists(local_path):
-                        # Find period marking extension, if exists
-                        # Will be after last slash
-                        last_slash = local_path.rfind("/")
-                        index = local_path.rfind(".", (last_slash if last_slash != -1 else 0))
-                        if index < 0:
-                            ext = ""
+            if res["mdf"]["resource_type"] == "dataset":
+                print_("Skipping datset entry for '{}': Cannot download dataset over HTTPS. "
+                       "Use globus_download() for datasets.".format(res["mdf"]["source_id"]))
+            elif res["mdf"]["resource_type"] == "record":
+                for dl in res.get("files", []):
+                    url = dl.get("url", None)
+                    if url:
+                        parsed_url = urlparse(url)
+                        remote_path = parsed_url.path
+                        # local_path should be either dest + whole path or dest + filename
+                        if preserve_dir:
+                            local_path = os.path.normpath(dest + "/" + remote_path)
                         else:
-                            ext = local_path[index:]
-                            local_path = local_path[:index]
-                        # Check if already added number to end
-                        old_add = "("+str(collisions)+")"
-                        collisions += 1
-                        new_add = "("+str(collisions)+")"
-                        if local_path.endswith(old_add):
-                            local_path = local_path[:-len(old_add)] + new_add + ext
+                            local_path = os.path.normpath(dest + "/"
+                                                          + os.path.basename(remote_path))
+                        # Make dirs for storing the file if they don't exist
+                        # preserve_dir doesn't matter; local_path has accounted for it already
+                        try:
+                            os.makedirs(os.path.dirname(local_path))
+                        # If dest is current dir and preserve_dir=False, there are no dirs to make.
+                        # os.makedirs() will raise FileNotFoundError (Python3 subclass of IOError).
+                        # Since it means all dirs required exist, it can be swallowed.
+                        except (IOError, OSError):
+                            pass
+                        # Check if file already exists, change filename if necessary
+                        collisions = 0
+                        while os.path.exists(local_path):
+                            # Find period marking extension, if exists
+                            # Will be after last slash
+                            last_slash = local_path.rfind("/")
+                            index = local_path.rfind(".", (last_slash if last_slash != -1 else 0))
+                            if index < 0:
+                                ext = ""
+                            else:
+                                ext = local_path[index:]
+                                local_path = local_path[:index]
+                            # Check if already added number to end
+                            old_add = "("+str(collisions)+")"
+                            collisions += 1
+                            new_add = "("+str(collisions)+")"
+                            if local_path.endswith(old_add):
+                                local_path = local_path[:-len(old_add)] + new_add + ext
+                            else:
+                                local_path = local_path + new_add + ext
+                        headers = {}
+                        # Check for Petrel vs. NCSA url for authorizer
+                        # Petrel
+                        if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                            authorizer = self.__petrel_authorizer
+                        elif parsed_url.netloc == "data.materialsdatafacility.org":
+                            authorizer = self.__data_mdf_authorizer
                         else:
-                            local_path = local_path + new_add + ext
-                    headers = {}
-                    # Check for Petrel vs. NCSA url for authorizer
-                    # Petrel
-                    if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
-                        authorizer = self.__petrel_authorizer
-                    elif parsed_url.netloc == "data.materialsdatafacility.org":
-                        authorizer = self.__data_mdf_authorizer
-                    else:
-                        authorizer = globus_sdk.NullAuthorizer()
-                    authorizer.set_authorization_header(headers)
-                    response = requests.get(url, headers=headers)
-                    # Handle first 401 by regenerating auth headers
-                    if response.status_code == 401:
-                        authorizer.handle_missing_authorization()
+                            authorizer = globus_sdk.NullAuthorizer()
                         authorizer.set_authorization_header(headers)
                         response = requests.get(url, headers=headers)
-                    # Handle other errors by passing the buck to the user
-                    if response.status_code != 200:
-                        print_("Error {} when attempting to access '{}'".format(
-                                                                            response.status_code,
-                                                                            url))
-                    else:
-                        # Write out the binary response content
-                        with open(local_path, 'wb') as output:
-                            output.write(response.content)
+                        # Handle first 401 by regenerating auth headers
+                        if response.status_code == 401:
+                            authorizer.handle_missing_authorization()
+                            authorizer.set_authorization_header(headers)
+                            response = requests.get(url, headers=headers)
+                        # Handle other errors by passing the buck to the user
+                        if response.status_code != 200:
+                            print_("Error {} when attempting to access "
+                                   "'{}'".format(response.status_code, url))
+                        else:
+                            # Write out the binary response content
+                            with open(local_path, 'wb') as output:
+                                output.write(response.content)
+            else:
+                print_("Error: Found unknown resource_type '{}'. "
+                       "Skipping entry.".format(res["mdf"]["resource_type"]))
         return {
             "success": True
             }
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
-                        inactivity_time=None, verbose=True):
+                        inactivity_time=None, download_datasets=False, verbose=True):
         """Download data files from the provided results using Globus Transfer.
         This method requires Globus Connect to be installed on the destination endpoint.
 
@@ -800,6 +807,13 @@ class Forge:
         inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
                                before being cancelled.
                                Default self.__inactivity_time.
+        download_datasets (bool): If True, will download the full dataset for any dataset
+                                    entries given.
+                                  If False, will skip dataset entries with a notification.
+                                  Default False.
+                                  Caution: Datasets can be large. Additionally, if you do not
+                                    filter out records from a dataset you provide, you may end
+                                    up with duplicate files. Use with care.
         verbose (bool): If True, status and progress messages will be printed,
                             and errors will prompt for continuation confirmation.
                         If False, only error messages will be printed,
@@ -831,11 +845,26 @@ class Forge:
         filenames = set()
         links_processed = set()
         for res in tqdm(results, desc="Processing records", disable=(not verbose)):
-            for dl in res.get("files", []):
-                # Get the location of the data
-                globus_link = dl.get("globus", None)
+            file_list = []
+            if res["mdf"]["resource_type"] == "dataset":
+                if download_datasets:
+                    g_link = res.get("data", {}).get("endpoint_path", None)
+                    if g_link:
+                        file_list.append(g_link)
+                elif verbose:
+                    print_("Skipping dataset '{}' because argument 'download_datasets' is "
+                           "False. Use caution if enabling.".format(res["mdf"]["source_id"]))
+            elif res["mdf"]["resource_type"] == "record":
+                for dl in res.get("files", []):
+                    g_link = dl.get("globus", None)
+                    if g_link:
+                        file_list.append(g_link)
+            else:
+                print_("Error: Found unknown resource_type '{}'. "
+                       "Skipping entry.".format(res["mdf"]["resource_type"]))
+            for globus_link in file_list:
                 # If the data is on a Globus Endpoint
-                if globus_link and globus_link not in links_processed:
+                if globus_link not in links_processed:
                     links_processed.add(globus_link)
                     ep_id = urlparse(globus_link).netloc
                     ep_path = urlparse(globus_link).path
@@ -844,8 +873,12 @@ class Forge:
                         # ep_path is absolute, so os.path.join does not work
                         local_path = os.path.abspath(dest + ep_path)
                     else:
-                        local_path = os.path.abspath(
-                                        os.path.join(dest, os.path.basename(ep_path)))
+                        # If ep_path is to dir, basename is ''
+                        # basename(dirname(ep_path)) gives just first dir's name
+                        base_name = os.path.basename(ep_path)
+                        if not base_name:
+                            base_name = os.path.basename(os.path.dirname(ep_path))
+                        local_path = os.path.abspath(os.path.join(dest, base_name))
 
                     # Make dirs for storing the file if they don't exist
                     # preserve_dir doesn't matter; local_path has accounted for it already
@@ -863,23 +896,20 @@ class Forge:
                         # (e.g., myfile(1).ext)
                         collisions = 0
                         while os.path.exists(local_path) or local_path in filenames:
-                            # Find period marking extension, if exists
-                            # Will be after last slash
-                            index = local_path.rfind(".", local_path.rfind("/"))
-                            if index < 0:
-                                ext = ""
-                            else:
-                                ext = local_path[index:]
-                                local_path = local_path[:index]
+                            # Get extension, if exists
+                            base_file, ext = os.path.splitext(local_path)
                             # Check if already added number to end
                             old_add = "("+str(collisions)+")"
                             collisions += 1
                             new_add = "("+str(collisions)+")"
-                            if local_path.endswith(old_add):
-                                local_path = local_path[:-len(old_add)] + new_add + ext
+                            if base_file.endswith(old_add):
+                                local_path = base_file[:-len(old_add)] + new_add + ext
                             else:
-                                local_path = local_path + new_add + ext
+                                local_path = base_file + new_add + ext
 
+                    # If ep_path points to a dir, the trailing slash has been removed
+                    if ep_path.endswith("/"):
+                        local_path += "/"
                     # Add data to list of transfer files
                     if ep_id not in tasks.keys():
                         tasks[ep_id] = []
@@ -900,8 +930,8 @@ class Forge:
             try:
                 # Loop ends on StopIteration from generator exhaustion
                 while True:
-                    if not event["success"]:
-                        print_("Error: {} - {}" + event["error"])
+                    if not event["success"] and cont:
+                        print_("Error: {} - {}".format(event["code"], event["description"]))
                         if verbose:
                             # Allow user to abort transfer if verbose, else cont is always True
                             user_cont = input("Continue Transfer (y/n)?\n")
@@ -911,11 +941,12 @@ class Forge:
             except StopIteration:
                 pass
             if not event["success"]:
-                print_("Error transferring to '{}': {} - {}".format(task_ep, event["code"],
-                                                                    event["description"]))
+                print_("Error transferring with endpoint '{}': {} - "
+                       "{}".format(task_ep, event["status"],
+                                   event["nice_status_short_description"]))
                 failed += 1
                 # Allow cancellation of remaining Transfers if Transfer are remaining
-                if verbose and tasks.keys()[-1] != task_ep:
+                if verbose and list(tasks.keys())[-1] != task_ep:
                     user_cont = input("Continue Transfer (y/n)?\n")
                     if not (user_cont.strip().lower() == "y"
                             or user_cont.strip().lower() == "yes"):
