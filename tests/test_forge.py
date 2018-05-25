@@ -147,20 +147,26 @@ def test_query_search(capsys):
     res4 = q.search("Al", index="mdf", limit=3)
     assert len(res4) == 3
 
+    # Check default limits
+    res5 = q.search("Al", index="mdf")
+    assert len(res5) == 10
+    res6 = q.search("mdf.source_name:nist_xps_db*", advanced=True, index="mdf")
+    assert len(res6) == 10000
+
     # Check limit correction
-    res5 = q.search("mdf.source_name:nist_xps_db*", advanced=True, index="mdf", limit=20000)
-    assert len(res5) == 10000
+    res7 = q.search("mdf.source_name:nist_xps_db*", advanced=True, index="mdf", limit=20000)
+    assert len(res7) == 10000
 
     # Test index translation
     # mdf = 1a57bbe5-5272-477f-9d31-343b8258b7a5
-    res6 = q.search(q="data", index="mdf", limit=1, info=True)
-    assert len(res6[0]) == 1
-    assert res6[1]["index"] == "mdf"
-    assert res6[1]["index_uuid"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
-    res7 = q.search(q="data", index="1a57bbe5-5272-477f-9d31-343b8258b7a5", limit=1, info=True)
-    assert len(res7[0]) == 1
-    assert res7[1]["index"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
-    assert res7[1]["index_uuid"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
+    res8 = q.search(q="data", index="mdf", limit=1, info=True)
+    assert len(res8[0]) == 1
+    assert res8[1]["index"] == "mdf"
+    assert res8[1]["index_uuid"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
+    res9 = q.search(q="data", index="1a57bbe5-5272-477f-9d31-343b8258b7a5", limit=1, info=True)
+    assert len(res9[0]) == 1
+    assert res9[1]["index"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
+    assert res9[1]["index_uuid"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
     with pytest.raises(SearchAPIError):
         q.search(q="data", index="invalid", limit=1, info=True)
 
@@ -888,3 +894,15 @@ def test_forge_anonymous(capsys):
     assert "Error: Anonymous HTTP download not yet supported." in out
     with pytest.raises(StopIteration):
         next(res)
+
+
+def test_get_dataset_version():
+    # Get the version number of the OQMD
+    f = forge.Forge()
+    hits = f.search('mdf.source_name:oqmd_v* AND mdf.resource_type:dataset',
+                    advanced=True, limit=1)
+    assert hits[0]['mdf']['version'] == f.get_dataset_version('oqmd')
+
+    # Test invalid source_name
+    with pytest.raises(ValueError):
+        f.get_dataset_version('notreal')

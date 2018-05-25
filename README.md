@@ -16,25 +16,8 @@ cd forge
 pip install -e .
 ```
 
-# Examples
-
-```python
-from mdf_forge.forge import Forge
-
-mdf = Forge()
-
-# free text query
-r = mdf.search("materials commons")
-
-# structured query
-r_2 = mdf.search_by_elements(elements=["Al","Cu"], sources=["oqmd"])
-```
-
-More examples are available in the docs/examples directory.
-
-
-# Documentation
-Documentation is available in the docs directory.
+# Documentation and examples
+Documentation, including tutorials and examples, can be found in the `docs` directory.
 
 # Requirements
 * Forge requires Python 2.7 or >=3.3 

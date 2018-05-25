@@ -63,8 +63,9 @@ templates_path = ['_templates']
 # https://github.com/serra/sphinx-with-markdown
 
 
-# import in fact of
-# from recommonmark.parser import CommonMarkParser
+# Use Markdown and reStructuredText in the same Sphinx project.
+from recommonmark.parser import CommonMarkParser
+
 source_parsers = {
     '.md': 'recommonmark.parser.CommonMarkParser',
 }
