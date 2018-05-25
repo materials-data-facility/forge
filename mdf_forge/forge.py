@@ -811,28 +811,28 @@ class Forge:
                     This should be the return value of a search method.
             dest (str): The destination path for the data files on the local machine.
                     Default current directory.
-        dest_ep (str): The destination endpoint ID.
-                       Default local GCP.
-        preserve_dir (bool): If True, the directory structure for the data files will be
-                                recreated at the destination. The path to the new files
-                                will be relative to the `dest` path
-                             If False, only the data files themselves will be saved.
-                             Default False.
-        inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
-                               before being cancelled.
-                               Default self.__inactivity_time.
-        download_datasets (bool): If True, will download the full dataset for any dataset
-                                    entries given.
-                                  If False, will skip dataset entries with a notification.
-                                  Default False.
-                                  Caution: Datasets can be large. Additionally, if you do not
-                                    filter out records from a dataset you provide, you may end
-                                    up with duplicate files. Use with care.
-        verbose (bool): If True, status and progress messages will be printed,
-                            and errors will prompt for continuation confirmation.
-                        If False, only error messages will be printed,
-                            and the Transfer will always continue.
-                        Default True.
+            dest_ep (str): The destination endpoint ID.
+                    Default local GCP.
+            preserve_dir (bool): If **True**, the directory structure for the data files will be
+                    recreated at the destination. The path to the new files
+                    will be relative to the `dest` path
+                    If **False**, only the data files themselves will be saved.
+                    Default **False**.
+            inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
+                    before being cancelled.
+                    Default **self.__inactivity_time**.
+            download_datasets (bool): If True, will download the full dataset for any dataset
+                    entries given.
+                    If False, will skip dataset entries with a notification.
+                    Default False.
+                    Caution: Datasets can be large. Additionally, if you do not
+                    filter out records from a dataset you provide, you may end
+                    up with duplicate files. Use with care.
+            verbose (bool): If **True**, status and progress messages will be printed,
+                    and errors will prompt for continuation confirmation.
+                    If **False**, only error messages will be printed,
+                    and the Transfer will always continue.
+                    Default **True**.
 
         Returns:
             list of str: task IDs of the Globus transfers
@@ -1220,29 +1220,30 @@ class Query:
     def search(self, q=None, index=None, advanced=None, limit=None, info=False):
         """Execute a search and return the results.
 
-        Arguments:
-        q (str): The query to execute. Defaults to the current query, if any.
-                 There must be some query to execute.
-        index (str): The Globus Search index to search on. Required.
-        advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
-                         If False, only basic fulltext term matches will be supported.
-                         Default False.
-                         This value will change to True automatically if
-                            the query is built with helpers.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-                     The default for advanced-mode queries is SEARCH_LIMIT.
-                     The default for non-advanced queries is NONADVANCED_LIMIT.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list
+        Args:
+            q (str): The query to execute. Defaults to the current query, if any.
+                    There must be some query to execute.
+            index (str): The Globus Search index to search on. Required.
+            advanced (bool): If **True**, will submit query in "advanced" mode to enable field matches.
+                        If **False**, only basic fulltext term matches will be supported.
+                        Default **False**.
+                        This value will change to True automatically if
+                        the query is built with helpers.
+            limit (int): The maximum number of results to return.
+                        The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+                        The default for advanced-mode queries is SEARCH_LIMIT.
+                        The default for non-advanced queries is NONADVANCED_LIMIT.
+            info (bool): If **False**, search will return a list of the results.
+                        If **True**, search will return a tuple containing the results list
                         and other information about the query.
-                     Default False.
+                        Default **False**.
 
         Returns:
             list (if info=False): The results.
         Returns:
             tuple (if info=True): The results, and a dictionary of query information.
         """
+
         if q is None:
             q = self.query
         if not q.strip("()"):
