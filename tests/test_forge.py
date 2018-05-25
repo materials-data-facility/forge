@@ -249,22 +249,34 @@ def test_forge_properties():
 
 # Sample results for download testing
 example_result1 = {
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
         "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
     }]
 }
 example_result2 = [{
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
         "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
     }]
 }, {
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
         "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
     }]
 }, {
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
                    "/MDF/mdf_connect/test_files/petrel_fetch.txt"),
@@ -272,6 +284,9 @@ example_result2 = [{
                 "/MDF/mdf_connect/test_files/petrel_fetch.txt")
     }]
 }, {
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
                    "/MDF/mdf_connect/test_files/petrel_multifetch.txt"),
@@ -280,6 +295,9 @@ example_result2 = [{
     }]
 }]
 example_result3 = {
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
         "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
@@ -300,10 +318,28 @@ example_result3 = {
 }
 # NOTE: This example file does not exist
 example_result_missing = {
+    "mdf": {
+        "resource_type": "record"
+    },
     "files": [{
         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/should_not_exist.txt",
         "url": "https://data.materialsdatafacility.org/test/should_not_exist.txt"
     }]
+}
+example_dataset = {
+    "mdf": {
+        "resource_type": "dataset",
+        "source_id": "foobar_v1"
+    },
+    "data": {
+        "endpoint_path": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
+                          "/MDF/mdf_connect/test_files/")
+    }
+}
+example_bad_resource = {
+    "mdf": {
+        "resource_type": "foobar"
+    }
 }
 
 
@@ -783,6 +819,18 @@ def test_forge_http_download(capsys):
     assert not os.path.exists("./should_not_exist.txt")
     assert ("Error 404 when attempting to access "
             "'https://data.materialsdatafacility.org/test/should_not_exist.txt'") in out
+
+    # No datasets
+    f.http_download(example_dataset)
+    out, err = capsys.readouterr()
+    assert not os.path.exists(os.path.join(dest_path, "petrel_fetch.txt"))
+    assert ("Skipping datset entry for 'foobar_v1': Cannot download dataset over HTTPS. "
+            "Use globus_download() for datasets.") in out
+
+    # Bad resource_type
+    f.http_download(example_bad_resource)
+    out, err = capsys.readouterr()
+    assert "Error: Found unknown resource_type 'foobar'. Skipping entry." in out
 
 
 @pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
