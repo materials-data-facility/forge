@@ -1,4 +1,0 @@
-Requirements
-------------
-
-* mdf_forge

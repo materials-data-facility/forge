@@ -18,11 +18,14 @@ sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../../..'))
 sys.path.insert(0, os.path.abspath('../../../mdf_forge'))
 sys.path.insert(0, os.path.abspath('../../../tests'))
+import recommonmark
+from recommonmark.parser import CommonMarkParser
+from recommonmark.transform import AutoStructify
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'mdf-forge'
+project = 'MDF Forge'
 copyright = 'Apache License, Version 2.0'
 author = 'Jonathon Gaff'
 
@@ -64,10 +67,8 @@ templates_path = ['_templates']
 
 
 # Use Markdown and reStructuredText in the same Sphinx project.
-from recommonmark.parser import CommonMarkParser
-
 source_parsers = {
-    '.md': 'recommonmark.parser.CommonMarkParser',
+    '.md': CommonMarkParser,
 }
 source_suffix = ['.rst', '.md']
 
@@ -94,7 +95,7 @@ pygments_style = 'sphinx'
 # You may only specify the root package of the dependencies themselves and ommit the sub-modules:
 # See also:
 # http://www.sphinx-doc.org/en/stable/ext/autodoc.html#confval-autodoc_mock_importshttps://github.com/sphinx-doc/sphinx/issues/4182
-autodoc_mock_imports = ['mdf_toolbox','pytest','globus_sdk.exc']
+autodoc_mock_imports = ['mdf_toolbox', 'pytest', 'globus_sdk.exc']
 
 # This value selects what content will be inserted into the main body of an autoclass directive.
 # The possible values are:
@@ -165,7 +166,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mdf-forge.tex', 'mdf-forge Documentation',
+    (master_doc, 'mdf-forge.tex', u'mdf-forge Documentation',
      'Jonathon Gaff', 'manual'),
 ]
 
@@ -175,10 +176,12 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mdf-forge', 'mdf-forge Documentation',
+    (master_doc, 'mdf-forge', u'mdf-forge Documentation',
      [author], 1)
 ]
 
+# If true, show URL addresses after external links.
+#man_show_urls = False
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -186,11 +189,21 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'mdf-forge', 'mdf-forge Documentation',
+    (master_doc, 'mdf-forge', u'mdf-forge Documentation',
      author, 'mdf-forge', 'One line description of project.',
      'Miscellaneous'),
 ]
+# Documents to append as an appendix to all manuals.
+#texinfo_appendices = []
 
+# If false, no module index is generated.
+#texinfo_domain_indices = True
+
+# How to display URL addresses: 'footnote', 'no', or 'inline'.
+#texinfo_show_urls = 'footnote'
+
+# If true, do not generate a @detailmenu in the "Top" node's menu.
+#texinfo_no_detailmenu = False
 
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings
@@ -209,5 +222,17 @@ napoleon_use_rtype = True
 
 # -- Options for intersphinx extension ---------------------------------------
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+# Example configuration for inter sphinx: refer to the Python standard library.
+#intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+
+# app setup hook
+github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+        'url_resolver': lambda url: github_doc_root + url,
+        'auto_toc_tree_section': 'Contents',
+        'enable_eval_rst': True,
+        'enable_auto_doc_ref': True,
+    }, True)
+    app.add_transform(AutoStructify)
+

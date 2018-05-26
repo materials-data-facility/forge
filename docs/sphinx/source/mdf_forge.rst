@@ -2,6 +2,10 @@ mdf_forge package
 =================
 
 ..  toctree::
-    :maxdepth: 2
+    :titlesonly:
 
     modules
+
+----
+
+:doc:`MDF Forge Home <index>`

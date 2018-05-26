@@ -542,7 +542,7 @@ class Forge:
                            match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to
-            match_elements([x]).match_source_names([y]).search()
+        match_elements([x]).match_source_names([y]).search()
         Note that this method does use terms from the current query.
 
         Args:
@@ -555,9 +555,9 @@ class Forge:
                     If **False**, will use OR.
                     Default **True**.
             info (bool): If **False**, search will return a list of the results.
-                     If **True**, search will return a tuple containing the results list,
-                        and other information about the query.
-                     Default **False**.
+                    If **True**, search will return a tuple containing the results list,
+                    and other information about the query.
+                    Default **False**.
 
         Returns:
             list (if info=False): The results.
