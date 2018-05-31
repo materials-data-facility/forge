@@ -50,7 +50,8 @@ class Forge:
                     Advanced users only.
 
         Note:
-             Authentication is required for some Forge functionality, including using Globus Transfer.
+             Authentication is required for some Forge functionality,
+                    including using Globus Transfer.
         """
         self.__anonymous = anonymous
         self.index = index
@@ -95,10 +96,12 @@ class Forge:
 
         Args:
             field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules using the dot syntax.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
                     Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
             value (str): The value to match.
-            required (bool): If **True**, will add term with AND. If **False**, will use OR. Default **True**.
+            required (bool): If **True**, will add term with AND. If **False**, will use OR.
+                    Default **True**.
             new_group (bool): If **True**, will separate term into new parenthetical group.
                     If **False**, will not.
                     Default **False**.
@@ -121,7 +124,8 @@ class Forge:
 
         Args:
             field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules using the dot syntax.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
 
                     Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
             value (str): The value to exclude.
@@ -147,7 +151,8 @@ class Forge:
             q (str): The query to execute. Defaults to the current query, if any.
                     There must be some query to execute.
             index (str): The Globus Search index to search on. Defaults to the current index.
-            advanced (bool): If **True**, will submit query in "advanced" mode to enable field matches.
+            advanced (bool): If **True**, will submit query in "advanced" mode
+                    to enable field matches.
                     If **False**, only basic fulltext term matches will be supported.
                     Default **False**.
                     This value will change to **True** automatically
@@ -158,7 +163,8 @@ class Forge:
                     If **True**, search will return a tuple containing the results list
                     and other information about the query.
                     Default **False**.
-            reset_query (bool): If **True**, will destroy the query after execution and start a fresh one.
+            reset_query (bool): If **True**, will destroy the query after execution
+                    and start a fresh one.
                     If **False**, keeps the current query alive.
                     Default **True**.
 
@@ -259,13 +265,17 @@ class Forge:
 
         Args:
             field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules using the dot syntax.
+                    The field must be namespaced according to Elasticsearch rules using
+                    the dot syntax.
                     Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
             start (str or int): The starting value. "*" is acceptable to make no lower bound.
             stop (str or int): The ending value. "*" is acceptable to have no upper bound.
-            inclusive (bool): If **True**, the start and stop values will be included in the search.
-                    If **False**, the start and stop values will not be included in the search.
-            required (bool): If **True**, will add term with AND. If **False**, will use OR. Default **True**.
+            inclusive (bool): If **True**, the start and stop values will be included
+                    in the search.
+                    If **False**, the start and stop values will not be included
+                    in the search.
+            required (bool): If **True**, will add term with AND. If **False**, will use OR.
+                    Default **True**.
             new_group (bool): If **True**, will separate term into new parenthetical group.
                     If **False**, will not.
                     Default **False**.
@@ -296,12 +306,15 @@ class Forge:
 
         Args:
             field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules using the dot syntax.
+                    The field must be namespaced according to Elasticsearch rules using
+                    the dot syntax.
                     Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
             start (str or int): The starting value. "*" is acceptable to make no lower bound.
             stop (str or int): The ending value. "*" is acceptable to have no upper bound.
-            inclusive (bool): If **True**, the start and stop values will not be included in the search.
+            inclusive (bool): If **True**, the start and stop values will not be included
+                    in the search.
                     If **False**, the start and stop values will be included in the search.
+            required (bool): Default **True**.
             new_group (bool): If **True**, will separate term into new parenthetical group.
                     If **False**, will not.
                     Default **False**.
@@ -335,9 +348,11 @@ class Forge:
 
         Args:
             field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules using the dot syntax.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
 
-                    Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+                    Ex. "mdf.source_name" is the "source_name" field of the "mdf"
+                    dictionary.
             value (str or list of str): The value to match exactly.
 
         Returns:
@@ -611,10 +626,14 @@ class Forge:
         Note that this method may use the current query.
 
         Args:
-            entries (dict, list of dict, or tuple of dict): The records to parse to find the datasets.
-                    entries can be a single entry, a list of entries, or a tuple with a list of entries.
-                    The latter two options support both return values of the search() method.
-                    If entries is **None**, the current query is executed and those results are used instead.
+            entries (dict, list of dict, or tuple of dict): The records to parse
+                    to find the datasets.
+                    entries can be a single entry, a list of entries, or a tuple with
+                    a list of entries.
+                    The latter two options support both return values
+                    of the search() method.
+                    If entries is **None**, the current query is executed and those
+                    results are used instead.
             query (str): If entries is **None**:
                     Search using this query instead of the current query.
                     Default **None**, which uses the current query.
@@ -1062,9 +1081,10 @@ class Query:
             search_client (SearchClient): The Globus Search client to use for searching.
             q (str): The query string to start with. Default nothing.
             limit (int): The maximum number of results to return. Default **None**.
-            advanced (bool): If **True**, will submit query in "advanced" mode to enable field matches.
-                    If **False**, only basic fulltext term matches will be supported.
-                    Default **False**.
+            advanced (bool): If **True**, will submit query in "advanced" mode to
+                enable field matches.
+                If **False**, only basic fulltext term matches will be supported.
+                Default **False**.
         """
         self.__search_client = search_client
         self.query = q or "("
@@ -1142,11 +1162,12 @@ class Query:
 
         Args:
             op (str): The operator to add. Must be in the OP_LIST defined below.
-            close_group (bool): If **True**, will end the current parenthetical group and start a new one.
-                    If **False**, will continue current group.
+                close_group (bool): If **True**, will end the current parenthetical
+                group and start a new one.
+                If **False**, will continue current group.
 
-                    Example: "(foo AND bar)" is one group.
-                    "(foo) and (bar)" is two groups.
+                Example: "(foo AND bar)" is one group.
+                "(foo) and (bar)" is two groups.
 
         Returns:
             self (Query): For chaining.
@@ -1224,7 +1245,8 @@ class Query:
             q (str): The query to execute. Defaults to the current query, if any.
                     There must be some query to execute.
             index (str): The Globus Search index to search on. Required.
-            advanced (bool): If **True**, will submit query in "advanced" mode to enable field matches.
+            advanced (bool): If **True**, will submit query in "advanced" mode to enable
+                        field matches.
                         If **False**, only basic fulltext term matches will be supported.
                         Default **False**.
                         This value will change to True automatically if

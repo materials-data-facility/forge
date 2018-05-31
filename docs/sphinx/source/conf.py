@@ -179,7 +179,7 @@ man_pages = [
 ]
 
 # If true, show URL addresses after external links.
-#man_show_urls = False
+# man_show_urls = False
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -192,16 +192,16 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 # Documents to append as an appendix to all manuals.
-#texinfo_appendices = []
+# texinfo_appendices = []
 
 # If false, no module index is generated.
-#texinfo_domain_indices = True
+# texinfo_domain_indices = True
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
-#texinfo_show_urls = 'footnote'
+# texinfo_show_urls = 'footnote'
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
-#texinfo_no_detailmenu = False
+# texinfo_no_detailmenu = False
 
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings
@@ -221,6 +221,5 @@ napoleon_use_rtype = True
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for inter sphinx: refer to the Python standard library.
-#intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
-
+# intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
