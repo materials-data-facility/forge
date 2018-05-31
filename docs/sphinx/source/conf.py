@@ -18,10 +18,6 @@ sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../../..'))
 sys.path.insert(0, os.path.abspath('../../../mdf_forge'))
 sys.path.insert(0, os.path.abspath('../../../tests'))
-import recommonmark
-from recommonmark.parser import CommonMarkParser
-from recommonmark.transform import AutoStructify
-
 
 # -- Project information -----------------------------------------------------
 
@@ -49,7 +45,6 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.ifconfig',
     'sphinx.ext.napoleon',
-    'nbsphinx',
     'sphinx.ext.mathjax',
     'IPython.sphinxext.ipython_console_highlighting',
 ]
@@ -67,9 +62,12 @@ templates_path = ['_templates']
 
 
 # Use Markdown and reStructuredText in the same Sphinx project.
-source_parsers = {
-    '.md': CommonMarkParser,
-}
+# from recommonmark.parser import CommonMarkParser
+
+# source_parsers = {
+#    '.md': CommonMarkParser,
+# }
+
 source_suffix = ['.rst', '.md']
 
 # The master toctree document.
@@ -225,14 +223,4 @@ napoleon_use_rtype = True
 # Example configuration for inter sphinx: refer to the Python standard library.
 #intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
-# app setup hook
-github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-        'url_resolver': lambda url: github_doc_root + url,
-        'auto_toc_tree_section': 'Contents',
-        'enable_eval_rst': True,
-        'enable_auto_doc_ref': True,
-    }, True)
-    app.add_transform(AutoStructify)
 
