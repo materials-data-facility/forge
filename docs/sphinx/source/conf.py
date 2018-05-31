@@ -222,4 +222,3 @@ napoleon_use_rtype = True
 
 # Example configuration for inter sphinx: refer to the Python standard library.
 # intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
-
