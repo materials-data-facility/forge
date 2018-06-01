@@ -1,10 +1,3 @@
-forge.module.forge
-------------------
-
-.. automodule:: forge
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 forge.class.Forge
 -----------------
