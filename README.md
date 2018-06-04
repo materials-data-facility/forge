@@ -17,7 +17,7 @@ pip install -e .
 ```
 
 # Documentation and examples
-
+Forge documentation can be found on ![Read the Docs](http://mdf-forge.readthedocs.io/en/master/).
 Tutorials and examples can be found in the `docs` directory. The Jupyter notebooks can be viewed on GitHub or run interactively with ![Jupyter](http://jupyter.org/install).
 
 # Requirements
