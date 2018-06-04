@@ -1,0 +1,6 @@
+coverage>=4.5.1
+coveralls>=1.2.0
+flake8>=3.5.0
+jupyter
+nbval>=0.9.0
+pytest>=3.4.1
