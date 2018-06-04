@@ -1,5 +1,5 @@
 # Forge
-[![PyPI](https://img.shields.io/pypi/v/mdf_forge.svg)](https://pypi.python.org/pypi/mdf-forge) [![Build Status](https://travis-ci.org/materials-data-facility/forge.svg?branch=master)](https://travis-ci.org/materials-data-facility/forge) [![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/forge/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/forge?branch=master)
+[![PyPI](https://img.shields.io/pypi/v/mdf_forge.svg)](https://pypi.python.org/pypi/mdf-forge) [![Build Status](https://travis-ci.org/materials-data-facility/forge.svg?branch=master)](https://travis-ci.org/materials-data-facility/forge) [![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/forge/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/forge?branch=master) [![Read the Docs](https://readthedocs.org/projects/mdf-forge/badge/?version=master)](http://mdf-forge.readthedocs.io/en/master/)
 
 Forge is the Materials Data Facility Python package to interface and leverage the MDF Data Discovery service. Forge allows users to perform simple queries and facilitiates moving and synthesizing results.
 
@@ -17,10 +17,12 @@ pip install -e .
 ```
 
 # Documentation and examples
-Documentation, including tutorials and examples, can be found in the `docs` directory.
+Forge documentation can be found on [Read the Docs](http://mdf-forge.readthedocs.io/en/master/).
+Tutorials and examples can be found in the `docs` directory. The Jupyter notebooks can be viewed on GitHub or run interactively with ![Jupyter](http://jupyter.org/install).
 
 # Requirements
-* Forge requires Python 2.7 or >=3.3 
+* Forge requires Python 3.4 or greater.
+  * **Note**: Python 2.7 support has been deprecated. Forge releases after version 0.6.2 will not work in Python 2. Please upgrade to Python 3.
 * To access data in the MDF, you must have an account recognized by Globus Auth (including Google, ORCiD, many academic institutions, or a [free Globus ID](https://www.globusid.org/create)).
 
 # Contributions

@@ -15,5 +15,5 @@ Untitled*.ipynb
 *.egg*
 
 travis.tar
-.coverage
+.coverage*
 
