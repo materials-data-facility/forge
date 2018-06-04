@@ -24,9 +24,9 @@ class Forge:
     An internal Query object is used to make queries. From the user's perspective,
     an instantiation of Forge will black-box searching.
 
-    Public Variables:
-    local_ep is the endpoint ID of the local Globus Connect Personal endpoint.
-    index is the Globus Search index to be used.
+    **Public Variables**:
+        * **local_ep** is the endpoint ID of the local Globus Connect Personal endpoint.
+        * **index is** the Globus Search index to be used.
     """
     __default_index = "mdf"
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
@@ -36,20 +36,22 @@ class Forge:
     __inactivity_time = 1 * 60 * 60  # 1 hour, in seconds
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
-        """Initialize the Forge instance.
+        """**Initialize the Forge instance.**
 
-        Arguments:
-        index (str): The Globus Search index to search on. Default "mdf".
-        local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
-                        If not provided, may be autodetected as possible.
-        anonymous (bool): If True, will not authenticate with Globus Auth.
-                          If False, will require authentication.
-                          Please note that authentication is required for some Forge
-                              functionality, including using Globus Transfer.
+        Args:
+            index (str): The Globus Search index to search on. Default "mdf".
+            local_ep (str): The endpoint ID of the local Globus Connect Personal endpoint.
+                    If not provided, may be autodetected as possible.
+            anonymous (bool): If **True**, will not authenticate with Globus Auth.
+                    If **False**, will require authentication.
 
-        Keyword Arguments:
-        services (list of str): The services to authenticate for.
-                                Advanced users only.
+        Keyword Args:
+            services (list of str): The services to authenticate for.
+                    Advanced users only.
+
+        Note:
+             Authentication is required for some Forge functionality,
+                    including using Globus Transfer.
         """
         self.__anonymous = anonymous
         self.index = index
@@ -92,18 +94,20 @@ class Forge:
         """Add a field:value term to the query.
         Matches will have field == value.
 
-        Arguments:
-        field (str): The field to check for the value.
-            The field must be namespaced according to Elasticsearch rules using the dot syntax.
-            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
-        value (str): The value to match.
-        required (bool): If True, will add term with AND. If False, will use OR. Default True.
-        new_group (bool): If True, will separate term into new parenthetical group.
-                          If False, will not.
-                          Default False.
+        Args:
+            field (str): The field to check for the value.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
+                    Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            value (str): The value to match.
+            required (bool): If **True**, will add term with AND. If **False**, will use OR.
+                    Default **True**.
+            new_group (bool): If **True**, will separate term into new parenthetical group.
+                    If **False**, will not.
+                    Default **False**.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If not the start of the query string, add an AND or OR
         if self.__query.initialized:
@@ -118,17 +122,19 @@ class Forge:
         """Exclude a field:value term from the query.
         Matches will NOT have field == value.
 
-        Arguments:
-        field (str): The field to check for the value.
-            The field must be namespaced according to Elasticsearch rules using the dot syntax.
-            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
-        value (str): The value to exclude.
-        new_group (bool): If True, will separate term into new parenthetical group.
-                          If False, will not.
-                          Default False.
+        Args:
+            field (str): The field to check for the value.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
+
+                    Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            value (str): The value to exclude.
+            new_group (bool): If **True**, will separate term into new parenthetical group.
+                    If **False**, will not.
+                    Default **False**.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If not the start of the query string, add an AND
         # OR would not make much sense for excluding
@@ -141,28 +147,31 @@ class Forge:
                reset_query=True):
         """Execute a search and return the results.
 
-        Arguments:
-        q (str): The query to execute. Defaults to the current query, if any.
-                 There must be some query to execute.
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
-                         If False, only basic fulltext term matches will be supported.
-                         Default False.
-                         This value will change to True automatically
-                            if the query is built with helpers.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list
-                        and other information about the query.
-                     Default False.
-        reset_query (bool): If True, will destroy the query after execution and start a fresh one.
-                            If False, keeps the current query alive.
-                            Default True.
+        Args:
+            q (str): The query to execute. Defaults to the current query, if any.
+                    There must be some query to execute.
+            index (str): The Globus Search index to search on. Defaults to the current index.
+            advanced (bool): If **True**, will submit query in "advanced" mode
+                    to enable field matches.
+                    If **False**, only basic fulltext term matches will be supported.
+                    Default **False**.
+                    This value will change to **True** automatically
+                    if the query is built with helpers.
+            limit (int): The maximum number of results to return.
+                    The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+            info (bool): If **False**, search will return a list of the results.
+                    If **True**, search will return a tuple containing the results list
+                    and other information about the query.
+                    Default **False**.
+            reset_query (bool): If **True**, will destroy the query after execution
+                    and start a fresh one.
+                    If **False**, keeps the current query alive.
+                    Default **True**.
 
         Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
+            list (if info=False): The results.
+        Returns:
+            tuple (if info=True): The results, and a dictionary of query information.
         """
         if not index:
             index = self.index
@@ -175,19 +184,22 @@ class Forge:
         """Perform an advanced query, and return all matching results.
         Will automatically preform multiple queries in order to retrieve all results.
 
-        Note that all aggregate queries run in advanced mode.
+        Args:
+            q (str): The query to execute. Defaults to the current query, if any.
+                    There must be some query to execute.
+            index (str): The Globus Search index to search on. Defaults to the current index.
+            scroll_size (int): Minimum number of records returned per query
+            reset_query (bool):
+                    If **True**, will destroy the query after execution and start a fresh one.
+                    If **False**, will keep the current query alive.
+                    Default **True**.
 
-        Arguments:
-        q (str): The query to execute. Defaults to the current query, if any.
-                 There must be some query to execute.
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        scroll_size (int): Minimum number of records returned per query
-        reset_query (bool): If True, will destroy the query after execution and start a fresh one.
-                            If False, will keep the current query alive.
-                            Default True.
 
         Returns:
-        list of dict: All matching records
+            list of dict: All matching records
+
+        Note:
+            All aggregate queries run in advanced mode.
         """
         if not index:
             index = self.index
@@ -199,13 +211,13 @@ class Forge:
     def show_fields(self, block=None, index=None):
         """Retrieve and return the mapping for the given metadata block.
 
-        Arguments:
-        block (str): The top-level field to fetch the mapping for.
-                     Default None, which lists just the blocks.
-        index (str): The Globus Search index to map. Defaults to the current index.
+        Args:
+            block (str): The top-level field to fetch the mapping for.
+                    Default **None**, which lists just the blocks.
+            index (str): The Globus Search index to map. Defaults to the current index.
 
         Returns:
-        dict: A set of field:datatype pairs.
+            dict: A set of field:datatype pairs.
         """
         if not index:
             index = self.index
@@ -228,7 +240,7 @@ class Forge:
         """Return the current query string.
 
         Returns:
-        str: The current query string.
+            str: The current query string.
         """
         return self.__query.clean_query()
 
@@ -236,7 +248,7 @@ class Forge:
         """Destroy the current query and create a fresh one.
 
         Returns:
-        None: Does not return self because this method should not be chained.
+            None: Does not return self because this method should not be chained.
         """
         del self.__query
         self.__query = Query(self.__search_client)
@@ -251,21 +263,25 @@ class Forge:
         """Add a field:[some range] term to the query.
         Matches will have field == value in range.
 
-        Arguments:
-        field (str): The field to check for the value.
-            The field must be namespaced according to Elasticsearch rules using the dot syntax.
-            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
-        start (str or int): The starting value. "*" is acceptable to make no lower bound.
-        stop (str or int): The ending value. "*" is acceptable to have no upper bound.
-        inclusive (bool): If True, the start and stop values will be included in the search.
-                          If False, the start and stop values will not be included in the search.
-        required (bool): If True, will add term with AND. If False, will use OR. Default True.
-        new_group (bool): If True, will separate term into new parenthetical group.
-                          If False, will not.
-                          Default False.
+        Args:
+            field (str): The field to check for the value.
+                    The field must be namespaced according to Elasticsearch rules using
+                    the dot syntax.
+                    Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            start (str or int): The starting value. "*" is acceptable to make no lower bound.
+            stop (str or int): The ending value. "*" is acceptable to have no upper bound.
+            inclusive (bool): If **True**, the start and stop values will be included
+                    in the search.
+                    If **False**, the start and stop values will not be included
+                    in the search.
+            required (bool): If **True**, will add term with AND. If **False**, will use OR.
+                    Default **True**.
+            new_group (bool): If **True**, will separate term into new parenthetical group.
+                    If **False**, will not.
+                    Default **False**.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # Accept None as *
         if start is None:
@@ -288,20 +304,23 @@ class Forge:
         """Exclude a field:[some range] term to the query.
         Matches will have field != values in range.
 
-        Arguments:
-        field (str): The field to check for the value.
-            The field must be namespaced according to Elasticsearch rules using the dot syntax.
-            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
-        start (str or int): The starting value. "*" is acceptable to make no lower bound.
-        stop (str or int): The ending value. "*" is acceptable to have no upper bound.
-        inclusive (bool): If True, the start and stop values will not be included in the search.
-                          If False, the start and stop values will be included in the search.
-        new_group (bool): If True, will separate term into new parenthetical group.
-                          If False, will not.
-                          Default False.
+        Args:
+            field (str): The field to check for the value.
+                    The field must be namespaced according to Elasticsearch rules using
+                    the dot syntax.
+                    Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
+            start (str or int): The starting value. "*" is acceptable to make no lower bound.
+            stop (str or int): The ending value. "*" is acceptable to have no upper bound.
+            inclusive (bool): If **True**, the start and stop values will not be included
+                    in the search.
+                    If **False**, the start and stop values will be included in the search.
+            required (bool): Default **True**.
+            new_group (bool): If **True**, will separate term into new parenthetical group.
+                    If **False**, will not.
+                    Default **False**.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # Accept None as *
         if start is None:
@@ -327,14 +346,17 @@ class Forge:
     def exclusive_match(self, field, value):
         """Match exactly the given value, with no other data in the field.
 
-        Arguments:
-        field (str): The field to check for the value.
-            The field must be namespaced according to Elasticsearch rules using the dot syntax.
-            Ex. "mdf.source_name" is the "source_name" field of the "mdf" dictionary.
-        value (str or list of str): The value to match exactly.
+        Args:
+            field (str): The field to check for the value.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
+
+                    Ex. "mdf.source_name" is the "source_name" field of the "mdf"
+                    dictionary.
+            value (str or list of str): The value to match exactly.
 
         Returns:
-        self (Forge): For chaining
+            self (Forge): For chaining
         """
         if isinstance(value, string_types):
             value = [value]
@@ -363,11 +385,11 @@ class Forge:
     def match_source_names(self, source_names):
         """Add sources to match to the query.
 
-        Arguments:
-        source_names (str or list of str): The source_names to match.
+        Args:
+            source_names (str or list of str): The source_names to match.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If no source_names are supplied, nothing to match
         if not source_names:
@@ -388,11 +410,11 @@ class Forge:
     def match_ids(self, mdf_ids):
         """Match all the IDs in the given mdf_id list.
 
-        Arguments:
-        mdf_ids (str or list of str): The IDs to match.
+        Args:
+            mdf_ids (str or list of str): The IDs to match.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If no IDs are supplied, nothing to match
         if not mdf_ids:
@@ -409,12 +431,14 @@ class Forge:
     def match_elements(self, elements, match_all=True):
         """Add elemental abbreviations to the query.
 
-        Arguments:
-        elements (str or list of str): The elements to match.
-        match_all (bool): If True, will add with AND. If False, will use OR. Default True.
+        Args:
+            elements (str or list of str): The elements to match.
+            match_all (bool): If **True**, will add with AND.
+                    If **False**, will use OR.
+                    Default **True**.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If no elements are supplied, nothing to match
         if not elements:
@@ -433,11 +457,11 @@ class Forge:
     def match_titles(self, titles):
         """Add titles to the query.
 
-        Arguments:
-        titles (str or list of str): The titles to match.
+        Args:
+            titles (str or list of str): The titles to match.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         if not titles:
             return self
@@ -452,16 +476,16 @@ class Forge:
     def match_years(self, years=None, start=None, stop=None, inclusive=True):
         """Add years and limits to the query.
 
-        Arguments:
-        years   (int or string, or list of int or strings): The years to match.
+        Args:
+            years   (int or string, or list of int or strings): The years to match.
                     Note that this argument overrides the start, stop, and inclusive arguments.
-        start   (int or string): The lower range of years to match.
-        stop    (int or string): The upper range of years to match.
-        inclusive (bool): If True, the start and stop values will be included in the search.
-                          If False, they will be excluded.
-                          Default True.
+            start   (int or string): The lower range of years to match.
+            stop    (int or string): The upper range of years to match.
+            inclusive (bool): If **True**, the start and stop values will be included in the search.
+                    If **False**, they will be excluded.
+                    Default **True**.
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If nothing supplied, nothing to match
         if years is None and start is None and stop is None:
@@ -506,11 +530,11 @@ class Forge:
     def match_resource_types(self, types):
         """Match the given resource types.
 
-        Arguments:
-        types (str or list of str): The resource_types to match.
+        Args:
+            types (str or list of str): The resource_types to match.
 
         Returns:
-        self (Forge): For chaining.
+            self (Forge): For chaining.
         """
         # If no types, nothing to match
         if not types:
@@ -533,26 +557,30 @@ class Forge:
                            match_all=True, info=False):
         """Execute a search for the given elements in the given sources.
         search_by_elements([x], [y]) is equivalent to
-            match_elements([x]).match_source_names([y]).search()
+        match_elements([x]).match_source_names([y]).search()
         Note that this method does use terms from the current query.
 
-        Arguments:
-        elements (list of str): The elements to match. Default [].
-        source_names (list of str): The sources to match. Default [].
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        match_all (bool): If True, will add elements with AND.
-                          If False, will use OR.
-                          Default True.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list,
-                        and other information about the query.
-                     Default False.
+        Args:
+            elements (list of str): The elements to match. Default **[]**.
+            source_names (list of str): The sources to match. Default **[]**.
+            index (str): The Globus Search index to search on. Defaults to the current index.
+            limit (int): The maximum number of results to return.
+                    The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+            match_all (bool): If **True**, will add elements with AND.
+                    If **False**, will use OR.
+                    Default **True**.
+            info (bool): If **False**, search will return a list of the results.
+                    If **True**, search will return a tuple containing the results list,
+                    and other information about the query.
+                    Default **False**.
 
         Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
+            list (if info=False): The results.
+        Returns:
+            tuple (if info=True): The results, and a dictionary of query information.
+
+        Note:
+            This method does use terms from the current query.
         """
         return (self.match_elements(elements, match_all=match_all)
                     .match_source_names(source_names)
@@ -562,19 +590,20 @@ class Forge:
         """Execute a search for the given titles.
         search_by_titles([x]) is equivalent to match_titles([x]).search()
 
-        Arguments:
-        titles (list of str): The titles to match. Default [].
-        index (str): The Globus Search index to search on. Defaults to the current index.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list,
-                        and other information about the query.
-                     Default False.
+        Args:
+            titles (list of str): The titles to match. Default [].
+            index (str): The Globus Search index to search on. Defaults to the current index.
+            limit (int): The maximum number of results to return.
+                    The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+            info (bool): If **False**, search will return a list of the results.
+                    If **True**, search will return a tuple containing the results list,
+                    and other information about the query.
+                    Default **False**.
 
         Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
+            list (if info=False): The results.
+        Returns:
+            tuple (if info=True): The results, and a dictionary of query information.
         """
         return self.match_titles(titles).search(index=index, limit=limit, info=info)
 
@@ -583,12 +612,12 @@ class Forge:
         There is no limit to the number of results returned.
         Please beware of aggregating very large datasets.
 
-        Arguments:
-        source_names (str or list of str): The source to aggregate.
-        index (str): The Globus Search index to search on. Defaults to the current index.
+        Args:
+            source_names (str or list of str): The source to aggregate.
+            index (str): The Globus Search index to search on. Defaults to the current index.
 
         Returns:
-        list of dict: All of the records from the source.
+            list of dict: All of the records from the source.
         """
         return self.match_source_names(source_names).aggregate(index=index)
 
@@ -596,23 +625,26 @@ class Forge:
         """Retrieve the dataset entries for given records.
         Note that this method may use the current query.
 
-        Arguments:
-        entries (dict, list of dict, or tuple of dict): The records to parse to find the datasets.
-            entries can be a single entry, a list of entries, or a tuple with a list of entries.
-            The latter two options support both return values of the search() method.
-            If entries is None, the current query is executed and those results are used instead.
-        query (str): If entries is None:
-                        Search using this query instead of the current query.
-                        Default None, which uses the current query.
-        reset_query (bool): If entries is None and query is None:
-                                If True, will reset the current query after searching.
-                                If False, will leave the current query in memory.
-                                Default True.
-                            Else:
-                                Does nothing.
+        Args:
+            entries (dict, list of dict, or tuple of dict): The records to parse
+                    to find the datasets.
+                    entries can be a single entry, a list of entries, or a tuple with
+                    a list of entries.
+                    The latter two options support both return values
+                    of the search() method.
+                    If entries is **None**, the current query is executed and those
+                    results are used instead.
+            query (str): If entries is **None**:
+                    Search using this query instead of the current query.
+                    Default **None**, which uses the current query.
+            reset_query (bool): If entries is **None** and query is **None**:
+                    If **True**, will reset the current query after searching.
+                    If **False**, will leave the current query in memory.
+                    Default **True**.
+                    Else: Does nothing.
 
         Returns:
-        list: The dataset entries.
+            list: The dataset entries.
         """
         if entries is None:
             entries = self.search(q=query, reset_query=(query is None or reset_query))
@@ -667,25 +699,26 @@ class Forge:
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
         """Download data files from the provided results using HTTPS.
         For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(),
-            which uses Globus Transfer.
+        which uses Globus Transfer.
 
-        Arguments:
-        results (dict): The records from which files should be fetched.
-                        This should be the return value of a search method.
-        dest (str): The destination path for the data files on the local machine.
+        Args:
+            results (dict): The records from which files should be fetched.
+                    This should be the return value of a search method.
+            dest (str): The destination path for the data files on the local machine.
                     Default current directory.
-        preserve_dir (bool): If True, the directory structure for the data files will be
-                                recreated at the destination.
-                             If False, only the data files themselves will be saved.
-                            Default False.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
-                        Default True.
+            preserve_dir (bool): If **True**, the directory structure for the data files will be
+                    recreated at the destination.
+                    If **False**, only the data files themselves will be saved.
+                    Default **False**.
+            verbose (bool): If **True**, status and progress messages will be printed.
+                    If **False**, only error messages will be printed.
+                    Default **True**.
 
         Returns:
-        dict: success (bool): True if the operation succeeded.
-                              False if it failed (implies message).
-              message (str): The error message. Not present when success is True.
+            dict: success (bool): **True** if the operation succeeded.
+            **False** if it failed (implies message).
+        Returns:
+            message (str): The error message. Not present when success is **True**.
         """
         if self.__anonymous:
             print_("Error: Anonymous HTTP download not yet supported.")
@@ -792,36 +825,36 @@ class Forge:
         """Download data files from the provided results using Globus Transfer.
         This method requires Globus Connect to be installed on the destination endpoint.
 
-        Arguments:
-        results (dict): The records from which files should be fetched.
-                        This should be the return value of a search method.
-        dest (str): The destination path for the data files on the local machine.
+        Args:
+            results (dict): The records from which files should be fetched.
+                    This should be the return value of a search method.
+            dest (str): The destination path for the data files on the local machine.
                     Default current directory.
-        dest_ep (str): The destination endpoint ID.
-                       Default local GCP.
-        preserve_dir (bool): If True, the directory structure for the data files will be
-                                recreated at the destination. The path to the new files
-                                will be relative to the `dest` path
-                             If False, only the data files themselves will be saved.
-                             Default False.
-        inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
-                               before being cancelled.
-                               Default self.__inactivity_time.
-        download_datasets (bool): If True, will download the full dataset for any dataset
-                                    entries given.
-                                  If False, will skip dataset entries with a notification.
-                                  Default False.
-                                  Caution: Datasets can be large. Additionally, if you do not
-                                    filter out records from a dataset you provide, you may end
-                                    up with duplicate files. Use with care.
-        verbose (bool): If True, status and progress messages will be printed,
-                            and errors will prompt for continuation confirmation.
-                        If False, only error messages will be printed,
-                            and the Transfer will always continue.
-                        Default True.
+            dest_ep (str): The destination endpoint ID.
+                    Default local GCP.
+            preserve_dir (bool): If **True**, the directory structure for the data files will be
+                    recreated at the destination. The path to the new files
+                    will be relative to the `dest` path
+                    If **False**, only the data files themselves will be saved.
+                    Default **False**.
+            inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
+                    before being cancelled.
+                    Default **self.__inactivity_time**.
+            download_datasets (bool): If True, will download the full dataset for any dataset
+                    entries given.
+                    If False, will skip dataset entries with a notification.
+                    Default False.
+                    Caution: Datasets can be large. Additionally, if you do not
+                    filter out records from a dataset you provide, you may end
+                    up with duplicate files. Use with care.
+            verbose (bool): If **True**, status and progress messages will be printed,
+                    and errors will prompt for continuation confirmation.
+                    If **False**, only error messages will be printed,
+                    and the Transfer will always continue.
+                    Default **True**.
 
         Returns:
-        list of str: task IDs of the Globus transfers
+            list of str: task IDs of the Globus transfers
         """
         if self.__anonymous:
             print_("Error: Anonymous Globus Transfer not supported.")
@@ -962,17 +995,17 @@ class Forge:
     def http_stream(self, results, verbose=True):
         """Yield data files from the provided results using HTTPS, through a generator.
         For more than HTTP_NUM_LIMIT (defined above) files, you should use globus_download(),
-            which uses Globus Transfer.
+        which uses Globus Transfer.
 
-        Arguments:
-        results (dict): The records from which files should be fetched.
-                        This should be the return value of a search method.
-        verbose (bool): If True, status and progress messages will be printed.
-                        If False, only error messages will be printed.
-                        Default True.
+        Args:
+            results (dict): The records from which files should be fetched.
+                    This should be the return value of a search method.
+            verbose (bool): If **True**, status and progress messages will be printed.
+                    If **False**, only error messages will be printed.
+                    Default **True**.
 
         Yields:
-        str: Text of each data file.
+            str: Text of each data file.
         """
         if self.__anonymous:
             print_("Error: Anonymous HTTP download not yet supported.")
@@ -1031,26 +1064,27 @@ class Forge:
 
 class Query:
     """The Query class is meant for internal Forge use. Users should not instantiate
-            a Query object directly, as Forge already manages a Query,
-            but advanced users may do so at their own risk.
-            Using Query directly is an unsupported behavior
-            and may have unexpected results or unlisted changes in the future.
+    a Query object directly, as Forge already manages a Query,
+    but advanced users may do so at their own risk.
+    Using Query directly is an unsupported behavior
+    and may have unexpected results or unlisted changes in the future.
 
     Queries may end up wrapped in parentheses, which has no direct effect on the search.
     Adding terms must be chained with .and() or .or().
     Terms will not have spaces in between otherwise, and it is desirable to be explicit about
-        which terms are required.
+    which terms are required.
     """
     def __init__(self, search_client, q=None, limit=None, advanced=False):
-        """Initialize the Query instance.
+        """**Initialize the Query instance**.
 
-        Arguments:
-        search_client (SearchClient): The Globus Search client to use for searching.
-        q (str): The query string to start with. Default nothing.
-        limit (int): The maximum number of results to return. Default None.
-        advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
-                         If False, only basic fulltext term matches will be supported.
-                         Default False.
+        Args:
+            search_client (SearchClient): The Globus Search client to use for searching.
+            q (str): The query string to start with. Default nothing.
+            limit (int): The maximum number of results to return. Default **None**.
+            advanced (bool): If **True**, will submit query in "advanced" mode to
+                enable field matches.
+                If **False**, only basic fulltext term matches will be supported.
+                Default **False**.
         """
         self.__search_client = search_client
         self.query = q or "("
@@ -1085,18 +1119,18 @@ class Query:
         """Returns the current query, cleaned for user consumption,
 
         Returns:
-        str: The clean current query.
+            str: The clean current query.
         """
         return self.__clean_query_string(self.query)
 
     def term(self, term):
         """Add a term to the query.
 
-        Arguments:
-        term (str): The term to add.
+        Args:
+            term (str): The term to add.
 
         Returns:
-        self (Query): For chaining.
+            self (Query): For chaining.
         """
         self.query += term
         self.initialized = True
@@ -1107,12 +1141,12 @@ class Query:
         Matches will have field == value.
         This method sets advanced=True.
 
-        Arguments:
-        field (str): The field to look in for the value.
-        value (str): The value to match.
+        Args:
+            field (str): The field to look in for the value.
+            value (str): The value to match.
 
         Returns:
-        self (Query): For chaining.
+            self (Query): For chaining.
         """
         # Cannot add field:value if one is blank
         if field and value:
@@ -1126,15 +1160,17 @@ class Query:
         """Add operator between terms.
         There must be a term added before using this method.
 
-        Arguments:
-        op (str): The operator to add. Must be in the OP_LIST defined below.
-        close_group (bool): If True, will end the current parenthetical group and start a new one.
-                            If False, will continue current group.
-                            Example: "(foo AND bar)" is one group.
-                                "(foo) and (bar)" is two groups.
+        Args:
+            op (str): The operator to add. Must be in the OP_LIST defined below.
+                close_group (bool): If **True**, will end the current parenthetical
+                group and start a new one.
+                If **False**, will continue current group.
+
+                Example: "(foo AND bar)" is one group.
+                "(foo) and (bar)" is two groups.
 
         Returns:
-        self (Query): For chaining.
+            self (Query): For chaining.
         """
         # List of allowed operators
         OP_LIST = ["AND", "OR", "NOT"]
@@ -1153,15 +1189,18 @@ class Query:
         """Combine terms with AND.
         There must be a term added before using this method.
 
-        Arguments:
-        close_group (bool): If True, will end the current group and start a new one.
-                      If False, will continue current group.
-                      Example: If the current query is "(term1"
-                          .and(close_group=True) => "(term1) AND ("
-                          .and(close_group=False) => "(term1 AND "
+        Args:
+            close_group (bool): If **True**, will end the current group and start a new one.
+                    If **False**, will continue current group.
+
+                    Example: If the current query is "(term1"
+
+                    .and(close_group=True) => "(term1) AND ("
+
+                    .and(close_group=False) => "(term1 AND "
 
         Returns:
-        self (Query): For chaining.
+            self (Query): For chaining.
         """
         if not self.initialized:
             print_("Error: You must add a term before adding an operator.",
@@ -1174,15 +1213,18 @@ class Query:
         """Combine terms with OR.
         There must be a term added before using this method.
 
-        Arguments:
-        close_group (bool): If True, will end the current group and start a new one.
-                      If False, will continue current group.
-                      Example: If the current query is "(term1"
-                          .or(close_group=True) => "(term1) OR("
-                          .or(close_group=False) => "(term1 OR "
+        Args:
+            close_group (bool): If **True**, will end the current group and start a new one.
+                    If **False**, will continue current group.
+
+                    Example: If the current query is "(term1"
+
+                    .or(close_group=True) => "(term1) OR("
+
+                    .or(close_group=False) => "(term1 OR "
 
         Returns:
-        self (Query): For chaining.
+            self (Query): For chaining.
         """
         if not self.initialized:
             print_("Error: You must add a term before adding an operator.",
@@ -1199,28 +1241,31 @@ class Query:
     def search(self, q=None, index=None, advanced=None, limit=None, info=False):
         """Execute a search and return the results.
 
-        Arguments:
-        q (str): The query to execute. Defaults to the current query, if any.
-                 There must be some query to execute.
-        index (str): The Globus Search index to search on. Required.
-        advanced (bool): If True, will submit query in "advanced" mode to enable field matches.
-                         If False, only basic fulltext term matches will be supported.
-                         Default False.
-                         This value will change to True automatically if
-                            the query is built with helpers.
-        limit (int): The maximum number of results to return.
-                     The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
-                     The default for advanced-mode queries is SEARCH_LIMIT.
-                     The default for non-advanced queries is NONADVANCED_LIMIT.
-        info (bool): If False, search will return a list of the results.
-                     If True, search will return a tuple containing the results list
+        Args:
+            q (str): The query to execute. Defaults to the current query, if any.
+                    There must be some query to execute.
+            index (str): The Globus Search index to search on. Required.
+            advanced (bool): If **True**, will submit query in "advanced" mode to enable
+                        field matches.
+                        If **False**, only basic fulltext term matches will be supported.
+                        Default **False**.
+                        This value will change to True automatically if
+                        the query is built with helpers.
+            limit (int): The maximum number of results to return.
+                        The max for this argument is the SEARCH_LIMIT imposed by Globus Search.
+                        The default for advanced-mode queries is SEARCH_LIMIT.
+                        The default for non-advanced queries is NONADVANCED_LIMIT.
+            info (bool): If **False**, search will return a list of the results.
+                        If **True**, search will return a tuple containing the results list
                         and other information about the query.
-                     Default False.
+                        Default **False**.
 
         Returns:
-        list (if info=False): The results.
-        tuple (if info=True): The results, and a dictionary of query information.
+            list (if info=False): The results.
+        Returns:
+            tuple (if info=True): The results, and a dictionary of query information.
         """
+
         if q is None:
             q = self.query
         if not q.strip("()"):
@@ -1258,15 +1303,16 @@ class Query:
     def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT):
         """Gather all results that match a specific query
 
-        Note that all aggregate queries run in advanced mode.
-
-        Arguments:
-        q (str): The query to execute. Defaults to the current query, if any.
-                 There must be some query to execute.
-        scroll_size (int): Maximum number of records requested per request.
+        Args:
+            q (str): The query to execute. Defaults to the current query, if any.
+                    There must be some query to execute.
+            scroll_size (int): Maximum number of records requested per request.
 
         Returns:
-        list of dict: All matching records
+            list of dict: All matching records.
+
+        Note:
+            All aggregate queries run in advanced mode.
         """
         if q is None:
             q = self.query
@@ -1328,11 +1374,11 @@ class Query:
     def mapping(self, index):
         """Fetch the mapping for the specified index.
 
-        Arguments:
-        index (str): The index to map.
+        Args:
+            index (str): The index to map.
 
         Returns:
-        dict: The full mapping for the index.
+            dict: The full mapping for the index.
         """
         return (self.__search_client.get(
                     "/unstable/index/{}/mapping".format(mdf_toolbox.translate_index(index)))
