@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mdf_forge',
-    version='0.6.2',
+    version='0.6.3',
     packages=['mdf_forge'],
     description='Materials Data Facility python package',
     long_description=("Forge is the Materials Data Facility Python package"
@@ -13,10 +13,9 @@ setup(
         "mdf-toolbox>=0.2.0",
         "globus-sdk>=1.5.0",
         "requests>=2.18.4",
-        "tqdm>=4.19.4",
-        "six>=1.10.0"
+        "tqdm>=4.19.4"
     ],
-    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
+    python_requires=">=3.4",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
@@ -24,7 +23,6 @@ setup(
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 2",
         "Topic :: Scientific/Engineering"
     ],
     keywords=[
