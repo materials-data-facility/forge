@@ -733,9 +733,9 @@ class Forge:
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
             print("Error: Too many results supplied. Use globus_download()"
-                   + " for fetching more than "
-                   + str(HTTP_NUM_LIMIT)
-                   + " entries.")
+                  + " for fetching more than "
+                  + str(HTTP_NUM_LIMIT)
+                  + " entries.")
             return {
                 "success": False,
                 "message": ("Too many results supplied. Use globus_download()"
@@ -746,7 +746,7 @@ class Forge:
         for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
             if res["mdf"]["resource_type"] == "dataset":
                 print("Skipping datset entry for '{}': Cannot download dataset over HTTPS. "
-                       "Use globus_download() for datasets.".format(res["mdf"]["source_id"]))
+                      "Use globus_download() for datasets.".format(res["mdf"]["source_id"]))
             elif res["mdf"]["resource_type"] == "record":
                 for dl in res.get("files", []):
                     url = dl.get("url", None)
@@ -807,14 +807,14 @@ class Forge:
                         # Handle other errors by passing the buck to the user
                         if response.status_code != 200:
                             print("Error {} when attempting to access "
-                                   "'{}'".format(response.status_code, url))
+                                  "'{}'".format(response.status_code, url))
                         else:
                             # Write out the binary response content
                             with open(local_path, 'wb') as output:
                                 output.write(response.content)
             else:
                 print("Error: Found unknown resource_type '{}'. "
-                       "Skipping entry.".format(res["mdf"]["resource_type"]))
+                      "Skipping entry.".format(res["mdf"]["resource_type"]))
         return {
             "success": True
             }
@@ -885,7 +885,7 @@ class Forge:
                         file_list.append(g_link)
                 elif verbose:
                     print("Skipping dataset '{}' because argument 'download_datasets' is "
-                           "False. Use caution if enabling.".format(res["mdf"]["source_id"]))
+                          "False. Use caution if enabling.".format(res["mdf"]["source_id"]))
             elif res["mdf"]["resource_type"] == "record":
                 for dl in res.get("files", []):
                     g_link = dl.get("globus", None)
@@ -893,7 +893,7 @@ class Forge:
                         file_list.append(g_link)
             else:
                 print("Error: Found unknown resource_type '{}'. "
-                       "Skipping entry.".format(res["mdf"]["resource_type"]))
+                      "Skipping entry.".format(res["mdf"]["resource_type"]))
             for globus_link in file_list:
                 # If the data is on a Globus Endpoint
                 if globus_link not in links_processed:
@@ -974,8 +974,8 @@ class Forge:
                 pass
             if not event["success"]:
                 print("Error transferring with endpoint '{}': {} - "
-                       "{}".format(task_ep, event["status"],
-                                   event["nice_status_short_description"]))
+                      "{}".format(task_ep, event["status"],
+                                  event["nice_status_short_description"]))
                 failed += 1
                 # Allow cancellation of remaining Transfers if Transfer are remaining
                 if verbose and list(tasks.keys())[-1] != task_ep:
@@ -987,8 +987,8 @@ class Forge:
                 success += 1
 
         if verbose:
-            print(("All transfers processed\n{} transfers succeeded\n"
-                    "{} transfers failed").format(success, failed))
+            print("All transfers processed\n{} transfers succeeded\n"
+                  "{} transfers failed".format(success, failed))
         return
 
     def http_stream(self, results, verbose=True):
@@ -1020,9 +1020,9 @@ class Forge:
             results = [results]
         if len(results) > HTTP_NUM_LIMIT:
             print("Too many results supplied. Use globus_download()"
-                   + " for fetching more than "
-                   + str(HTTP_NUM_LIMIT)
-                   + " entries.")
+                  + " for fetching more than "
+                  + str(HTTP_NUM_LIMIT)
+                  + " entries.")
             yield {
                 "success": False,
                 "message": ("Too many results supplied. Use globus_download()"
@@ -1055,7 +1055,7 @@ class Forge:
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
                         print("Error ", response.status_code, " when attempting to access '",
-                               url, "'", sep="")
+                              url, "'", sep="")
                         yield None
                     else:
                         yield response.text
@@ -1203,7 +1203,7 @@ class Query:
         """
         if not self.initialized:
             print("Error: You must add a term before adding an operator.",
-                   "The current query has not been changed.")
+                  "The current query has not been changed.")
         else:
             self.operator("AND", close_group=close_group)
         return self
@@ -1227,7 +1227,7 @@ class Query:
         """
         if not self.initialized:
             print("Error: You must add a term before adding an operator.",
-                   "The current query has not been changed.")
+                  "The current query has not been changed.")
         else:
             self.operator("OR", close_group=close_group)
         return self
