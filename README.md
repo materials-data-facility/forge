@@ -21,8 +21,7 @@ Forge documentation can be found on [Read the Docs](http://mdf-forge.readthedocs
 Tutorials and examples can be found in the `docs` directory. The Jupyter notebooks can be viewed on GitHub or run interactively with ![Jupyter](http://jupyter.org/install).
 
 # Requirements
-* Forge requires Python 3.4 or greater.
-  * **Note**: Python 2.7 support has been deprecated. Forge releases after version 0.6.2 will not work in Python 2. Please upgrade to Python 3.
+* Forge requires Python 3.5 or greater.
 * To access data in the MDF, you must have an account recognized by Globus Auth (including Google, ORCiD, many academic institutions, or a [free Globus ID](https://www.globusid.org/create)).
 
 # Contributions
