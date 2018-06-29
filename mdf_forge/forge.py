@@ -1,11 +1,10 @@
 import os
 import re
+from urllib.parse import urlparse
 
 import globus_sdk
 import mdf_toolbox
 import requests
-from six import print_, string_types
-from six.moves.urllib.parse import urlparse
 from tqdm import tqdm
 
 
@@ -26,7 +25,7 @@ class Forge:
 
     **Public Variables**:
         * **local_ep** is the endpoint ID of the local Globus Connect Personal endpoint.
-        * **index is** the Globus Search index to be used.
+        * **index** is the Globus Search index to be used.
     """
     __default_index = "mdf"
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
@@ -46,8 +45,20 @@ class Forge:
                     If **False**, will require authentication.
 
         Keyword Args:
+            **Advanced users only.**
             services (list of str): The services to authenticate for.
-                    Advanced users only.
+                    An empty list will disable authenticating with Toolbox.
+                    _Advanced users only._
+            clients (dict): Clients or authorizers to use instead of the defaults.
+                    Overwritable clients:
+                        search (globus_sdk.SearchClient)
+                        transfer (globus_sdk.TransferClient)
+                        data_mdf (Authorizer for MDF NCSA endpoint)
+                        petrel (Authorizer for MDF Petrel endpoint)
+                    The clients/authorizers must be properly authenticated.
+                    Forge will still attempt to authenticate with Toolbox
+                    in accordance with the services keyword argument.
+                    _Advanced users only._
 
         Note:
              Authentication is required for some Forge functionality,
@@ -59,17 +70,22 @@ class Forge:
 
         if self.__anonymous:
             services = kwargs.get('services', self.__anon_services)
-            clients = mdf_toolbox.anonymous_login(services)
+            clients = (mdf_toolbox.anonymous_login(services) if services else {})
         else:
             services = kwargs.get('services', self.__auth_services)
-            clients = mdf_toolbox.login(credentials={
-                                    "app_name": self.__app_name,
-                                    "services": services,
-                                    "index": self.index})
-        self.__search_client = clients.get("search")
-        self.__transfer_client = clients.get("transfer")
-        self.__data_mdf_authorizer = clients.get("data_mdf", globus_sdk.NullAuthorizer())
-        self.__petrel_authorizer = clients.get("petrel", globus_sdk.NullAuthorizer())
+            clients = (mdf_toolbox.login(credentials={
+                                            "app_name": self.__app_name,
+                                            "services": services,
+                                            "index": self.index}) if services else {})
+        user_clients = kwargs.get("clients", {})
+        self.__search_client = user_clients.get("search", clients.get("search", None))
+        self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
+        self.__data_mdf_authorizer = user_clients.get("data_mdf",
+                                                      clients.get("data_mdf",
+                                                                  globus_sdk.NullAuthorizer()))
+        self.__petrel_authorizer = user_clients.get("petrel",
+                                                    clients.get("petrel",
+                                                                globus_sdk.NullAuthorizer()))
 
         self.__query = Query(self.__search_client)
 
@@ -358,7 +374,7 @@ class Forge:
         Returns:
             self (Forge): For chaining
         """
-        if isinstance(value, string_types):
+        if isinstance(value, str):
             value = [value]
         value.sort()
         # Hacky way to get ES to do exclusive search
@@ -394,7 +410,7 @@ class Forge:
         # If no source_names are supplied, nothing to match
         if not source_names:
             return self
-        if isinstance(source_names, string_types):
+        if isinstance(source_names, str):
             source_names = [source_names]
         # If no version supplied, add * to each source name to match all versions
         source_names = [(sn+"*" if re.search(".*_v[0-9]+", sn) is None else sn)
@@ -419,7 +435,7 @@ class Forge:
         # If no IDs are supplied, nothing to match
         if not mdf_ids:
             return self
-        if isinstance(mdf_ids, string_types):
+        if isinstance(mdf_ids, str):
             mdf_ids = [mdf_ids]
         # First ID should be in new group and required
         self.match_field(field="mdf.mdf_id", value=mdf_ids[0], required=True, new_group=True)
@@ -443,7 +459,7 @@ class Forge:
         # If no elements are supplied, nothing to match
         if not elements:
             return self
-        if isinstance(elements, string_types):
+        if isinstance(elements, str):
             elements = [elements]
         # First element should be in new group and required
         self.match_field(field="material.elements", value=elements[0],
@@ -500,7 +516,7 @@ class Forge:
                     y_int = int(year)
                     years_int.append(y_int)
                 except ValueError:
-                    print_("Invalid year: '", year, "'", sep="")
+                    print("Invalid year: '", year, "'", sep="")
 
             # Only match years if valid years were supplied
             if len(years_int) > 0:
@@ -514,13 +530,13 @@ class Forge:
                 try:
                     start = int(start)
                 except ValueError:
-                    print_("Invalid start year: '", start, "'", sep="")
+                    print("Invalid start year: '", start, "'", sep="")
                     start = None
             if stop is not None:
                 try:
                     stop = int(stop)
                 except ValueError:
-                    print_("Invalid stop year: '", stop, "'", sep="")
+                    print("Invalid stop year: '", stop, "'", sep="")
                     stop = None
 
             self.match_range(field="dc.publicationYear", start=start, stop=stop,
@@ -539,7 +555,7 @@ class Forge:
         # If no types, nothing to match
         if not types:
             return self
-        if isinstance(types, string_types):
+        if isinstance(types, str):
             types = [types]
         # First type should be in new group and required
         self.match_field(field="mdf.resource_type", value=types[0], required=True, new_group=True)
@@ -721,7 +737,7 @@ class Forge:
             message (str): The error message. Not present when success is **True**.
         """
         if self.__anonymous:
-            print_("Error: Anonymous HTTP download not yet supported.")
+            print("Error: Anonymous HTTP download not yet supported.")
             return {
                 "success": False,
                 "message": "Anonymous HTTP download not yet supported."
@@ -733,10 +749,10 @@ class Forge:
         elif isinstance(results, tuple):
             results = results[0]
         if len(results) > HTTP_NUM_LIMIT:
-            print_("Error: Too many results supplied. Use globus_download()"
-                   + " for fetching more than "
-                   + str(HTTP_NUM_LIMIT)
-                   + " entries.")
+            print("Error: Too many results supplied. Use globus_download()"
+                  + " for fetching more than "
+                  + str(HTTP_NUM_LIMIT)
+                  + " entries.")
             return {
                 "success": False,
                 "message": ("Too many results supplied. Use globus_download()"
@@ -746,8 +762,8 @@ class Forge:
                 }
         for res in tqdm(results, desc="Fetching files", disable=(not verbose)):
             if res["mdf"]["resource_type"] == "dataset":
-                print_("Skipping datset entry for '{}': Cannot download dataset over HTTPS. "
-                       "Use globus_download() for datasets.".format(res["mdf"]["source_id"]))
+                print("Skipping datset entry for '{}': Cannot download dataset over HTTPS. "
+                      "Use globus_download() for datasets.".format(res["mdf"]["source_id"]))
             elif res["mdf"]["resource_type"] == "record":
                 for dl in res.get("files", []):
                     url = dl.get("url", None)
@@ -807,15 +823,15 @@ class Forge:
                             response = requests.get(url, headers=headers)
                         # Handle other errors by passing the buck to the user
                         if response.status_code != 200:
-                            print_("Error {} when attempting to access "
-                                   "'{}'".format(response.status_code, url))
+                            print("Error {} when attempting to access "
+                                  "'{}'".format(response.status_code, url))
                         else:
                             # Write out the binary response content
                             with open(local_path, 'wb') as output:
                                 output.write(response.content)
             else:
-                print_("Error: Found unknown resource_type '{}'. "
-                       "Skipping entry.".format(res["mdf"]["resource_type"]))
+                print("Error: Found unknown resource_type '{}'. "
+                      "Skipping entry.".format(res["mdf"]["resource_type"]))
         return {
             "success": True
             }
@@ -857,7 +873,7 @@ class Forge:
             list of str: task IDs of the Globus transfers
         """
         if self.__anonymous:
-            print_("Error: Anonymous Globus Transfer not supported.")
+            print("Error: Anonymous Globus Transfer not supported.")
             return {
                 "success": False,
                 "message": "Anonymous Globus Transfer not supported."
@@ -885,16 +901,16 @@ class Forge:
                     if g_link:
                         file_list.append(g_link)
                 elif verbose:
-                    print_("Skipping dataset '{}' because argument 'download_datasets' is "
-                           "False. Use caution if enabling.".format(res["mdf"]["source_id"]))
+                    print("Skipping dataset '{}' because argument 'download_datasets' is "
+                          "False. Use caution if enabling.".format(res["mdf"]["source_id"]))
             elif res["mdf"]["resource_type"] == "record":
                 for dl in res.get("files", []):
                     g_link = dl.get("globus", None)
                     if g_link:
                         file_list.append(g_link)
             else:
-                print_("Error: Found unknown resource_type '{}'. "
-                       "Skipping entry.".format(res["mdf"]["resource_type"]))
+                print("Error: Found unknown resource_type '{}'. "
+                      "Skipping entry.".format(res["mdf"]["resource_type"]))
             for globus_link in file_list:
                 # If the data is on a Globus Endpoint
                 if globus_link not in links_processed:
@@ -964,7 +980,7 @@ class Forge:
                 # Loop ends on StopIteration from generator exhaustion
                 while True:
                     if not event["success"] and cont:
-                        print_("Error: {} - {}".format(event["code"], event["description"]))
+                        print("Error: {} - {}".format(event["code"], event["description"]))
                         if verbose:
                             # Allow user to abort transfer if verbose, else cont is always True
                             user_cont = input("Continue Transfer (y/n)?\n")
@@ -974,9 +990,9 @@ class Forge:
             except StopIteration:
                 pass
             if not event["success"]:
-                print_("Error transferring with endpoint '{}': {} - "
-                       "{}".format(task_ep, event["status"],
-                                   event["nice_status_short_description"]))
+                print("Error transferring with endpoint '{}': {} - "
+                      "{}".format(task_ep, event["status"],
+                                  event["nice_status_short_description"]))
                 failed += 1
                 # Allow cancellation of remaining Transfers if Transfer are remaining
                 if verbose and list(tasks.keys())[-1] != task_ep:
@@ -988,8 +1004,8 @@ class Forge:
                 success += 1
 
         if verbose:
-            print_(("All transfers processed\n{} transfers succeeded\n"
-                    "{} transfers failed").format(success, failed))
+            print("All transfers processed\n{} transfers succeeded\n"
+                  "{} transfers failed".format(success, failed))
         return
 
     def http_stream(self, results, verbose=True):
@@ -1008,7 +1024,7 @@ class Forge:
             str: Text of each data file.
         """
         if self.__anonymous:
-            print_("Error: Anonymous HTTP download not yet supported.")
+            print("Error: Anonymous HTTP download not yet supported.")
             yield {
                 "success": False,
                 "message": "Anonymous HTTP download not yet supported."
@@ -1020,10 +1036,10 @@ class Forge:
         if type(results) is not list:
             results = [results]
         if len(results) > HTTP_NUM_LIMIT:
-            print_("Too many results supplied. Use globus_download()"
-                   + " for fetching more than "
-                   + str(HTTP_NUM_LIMIT)
-                   + " entries.")
+            print("Too many results supplied. Use globus_download()"
+                  + " for fetching more than "
+                  + str(HTTP_NUM_LIMIT)
+                  + " entries.")
             yield {
                 "success": False,
                 "message": ("Too many results supplied. Use globus_download()"
@@ -1055,8 +1071,8 @@ class Forge:
                         response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
-                        print_("Error ", response.status_code, " when attempting to access '",
-                               url, "'", sep="")
+                        print("Error ", response.status_code, " when attempting to access '",
+                              url, "'", sep="")
                         yield None
                     else:
                         yield response.text
@@ -1176,7 +1192,7 @@ class Query:
         OP_LIST = ["AND", "OR", "NOT"]
         op = op.upper().strip()
         if op not in OP_LIST:
-            print_("Error: '", op, "' is not a valid operator.", sep='')
+            print("Error: '", op, "' is not a valid operator.", sep='')
         else:
             if close_group:
                 op = ") " + op + " ("
@@ -1203,8 +1219,8 @@ class Query:
             self (Query): For chaining.
         """
         if not self.initialized:
-            print_("Error: You must add a term before adding an operator.",
-                   "The current query has not been changed.")
+            print("Error: You must add a term before adding an operator.",
+                  "The current query has not been changed.")
         else:
             self.operator("AND", close_group=close_group)
         return self
@@ -1227,8 +1243,8 @@ class Query:
             self (Query): For chaining.
         """
         if not self.initialized:
-            print_("Error: You must add a term before adding an operator.",
-                   "The current query has not been changed.")
+            print("Error: You must add a term before adding an operator.",
+                  "The current query has not been changed.")
         else:
             self.operator("OR", close_group=close_group)
         return self
@@ -1269,10 +1285,10 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print_("Error: No query")
+            print("Error: No query")
             return ([], {"error": "No query"}) if info else []
         if index is None:
-            print_("Error: No index specified")
+            print("Error: No index specified")
             return ([], {"error": "No index"}) if info else []
         else:
             uuid_index = mdf_toolbox.translate_index(index)
@@ -1317,15 +1333,13 @@ class Query:
         if q is None:
             q = self.query
         if not q.strip("()"):
-            print_("Error: No query")
+            print("Error: No query")
             return []
         if index is None:
-            print_("Error: No index specified")
+            print("Error: No index specified")
             return []
 
         q = self.__clean_query_string(q)
-        # TODO: Remove record restriction (all entries require scroll_id)
-        q += " AND mdf.resource_type:record"
 
         # Get the total number of records
         total = self.search(q, index=index, limit=0, advanced=True,
@@ -1338,8 +1352,7 @@ class Query:
         # Scroll until all results are found
         output = []
 
-        # TODO: scroll_pos = 0 (when all entries have scroll_id)
-        scroll_pos = 1
+        scroll_pos = 0
         with tqdm(total=total) as pbar:
             while len(output) < total:
 

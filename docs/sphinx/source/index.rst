@@ -55,12 +55,12 @@ Documentation, including tutorials and examples, can be found in the
 Tutorials
 ---------
 
-#. Introduction (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Introduction.ipynb/>`_)
-#. Core Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Core%20Query%20Builder%20Functions.ipynb/>`_)
-#. Expanded Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Expanded%20Query%20Builder%20Functions.ipynb/>`_)
-#. General Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/General%20Helper%20Functions.ipynb/>`_)
-#. Field-Specific Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Field-Specific%20Helper%20Functions.ipynb/>`_)
-#. Data Retrieval Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Data%20Retrieval%20Functions.ipynb/>`_)
+#. Introduction (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Introduction.ipynb/>`_)
+#. Core Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Core%20Query%20Builder%20Functions.ipynb/>`_)
+#. Expanded Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Expanded%20Query%20Builder%20Functions.ipynb/>`_)
+#. General Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/General%20Helper%20Functions.ipynb/>`_)
+#. Field-Specific Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Field-Specific%20Helper%20Functions.ipynb/>`_)
+#. Data Retrieval Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Data%20Retrieval%20Functions.ipynb/>`_)
 
 Examples
 --------
