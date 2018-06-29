@@ -55,19 +55,17 @@ Documentation, including tutorials and examples, can be found in the
 Tutorials
 ---------
 
-#. Introduction (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Introduction.ipynb/>`_)
-#. Core Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Core%20Query%20Builder%20Functions.ipynb/>`_)
-#. Expanded Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Expanded%20Query%20Builder%20Functions.ipynb/>`_)
-#. General Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/General%20Helper%20Functions.ipynb/>`_)
-#. Field-Specific Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Field-Specific%20Helper%20Functions.ipynb/>`_)
-#. Data Retrieval Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/Data%20Retrieval%20Functions.ipynb/>`_)
+#. Introduction (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/1%20-%20Introduction.ipynb/>`_)
+#. Core Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/2%20-%20Core%20Query%20Builder%20Functions.ipynb/>`_)
+#. Expanded Query Builder Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/3%20-%20Expanded%20Query%20Builder%20Functions.ipynb/>`_)
+#. General Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/4%20-%20General%20Helper%20Functions.ipynb/>`_)
+#. Field-Specific Helper Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/5%20-%20Field-Specific%20Helper%20Functions.ipynb/>`_)
+#. Data Retrieval Functions (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/tutorials/6%20-%20Data%20Retrieval%20Functions.ipynb/>`_)
 
 Examples
 --------
 
 #. Example Aggregations (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Example%20Aggregations.ipynb/>`_)
-#. Example Analysis - Fe-Cr-Al Oxidation (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Example%20Analysis%20-%20Fe-Cr-Al%20Oxidation.ipynb/>`_)
-#. Example Machine Learning - OQMD (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Example%20Machine%20Learning%20-%20OQMD.ipynb/>`_)
 #. Example Statistics - MDF Datasets (`Jupyter Notebook <https://github.com/materials-data-facility/forge/blob/master/docs/examples/Example%20Statistics%20-%20MDF%20Datasets.ipynb/>`_)
 
 Requirements
