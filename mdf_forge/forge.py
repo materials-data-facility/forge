@@ -70,15 +70,13 @@ class Forge:
 
         if self.__anonymous:
             services = kwargs.get('services', self.__anon_services)
-            if services:
-                clients = mdf_toolbox.anonymous_login(services)
+            clients = (mdf_toolbox.anonymous_login(services) if services else {})
         else:
             services = kwargs.get('services', self.__auth_services)
-            if services:
-                clients = mdf_toolbox.login(credentials={
-                                        "app_name": self.__app_name,
-                                        "services": services,
-                                        "index": self.index})
+            clients = (mdf_toolbox.login(credentials={
+                                            "app_name": self.__app_name,
+                                            "services": services,
+                                            "index": self.index}) if services else {})
         user_clients = kwargs.get("clients", {})
         self.__search_client = user_clients.get("search", clients.get("search", None))
         self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
