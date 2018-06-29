@@ -1,9 +1,9 @@
 language: python
 python:
-- '3.4'
 - '3.5'
 - '3.6'
 install:
+- pip install --upgrade pip
 - pip install -e .
 - pip install -r test_requirements.txt
 env:
@@ -23,7 +23,7 @@ notifications:
     recipients:
     - jgaff@uchicago.edu
     on_success: never
-    on_failure: always
+    on_failure: change
   slack:
     on_success: always
     on_failure: always
