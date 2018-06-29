@@ -389,6 +389,13 @@ def check_field(res, field, regex):
         return -1
 
 
+def test_forge_alt_clients():
+    f = forge.Forge(index="mdf")
+    assert isinstance(f.search_client, globus_sdk.SearchClient)
+    f2 = forge.Forge(index="mdf", clients={"search": globus_sdk.TransferClient()})
+    assert isinstance(f2.search_client, globus_sdk.TransferClient)
+
+
 def test_forge_match_field():
     f = forge.Forge(index="mdf")
     # Basic usage

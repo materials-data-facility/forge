@@ -45,8 +45,20 @@ class Forge:
                     If **False**, will require authentication.
 
         Keyword Args:
+            **Advanced users only.**
             services (list of str): The services to authenticate for.
-                    Advanced users only.
+                    An empty list will disable authenticating with Toolbox.
+                    _Advanced users only._
+            clients (dict): Clients or authorizers to use instead of the defaults.
+                    Overwritable clients:
+                        search (globus_sdk.SearchClient)
+                        transfer (globus_sdk.TransferClient)
+                        data_mdf (Authorizer for MDF NCSA endpoint)
+                        petrel (Authorizer for MDF Petrel endpoint)
+                    The clients/authorizers must be properly authenticated.
+                    Forge will still attempt to authenticate with Toolbox
+                    in accordance with the services keyword argument.
+                    _Advanced users only._
 
         Note:
              Authentication is required for some Forge functionality,
@@ -58,17 +70,24 @@ class Forge:
 
         if self.__anonymous:
             services = kwargs.get('services', self.__anon_services)
-            clients = mdf_toolbox.anonymous_login(services)
+            if services:
+                clients = mdf_toolbox.anonymous_login(services)
         else:
             services = kwargs.get('services', self.__auth_services)
-            clients = mdf_toolbox.login(credentials={
-                                    "app_name": self.__app_name,
-                                    "services": services,
-                                    "index": self.index})
-        self.__search_client = clients.get("search")
-        self.__transfer_client = clients.get("transfer")
-        self.__data_mdf_authorizer = clients.get("data_mdf", globus_sdk.NullAuthorizer())
-        self.__petrel_authorizer = clients.get("petrel", globus_sdk.NullAuthorizer())
+            if services:
+                clients = mdf_toolbox.login(credentials={
+                                        "app_name": self.__app_name,
+                                        "services": services,
+                                        "index": self.index})
+        user_clients = kwargs.get("clients", {})
+        self.__search_client = user_clients.get("search", clients.get("search", None))
+        self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
+        self.__data_mdf_authorizer = user_clients.get("data_mdf",
+                                                      clients.get("data_mdf",
+                                                                  globus_sdk.NullAuthorizer()))
+        self.__petrel_authorizer = user_clients.get("petrel",
+                                                    clients.get("petrel",
+                                                                globus_sdk.NullAuthorizer()))
 
         self.__query = Query(self.__search_client)
 
