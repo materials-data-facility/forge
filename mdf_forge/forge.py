@@ -125,6 +125,9 @@ class Forge:
         Returns:
             self (Forge): For chaining.
         """
+        # No-op on missing arguments
+        if not field and not value:
+            return self
         # If not the start of the query string, add an AND or OR
         if self.__query.initialized:
             if required:
@@ -152,6 +155,9 @@ class Forge:
         Returns:
             self (Forge): For chaining.
         """
+        # No-op on missing arguments
+        if not field and not value:
+            return self
         # If not the start of the query string, add an AND
         # OR would not make much sense for excluding
         if self.__query.initialized:

@@ -405,8 +405,9 @@ def test_forge_match_field():
     # Check that query clears
     assert f.search() == []
 
-    # Also checking check_field
+    # Also checking check_field and no-op
     f.match_field("material.elements", "Al")
+    f.match_field("", "")
     res2 = f.search()
     assert check_field(res2, "material.elements", "Al") == 1
 
@@ -415,6 +416,7 @@ def test_forge_exclude_field():
     f = forge.Forge(index="mdf")
     # Basic usage
     f.exclude_field("material.elements", "Al")
+    f.exclude_field("", "")
     f.match_field("mdf.source_name", "ab_initio_solute_database*")
     res1 = f.search()
     assert check_field(res1, "material.elements", "Al") == -1
