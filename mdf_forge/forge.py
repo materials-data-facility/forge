@@ -34,7 +34,8 @@ class Forge:
     __transfer_interval = 60  # 1 minute, in seconds
     __inactivity_time = 1 * 60 * 60  # 1 hour, in seconds
 
-    def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
+    def __init__(self, index=__default_index, local_ep=None, anonymous=False,
+                 clear_old_tokens=False, **kwargs):
         """**Initialize the Forge instance.**
 
         Args:
@@ -43,6 +44,8 @@ class Forge:
                     If not provided, may be autodetected as possible.
             anonymous (bool): If **True**, will not authenticate with Globus Auth.
                     If **False**, will require authentication.
+            clear_old_tokens (bool): If **True**, will force reauthentication
+                    If **False**, will use existing tokens if possible.
 
         Keyword Args:
             **Advanced users only.**
@@ -73,10 +76,12 @@ class Forge:
             clients = (mdf_toolbox.anonymous_login(services) if services else {})
         else:
             services = kwargs.get('services', self.__auth_services)
-            clients = (mdf_toolbox.login(credentials={
+            clients = (mdf_toolbox.login(
+                                        credentials={
                                             "app_name": self.__app_name,
                                             "services": services,
-                                            "index": self.index}) if services else {})
+                                            "index": self.index},
+                                        clear_old_tokens=clear_old_tokens) if services else {})
         user_clients = kwargs.get("clients", {})
         self.__search_client = user_clients.get("search", clients.get("search", None))
         self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
