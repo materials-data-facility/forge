@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mdf_forge',
-    version='0.6.3',
+    version='0.6.4',
     packages=['mdf_forge'],
     description='Materials Data Facility python package',
     long_description=("Forge is the Materials Data Facility Python package"

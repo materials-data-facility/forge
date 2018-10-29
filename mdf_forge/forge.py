@@ -34,7 +34,8 @@ class Forge:
     __transfer_interval = 60  # 1 minute, in seconds
     __inactivity_time = 1 * 60 * 60  # 1 hour, in seconds
 
-    def __init__(self, index=__default_index, local_ep=None, anonymous=False, **kwargs):
+    def __init__(self, index=__default_index, local_ep=None, anonymous=False,
+                 clear_old_tokens=False, **kwargs):
         """**Initialize the Forge instance.**
 
         Args:
@@ -43,6 +44,8 @@ class Forge:
                     If not provided, may be autodetected as possible.
             anonymous (bool): If **True**, will not authenticate with Globus Auth.
                     If **False**, will require authentication.
+            clear_old_tokens (bool): If **True**, will force reauthentication
+                    If **False**, will use existing tokens if possible.
 
         Keyword Args:
             **Advanced users only.**
@@ -73,10 +76,12 @@ class Forge:
             clients = (mdf_toolbox.anonymous_login(services) if services else {})
         else:
             services = kwargs.get('services', self.__auth_services)
-            clients = (mdf_toolbox.login(credentials={
+            clients = (mdf_toolbox.login(
+                                        credentials={
                                             "app_name": self.__app_name,
                                             "services": services,
-                                            "index": self.index}) if services else {})
+                                            "index": self.index},
+                                        clear_old_tokens=clear_old_tokens) if services else {})
         user_clients = kwargs.get("clients", {})
         self.__search_client = user_clients.get("search", clients.get("search", None))
         self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
@@ -101,10 +106,9 @@ class Forge:
     def mdf_authorizer(self):
         return self.__data_mdf_authorizer
 
-
-# ***********************************************
-# * Core functions
-# ***********************************************
+    # ***********************************************
+    # * Core functions
+    # ***********************************************
 
     def match_field(self, field, value, required=True, new_group=False):
         """Add a field:value term to the query.
@@ -125,6 +129,9 @@ class Forge:
         Returns:
             self (Forge): For chaining.
         """
+        # No-op on missing arguments
+        if not field and not value:
+            return self
         # If not the start of the query string, add an AND or OR
         if self.__query.initialized:
             if required:
@@ -152,6 +159,9 @@ class Forge:
         Returns:
             self (Forge): For chaining.
         """
+        # No-op on missing arguments
+        if not field and not value:
+            return self
         # If not the start of the query string, add an AND
         # OR would not make much sense for excluding
         if self.__query.initialized:
@@ -269,10 +279,9 @@ class Forge:
         del self.__query
         self.__query = Query(self.__search_client)
 
-
-# ***********************************************
-# * Expanded functions
-# ***********************************************
+    # ***********************************************
+    # * Expanded functions
+    # ***********************************************
 
     def match_range(self, field, start="*", stop="*", inclusive=True,
                     required=True, new_group=False):
@@ -354,10 +363,9 @@ class Forge:
         self.exclude_field(field, value, new_group=new_group)
         return self
 
-
-# ***********************************************
-# * Helper functions
-# ***********************************************
+    # ***********************************************
+    # * Helper functions
+    # ***********************************************
 
     def exclusive_match(self, field, value):
         """Match exactly the given value, with no other data in the field.
@@ -564,10 +572,9 @@ class Forge:
             self.match_field(field="mdf.resource_type", value=rt, required=False, new_group=False)
         return self
 
-
-# ***********************************************
-# * Premade searches
-# ***********************************************
+    # ***********************************************
+    # * Premade searches
+    # ***********************************************
 
     def search_by_elements(self, elements, source_names=[], index=None, limit=None,
                            match_all=True, info=False):
@@ -707,10 +714,9 @@ class Forge:
         else:
             return hits[0]['mdf']['version']
 
-
-# ***********************************************
-# * Data retrieval functions
-# ***********************************************
+    # ***********************************************
+    # * Data retrieval functions
+    # ***********************************************
 
     def http_download(self, results, dest=".", preserve_dir=False, verbose=True):
         """Download data files from the provided results using HTTPS.
@@ -788,23 +794,18 @@ class Forge:
                         # Check if file already exists, change filename if necessary
                         collisions = 0
                         while os.path.exists(local_path):
-                            # Find period marking extension, if exists
-                            # Will be after last slash
-                            last_slash = local_path.rfind("/")
-                            index = local_path.rfind(".", (last_slash if last_slash != -1 else 0))
-                            if index < 0:
-                                ext = ""
-                            else:
-                                ext = local_path[index:]
-                                local_path = local_path[:index]
+                            # Save and remove extension
+                            local_path, ext = os.path.splitext(local_path)
                             # Check if already added number to end
                             old_add = "("+str(collisions)+")"
                             collisions += 1
                             new_add = "("+str(collisions)+")"
+                            # Remove old number if exists
                             if local_path.endswith(old_add):
-                                local_path = local_path[:-len(old_add)] + new_add + ext
-                            else:
-                                local_path = local_path + new_add + ext
+                                local_path = local_path[:-len(old_add)]
+                            # Add new number
+                            local_path = local_path + new_add + ext
+
                         headers = {}
                         # Check for Petrel vs. NCSA url for authorizer
                         # Petrel
