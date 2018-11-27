@@ -1,5 +1,4 @@
 import os
-import re
 from urllib.parse import urlparse
 
 import globus_sdk
@@ -420,9 +419,6 @@ class Forge:
             return self
         if isinstance(source_names, str):
             source_names = [source_names]
-        # If no version supplied, add * to each source name to match all versions
-        source_names = [(sn+"*" if re.search(".*_v[0-9]+", sn) is None else sn)
-                        for sn in source_names]
         # First source should be in new group and required
         self.match_field(field="mdf.source_name", value=source_names[0],
                          required=True, new_group=True)
@@ -701,7 +697,7 @@ class Forge:
         int: Version of the dataset in question
         """
 
-        hits = self.search("mdf.source_name:{}_v* AND"
+        hits = self.search("mdf.source_name:{} AND"
                            " mdf.resource_type:dataset".format(source_name),
                            advanced=True, limit=2)
 
@@ -1255,7 +1251,7 @@ class Query:
         self.operator("NOT")
         return self
 
-    def search(self, q=None, index=None, advanced=None, limit=None, info=False):
+    def search(self, q=None, index=None, advanced=None, limit=None, info=False, retries=3):
         """Execute a search and return the results.
 
         Args:
@@ -1276,6 +1272,8 @@ class Query:
                         If **True**, search will return a tuple containing the results list
                         and other information about the query.
                         Default **False**.
+            retries (int): The number of times to retry a Search query if it fails.
+                           Default 3.
 
         Returns:
             list (if info=False): The results.
@@ -1309,20 +1307,43 @@ class Query:
             "limit": limit,
             "offset": 0
             }
-        res = mdf_toolbox.gmeta_pop(self.__search_client.post_search(uuid_index, qu), info=info)
+        tries = 0
+        errors = []
+        while True:
+            try:
+                search_res = self.__search_client.post_search(uuid_index, qu)
+            except globus_sdk.SearchAPIError as e:
+                if tries >= retries:
+                    raise
+                else:
+                    errors.append(repr(e))
+            except Exception as e:
+                if tries >= retries:
+                    raise
+                else:
+                    errors.append(repr(e))
+            else:
+                break
+            tries += 1
+        res = mdf_toolbox.gmeta_pop(search_res, info=info)
         # Add additional info
         if info:
             res[1]["query"] = qu
             res[1]["index"] = index
             res[1]["index_uuid"] = uuid_index
+            res[1]["retries"] = tries
+            res[1]["errors"] = errors
         return res
 
-    def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT):
+    def aggregate(self, q=None, index=None, retries=1, scroll_size=SEARCH_LIMIT):
         """Gather all results that match a specific query
 
         Args:
             q (str): The query to execute. Defaults to the current query, if any.
                     There must be some query to execute.
+            index (str): The Globus Search index to search on. Required.
+            retries (int): The number of times to retry a Search query if it fails.
+                           Default 1.
             scroll_size (int): Maximum number of records requested per request.
 
         Returns:
@@ -1366,7 +1387,8 @@ class Query:
                 while True:
                     query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
                                             scroll_pos, scroll_pos+scroll_width)
-                    results, info = self.search(query, index=index, advanced=True, info=True)
+                    results, info = self.search(query, index=index, advanced=True,
+                                                info=True, retries=retries)
 
                     # Check to make sure that all the matching records were returned
                     if info["total_query_matches"] <= len(results):
