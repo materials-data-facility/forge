@@ -150,11 +150,11 @@ def test_query_search(capsys):
     # Check default limits
     res5 = q.search("Al", index="mdf")
     assert len(res5) == 10
-    res6 = q.search("mdf.source_name:nist_xps_db*", advanced=True, index="mdf")
+    res6 = q.search("mdf.source_name:nist_xps_db", advanced=True, index="mdf")
     assert len(res6) == 10000
 
     # Check limit correction
-    res7 = q.search("mdf.source_name:nist_xps_db*", advanced=True, index="mdf", limit=20000)
+    res7 = q.search("mdf.source_name:nist_xps_db", advanced=True, index="mdf", limit=20000)
     assert len(res7) == 10000
 
     # Test index translation
@@ -184,29 +184,29 @@ def test_query_aggregate(capsys):
     assert "Error: No index specified" in out
 
     # Basic aggregation
-    res1 = q.aggregate("mdf.source_name:nist_xps_db*", index="mdf")
+    res1 = q.aggregate("mdf.source_name:nist_xps_db", index="mdf")
     assert len(res1) > 10000
     assert isinstance(res1[0], dict)
 
     # Multi-dataset aggregation
-    res2 = q.aggregate("(mdf.source_name:nist_xps_db* OR mdf.source_name:khazana_vasp*)",
+    res2 = q.aggregate("(mdf.source_name:nist_xps_db OR mdf.source_name:khazana_vasp)",
                        index="mdf")
     assert len(res2) > 10000
     assert len(res2) > len(res1)
 
     # Unnecessary aggregation fallback to .search()
     # Check success in Coveralls
-    assert len(q.aggregate("mdf.source_name:khazana_vasp*")) < 10000
+    assert len(q.aggregate("mdf.source_name:khazana_vasp")) < 10000
 
 
 def test_query_chaining():
     q = forge.Query(query_search_client)
-    q.field("source_name", "cip*")
+    q.field("source_name", "cip")
     q.and_join()
     q.field("elements", "Al")
     res1 = q.search(limit=10000, index="mdf")
     res2 = (forge.Query(query_search_client)
-                 .field("source_name", "cip*")
+                 .field("source_name", "cip")
                  .and_join()
                  .field("elements", "Al")
                  .search(limit=10000, index="mdf"))
@@ -399,7 +399,7 @@ def test_forge_alt_clients():
 def test_forge_match_field():
     f = forge.Forge(index="mdf")
     # Basic usage
-    f.match_field("mdf.source_name", "khazana_vasp*")
+    f.match_field("mdf.source_name", "khazana_vasp")
     res1 = f.search()
     assert check_field(res1, "mdf.source_name", "khazana_vasp") == 0
     # Check that query clears
@@ -417,7 +417,8 @@ def test_forge_exclude_field():
     # Basic usage
     f.exclude_field("material.elements", "Al")
     f.exclude_field("", "")
-    f.match_field("mdf.source_name", "ab_initio_solute_database*")
+    f.match_field("mdf.source_name", "ab_initio_solute_database")
+    f.match_field("mdf.resource_type", "record")
     res1 = f.search()
     assert check_field(res1, "material.elements", "Al") == -1
 
@@ -509,7 +510,7 @@ def test_forge_match_source_names():
 def test_forge_match_ids():
     # Get a couple IDs
     f = forge.Forge(index="mdf")
-    res0 = f.search("mdf.source_name:khazana_vasp*", advanced=True, limit=2)
+    res0 = f.search("mdf.source_name:khazana_vasp", advanced=True, limit=2)
     id1 = res0[0]["mdf"]["mdf_id"]
     id2 = res0[1]["mdf"]["mdf_id"]
 
@@ -653,7 +654,7 @@ def test_forge_search(capsys):
     assert len(res4) == 3
 
     # Check reset_query
-    f.match_field("mdf.source_name", "ta_melting*")
+    f.match_field("mdf.source_name", "ta_melting")
     res5 = f.search(reset_query=False)
     res6 = f.search()
     assert all([r in res6 for r in res5]) and all([r in res5 for r in res6])
@@ -701,19 +702,19 @@ def test_forge_fetch_datasets_from_results():
     # Get some results
     f = forge.Forge(index="mdf")
     # Record from OQMD
-    res01 = f.search("mdf.source_name:oqmd* AND mdf.resource_type:record", advanced=True, limit=1)
+    res01 = f.search("mdf.source_name:oqmd AND mdf.resource_type:record", advanced=True, limit=1)
     # Record from OQMD with info
-    res02 = f.search("mdf.source_name:oqmd* AND mdf.resource_type:record",
+    res02 = f.search("mdf.source_name:oqmd AND mdf.resource_type:record",
                      advanced=True, limit=1, info=True)
     # Records from JANAF
-    res03 = f.search("mdf.source_name:khazana_vasp* AND mdf.resource_type:record",
+    res03 = f.search("mdf.source_name:khazana_vasp AND mdf.resource_type:record",
                      advanced=True, limit=2)
     # Dataset for NIST XPS DB
-    res04 = f.search("mdf.source_name:nist_xps_db* AND mdf.resource_type:dataset", advanced=True)
+    res04 = f.search("mdf.source_name:nist_xps_db AND mdf.resource_type:dataset", advanced=True)
 
     # Get the correct dataset entries
-    oqmd = f.search("mdf.source_name:oqmd* AND mdf.resource_type:dataset", advanced=True)[0]
-    khazana_vasp = f.search("mdf.source_name:khazana_vasp* AND mdf.resource_type:dataset",
+    oqmd = f.search("mdf.source_name:oqmd AND mdf.resource_type:dataset", advanced=True)[0]
+    khazana_vasp = f.search("mdf.source_name:khazana_vasp AND mdf.resource_type:dataset",
                             advanced=True)[0]
 
     # Fetch single dataset
@@ -749,7 +750,7 @@ def test_forge_aggregate():
     # And returns results
     # And respects the reset_query arg
     f = forge.Forge(index="mdf")
-    f.match_field("mdf.source_name", "nist_xps_db*")
+    f.match_field("mdf.source_name", "nist_xps_db")
     res1 = f.aggregate(reset_query=False, index="mdf")
     assert len(res1) > 10000
     assert check_field(res1, "mdf.source_name", "nist_xps_db") == 0
@@ -911,10 +912,10 @@ def test_forge_http_stream(capsys):
 
 def test_forge_chaining():
     f = forge.Forge(index="mdf")
-    f.match_field("source_name", "cip*")
+    f.match_field("source_name", "cip")
     f.match_field("material.elements", "Al")
     res1 = f.search()
-    res2 = f.match_field("source_name", "cip*").match_field("material.elements", "Al").search()
+    res2 = f.match_field("source_name", "cip").match_field("material.elements", "Al").search()
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
@@ -929,11 +930,11 @@ def test_forge_show_fields():
 def test_forge_anonymous(capsys):
     f = forge.Forge(anonymous=True)
     # Test search
-    assert len(f.search("mdf.source_name:ab_initio_solute_database*",
+    assert len(f.search("mdf.source_name:ab_initio_solute_database",
                         advanced=True, limit=300)) == 300
 
     # Test aggregation
-    assert len(f.aggregate("mdf.source_name:nist_xps_db*")) > 10000
+    assert len(f.aggregate("mdf.source_name:nist_xps_db")) > 10000
 
     # Error on auth-only functions
     # http_download
@@ -956,7 +957,7 @@ def test_forge_anonymous(capsys):
 def test_get_dataset_version():
     # Get the version number of the OQMD
     f = forge.Forge()
-    hits = f.search('mdf.source_name:oqmd_v* AND mdf.resource_type:dataset',
+    hits = f.search('mdf.source_name:oqmd AND mdf.resource_type:dataset',
                     advanced=True, limit=1)
     assert hits[0]['mdf']['version'] == f.get_dataset_version('oqmd')
 
