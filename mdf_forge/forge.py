@@ -277,6 +277,7 @@ class Forge:
         """
         del self.__query
         self.__query = Query(self.__search_client)
+        return
 
     # ***********************************************
     # * Expanded functions
@@ -567,6 +568,33 @@ class Forge:
         for rt in types[1:]:
             self.match_field(field="mdf.resource_type", value=rt, required=False, new_group=False)
         return self
+
+    def match_repositories(self, repositories, match_all=True):
+        """Match the given repositories.
+        Repositories are MDF-identified collections of datasets from a group
+        or organization.
+
+        Args:
+            repositories (str or list of str): The repositories to match.
+            match_all (bool): If **True**, will add with AND.
+                    If **False**, will use OR.
+                    Default **True**.
+
+        Returns:
+            self (Forge): For chaining.
+        """
+        # If no repos, nothing to match
+        if not repositories:
+            return self
+        if isinstance(repositories, str):
+            repositories = [repositories]
+        # First repo should be in new group and required
+        self.match_field(field="mdf.repositories", value=repositories[0],
+                         required=True, new_group=True)
+        # Other elements should stay in that group
+        for repo in repositories[1:]:
+            self.match_field(field="mdf.repositories", value=repo, required=match_all,
+                             new_group=False)
 
     # ***********************************************
     # * Premade searches

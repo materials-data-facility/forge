@@ -624,11 +624,28 @@ def test_forge_match_resource_types():
     f.match_resource_types(["collection", "dataset"])
     res2 = f.search()
     assert check_field(res2, "mdf.resource_type", "record") == -1
-    # TODO: Re-enable this assert after we get collections in MDF
-#    assert check_field(res2, "mdf.resource_type", "dataset") == 2
 
     # Test zero types
     assert f.match_resource_types("") == f
+
+
+def test_forge_match_repositories():
+    f = forge.Forge(index="mdf")
+    # One repo
+    f.match_repositories("DOE")
+    res1 = f.search()
+    assert res1 != []
+    check_val1 = check_field(res1, "mdf.repositories", "DOE")
+    assert check_val1 == 1
+
+    # Multi-repo
+    f.match_repositories(["NIST", "DOE"], match_all=False)
+    res2 = f.search()
+    assert check_field(res2, "mdf.repositories", "DOE") == 2
+    assert check_field(res2, "mdf.repositories", "NIST") == 2
+
+    # No repos
+    assert f.match_repositories("") == f
 
 
 def test_forge_search(capsys):
