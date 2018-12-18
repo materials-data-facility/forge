@@ -12,23 +12,19 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../../..'))
-sys.path.insert(0, os.path.abspath('../../../mdf_forge'))
-sys.path.insert(0, os.path.abspath('../../../tests'))
+import sphinx_bootstrap_theme
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'MDF Forge'
-copyright = 'Apache License, Version 2.0'
-author = 'Jonathon Gaff'
+copyright = '2018, The University of Chicago'
+author = 'The University of Chicago'
 
 # The short X.Y version
-version = '0.5'
+version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.5.1'
+release = ''
 
 
 # -- General configuration ---------------------------------------------------
@@ -42,11 +38,15 @@ release = '0.5.1'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.ifconfig',
+    'sphinx.ext.coverage',
+    'sphinx.ext.viewcode',
+#    'sphinx.ext.intersphinx',
+#    'sphinx.ext.ifconfig',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
-    'IPython.sphinxext.ipython_console_highlighting',
+#    'IPython.sphinxext.ipython_console_highlighting',
+    'm2r',
+    'nbsphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -68,7 +68,7 @@ templates_path = ['_templates']
 #    '.md': CommonMarkParser,
 # }
 
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.md', 'ipynb']
 
 # The master toctree document.
 master_doc = 'index'
@@ -83,7 +83,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -93,7 +93,7 @@ pygments_style = 'sphinx'
 # You may only specify the root package of the dependencies themselves and ommit the sub-modules:
 # See also:
 # http://www.sphinx-doc.org/en/stable/ext/autodoc.html#confval-autodoc_mock_importshttps://github.com/sphinx-doc/sphinx/issues/4182
-autodoc_mock_imports = ['mdf_toolbox', 'pytest', 'globus_sdk.exc']
+# autodoc_mock_imports = ['mdf_toolbox', 'pytest', 'globus_sdk.exc']
 
 # This value selects what content will be inserted into the main body of an autoclass directive.
 # The possible values are:
@@ -102,7 +102,7 @@ autodoc_mock_imports = ['mdf_toolbox', 'pytest', 'globus_sdk.exc']
 # to autoclass.
 # “both”: Both the class ’ and the init method’s docstring are concatenated and inserted.
 # “init”: Only the init method’s docstring is inserted.
-autoclass_content = 'both'
+# autoclass_content = 'class'
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -111,18 +111,19 @@ autoclass_content = 'both'
 # List of themes: basic, alabaster, classic, sphinxdoc, scrolls, agoago, nature,
 # pyramid, haiku, traditional, epub, bizstyle
 #
-html_theme = 'sphinxdoc'
+html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 # html_theme_options = {}
+html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -164,7 +165,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mdf-forge.tex', u'mdf-forge Documentation',
+    (master_doc, 'mdf-forge.tex', 'mdf-forge Documentation',
      'Jonathon Gaff', 'manual'),
 ]
 
@@ -174,7 +175,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mdf-forge', u'mdf-forge Documentation',
+    (master_doc, 'mdf-forge', 'mdf-forge Documentation',
      [author], 1)
 ]
 
@@ -187,7 +188,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'mdf-forge', u'mdf-forge Documentation',
+    (master_doc, 'mdf-forge', 'mdf-forge Documentation',
      author, 'mdf-forge', 'One line description of project.',
      'Miscellaneous'),
 ]
@@ -208,7 +209,7 @@ texinfo_documents = [
 # see http://www.sphinx-doc.org/en/stable/ext/napoleon.html
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
-napoleon_include_init_with_doc = False
+napoleon_include_init_with_doc = True
 napoleon_include_private_with_doc = False
 napoleon_include_special_with_doc = True
 napoleon_use_admonition_for_examples = False
