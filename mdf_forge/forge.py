@@ -822,11 +822,9 @@ class Forge:
 
         Returns:
             *dict*: The status information for the download:
-
                     * **success** (*bool*): ``True`` if the download succeeded. ``False``
-                    if it failed.
+                        if it failed.
                     * **message** (*str*): The error message, if the download failed.
-
         """
         if self.__anonymous:
             print("Error: Anonymous HTTP download not yet supported.")
@@ -1334,7 +1332,7 @@ class Query:
                     If ``False``, will continue current group.
 
                     Example:
-                    
+
                         If the current query is "(term1"
                         .or(close_group=True) => "(term1) OR("
                         .or(close_group=False) => "(term1 OR "

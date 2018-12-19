@@ -40,11 +40,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
-#    'sphinx.ext.intersphinx',
-#    'sphinx.ext.ifconfig',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
-#    'IPython.sphinxext.ipython_console_highlighting',
     'm2r',
     'nbsphinx'
 ]
@@ -68,7 +65,7 @@ templates_path = ['_templates']
 #    '.md': CommonMarkParser,
 # }
 
-source_suffix = ['.rst', '.md', 'ipynb']
+source_suffix = ['.rst', '.md', '.ipynb']
 
 # The master toctree document.
 master_doc = 'index'
