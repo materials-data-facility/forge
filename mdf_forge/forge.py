@@ -280,7 +280,7 @@ class Forge:
     # * Expanded functions
     # ***********************************************
 
-    def exists(self, field, required=True, new_group=False):
+    def match_exists(self, field, required=True, new_group=False):
         """Require a field to exist in the results.
         Matches will have some value in ``field``.
 
@@ -301,7 +301,7 @@ class Forge:
         """
         return self.match_field(field, "*", required=required, new_group=new_group)
 
-    def not_exists(self, field, required=True, new_group=False):
+    def match_not_exists(self, field, new_group=False):
         """Require a field to not exist in the results.
         Matches will not have ``field`` present.
 
@@ -311,8 +311,6 @@ class Forge:
                     using the dot syntax.
                     For example, ``"mdf.source_name"`` is the ``source_name`` field
                     of the ``mdf`` dictionary.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
             new_group (bool): If ``True``, will separate the term into a new parenthetical group.
                     If ``False``, will not.
                     **Default:** ``False``.
@@ -320,7 +318,7 @@ class Forge:
         Returns:
             Forge: Self
         """
-        return self.exclude_field(field, "*", required=required, new_group=new_group)
+        return self.exclude_field(field, "*", new_group=new_group)
 
     def match_range(self, field, start=None, stop=None, inclusive=True,
                     required=True, new_group=False):
@@ -358,7 +356,7 @@ class Forge:
             stop = "*"
         # *-* is the same as field exists
         if start == "*" and stop == "*":
-            return self.exists(field, required=required, new_group=new_group)
+            return self.match_exists(field, required=required, new_group=new_group)
 
         if inclusive:
             value = "[" + str(start) + " TO " + str(stop) + "]"
@@ -366,8 +364,7 @@ class Forge:
             value = "{" + str(start) + " TO " + str(stop) + "}"
         return self.match_field(field, value, required=required, new_group=new_group)
 
-    def exclude_range(self, field, start="*", stop="*", inclusive=True,
-                      required=True, new_group=False):
+    def exclude_range(self, field, start="*", stop="*", inclusive=True, new_group=False):
         """Exclude a ``field:[some range]`` term from the query.
         Matches will not have any ``value`` in the range in the ``field``.
 
@@ -386,8 +383,6 @@ class Forge:
                     If ``False``, the ``start`` and ``stop`` values will not be excluded
                     from the search.
                     **Default:** ``True``.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
             new_group (bool): If ``True``, will separate the term into a new parenthetical group.
                     If ``False``, will not.
                     **Default:** ``False``.
@@ -402,7 +397,7 @@ class Forge:
             stop = "*"
         # *-* is the same as field doesn't exist
         if start == "*" and stop == "*":
-            return self.not_exists(field, required=required, new_group=new_group)
+            return self.match_not_exists(field, new_group=new_group)
 
         if inclusive:
             value = "[" + str(start) + " TO " + str(stop) + "]"

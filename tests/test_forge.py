@@ -2,7 +2,6 @@ import os
 import re
 import types
 
-import globus_sdk
 from globus_sdk.exc import SearchAPIError
 from mdf_forge import forge
 import mdf_toolbox
@@ -239,14 +238,6 @@ def test_query_cleaning():
     assert q10.clean_query() == "term OR term2"
 
 
-# Test properties
-def test_forge_properties():
-    f = forge.Forge(index="mdf")
-    assert type(f.search_client) is globus_sdk.SearchClient
-    assert type(f.transfer_client) is globus_sdk.TransferClient
-    assert type(f.mdf_authorizer) is globus_sdk.RefreshTokenAuthorizer
-
-
 # Sample results for download testing
 example_result1 = {
     "mdf": {
@@ -355,14 +346,16 @@ def check_field(res, field, regex):
         if key == "[]":
             dict_path += "[0]"
         else:
-            dict_path += "['{}']".format(key)
+            dict_path += ".get('{}', {})".format(key, "{}")
     # If no results, set matches to false
     all_match = (len(res) > 0)
     only_match = (len(res) > 0)
     some_match = False
     for r in res:
         vals = eval("r"+dict_path)
-        if type(vals) is not list:
+        if vals == {}:
+            vals = []
+        elif type(vals) is not list:
             vals = [vals]
         # If a result does not contain the value, no match
         if regex not in vals and not any([re.search(str(regex), value) for value in vals]):
@@ -387,13 +380,6 @@ def check_field(res, field, regex):
     else:
         # No match
         return -1
-
-
-def test_forge_alt_clients():
-    f = forge.Forge(index="mdf")
-    assert isinstance(f.search_client, globus_sdk.SearchClient)
-    f2 = forge.Forge(index="mdf", clients={"search": globus_sdk.TransferClient()})
-    assert isinstance(f2.search_client, globus_sdk.TransferClient)
 
 
 def test_forge_match_field():
@@ -421,6 +407,20 @@ def test_forge_exclude_field():
     f.match_field("mdf.resource_type", "record")
     res1 = f.search()
     assert check_field(res1, "material.elements", "Al") == -1
+
+
+def test_forge_match_exists():
+    f = forge.Forge(index="mdf")
+    # Basic usage
+    f.match_exists("services.citrine")
+    assert check_field(f.search(), "services.citrine", ".*") == 0
+
+
+def test_forge_match_not_exists():
+    f = forge.Forge(index="mdf")
+    # Basic usage
+    f.match_not_exists("services.citrine")
+    assert check_field(f.search(), "services.citrine", ".*") == -1
 
 
 def test_forge_match_range():
