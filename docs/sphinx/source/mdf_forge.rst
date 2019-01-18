@@ -1,11 +1,10 @@
-mdf_forge package
-=================
+MDF Forge Client
+================
+..  autoclass:: mdf_forge.Forge
+    :members:
 
-..  toctree::
-    :titlesonly:
+*Advanced*: ``Query`` Class
+===============================
+..  autoclass:: mdf_forge.forge.Query
+    :members:
 
-    modules
-
-----
-
-:doc:`MDF Forge Home <index>`
