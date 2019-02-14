@@ -219,3 +219,17 @@ def test_query_cleaning():
     assert q9.clean_query() == "term OR NOT term2"
     q10 = Query(query_search_client, q="term OR term2 NOT")
     assert q10.clean_query() == "term OR term2"
+
+
+def test_sort():
+    # Sort ascending by atomic number
+    q = Query(query_search_client, q="mdf.source_name:=oqmd", advanced=True)
+    q.add_sort('crystal_structure.number_of_atoms', True)
+    res = q.search('mdf', limit=1)
+    assert res[0]['crystal_structure']['number_of_atoms'] == 1
+
+    # Sort descending by composition
+    q.add_sort('material.composition', False)
+    res = q.search('mdf', limit=1)
+    assert res[0]['crystal_structure']['number_of_atoms'] == 1
+    assert res[0]['material']['composition'].startswith('Zr')

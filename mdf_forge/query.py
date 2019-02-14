@@ -67,6 +67,7 @@ class Query:
         self.__search_client = search_client
         self.query = q or "("
         self.advanced = advanced
+        self.sort_fields = []
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
 
@@ -201,6 +202,24 @@ class Query:
         self.operator("NOT")
         return self
 
+    def add_sort(self, field_name, ascending=True):
+        """Request the search results to be sorted by a certain field
+
+        Multi-level search is performed by first sorting entries by the first field.
+        Entries that are equal in teh first field are then sorted by the second, etc.
+
+        Args:
+            field_name (str): Name of field to sort by
+            ascending (bool): Whether to sort ascending or descending
+        Returns:
+            self
+        """
+
+        self.sort_fields.append({
+            'field_name': field_name,
+            'order': 'asc' if ascending else 'desc'
+        })
+
     def search(self, index, limit=None, info=False, retries=3):
         """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
 
@@ -249,6 +268,11 @@ class Query:
             "limit": limit,
             "offset": 0
         }
+
+        # If supplied, add sorting commands
+        if len(self.sort_fields) > 0:
+            qu['sort'] = self.sort_fields
+
         tries = 0
         errors = []
         while True:
