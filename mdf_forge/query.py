@@ -340,7 +340,7 @@ class Query:
 
         # If aggregate is unnecessary, use Search automatically instead
         if total <= SEARCH_LIMIT:
-            return Query(self.__search_client, q, advanced=True).search(index, limit=total)
+            return Query(self.__search_client, q, advanced=True).search(index)
 
         # Scroll until all results are found
         output = []
