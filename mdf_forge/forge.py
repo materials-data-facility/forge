@@ -157,15 +157,15 @@ class Forge:
         self.__query.negate().field(str(field), str(value))
         return self
 
-    def search(self, q=None, index=None, advanced=None, limit=None, info=False, reset_query=True):
+    def search(self, q=None, index=None, advanced=False, limit=None, info=False, reset_query=True):
         """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
 
         Arguments:
             q (str): The query to execute. **Default:** The current helper-formed query, if any.
                     There must be some query to execute.
             index (str): The Search index to search on. **Default:** The current index.
-            advanced (bool): Manually specify the query mode over any default. Default is ``False``
-                unless any helper functions have been used.
+            advanced (bool): Whether to treat ``q`` as a basic or advanced query.
+                **Default:** ``False``
             limit (int): The maximum number of results to return.
                     The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
                     **Default:** ``SEARCH_LIMIT`` for advanced queries, 10 for basic queries.
@@ -188,9 +188,6 @@ class Forge:
             index = self.index
 
         if q is None:
-            # Override advanced query, if requested
-            if advanced is not None:
-                self.__query.advanced = advanced
             res = self.__query.search(index=index, info=info, limit=limit)
             if reset_query:
                 self.reset_query()

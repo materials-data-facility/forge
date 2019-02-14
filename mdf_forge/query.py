@@ -15,7 +15,8 @@ OP_LIST = ["AND", "OR", "NOT"]
 
 def _clean_query_string(q):
     """Clean up a query string for searching.
-    This method does not access self, so that a search will not change state.
+
+    Removes unmatched parentheses and joining operators.
 
     Args:
         q (str): Query string to be cleaned
@@ -307,15 +308,15 @@ class Query:
 
         # Inform the user if they set an invalid value for the query size
         if scroll_size <= 0:
-            raise AttributeError('Scroll size must be positive')
+            raise AttributeError('Scroll size must greater than zero')
 
         # Get the total number of records
         total = Query(self.__search_client, q,
-                      advanced=True).search(index, limit=1, info=True)[1]["total_query_matches"]
+                      advanced=True).search(index, limit=0, info=True)[1]["total_query_matches"]
 
         # If aggregate is unnecessary, use Search automatically instead
         if total <= SEARCH_LIMIT:
-            return Query(self.__search_client, q, advanced=True).search(index, limit=total+1)
+            return Query(self.__search_client, q, advanced=True).search(index, limit=total)
 
         # Scroll until all results are found
         output = []
