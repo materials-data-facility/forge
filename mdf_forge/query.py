@@ -1,3 +1,4 @@
+import warnings
 import globus_sdk
 import mdf_toolbox
 from tqdm import tqdm
@@ -7,6 +8,37 @@ SEARCH_LIMIT = 10000
 
 # Maximum number of results to return when advanced=False
 NONADVANCED_LIMIT = 10
+
+# List of allowed operators
+OP_LIST = ["AND", "OR", "NOT"]
+
+
+def _clean_query_string(q):
+    """Clean up a query string for searching.
+    This method does not access self, so that a search will not change state.
+
+    Args:
+        q (str): Query string to be cleaned
+
+    Returns:
+        (str) The clean query string.
+    """
+    q = q.replace("()", "").strip()
+    if q.endswith("("):
+        q = q[:-1].strip()
+    # Remove misplaced AND/OR/NOT at end
+    if q[-3:] == "AND" or q[-3:] == "NOT":
+        q = q[:-3]
+    elif q[-2:] == "OR":
+        q = q[:-2]
+
+    # Balance parentheses
+    while q.count("(") > q.count(")"):
+        q += ")"
+    while q.count(")") > q.count("("):
+        q = "(" + q
+
+    return q.strip()
 
 
 class Query:
@@ -19,13 +51,12 @@ class Query:
         which terms are required.
     """
 
-    def __init__(self, search_client, q=None, limit=None, advanced=False):
+    def __init__(self, search_client, q=None, advanced=False):
         """Create a Query object.
 
         Arguments:
             search_client (globus_sdk.SearchClient): The Globus Search client to use for searching.
-            q (str): The query string to start with. **Default:** Not set.
-            limit (int): The maximum number of results to return. **Default:** Not set.
+            q (str): The query string to start with. **Default:** No query information
             advanced (bool): If ``True``, will submit query in "advanced" mode to
                 enable field matches.
                 If ``False``, only basic fulltext term matches will be supported (unless
@@ -34,35 +65,14 @@ class Query:
         """
         self.__search_client = search_client
         self.query = q or "("
-        self.limit = limit
         self.advanced = advanced
         # initialized is True if something has been added to the query
         # __init__(), term(), and field() can change this value to True
-        self.initialized = not self.query == "("
 
-    def __clean_query_string(self, q):
-        """Clean up a query string for searching.
-        This method does not access self, so that a search will not change state.
-
-        Returns:
-            str: The clean query string.
-        """
-        q = q.replace("()", "").strip()
-        if q.endswith("("):
-            q = q[:-1].strip()
-        # Remove misplaced AND/OR/NOT at end
-        if q[-3:] == "AND" or q[-3:] == "NOT":
-            q = q[:-3]
-        elif q[-2:] == "OR":
-            q = q[:-2]
-
-        # Balance parentheses
-        while q.count("(") > q.count(")"):
-            q += ")"
-        while q.count(")") > q.count("("):
-            q = "(" + q
-
-        return q.strip()
+    @property
+    def initialized(self):
+        """Whether the query has been initialized"""
+        return not self.query == "("
 
     def clean_query(self):
         """Returns the current query, cleaned for user consumption.
@@ -70,7 +80,7 @@ class Query:
         Returns:
             str: The clean current query.
         """
-        return self.__clean_query_string(self.query)
+        return _clean_query_string(self.query)
 
     def term(self, term):
         """Add a term to the query.
@@ -82,7 +92,6 @@ class Query:
             Query: Self
         """
         self.query += term
-        self.initialized = True
         return self
 
     def field(self, field, value):
@@ -104,7 +113,6 @@ class Query:
             self.query += field + ":" + value
             # Field matches are advanced queries
             self.advanced = True
-            self.initialized = True
         return self
 
     def operator(self, op, close_group=False):
@@ -114,7 +122,7 @@ class Query:
 
         Arguments:
             op (str): The operator to add. Must be in the OP_LIST.
-                close_group (bool): If ``True``, will end the current parenthetical
+            close_group (bool): If ``True``, will end the current parenthetical
                 group and start a new one.
                 If ``False``, will continue current group.
 
@@ -126,7 +134,6 @@ class Query:
             Query: Self
         """
         # List of allowed operators
-        OP_LIST = ["AND", "OR", "NOT"]
         op = op.upper().strip()
         if op not in OP_LIST:
             print("Error: '", op, "' is not a valid operator.", sep='')
@@ -156,8 +163,7 @@ class Query:
             Query: Self
         """
         if not self.initialized:
-            print("Error: You must add a term before adding an operator.",
-                  "The current query has not been changed.")
+            raise ValueError("You must add a search term before adding an operator.")
         else:
             self.operator("AND", close_group=close_group)
         return self
@@ -180,8 +186,7 @@ class Query:
             Query: Self
         """
         if not self.initialized:
-            print("Error: You must add a term before adding an operator.",
-                  "The current query has not been changed.")
+            raise ValueError("You must add a search term before adding an operator.")
         else:
             self.operator("OR", close_group=close_group)
         return self
@@ -195,22 +200,15 @@ class Query:
         self.operator("NOT")
         return self
 
-    def search(self, q=None, index=None, advanced=None, limit=None, info=False, retries=3):
+    def search(self, index, limit=None, info=False, retries=3):
         """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
 
+        Uses the configuration currently defined by the helper arguments
+
         Arguments:
-            q (str): The query to execute. **Default:** The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. **Required**.
-            advanced (bool): If ``True``, will submit query in "advanced" mode
-                to enable field matches and other advanced features.
-                If ``False``, only basic fulltext term matches will be supported.
-                **Default:** ``False`` if no helpers have been used to build the query, or
-                ``True`` if helpers have been used.
-            limit (int): The maximum number of results to return.
-                    The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
-                    **Default:** ``SEARCH_LIMIT`` for advanced-mode queries,
-                    ``NONADVANCED_LIMIT`` for limited-mode queries.
+            index (str): Name of the index to query
+            limit (int): Maximum number of entries to return. Default 10 for basic queries,
+                and 10000 for advanced.
             info (bool): If ``False``, search will return a list of the results.
                     If ``True``, search will return a tuple containing the results list
                     and other information about the query.
@@ -224,32 +222,32 @@ class Query:
             and a dictionary of query information.
         """
 
-        if q is None:
-            q = self.query
+        # Make sure there is query information present
+        q = self.clean_query()
         if not q.strip("()"):
-            print("Error: No query")
-            return ([], {"error": "No query"}) if info else []
-        if index is None:
-            print("Error: No index specified")
-            return ([], {"error": "No index"}) if info else []
-        else:
-            uuid_index = mdf_toolbox.translate_index(index)
-        if advanced is None or self.advanced:
-            advanced = self.advanced
-        if limit is None:
-            limit = self.limit or (SEARCH_LIMIT if advanced else NONADVANCED_LIMIT)
-        if limit > SEARCH_LIMIT:
-            limit = SEARCH_LIMIT
+            raise ValueError('Query not set')
 
-        q = self.__clean_query_string(q)
+        # Get the UUID fo the index from its short name
+        uuid_index = mdf_toolbox.translate_index(index)
+
+        # Set default size, if needed
+        if limit is None:
+            limit = SEARCH_LIMIT if self.advanced else NONADVANCED_LIMIT
+
+        # Make the query size smaller if it is larger than what Search supports
+        if limit > SEARCH_LIMIT:
+            warnings.warn('Reduced result limit to from {} to the search maximum: {}'.format(
+                limit, SEARCH_LIMIT
+            ), RuntimeWarning)
+            limit = SEARCH_LIMIT
 
         # Simple query (max 10k results)
         qu = {
             "q": q,
-            "advanced": advanced,
+            "advanced": self.advanced,
             "limit": limit,
             "offset": 0
-            }
+        }
         tries = 0
         errors = []
         while True:
@@ -268,8 +266,11 @@ class Query:
             else:
                 break
             tries += 1
+
+        # Remove the wrapping on each entry from Globus search
         res = mdf_toolbox.gmeta_pop(search_res, info=info)
-        # Add additional info
+
+        # Add more information to output
         if info:
             res[1]["query"] = qu
             res[1]["index"] = index
@@ -278,19 +279,15 @@ class Query:
             res[1]["errors"] = errors
         return res
 
-    def aggregate(self, q=None, index=None, retries=1, scroll_size=SEARCH_LIMIT):
+    def aggregate(self, index, scroll_size=SEARCH_LIMIT):
         """Perform an advanced query, and return *all* matching results.
         Will automatically perform multiple queries in order to retrieve all results.
 
-        Note:
-            All ``aggregate`` queries run in advanced mode, and ``info`` is not available.
+        Note: All ``aggregate`` queries run in advanced mode, and the state of Query will
+        be changed to advanced if not already defined
 
         Arguments:
-            q (str): The query to execute. The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. Required.
-            retries (int): The number of times to retry a Search query if it fails.
-                           **Default:** 1.
+            index (str): Name of the index to query
             scroll_size (int): Maximum number of records returned per query. Must be
                     between one and the ``SEARCH_LIMIT`` (inclusive).
                     **Default:** ``SEARCH_LIMIT``.
@@ -298,26 +295,27 @@ class Query:
         Returns:
             list of dict: All matching entries.
         """
-        if q is None:
-            q = self.query
-        if not q.strip("()"):
-            print("Error: No query")
-            return []
-        if index is None:
-            print("Error: No index specified")
-            return []
-        if scroll_size <= 0:
-            scroll_size = 1
 
-        q = self.__clean_query_string(q)
+        # Warn the user we are changing the setting of advanced
+        if not self.advanced:
+            warnings.warn('Changing the setting of this query to advanced', RuntimeWarning)
+
+        # Make sure the query has been set
+        q = self.clean_query()
+        if not q.strip("()"):
+            raise ValueError('Query not set')
+
+        # Inform the user if they set an invalid value for the query size
+        if scroll_size <= 0:
+            raise AttributeError('Scroll size must be positive')
 
         # Get the total number of records
-        total = self.search(q, index=index, limit=0, advanced=True,
-                            info=True)[1]["total_query_matches"]
+        total = Query(self.__search_client, q,
+                      advanced=True).search(index, limit=1, info=True)[1]["total_query_matches"]
 
         # If aggregate is unnecessary, use Search automatically instead
         if total <= SEARCH_LIMIT:
-            return self.search(q, index=index, limit=SEARCH_LIMIT, advanced=True)
+            return Query(self.__search_client, q, advanced=True).search(index, limit=total+1)
 
         # Scroll until all results are found
         output = []
@@ -335,8 +333,8 @@ class Query:
                 while True:
                     query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
                                             scroll_pos, scroll_pos+scroll_width)
-                    results, info = self.search(query, index=index, advanced=True,
-                                                info=True, retries=retries)
+                    results, info = Query(self.__search_client, query,
+                                          advanced=True).search(index, info=True, limit=scroll_size)
 
                     # Check to make sure that all the matching records were returned
                     if info["total_query_matches"] <= len(results):
@@ -345,6 +343,7 @@ class Query:
                     # If not, reduce the scroll width
                     # new_width is proportional with the proportion of results returned
                     new_width = scroll_width * (len(results) // info["total_query_matches"])
+
                     # scroll_width should never be 0, and should only be 1 in rare circumstances
                     scroll_width = new_width if new_width > 1 else max(scroll_width//2, 1)
 
@@ -364,6 +363,7 @@ class Query:
         Returns:
             dict: The full mapping for the index.
         """
+        # TODO: Move elsewhere, I'm not sure if this has anything to do with a Query
         return (self.__search_client.get(
                     "/unstable/index/{}/mapping".format(mdf_toolbox.translate_index(index)))
                 ["mappings"])

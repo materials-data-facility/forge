@@ -6,7 +6,7 @@ import mdf_toolbox
 import requests
 
 
-from mdf_forge.query import Query, SEARCH_LIMIT
+from mdf_forge.query import Query, SEARCH_LIMIT, NONADVANCED_LIMIT
 from tqdm import tqdm
 
 # Maximum recommended number of HTTP file transfers
@@ -157,22 +157,18 @@ class Forge:
         self.__query.negate().field(str(field), str(value))
         return self
 
-    def search(self, q=None, index=None, advanced=False, limit=SEARCH_LIMIT, info=False,
-               reset_query=True):
+    def search(self, q=None, index=None, advanced=None, limit=None, info=False, reset_query=True):
         """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
 
         Arguments:
             q (str): The query to execute. **Default:** The current helper-formed query, if any.
                     There must be some query to execute.
             index (str): The Search index to search on. **Default:** The current index.
-            advanced (bool): If ``True``, will submit query in "advanced" mode
-                    to enable field matches and other advanced features.
-                    If ``False``, only basic fulltext term matches will be supported.
-                    **Default:** ``False`` if no helpers have been used to build the query, or
-                    ``True`` if helpers have been used.
+            advanced (bool): Manually specify the query mode over any default. Default is ``False``
+                unless any helper functions have been used.
             limit (int): The maximum number of results to return.
                     The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
-                    **Default:** ``SEARCH_LIMIT``.
+                    **Default:** ``SEARCH_LIMIT`` for advanced queries, 10 for basic queries.
             info (bool): If ``False``, search will return a list of the results.
                     If ``True``, search will return a tuple containing the results list
                     and other information about the query.
@@ -187,12 +183,24 @@ class Forge:
             If ``info`` is ``True``, *tuple*: The search results,
             and a dictionary of query information.
         """
+        # Get the desired index
         if not index:
             index = self.index
-        res = self.__query.search(q=q, index=index, advanced=advanced, limit=limit, info=info)
-        if reset_query:
-            self.reset_query()
-        return res
+
+        if q is None:
+            # Override advanced query, if requested
+            if advanced is not None:
+                self.__query.advanced = advanced
+            res = self.__query.search(index=index, info=info, limit=limit)
+            if reset_query:
+                self.reset_query()
+            return res
+        else:
+            # Default to a basic query
+            if advanced is None:
+                advanced = False
+            return Query(self.__search_client, q=q, advanced=advanced).search(
+                self.index, info=info, limit=limit)
 
     def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT, reset_query=True):
         """Perform an advanced query, and return *all* matching results.
@@ -216,12 +224,19 @@ class Forge:
         Returns:
             list of dict: All matching records.
         """
+
+        # Get the desired index
         if not index:
             index = self.index
-        res = self.__query.aggregate(q=q, index=index, scroll_size=scroll_size)
-        if reset_query:
-            self.reset_query()
-        return res
+
+        if q is None:
+            res = self.__query.aggregate(index=index, scroll_size=scroll_size)
+            if reset_query:
+                self.reset_query()
+            return res
+        else:
+            return Query(self.__search_client, q=q, advanced=True,
+                         limit=SEARCH_LIMIT).aggregate(self.index, scroll_size=scroll_size)
 
     def show_fields(self, block=None, index=None):
         """Retrieve and return the mapping for the given metadata block.
@@ -550,7 +565,7 @@ class Forge:
         """
         # If nothing supplied, nothing to match
         if years is None and start is None and stop is None:
-            return self
+            raise AttributeError('Either years, a stop year, or a start year must be specified.')
 
         if years is not None and years != []:
             if not isinstance(years, list):
@@ -561,7 +576,7 @@ class Forge:
                     y_int = int(year)
                     years_int.append(y_int)
                 except ValueError:
-                    print("Invalid year: '", year, "'", sep="")
+                    raise AttributeError("Invalid year: '{}'".format(year))
 
             # Only match years if valid years were supplied
             if len(years_int) > 0:
@@ -575,14 +590,12 @@ class Forge:
                 try:
                     start = int(start)
                 except ValueError:
-                    print("Invalid start year: '", start, "'", sep="")
-                    start = None
+                    raise AttributeError("Invalid start year: '{}'".format(start))
             if stop is not None:
                 try:
                     stop = int(stop)
                 except ValueError:
-                    print("Invalid stop year: '", stop, "'", sep="")
-                    stop = None
+                    raise AttributeError("Invalid stop year: '{}'".format(stop))
 
             self.match_range(field="dc.publicationYear", start=start, stop=stop,
                              inclusive=inclusive, required=True, new_group=True)
@@ -754,6 +767,7 @@ class Forge:
         elif isinstance(entries, tuple):
             entries = entries[0]
         ds_ids = set()
+
         # For every entry, extract the appropriate ID
         for entry in entries:
             # For records, extract the parent_id
@@ -766,6 +780,10 @@ class Forge:
             # For anything else (collection), do nothing
             else:
                 pass
+
+        # If no ids are preset, raise an error
+        if len(ds_ids) == 0:
+            raise AttributeError('No dataset records found in these entries')
         return self.match_ids(list(ds_ids)).search()
 
     def get_dataset_version(self, source_name):

@@ -152,17 +152,19 @@ def check_field(res, field, regex):
 
 def test_forge_match_field():
     f = forge.Forge(index="mdf")
+
     # Basic usage
     f.match_field("mdf.source_name", "khazana_vasp")
     res1 = f.search()
     assert check_field(res1, "mdf.source_name", "khazana_vasp") == 0
+
     # Check that query clears
-    assert f.search() == []
+    assert f.current_query() == ""
 
     # Also checking check_field and no-op
     f.match_field("material.elements", "Al")
     f.match_field("", "")
-    res2 = f.search()
+    res2 = f.search()  # Enough so that we'd find at least 1 non-Al example
     assert check_field(res2, "material.elements", "Al") == 1
 
 
@@ -266,6 +268,7 @@ def test_forge_match_source_names():
     # Multi-source
     f.match_source_names(["khazana_vasp", "ta_melting"])
     res2 = f.search()
+
     # res1 is a subset of res2
     assert len(res2) > len(res1)
     assert all([r1 in res2 for r1 in res1])
@@ -353,19 +356,21 @@ def test_forge_match_years(capsys):
     assert check_field(res2, "dc.publicationYear", 2016) == 2
 
     # Wrong input
-    f.match_years(["20x5"]).search()
-    out, err = capsys.readouterr()
-    assert "Invalid year: '20x5'" in out
+    with pytest.raises(AttributeError) as excinfo:
+        f.match_years(["20x5"]).search()
+    assert "Invalid year: '20x5'" in str(excinfo.value)
 
-    f.match_years(start="20x5").search()
-    out, err = capsys.readouterr()
-    assert "Invalid start year: '20x5'" in out
+    with pytest.raises(AttributeError) as excinfo:
+        f.match_years(start="20x5").search()
+    assert "Invalid start year: '20x5'" in str(excinfo.value)
 
-    f.match_years(stop="20x5").search()
-    out, err = capsys.readouterr()
-    assert "Invalid stop year: '20x5'" in out
+    with pytest.raises(AttributeError) as excinfo:
+        f.match_years(stop="20x5").search()
+    assert "Invalid stop year: '20x5'" in str(excinfo.value)
 
-    assert f.match_years() == f
+    with pytest.raises(AttributeError) as excinfo:
+        f.match_years()
+    assert 'Either' in str(excinfo.value)
 
     # Test range
     res4 = f.match_years(start=2015, stop=2015, inclusive=True).search()
@@ -418,10 +423,10 @@ def test_forge_match_repositories():
 
 def test_forge_search(capsys):
     # Error on no query
-    f = forge.Forge(index="mdf")
-    assert f.search() == []
-    out, err = capsys.readouterr()
-    assert "Error: No query" in out
+    with pytest.raises(ValueError) as excinfo:
+        f = forge.Forge(index="mdf")
+        f.search()
+    assert "Query not set" in str(excinfo.value)
 
     # Return info if requested
     res2 = f.search(q="Al", info=False, index="mdf")
@@ -527,7 +532,9 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch nothing
     unknown_entry = {"mdf": {"resource_type": "unknown"}}
-    assert f.fetch_datasets_from_results(unknown_entry) == []
+    with pytest.raises(AttributeError) as excinfo:
+        assert f.fetch_datasets_from_results(unknown_entry) == []
+    assert 'No dataset records found' in str(excinfo.value)
 
 
 def test_forge_aggregate():
@@ -549,8 +556,10 @@ def test_forge_reset_query():
     # Term will return results
     f.match_field("material.elements", "Al")
     f.reset_query()
-    # Specifying no query will return no results
-    assert f.search() == []
+
+    # Specifying no query will raise an error
+    with pytest.raises(ValueError):
+        assert f.search() == []
 
 
 def test_forge_current_query():

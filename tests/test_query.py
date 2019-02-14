@@ -11,13 +11,11 @@ query_search_client = mdf_toolbox.login(credentials={"app_name": "MDF_Forge",
 def test_query_init():
     q1 = Query(query_search_client)
     assert q1.query == "("
-    assert q1.limit is None
     assert q1.advanced is False
     assert q1.initialized is False
 
-    q2 = Query(query_search_client, q="mdf.source_name:oqmd", limit=5, advanced=True)
+    q2 = Query(query_search_client, q="mdf.source_name:oqmd", advanced=True)
     assert q2.query == "mdf.source_name:oqmd"
-    assert q2.limit == 5
     assert q2.advanced is True
     assert q2.initialized is True
 
@@ -86,10 +84,10 @@ def test_query_operator(capsys):
 def test_query_and_join(capsys):
     q = Query(query_search_client)
     # Test not initialized
-    assert q.and_join() == q
-    out, err = capsys.readouterr()
-    assert ("Error: You must add a term before adding an operator. "
-            "The current query has not been changed.") in out
+    with pytest.raises(ValueError) as excinfo:
+        q.and_join()
+    assert 'before adding an operator' in str(excinfo.value)
+
     # Regular join
     q.term("foo").and_join()
     assert q.query == "(foo AND "
@@ -101,13 +99,14 @@ def test_query_and_join(capsys):
 def test_query_or_join(capsys):
     q = Query(query_search_client)
     # Test not initialized
-    assert q.or_join() == q
-    out, err = capsys.readouterr()
-    assert ("Error: You must add a term before adding an operator. "
-            "The current query has not been changed.") in out
+    with pytest.raises(ValueError) as excinfo:
+        q.or_join()
+    assert 'before adding an operator' in str(excinfo.value)
+
     # Regular join
     q.term("foo").or_join()
     assert q.query == "(foo OR "
+
     # close_group
     q.term("bar").or_join(close_group=True)
     assert q.query == "(foo OR bar) OR ("
@@ -116,81 +115,70 @@ def test_query_or_join(capsys):
 def test_query_search(capsys):
     # Error on no query
     q = Query(query_search_client)
-    assert q.search(index="mdf") == []
-    out, err = capsys.readouterr()
-    assert "Error: No query" in out
-    assert q.search(info=True) == ([], {"error": "No query"})
-
-    # Error on no index
-    assert q.search(q="abc") == []
-    out, err = capsys.readouterr()
-    assert "Error: No index specified" in out
-    assert q.search(q="abc", info=True) == ([], {"error": "No index"})
+    with pytest.raises(ValueError) as excinfo:
+        q.search("mdf")
+    assert "Query not set" in str(excinfo.value)
 
     # Return info if requested
-    res2 = q.search(q="Al", index="mdf", info=False)
+    res2 = Query(query_search_client, q="Al").search(index="mdf", info=False)
     assert isinstance(res2, list)
     assert isinstance(res2[0], dict)
-    res3 = q.search(q="Al", index="mdf", info=True)
+    res3 = Query(query_search_client, q="Al").search(index="mdf", info=True)
     assert isinstance(res3, tuple)
     assert isinstance(res3[0], list)
     assert isinstance(res3[0][0], dict)
     assert isinstance(res3[1], dict)
 
     # Check limit
-    res4 = q.search("Al", index="mdf", limit=3)
+    res4 = Query(query_search_client, q="Al").search(index="mdf", info=False, limit=3)
     assert len(res4) == 3
 
     # Check default limits
-    res5 = q.search("Al", index="mdf")
+    res5 = Query(query_search_client, q="Al").search(index="mdf")
     assert len(res5) == 10
-    res6 = q.search("mdf.source_name:nist_xps_db", advanced=True, index="mdf")
+    res6 = Query(query_search_client, q="mdf.source_name:nist_xps_db",
+                 advanced=True).search(index="mdf")
     assert len(res6) == 10000
 
-    # Check limit correction
-    res7 = q.search("mdf.source_name:nist_xps_db", advanced=True, index="mdf", limit=20000)
+    # Check limit correction (should throw a warning)
+    with pytest.warns(RuntimeWarning):
+        res7 = Query(query_search_client, advanced=True,
+                     q="mdf.source_name:nist_xps_db").search("mdf", limit=20000)
     assert len(res7) == 10000
 
     # Test index translation
     # mdf = 1a57bbe5-5272-477f-9d31-343b8258b7a5
-    res8 = q.search(q="data", index="mdf", limit=1, info=True)
+    res8 = Query(query_search_client, q="data").search(index="mdf", info=True, limit=1)
     assert len(res8[0]) == 1
     assert res8[1]["index"] == "mdf"
     assert res8[1]["index_uuid"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
-    res9 = q.search(q="data", index="1a57bbe5-5272-477f-9d31-343b8258b7a5", limit=1, info=True)
-    assert len(res9[0]) == 1
-    assert res9[1]["index"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
-    assert res9[1]["index_uuid"] == "1a57bbe5-5272-477f-9d31-343b8258b7a5"
     with pytest.raises(SearchAPIError):
-        q.search(q="data", index="invalid", limit=1, info=True)
+        Query(query_search_client, q="data").search(index="invalid", info=True, limit=1)
 
 
 def test_query_aggregate(capsys):
-    q = Query(query_search_client)
+    q = Query(query_search_client, advanced=True)
     # Error on no query
-    assert q.aggregate() == []
-    out, err = capsys.readouterr()
-    assert "Error: No query" in out
-
-    # Error on no index
-    assert q.aggregate(q="abc") == []
-    out, err = capsys.readouterr()
-    assert "Error: No index specified" in out
+    with pytest.raises(ValueError) as excinfo:
+        q.aggregate("mdf")
+    assert "Query not set" in str(excinfo.value)
 
     # Basic aggregation
-    res1 = q.aggregate("mdf.source_name:nist_xps_db", index="mdf")
+    q.query = "mdf.source_name:nist_xps_db"
+    res1 = q.aggregate("mdf")
     assert len(res1) > 10000
     assert isinstance(res1[0], dict)
 
     # Multi-dataset aggregation
-    res2 = q.aggregate("(mdf.source_name:nist_xps_db OR mdf.source_name:khazana_vasp)",
-                       index="mdf")
+    q.query = "(mdf.source_name:nist_xps_db OR mdf.source_name:khazana_vasp)"
+    res2 = q.aggregate(index="mdf")
     assert len(res2) > 10000
     assert len(res2) > len(res1)
 
     # Unnecessary aggregation fallback to .search()
     # Check success in Coveralls
-    assert len(q.aggregate("mdf.source_name:khazana_vasp")) < 10000
+    q.query = "mdf.source_name:khazana_vasp"
+    assert len(q.aggregate("mdf")) < 10000
 
 
 def test_query_chaining():
@@ -198,12 +186,12 @@ def test_query_chaining():
     q.field("source_name", "cip")
     q.and_join()
     q.field("elements", "Al")
-    res1 = q.search(limit=10000, index="mdf")
+    res1 = q.search(index="mdf", limit=10000)
     res2 = (Query(query_search_client)
             .field("source_name", "cip")
             .and_join()
             .field("elements", "Al")
-            .search(limit=10000, index="mdf"))
+            .search(index="mdf", limit=10000))
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
