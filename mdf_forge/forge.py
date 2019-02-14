@@ -6,7 +6,7 @@ import mdf_toolbox
 import requests
 
 
-from mdf_forge.query import Query, SEARCH_LIMIT, NONADVANCED_LIMIT
+from mdf_forge.query import Query, SEARCH_LIMIT
 from tqdm import tqdm
 
 # Maximum recommended number of HTTP file transfers
@@ -235,8 +235,8 @@ class Forge:
                 self.reset_query()
             return res
         else:
-            return Query(self.__search_client, q=q, advanced=True,
-                         limit=SEARCH_LIMIT).aggregate(self.index, scroll_size=scroll_size)
+            return Query(self.__search_client, q=q,
+                         advanced=True).aggregate(self.index, scroll_size=scroll_size)
 
     def show_fields(self, block=None, index=None):
         """Retrieve and return the mapping for the given metadata block.
