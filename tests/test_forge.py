@@ -383,9 +383,9 @@ def test_forge_match_years(capsys):
         f.match_years(stop="20x5").search()
     assert "Invalid stop year: '20x5'" in str(excinfo.value)
 
-    with pytest.raises(AttributeError) as excinfo:
-        f.match_years()
-    assert 'Either' in str(excinfo.value)
+    # No filters with no input
+    f.match_years()
+    assert f.current_query() == ""
 
     # Test range
     res4 = f.match_years(start=2015, stop=2015, inclusive=True).search()

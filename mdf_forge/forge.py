@@ -217,9 +217,6 @@ class Forge:
                 self.reset_query()
             return res
         else:
-            # Default to a basic query
-            if advanced is None:
-                advanced = False
             return Query(self.__search_client, q=q, advanced=advanced).search(
                 self.index, info=info, limit=limit)
 
@@ -586,7 +583,7 @@ class Forge:
         """
         # If nothing supplied, nothing to match
         if years is None and start is None and stop is None:
-            raise AttributeError('Either years, a stop year, or a start year must be specified.')
+            return self  # No filtering if no filters provided
 
         if years is not None and years != []:
             if not isinstance(years, list):
