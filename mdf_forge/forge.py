@@ -157,6 +157,30 @@ class Forge:
         self.__query.negate().field(str(field), str(value))
         return self
 
+    def add_sort(self, field, ascending=True):
+        """Sort the search results by a certain field.
+
+        If this method is called multiple times, the later sort fields are given lower priority,
+        and will only be considered when the eariler fields have the same value.
+
+        Arguments:
+            field (str): The field to sort by.
+                    The field must be namespaced according to Elasticsearch rules
+                    using the dot syntax.
+                    For example, ``"mdf.source_name"`` is the ``source_name`` field
+                    of the ``mdf`` dictionary.
+            ascending (bool): If ``True``, the results will be sorted in ascending order.
+                    If ``False``, the results will be sorted in descending order.
+                    **Default**: ``True``.
+        Returns:
+            Query: Self
+        """
+        # No-op on blank field
+        if not field:
+            return self
+        self.__query.add_sort(field, ascending=ascending)
+        return self
+
     def search(self, q=None, index=None, advanced=False, limit=None, info=False, reset_query=True):
         """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
 

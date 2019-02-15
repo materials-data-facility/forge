@@ -202,23 +202,24 @@ class Query:
         self.operator("NOT")
         return self
 
-    def add_sort(self, field_name, ascending=True):
-        """Request the search results to be sorted by a certain field
+    def add_sort(self, field, ascending=True):
+        """Sort the search results by a certain field.
 
-        Multi-level search is performed by first sorting entries by the first field.
-        Entries that are equal in teh first field are then sorted by the second, etc.
+        If this method is called multiple times, the later sort fields are given lower priority,
+        and will only be considered when the eariler fields have the same value.
 
-        Args:
-            field_name (str): Name of field to sort by
-            ascending (bool): Whether to sort ascending or descending
+        Arguments:
+            field (str): The field to sort by, in Elasticsearch dot syntax.
+            ascending (bool): Sort in ascending order? **Default**: ``True``.
+
         Returns:
-            self
+            Query: Self
         """
-
         self.sort_fields.append({
-            'field_name': field_name,
+            'field_name': field,
             'order': 'asc' if ascending else 'desc'
         })
+        return self
 
     def search(self, index, limit=None, info=False, retries=3):
         """Execute a search and return the results, up to the ``SEARCH_LIMIT``.

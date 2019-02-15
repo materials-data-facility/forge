@@ -179,6 +179,21 @@ def test_forge_exclude_field():
     assert check_field(res1, "material.elements", "Al") == -1
 
 
+def test_forge_add_sort():
+    f = forge.Forge(index="mdf")
+    # Sort ascending by atomic number
+    f.match_field("mdf.source_name", "oqmd")
+    f.add_sort('crystal_structure.number_of_atoms', True)
+    res = f.search(limit=1, reset_query=False)
+    assert res[0]['crystal_structure']['number_of_atoms'] == 1
+
+    # Sort descending by composition, with multi-sort
+    f.add_sort('material.composition', False)
+    res = f.search(limit=1)
+    assert res[0]['crystal_structure']['number_of_atoms'] == 1
+    assert res[0]['material']['composition'].startswith('Zr')
+
+
 def test_forge_match_exists():
     f = forge.Forge(index="mdf")
     # Basic usage
