@@ -6,7 +6,6 @@ import mdf_toolbox
 import requests
 
 
-from mdf_forge.query import Query, SEARCH_LIMIT
 from tqdm import tqdm
 
 # Maximum recommended number of HTTP file transfers
@@ -91,6 +90,7 @@ class Forge:
                                                     clients.get("petrel",
                                                                 globus_sdk.NullAuthorizer()))
 
+    '''
         self.__query = Query(self.__search_client)
 
     # ***********************************************
@@ -261,7 +261,7 @@ class Forge:
 
         Arguments:
             block (str): The top-level field to fetch the mapping for (for example, ``"mdf"``),
-                    or the special values ``"all"`` for everything or `None` for just the
+                    or the special values ``None`` for everything or ``"top"`` for just the
                     top-level fields.
                     **Default:** ``None``.
             index (str): The Search index to map. **Default:** The current index.
@@ -272,9 +272,9 @@ class Forge:
         if not index:
             index = self.index
         mapping = self.__query.mapping(index=index)
-        if block == "all":
+        if block is None:
             return mapping
-        elif not block:
+        elif block == "top":
             blocks = set()
             for key in mapping.keys():
                 blocks.add(key.split(".")[0])
@@ -478,6 +478,7 @@ class Forge:
         self.exclude_range(field, value[-1], "*", inclusive=False)
         # Done
         return self
+    '''
 
     def match_source_names(self, source_names):
         """Add sources to match to the query.
