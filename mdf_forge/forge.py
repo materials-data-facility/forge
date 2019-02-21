@@ -13,13 +13,14 @@ from tqdm import tqdm
 HTTP_NUM_LIMIT = 50
 
 
-class Forge:
+class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
     """Forge fetches metadata and files from the Materials Data Facility.
     Forge is intended to be the best way to access MDF data for all users.
     An internal Query object is used to make queries. From the user's perspective,
     an instantiation of Forge will black-box searching.
     """
     __default_index = "mdf"
+    __scroll_field = "mdf.scroll_id"
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
@@ -51,22 +52,19 @@ class Forge:
         Keyword Arguments:
             services (list of str): *Advanced users only.* The services to authenticate with,
                     using Toolbox. An empty list will disable authenticating with Toolbox.
-            clients (dict): *Advanced users only.* Clients or authorizers to use instead
-                    of the defaults.
-
-                    Overwritable clients:
-
-                    * ``search`` (*globus_sdk.SearchClient*)
-                    * ``transfer`` (*globus_sdk.TransferClient*)
-                    * ``data_mdf`` (*GlobusAuthorizer* for MDF NCSA endpoint)
-                    * ``petrel`` (*GlobusAuthorizer* for MDF Petrel endpoint)
-
-                    The clients/authorizers must be properly authenticated.
-                    Forge will still attempt to authenticate with Toolbox
-                    in accordance with the services keyword argument.
+                    Note that even overwriting clients (with other keyword arguments)
+                    does not stop Toolbox authentication. Only a blank ``services`` argument
+                    will disable Toolbox authentication.
+            search_client (globus_sdk.SearchClient): An authenticated SearchClient
+                    to overwrite the default.
+            transfer_client (globus_sdk.TransferClient): An authenticated TransferClient
+                    to override the default.
+            data_mdf_authorizer (globus_sdk.GlobusAuthorizer): An authenticated GlobusAuthorizer
+                    to overwrite the default for accessing the MDF NCSA endpoint.
+            petrel_authorizer (globus_sdk.GlobusAuthorizer): An authenticated GlobusAuthorizer
+                    to override the default.
         """
         self.__anonymous = anonymous
-        self.index = index
         self.local_ep = local_ep
 
         if self.__anonymous:
@@ -77,18 +75,18 @@ class Forge:
             clients = (mdf_toolbox.login(
                                         credentials={
                                             "app_name": self.__app_name,
-                                            "services": services,
-                                            "index": self.index},
+                                            "services": services},
                                         clear_old_tokens=clear_old_tokens) if services else {})
-        user_clients = kwargs.get("clients", {})
-        self.__search_client = user_clients.get("search", clients.get("search", None))
-        self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
-        self.__data_mdf_authorizer = user_clients.get("data_mdf",
-                                                      clients.get("data_mdf",
-                                                                  globus_sdk.NullAuthorizer()))
-        self.__petrel_authorizer = user_clients.get("petrel",
-                                                    clients.get("petrel",
-                                                                globus_sdk.NullAuthorizer()))
+        search_client = kwargs.pop("search_client", clients.get("search", None))
+        self.__transfer_client = kwargs.get("transfer_client", clients.get("transfer", None))
+        self.__data_mdf_authorizer = kwargs.get("data_mdf_authorizer",
+                                                clients.get("data_mdf",
+                                                            globus_sdk.NullAuthorizer()))
+        self.__petrel_authorizer = kwargs.get("petrel_authorizer",
+                                              clients.get("petrel",
+                                                          globus_sdk.NullAuthorizer()))
+        super().__init__(index=index, search_client=search_client,
+                         scroll_field=self.__scroll_field, **kwargs)
 
     '''
         self.__query = Query(self.__search_client)
@@ -704,7 +702,7 @@ class Forge:
         """
         return (self.match_elements(elements, match_all=match_all)
                     .match_source_names(source_names)
-                    .search(index=index, limit=limit, info=info))
+                    .search(limit=limit, info=info))
 
     def search_by_titles(self, titles, index=None, limit=None, info=False):
         """Execute a search for the given titles.
@@ -729,7 +727,7 @@ class Forge:
             If ``info`` is ``True``, *tuple*: The search results,
             and a dictionary of query information.
         """
-        return self.match_titles(titles).search(index=index, limit=limit, info=info)
+        return self.match_titles(titles).search(limit=limit, info=info)
 
     def aggregate_sources(self, source_names, index=None):
         """Aggregate all records with the given ``source_name`` values.
