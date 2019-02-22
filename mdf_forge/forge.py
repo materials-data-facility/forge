@@ -6,7 +6,6 @@ import mdf_toolbox
 import requests
 
 
-from mdf_forge.query import Query, SEARCH_LIMIT
 from tqdm import tqdm
 
 # Maximum recommended number of HTTP file transfers
@@ -14,13 +13,14 @@ from tqdm import tqdm
 HTTP_NUM_LIMIT = 50
 
 
-class Forge:
+class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
     """Forge fetches metadata and files from the Materials Data Facility.
     Forge is intended to be the best way to access MDF data for all users.
     An internal Query object is used to make queries. From the user's perspective,
     an instantiation of Forge will black-box searching.
     """
     __default_index = "mdf"
+    __scroll_field = "mdf.scroll_id"
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
@@ -52,22 +52,19 @@ class Forge:
         Keyword Arguments:
             services (list of str): *Advanced users only.* The services to authenticate with,
                     using Toolbox. An empty list will disable authenticating with Toolbox.
-            clients (dict): *Advanced users only.* Clients or authorizers to use instead
-                    of the defaults.
-
-                    Overwritable clients:
-
-                    * ``search`` (*globus_sdk.SearchClient*)
-                    * ``transfer`` (*globus_sdk.TransferClient*)
-                    * ``data_mdf`` (*GlobusAuthorizer* for MDF NCSA endpoint)
-                    * ``petrel`` (*GlobusAuthorizer* for MDF Petrel endpoint)
-
-                    The clients/authorizers must be properly authenticated.
-                    Forge will still attempt to authenticate with Toolbox
-                    in accordance with the services keyword argument.
+                    Note that even overwriting clients (with other keyword arguments)
+                    does not stop Toolbox authentication. Only a blank ``services`` argument
+                    will disable Toolbox authentication.
+            search_client (globus_sdk.SearchClient): An authenticated SearchClient
+                    to overwrite the default.
+            transfer_client (globus_sdk.TransferClient): An authenticated TransferClient
+                    to override the default.
+            data_mdf_authorizer (globus_sdk.GlobusAuthorizer): An authenticated GlobusAuthorizer
+                    to overwrite the default for accessing the MDF NCSA endpoint.
+            petrel_authorizer (globus_sdk.GlobusAuthorizer): An authenticated GlobusAuthorizer
+                    to override the default.
         """
         self.__anonymous = anonymous
-        self.index = index
         self.local_ep = local_ep
 
         if self.__anonymous:
@@ -78,406 +75,22 @@ class Forge:
             clients = (mdf_toolbox.login(
                                         credentials={
                                             "app_name": self.__app_name,
-                                            "services": services,
-                                            "index": self.index},
+                                            "services": services},
                                         clear_old_tokens=clear_old_tokens) if services else {})
-        user_clients = kwargs.get("clients", {})
-        self.__search_client = user_clients.get("search", clients.get("search", None))
-        self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
-        self.__data_mdf_authorizer = user_clients.get("data_mdf",
-                                                      clients.get("data_mdf",
-                                                                  globus_sdk.NullAuthorizer()))
-        self.__petrel_authorizer = user_clients.get("petrel",
-                                                    clients.get("petrel",
-                                                                globus_sdk.NullAuthorizer()))
-
-        self.__query = Query(self.__search_client)
-
-    # ***********************************************
-    # * Core functions
-    # ***********************************************
-
-    def match_field(self, field, value, required=True, new_group=False):
-        """Add a ``field:value`` term to the query.
-        Matches will have the ``value`` in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            value (str): The value to match.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # No-op on missing arguments
-        if not field and not value:
-            return self
-        # If not the start of the query string, add an AND or OR
-        if self.__query.initialized:
-            if required:
-                self.__query.and_join(new_group)
-            else:
-                self.__query.or_join(new_group)
-        self.__query.field(str(field), str(value))
-        return self
-
-    def exclude_field(self, field, value, new_group=False):
-        """Exclude a ``field:value`` term from the query.
-        Matches will NOT have the ``value`` in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            value (str): The value to exclude.
-            new_group (bool): If ``True``, will separate term the into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # No-op on missing arguments
-        if not field and not value:
-            return self
-        # If not the start of the query string, add an AND
-        # OR would not make much sense for excluding
-        if self.__query.initialized:
-            self.__query.and_join(new_group)
-        self.__query.negate().field(str(field), str(value))
-        return self
-
-    def add_sort(self, field, ascending=True):
-        """Sort the search results by a certain field.
-
-        If this method is called multiple times, the later sort fields are given lower priority,
-        and will only be considered when the eariler fields have the same value.
-
-        Arguments:
-            field (str): The field to sort by.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            ascending (bool): If ``True``, the results will be sorted in ascending order.
-                    If ``False``, the results will be sorted in descending order.
-                    **Default**: ``True``.
-        Returns:
-            Query: Self
-        """
-        # No-op on blank field
-        if not field:
-            return self
-        self.__query.add_sort(field, ascending=ascending)
-        return self
-
-    def search(self, q=None, index=None, advanced=False, limit=None, info=False, reset_query=True):
-        """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
-
-        Arguments:
-            q (str): The query to execute. **Default:** The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. **Default:** The current index.
-            advanced (bool): Whether to treat ``q`` as a basic or advanced query.
-                **Default:** ``False``
-            limit (int): The maximum number of results to return.
-                    The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
-                    **Default:** ``SEARCH_LIMIT`` for advanced queries, 10 for basic queries.
-            info (bool): If ``False``, search will return a list of the results.
-                    If ``True``, search will return a tuple containing the results list
-                    and other information about the query.
-                    **Default:** ``False``.
-            reset_query (bool): If ``True``, will destroy the current query after execution
-                    and start a fresh one.
-                    If ``False``, will keep the current query set.
-                    **Default:** ``True``.
-
-        Returns:
-            If ``info`` is ``False``, *list*: The search results.
-            If ``info`` is ``True``, *tuple*: The search results,
-            and a dictionary of query information.
-        """
-        # Get the desired index
-        if not index:
-            index = self.index
-
-        if q is None:
-            res = self.__query.search(index=index, info=info, limit=limit)
-            if reset_query:
-                self.reset_query()
-            return res
-        else:
-            return Query(self.__search_client, q=q, advanced=advanced).search(
-                self.index, info=info, limit=limit)
-
-    def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT, reset_query=True):
-        """Perform an advanced query, and return *all* matching results.
-        Will automatically perform multiple queries in order to retrieve all results.
-
-        Note:
-            All ``aggregate`` queries run in advanced mode, and ``info`` is not available.
-
-        Arguments:
-            q (str): The query to execute. **Default:** The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. **Default:** The current index.
-            scroll_size (int): Maximum number of records returned per query. Must be
-                    between one and the ``SEARCH_LIMIT`` (inclusive).
-                    **Default:** ``SEARCH_LIMIT``.
-            reset_query (bool): If ``True``, will destroy the current query after execution
-                    and start a fresh one.
-                    If ``False``, will keep the current query set.
-                    **Default:** ``True``.
-
-        Returns:
-            list of dict: All matching records.
-        """
-
-        # Get the desired index
-        if not index:
-            index = self.index
-
-        if q is None:
-            res = self.__query.aggregate(index=index, scroll_size=scroll_size)
-            if reset_query:
-                self.reset_query()
-            return res
-        else:
-            return Query(self.__search_client, q=q,
-                         advanced=True).aggregate(self.index, scroll_size=scroll_size)
-
-    def show_fields(self, block=None, index=None):
-        """Retrieve and return the mapping for the given metadata block.
-
-        Arguments:
-            block (str): The top-level field to fetch the mapping for (for example, ``"mdf"``),
-                    or the special values ``"all"`` for everything or `None` for just the
-                    top-level fields.
-                    **Default:** ``None``.
-            index (str): The Search index to map. **Default:** The current index.
-
-        Returns:
-            dict: ``field:datatype`` pairs.
-        """
-        if not index:
-            index = self.index
-        mapping = self.__query.mapping(index=index)
-        if block == "all":
-            return mapping
-        elif not block:
-            blocks = set()
-            for key in mapping.keys():
-                blocks.add(key.split(".")[0])
-            block_map = {}
-            for b in blocks:
-                block_map[b] = "object"
-        else:
-            block_map = {}
-            for key, value in mapping.items():
-                if key.startswith(block):
-                    block_map[key] = value
-        return block_map
-
-    def current_query(self):
-        """Return the current query string.
-
-        Returns:
-            str: The current query.
-        """
-        return self.__query.clean_query()
-
-    def reset_query(self):
-        """Destroy the current query and create a fresh one.
-        This method should not be chained.
-
-        Returns:
-            None
-        """
-        del self.__query
-        self.__query = Query(self.__search_client)
-        return
+        search_client = kwargs.pop("search_client", clients.get("search", None))
+        self.__transfer_client = kwargs.get("transfer_client", clients.get("transfer", None))
+        self.__data_mdf_authorizer = kwargs.get("data_mdf_authorizer",
+                                                clients.get("data_mdf",
+                                                            globus_sdk.NullAuthorizer()))
+        self.__petrel_authorizer = kwargs.get("petrel_authorizer",
+                                              clients.get("petrel",
+                                                          globus_sdk.NullAuthorizer()))
+        super().__init__(index=index, search_client=search_client,
+                         scroll_field=self.__scroll_field, **kwargs)
 
     # ***********************************************
-    # * Expanded functions
+    # * Field-specific helpers
     # ***********************************************
-
-    def match_exists(self, field, required=True, new_group=False):
-        """Require a field to exist in the results.
-        Matches will have some value in ``field``.
-
-        Arguments:
-            field (str): The field to check.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        return self.match_field(field, "*", required=required, new_group=new_group)
-
-    def match_not_exists(self, field, new_group=False):
-        """Require a field to not exist in the results.
-        Matches will not have ``field`` present.
-
-        Arguments:
-            field (str): The field to check.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        return self.exclude_field(field, "*", new_group=new_group)
-
-    def match_range(self, field, start=None, stop=None, inclusive=True,
-                    required=True, new_group=False):
-        """Add a ``field:[some range]`` term to the query.
-        Matches will have a ``value`` in the range in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            start (str or int): The starting value, or ``None`` for no lower bound.
-                    **Default:** ``None``.
-            stop (str or int): The ending value, or ``None`` for no upper bound.
-                    **Default:** ``None``.
-            inclusive (bool): If ``True``, the ``start`` and ``stop`` values will be included
-                    in the search.
-                    If ``False``, the start and stop values will not be included
-                    in the search.
-                    **Default:** ``True``.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # Accept None as *
-        if start is None:
-            start = "*"
-        if stop is None:
-            stop = "*"
-        # *-* is the same as field exists
-        if start == "*" and stop == "*":
-            return self.match_exists(field, required=required, new_group=new_group)
-
-        if inclusive:
-            value = "[" + str(start) + " TO " + str(stop) + "]"
-        else:
-            value = "{" + str(start) + " TO " + str(stop) + "}"
-        return self.match_field(field, value, required=required, new_group=new_group)
-
-    def exclude_range(self, field, start="*", stop="*", inclusive=True, new_group=False):
-        """Exclude a ``field:[some range]`` term from the query.
-        Matches will not have any ``value`` in the range in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            start (str or int): The starting value, or ``None`` for no lower bound.
-                    **Default:** ``None``.
-            stop (str or int): The ending value, or ``None`` for no upper bound.
-                    **Default:** ``None``.
-            inclusive (bool): If ``True``, the ``start`` and ``stop`` values will be excluded
-                    from the search.
-                    If ``False``, the ``start`` and ``stop`` values will not be excluded
-                    from the search.
-                    **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # Accept None as *
-        if start is None:
-            start = "*"
-        if stop is None:
-            stop = "*"
-        # *-* is the same as field doesn't exist
-        if start == "*" and stop == "*":
-            return self.match_not_exists(field, new_group=new_group)
-
-        if inclusive:
-            value = "[" + str(start) + " TO " + str(stop) + "]"
-        else:
-            value = "{" + str(start) + " TO " + str(stop) + "}"
-        return self.exclude_field(field, value, new_group=new_group)
-
-    # ***********************************************
-    # * Specific functions
-    # ***********************************************
-
-    def exclusive_match(self, field, value):
-        """Match exactly the given value(s), with no other data in the field.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            value (str or list of str): The value(s) to match exactly.
-
-        Returns:
-            Forge: Self
-        """
-        if isinstance(value, str):
-            value = [value]
-
-        # Hacky way to get ES to do exclusive search
-        # Essentially have a big range search that matches NOT anything
-        # Except for the actual values
-        # Example: [foo, bar, baz] =>
-        #   (NOT {* TO foo} AND [foo TO foo] AND NOT {foo to bar} AND [bar TO bar]
-        #    AND NOT {bar TO baz} AND [baz TO baz] AND NOT {baz TO *})
-        # Except it must be sorted to not overlap
-        value.sort()
-
-        # Start with removing everything before first value
-        self.exclude_range(field, "*", value[0], inclusive=False, new_group=True)
-        # Select first value
-        self.match_range(field, value[0], value[0])
-        # Do the rest of the values
-        for index, val in enumerate(value[1:]):
-            self.exclude_range(field, value[index-1], val, inclusive=False)
-            self.match_range(field, val, val)
-        # Add end
-        self.exclude_range(field, value[-1], "*", inclusive=False)
-        # Done
-        return self
 
     def match_source_names(self, source_names):
         """Add sources to match to the query.
@@ -703,7 +316,7 @@ class Forge:
         """
         return (self.match_elements(elements, match_all=match_all)
                     .match_source_names(source_names)
-                    .search(index=index, limit=limit, info=info))
+                    .search(limit=limit, info=info))
 
     def search_by_titles(self, titles, index=None, limit=None, info=False):
         """Execute a search for the given titles.
@@ -728,7 +341,7 @@ class Forge:
             If ``info`` is ``True``, *tuple*: The search results,
             and a dictionary of query information.
         """
-        return self.match_titles(titles).search(index=index, limit=limit, info=info)
+        return self.match_titles(titles).search(limit=limit, info=info)
 
     def aggregate_sources(self, source_names, index=None):
         """Aggregate all records with the given ``source_name`` values.

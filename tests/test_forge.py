@@ -3,7 +3,7 @@ import re
 import types
 
 import pytest
-from mdf_forge import forge
+from mdf_forge import Forge
 
 
 # Sample results for download testing
@@ -150,130 +150,8 @@ def check_field(res, field, regex):
         return -1
 
 
-def test_forge_match_field():
-    f = forge.Forge(index="mdf")
-
-    # Basic usage
-    f.match_field("mdf.source_name", "khazana_vasp")
-    res1 = f.search()
-    assert check_field(res1, "mdf.source_name", "khazana_vasp") == 0
-
-    # Check that query clears
-    assert f.current_query() == ""
-
-    # Also checking check_field and no-op
-    f.match_field("material.elements", "Al")
-    f.match_field("", "")
-    res2 = f.search()  # Enough so that we'd find at least 1 non-Al example
-    assert check_field(res2, "material.elements", "Al") == 1
-
-
-def test_forge_exclude_field():
-    f = forge.Forge(index="mdf")
-    # Basic usage
-    f.exclude_field("material.elements", "Al")
-    f.exclude_field("", "")
-    f.match_field("mdf.source_name", "ab_initio_solute_database")
-    f.match_field("mdf.resource_type", "record")
-    res1 = f.search()
-    assert check_field(res1, "material.elements", "Al") == -1
-
-
-def test_forge_add_sort():
-    f = forge.Forge(index="mdf")
-    # Sort ascending by atomic number
-    f.match_field("mdf.source_name", "oqmd")
-    f.add_sort('crystal_structure.number_of_atoms', True)
-    res = f.search(limit=1, reset_query=False)
-    assert res[0]['crystal_structure']['number_of_atoms'] == 1
-
-    # Sort descending by composition, with multi-sort
-    f.add_sort('material.composition', False)
-    res = f.search(limit=1)
-    assert res[0]['crystal_structure']['number_of_atoms'] == 1
-    assert res[0]['material']['composition'].startswith('Zr')
-
-
-def test_forge_match_exists():
-    f = forge.Forge(index="mdf")
-    # Basic usage
-    f.match_exists("services.citrine")
-    assert check_field(f.search(), "services.citrine", ".*") == 0
-
-
-def test_forge_match_not_exists():
-    f = forge.Forge(index="mdf")
-    # Basic usage
-    f.match_not_exists("services.citrine")
-    assert check_field(f.search(), "services.citrine", ".*") == -1
-
-
-def test_forge_match_range():
-    # Single-value use
-    f = forge.Forge(index="mdf")
-    f.match_range("material.elements", "Al", "Al")
-    res1, info1 = f.search(info=True)
-    assert check_field(res1, "material.elements", "Al") == 1
-
-    res2, info2 = f.search("material.elements:Al", advanced=True, info=True)
-    assert info1["total_query_matches"] == info2["total_query_matches"]
-
-    # Non-matching use, test inclusive
-    f.match_range("material.elements", "Al", "Al", inclusive=False)
-    assert f.search() == []
-
-    # Actual range
-    f.match_range("material.elements", "Al", "Cu")
-    res4, info4 = f.search(info=True)
-    assert info1["total_query_matches"] < info4["total_query_matches"]
-    assert (check_field(res4, "material.elements", "Al") >= 0 or
-            check_field(res4, "material.elements", "Cu") >= 0)
-
-    # Nothing to match
-    assert f.match_range("field", start=None, stop=None) == f
-
-
-def test_forge_exclude_range():
-    # Single-value use
-    f = forge.Forge(index="mdf")
-    f.exclude_range("material.elements", "Am", "*")
-    f.exclude_range("material.elements", "*", "Ak")
-    f.match_field("material.elements", "*")
-    res1, info1 = f.search(info=True)
-    assert (check_field(res1, "material.elements", "Al") == 0 or
-            check_field(res1, "material.elements", "Al") == 2)
-
-    res2, info2 = f.search("material.elements:Al", advanced=True, info=True)
-    assert info1["total_query_matches"] <= info2["total_query_matches"]
-
-    # Non-matching use, test inclusive
-    f.exclude_range("material.elements", "Am", "*")
-    f.exclude_range("material.elements", "*", "Ak")
-    f.exclude_range("material.elements", "Al", "Al", inclusive=False)
-    f.match_field("material.elements", "*")
-    res3, info3 = f.search(info=True)
-    assert info1["total_query_matches"] == info3["total_query_matches"]
-
-    # Nothing to match
-    assert f.exclude_range("field", start=None, stop=None) == f
-
-
-def test_forge_exclusive_match():
-    f = forge.Forge(index="mdf")
-    f.exclusive_match("material.elements", "Al")
-    res1 = f.search()
-    assert check_field(res1, "material.elements", "Al") == 0
-
-    f.exclusive_match("material.elements", ["Al", "Cu"])
-    res2 = f.search()
-    assert check_field(res2, "material.elements", "Al") == 1
-    assert check_field(res2, "material.elements", "Cu") == 1
-    assert check_field(res2, "material.elements", "Cp") == -1
-    assert check_field(res2, "material.elements", "Fe") == -1
-
-
 def test_forge_match_source_names():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # One source
     f.match_source_names("khazana_vasp")
     res1 = f.search()
@@ -295,7 +173,7 @@ def test_forge_match_source_names():
 
 def test_forge_match_ids():
     # Get a couple IDs
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     res0 = f.search("mdf.source_name:khazana_vasp", advanced=True, limit=2)
     id1 = res0[0]["mdf"]["mdf_id"]
     id2 = res0[1]["mdf"]["mdf_id"]
@@ -319,7 +197,7 @@ def test_forge_match_ids():
 
 
 def test_forge_match_elements():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # One element
     f.match_elements("Al")
     res1 = f.search()
@@ -339,7 +217,7 @@ def test_forge_match_elements():
 
 def test_forge_match_titles():
     # One title
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     titles1 = '"High-throughput Ab-initio Dilute Solute Diffusion Database"'
     res1 = f.match_titles(titles1).search()
     assert res1 != []
@@ -361,7 +239,7 @@ def test_forge_match_titles():
 
 def test_forge_match_years(capsys):
     # One year of data/results
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     res1 = f.match_years("2015").search()
     assert res1 != []
     assert check_field(res1, "dc.publicationYear", 2015) == 0
@@ -402,7 +280,7 @@ def test_forge_match_years(capsys):
 
 
 def test_forge_match_resource_types():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # Test one type
     f.match_resource_types("record")
     res1 = f.search(limit=10)
@@ -418,7 +296,7 @@ def test_forge_match_resource_types():
 
 
 def test_forge_match_repositories():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # One repo
     f.match_repositories("DOE")
     res1 = f.search()
@@ -436,41 +314,8 @@ def test_forge_match_repositories():
     assert f.match_repositories("") == f
 
 
-def test_forge_search(capsys):
-    # Error on no query
-    with pytest.raises(ValueError) as excinfo:
-        f = forge.Forge(index="mdf")
-        f.search()
-    assert "Query not set" in str(excinfo.value)
-
-    # Return info if requested
-    res2 = f.search(q="Al", info=False, index="mdf")
-    assert isinstance(res2, list)
-    assert isinstance(res2[0], dict)
-
-    res3 = f.search(q="Al", info=True)
-    assert isinstance(res3, tuple)
-    assert isinstance(res3[0], list)
-    assert isinstance(res3[0][0], dict)
-    assert isinstance(res3[1], dict)
-
-    # Check limit
-    res4 = f.search("Al", limit=3)
-    assert len(res4) == 3
-
-    # Check reset_query
-    f.match_field("mdf.source_name", "ta_melting")
-    res5 = f.search(reset_query=False)
-    res6 = f.search()
-    assert all([r in res6 for r in res5]) and all([r in res5 for r in res6])
-
-    # Check default index
-    f2 = forge.Forge()
-    assert f2.search("data", limit=1, info=True)[1]["index"] == "mdf"
-
-
 def test_forge_search_by_elements():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     elements = ["Cu", "Al"]
     sources = ["oqmd", "nist_xps_db"]
     res1, info1 = f.match_source_names(sources).match_elements(elements).search(limit=10000,
@@ -482,7 +327,7 @@ def test_forge_search_by_elements():
 
 
 def test_forge_search_by_titles():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     titles1 = ['"High-throughput Ab-initio Dilute Solute Diffusion Database"']
     res1 = f.search_by_titles(titles1)
     assert check_field(res1, "dc.titles.[].title",
@@ -496,7 +341,7 @@ def test_forge_search_by_titles():
 
 def test_forge_aggregate_sources():
     # Test limit
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     res1 = f.aggregate_sources("nist_xps_db")
     assert isinstance(res1, list)
     assert len(res1) > 10000
@@ -505,7 +350,7 @@ def test_forge_aggregate_sources():
 
 def test_forge_fetch_datasets_from_results():
     # Get some results
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # Record from OQMD
     res01 = f.search("mdf.source_name:oqmd AND mdf.resource_type:record", advanced=True, limit=1)
     # Record from OQMD with info
@@ -552,40 +397,8 @@ def test_forge_fetch_datasets_from_results():
     assert 'No dataset records found' in str(excinfo.value)
 
 
-def test_forge_aggregate():
-    # Test that aggregate uses the current query properly
-    # And returns results
-    # And respects the reset_query arg
-    f = forge.Forge(index="mdf")
-    f.match_field("mdf.source_name", "nist_xps_db")
-    res1 = f.aggregate(reset_query=False, index="mdf")
-    assert len(res1) > 10000
-    assert check_field(res1, "mdf.source_name", "nist_xps_db") == 0
-    res2 = f.aggregate()
-    assert len(res2) == len(res1)
-    assert check_field(res2, "mdf.source_name", "nist_xps_db") == 0
-
-
-def test_forge_reset_query():
-    f = forge.Forge(index="mdf")
-    # Term will return results
-    f.match_field("material.elements", "Al")
-    f.reset_query()
-
-    # Specifying no query will raise an error
-    with pytest.raises(ValueError):
-        assert f.search() == []
-
-
-def test_forge_current_query():
-    f = forge.Forge(index="mdf")
-    # Query.clean_query() is already tested, just need to check basic functionality
-    f.match_field("field", "value")
-    assert f.current_query() == "(field:value)"
-
-
 def test_forge_http_download(capsys):
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # Simple case
     f.http_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
@@ -654,7 +467,7 @@ def test_forge_http_download(capsys):
 
 @pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
 def test_forge_globus_download():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # Simple case
     f.globus_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
@@ -682,7 +495,7 @@ def test_forge_globus_download():
 
 
 def test_forge_http_stream(capsys):
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     # Simple case
     res1 = f.http_stream(example_result1)
     assert isinstance(res1, types.GeneratorType)
@@ -720,7 +533,7 @@ def test_forge_http_stream(capsys):
 
 
 def test_forge_chaining():
-    f = forge.Forge(index="mdf")
+    f = Forge(index="mdf")
     f.match_field("source_name", "cip")
     f.match_field("material.elements", "Al")
     res1 = f.search()
@@ -728,16 +541,8 @@ def test_forge_chaining():
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
-def test_forge_show_fields():
-    f = forge.Forge(index="mdf")
-    res1 = f.show_fields()
-    assert "mdf" in res1.keys()
-    res2 = f.show_fields(block="mdf", index="mdf")
-    assert "mdf.source_name" in res2.keys()
-
-
 def test_forge_anonymous(capsys):
-    f = forge.Forge(anonymous=True)
+    f = Forge(anonymous=True)
     # Test search
     assert len(f.search("mdf.source_name:ab_initio_solute_database",
                         advanced=True, limit=300)) == 300
@@ -765,7 +570,7 @@ def test_forge_anonymous(capsys):
 
 def test_get_dataset_version():
     # Get the version number of the OQMD
-    f = forge.Forge()
+    f = Forge()
     hits = f.search('mdf.source_name:oqmd AND mdf.resource_type:dataset',
                     advanced=True, limit=1)
     assert hits[0]['mdf']['version'] == f.get_dataset_version('oqmd')
