@@ -465,7 +465,7 @@ def test_forge_http_download(capsys):
     assert "Error: Found unknown resource_type 'foobar'. Skipping entry." in out
 
 
-@pytest.mark.xfail(reason="Test relies on get_local_ep() which can require user input.")
+@pytest.mark.xfail(reason="Test should have a local endpoint.")
 def test_forge_globus_download():
     f = Forge(index="mdf")
     # Simple case

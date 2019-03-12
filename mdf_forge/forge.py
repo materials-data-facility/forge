@@ -613,7 +613,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             results = results[0]
         if not dest_ep:
             if not self.local_ep:
-                self.local_ep = mdf_toolbox.get_local_ep(self.__transfer_client)
+                self.local_ep = globus_sdk.LocalGlobusConnectPersonal().endpoint_id
             dest_ep = self.local_ep
         if not inactivity_time:
             inactivity_time = self.__inactivity_time
