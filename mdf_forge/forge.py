@@ -4,25 +4,23 @@ from urllib.parse import urlparse
 import globus_sdk
 import mdf_toolbox
 import requests
+
+
 from tqdm import tqdm
 
-
 # Maximum recommended number of HTTP file transfers
-# Large transfers are much better suited to Globus Transfer use
+#  Large transfers are much better suited for Globus Transfer
 HTTP_NUM_LIMIT = 50
-# Maximum number of results per search allowed by Globus Search
-SEARCH_LIMIT = 10000
-# Maximum number of results to return when advanced=False
-NONADVANCED_LIMIT = 10
 
 
-class Forge:
+class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
     """Forge fetches metadata and files from the Materials Data Facility.
     Forge is intended to be the best way to access MDF data for all users.
     An internal Query object is used to make queries. From the user's perspective,
     an instantiation of Forge will black-box searching.
     """
     __default_index = "mdf"
+    __scroll_field = "mdf.scroll_id"
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
@@ -54,22 +52,19 @@ class Forge:
         Keyword Arguments:
             services (list of str): *Advanced users only.* The services to authenticate with,
                     using Toolbox. An empty list will disable authenticating with Toolbox.
-            clients (dict): *Advanced users only.* Clients or authorizers to use instead
-                    of the defaults.
-
-                    Overwritable clients:
-
-                    * ``search`` (*globus_sdk.SearchClient*)
-                    * ``transfer`` (*globus_sdk.TransferClient*)
-                    * ``data_mdf`` (*GlobusAuthorizer* for MDF NCSA endpoint)
-                    * ``petrel`` (*GlobusAuthorizer* for MDF Petrel endpoint)
-
-                    The clients/authorizers must be properly authenticated.
-                    Forge will still attempt to authenticate with Toolbox
-                    in accordance with the services keyword argument.
+                    Note that even overwriting clients (with other keyword arguments)
+                    does not stop Toolbox authentication. Only a blank ``services`` argument
+                    will disable Toolbox authentication.
+            search_client (globus_sdk.SearchClient): An authenticated SearchClient
+                    to overwrite the default.
+            transfer_client (globus_sdk.TransferClient): An authenticated TransferClient
+                    to override the default.
+            data_mdf_authorizer (globus_sdk.GlobusAuthorizer): An authenticated GlobusAuthorizer
+                    to overwrite the default for accessing the MDF NCSA endpoint.
+            petrel_authorizer (globus_sdk.GlobusAuthorizer): An authenticated GlobusAuthorizer
+                    to override the default.
         """
         self.__anonymous = anonymous
-        self.index = index
         self.local_ep = local_ep
 
         if self.__anonymous:
@@ -80,373 +75,22 @@ class Forge:
             clients = (mdf_toolbox.login(
                                         credentials={
                                             "app_name": self.__app_name,
-                                            "services": services,
-                                            "index": self.index},
+                                            "services": services},
                                         clear_old_tokens=clear_old_tokens) if services else {})
-        user_clients = kwargs.get("clients", {})
-        self.__search_client = user_clients.get("search", clients.get("search", None))
-        self.__transfer_client = user_clients.get("transfer", clients.get("transfer", None))
-        self.__data_mdf_authorizer = user_clients.get("data_mdf",
-                                                      clients.get("data_mdf",
-                                                                  globus_sdk.NullAuthorizer()))
-        self.__petrel_authorizer = user_clients.get("petrel",
-                                                    clients.get("petrel",
-                                                                globus_sdk.NullAuthorizer()))
-
-        self.__query = Query(self.__search_client)
-
-    # ***********************************************
-    # * Core functions
-    # ***********************************************
-
-    def match_field(self, field, value, required=True, new_group=False):
-        """Add a ``field:value`` term to the query.
-        Matches will have the ``value`` in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            value (str): The value to match.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # No-op on missing arguments
-        if not field and not value:
-            return self
-        # If not the start of the query string, add an AND or OR
-        if self.__query.initialized:
-            if required:
-                self.__query.and_join(new_group)
-            else:
-                self.__query.or_join(new_group)
-        self.__query.field(str(field), str(value))
-        return self
-
-    def exclude_field(self, field, value, new_group=False):
-        """Exclude a ``field:value`` term from the query.
-        Matches will NOT have the ``value`` in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            value (str): The value to exclude.
-            new_group (bool): If ``True``, will separate term the into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # No-op on missing arguments
-        if not field and not value:
-            return self
-        # If not the start of the query string, add an AND
-        # OR would not make much sense for excluding
-        if self.__query.initialized:
-            self.__query.and_join(new_group)
-        self.__query.negate().field(str(field), str(value))
-        return self
-
-    def search(self, q=None, index=None, advanced=False, limit=SEARCH_LIMIT, info=False,
-               reset_query=True):
-        """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
-
-        Arguments:
-            q (str): The query to execute. **Default:** The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. **Default:** The current index.
-            advanced (bool): If ``True``, will submit query in "advanced" mode
-                    to enable field matches and other advanced features.
-                    If ``False``, only basic fulltext term matches will be supported.
-                    **Default:** ``False`` if no helpers have been used to build the query, or
-                    ``True`` if helpers have been used.
-            limit (int): The maximum number of results to return.
-                    The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
-                    **Default:** ``SEARCH_LIMIT``.
-            info (bool): If ``False``, search will return a list of the results.
-                    If ``True``, search will return a tuple containing the results list
-                    and other information about the query.
-                    **Default:** ``False``.
-            reset_query (bool): If ``True``, will destroy the current query after execution
-                    and start a fresh one.
-                    If ``False``, will keep the current query set.
-                    **Default:** ``True``.
-
-        Returns:
-            If ``info`` is ``False``, *list*: The search results.
-            If ``info`` is ``True``, *tuple*: The search results,
-            and a dictionary of query information.
-        """
-        if not index:
-            index = self.index
-        res = self.__query.search(q=q, index=index, advanced=advanced, limit=limit, info=info)
-        if reset_query:
-            self.reset_query()
-        return res
-
-    def aggregate(self, q=None, index=None, scroll_size=SEARCH_LIMIT, reset_query=True):
-        """Perform an advanced query, and return *all* matching results.
-        Will automatically perform multiple queries in order to retrieve all results.
-
-        Note:
-            All ``aggregate`` queries run in advanced mode, and ``info`` is not available.
-
-        Arguments:
-            q (str): The query to execute. **Default:** The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. **Default:** The current index.
-            scroll_size (int): Maximum number of records returned per query. Must be
-                    between one and the ``SEARCH_LIMIT`` (inclusive).
-                    **Default:** ``SEARCH_LIMIT``.
-            reset_query (bool): If ``True``, will destroy the current query after execution
-                    and start a fresh one.
-                    If ``False``, will keep the current query set.
-                    **Default:** ``True``.
-
-        Returns:
-            list of dict: All matching records.
-        """
-        if not index:
-            index = self.index
-        res = self.__query.aggregate(q=q, index=index, scroll_size=scroll_size)
-        if reset_query:
-            self.reset_query()
-        return res
-
-    def show_fields(self, block=None, index=None):
-        """Retrieve and return the mapping for the given metadata block.
-
-        Arguments:
-            block (str): The top-level field to fetch the mapping for (for example, ``"mdf"``),
-                    or the special values ``"all"`` for everything or `None` for just the
-                    top-level fields.
-                    **Default:** ``None``.
-            index (str): The Search index to map. **Default:** The current index.
-
-        Returns:
-            dict: ``field:datatype`` pairs.
-        """
-        if not index:
-            index = self.index
-        mapping = self.__query.mapping(index=index)
-        if block == "all":
-            return mapping
-        elif not block:
-            blocks = set()
-            for key in mapping.keys():
-                blocks.add(key.split(".")[0])
-            block_map = {}
-            for b in blocks:
-                block_map[b] = "object"
-        else:
-            block_map = {}
-            for key, value in mapping.items():
-                if key.startswith(block):
-                    block_map[key] = value
-        return block_map
-
-    def current_query(self):
-        """Return the current query string.
-
-        Returns:
-            str: The current query.
-        """
-        return self.__query.clean_query()
-
-    def reset_query(self):
-        """Destroy the current query and create a fresh one.
-        This method should not be chained.
-
-        Returns:
-            None
-        """
-        del self.__query
-        self.__query = Query(self.__search_client)
-        return
+        search_client = kwargs.pop("search_client", clients.get("search", None))
+        self.__transfer_client = kwargs.get("transfer_client", clients.get("transfer", None))
+        self.__data_mdf_authorizer = kwargs.get("data_mdf_authorizer",
+                                                clients.get("data_mdf",
+                                                            globus_sdk.NullAuthorizer()))
+        self.__petrel_authorizer = kwargs.get("petrel_authorizer",
+                                              clients.get("petrel",
+                                                          globus_sdk.NullAuthorizer()))
+        super().__init__(index=index, search_client=search_client,
+                         scroll_field=self.__scroll_field, **kwargs)
 
     # ***********************************************
-    # * Expanded functions
+    # * Field-specific helpers
     # ***********************************************
-
-    def match_exists(self, field, required=True, new_group=False):
-        """Require a field to exist in the results.
-        Matches will have some value in ``field``.
-
-        Arguments:
-            field (str): The field to check.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        return self.match_field(field, "*", required=required, new_group=new_group)
-
-    def match_not_exists(self, field, new_group=False):
-        """Require a field to not exist in the results.
-        Matches will not have ``field`` present.
-
-        Arguments:
-            field (str): The field to check.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        return self.exclude_field(field, "*", new_group=new_group)
-
-    def match_range(self, field, start=None, stop=None, inclusive=True,
-                    required=True, new_group=False):
-        """Add a ``field:[some range]`` term to the query.
-        Matches will have a ``value`` in the range in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            start (str or int): The starting value, or ``None`` for no lower bound.
-                    **Default:** ``None``.
-            stop (str or int): The ending value, or ``None`` for no upper bound.
-                    **Default:** ``None``.
-            inclusive (bool): If ``True``, the ``start`` and ``stop`` values will be included
-                    in the search.
-                    If ``False``, the start and stop values will not be included
-                    in the search.
-                    **Default:** ``True``.
-            required (bool): If ``True``, will add term with ``AND``.
-                    If ``False``, will use ``OR``. **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # Accept None as *
-        if start is None:
-            start = "*"
-        if stop is None:
-            stop = "*"
-        # *-* is the same as field exists
-        if start == "*" and stop == "*":
-            return self.match_exists(field, required=required, new_group=new_group)
-
-        if inclusive:
-            value = "[" + str(start) + " TO " + str(stop) + "]"
-        else:
-            value = "{" + str(start) + " TO " + str(stop) + "}"
-        return self.match_field(field, value, required=required, new_group=new_group)
-
-    def exclude_range(self, field, start="*", stop="*", inclusive=True, new_group=False):
-        """Exclude a ``field:[some range]`` term from the query.
-        Matches will not have any ``value`` in the range in the ``field``.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            start (str or int): The starting value, or ``None`` for no lower bound.
-                    **Default:** ``None``.
-            stop (str or int): The ending value, or ``None`` for no upper bound.
-                    **Default:** ``None``.
-            inclusive (bool): If ``True``, the ``start`` and ``stop`` values will be excluded
-                    from the search.
-                    If ``False``, the ``start`` and ``stop`` values will not be excluded
-                    from the search.
-                    **Default:** ``True``.
-            new_group (bool): If ``True``, will separate the term into a new parenthetical group.
-                    If ``False``, will not.
-                    **Default:** ``False``.
-
-        Returns:
-            Forge: Self
-        """
-        # Accept None as *
-        if start is None:
-            start = "*"
-        if stop is None:
-            stop = "*"
-        # *-* is the same as field doesn't exist
-        if start == "*" and stop == "*":
-            return self.match_not_exists(field, new_group=new_group)
-
-        if inclusive:
-            value = "[" + str(start) + " TO " + str(stop) + "]"
-        else:
-            value = "{" + str(start) + " TO " + str(stop) + "}"
-        return self.exclude_field(field, value, new_group=new_group)
-
-    # ***********************************************
-    # * Specific functions
-    # ***********************************************
-
-    def exclusive_match(self, field, value):
-        """Match exactly the given value(s), with no other data in the field.
-
-        Arguments:
-            field (str): The field to check for the value.
-                    The field must be namespaced according to Elasticsearch rules
-                    using the dot syntax.
-                    For example, ``"mdf.source_name"`` is the ``source_name`` field
-                    of the ``mdf`` dictionary.
-            value (str or list of str): The value(s) to match exactly.
-
-        Returns:
-            Forge: Self
-        """
-        if isinstance(value, str):
-            value = [value]
-
-        # Hacky way to get ES to do exclusive search
-        # Essentially have a big range search that matches NOT anything
-        # Except for the actual values
-        # Example: [foo, bar, baz] =>
-        #   (NOT {* TO foo} AND [foo TO foo] AND NOT {foo to bar} AND [bar TO bar]
-        #    AND NOT {bar TO baz} AND [baz TO baz] AND NOT {baz TO *})
-        # Except it must be sorted to not overlap
-        value.sort()
-
-        # Start with removing everything before first value
-        self.exclude_range(field, "*", value[0], inclusive=False, new_group=True)
-        # Select first value
-        self.match_range(field, value[0], value[0])
-        # Do the rest of the values
-        for index, val in enumerate(value[1:]):
-            self.exclude_range(field, value[index-1], val, inclusive=False)
-            self.match_range(field, val, val)
-        # Add end
-        self.exclude_range(field, value[-1], "*", inclusive=False)
-        # Done
-        return self
 
     def match_source_names(self, source_names):
         """Add sources to match to the query.
@@ -552,7 +196,7 @@ class Forge:
         """
         # If nothing supplied, nothing to match
         if years is None and start is None and stop is None:
-            return self
+            return self  # No filtering if no filters provided
 
         if years is not None and years != []:
             if not isinstance(years, list):
@@ -563,7 +207,7 @@ class Forge:
                     y_int = int(year)
                     years_int.append(y_int)
                 except ValueError:
-                    print("Invalid year: '", year, "'", sep="")
+                    raise AttributeError("Invalid year: '{}'".format(year))
 
             # Only match years if valid years were supplied
             if len(years_int) > 0:
@@ -577,14 +221,12 @@ class Forge:
                 try:
                     start = int(start)
                 except ValueError:
-                    print("Invalid start year: '", start, "'", sep="")
-                    start = None
+                    raise AttributeError("Invalid start year: '{}'".format(start))
             if stop is not None:
                 try:
                     stop = int(stop)
                 except ValueError:
-                    print("Invalid stop year: '", stop, "'", sep="")
-                    stop = None
+                    raise AttributeError("Invalid stop year: '{}'".format(stop))
 
             self.match_range(field="dc.publicationYear", start=start, stop=stop,
                              inclusive=inclusive, required=True, new_group=True)
@@ -674,7 +316,7 @@ class Forge:
         """
         return (self.match_elements(elements, match_all=match_all)
                     .match_source_names(source_names)
-                    .search(index=index, limit=limit, info=info))
+                    .search(limit=limit, info=info))
 
     def search_by_titles(self, titles, index=None, limit=None, info=False):
         """Execute a search for the given titles.
@@ -699,7 +341,7 @@ class Forge:
             If ``info`` is ``True``, *tuple*: The search results,
             and a dictionary of query information.
         """
-        return self.match_titles(titles).search(index=index, limit=limit, info=info)
+        return self.match_titles(titles).search(limit=limit, info=info)
 
     def aggregate_sources(self, source_names, index=None):
         """Aggregate all records with the given ``source_name`` values.
@@ -756,6 +398,7 @@ class Forge:
         elif isinstance(entries, tuple):
             entries = entries[0]
         ds_ids = set()
+
         # For every entry, extract the appropriate ID
         for entry in entries:
             # For records, extract the parent_id
@@ -768,6 +411,10 @@ class Forge:
             # For anything else (collection), do nothing
             else:
                 pass
+
+        # If no ids are preset, raise an error
+        if len(ds_ids) == 0:
+            raise AttributeError('No dataset records found in these entries')
         return self.match_ids(list(ds_ids)).search()
 
     def get_dataset_version(self, source_name):
@@ -966,7 +613,7 @@ class Forge:
             results = results[0]
         if not dest_ep:
             if not self.local_ep:
-                self.local_ep = mdf_toolbox.get_local_ep(self.__transfer_client)
+                self.local_ep = globus_sdk.LocalGlobusConnectPersonal().endpoint_id
             dest_ep = self.local_ep
         if not inactivity_time:
             inactivity_time = self.__inactivity_time
@@ -1158,368 +805,3 @@ class Forge:
                         yield None
                     else:
                         yield response.text
-
-
-class Query:
-    """
-    Danger:
-        The ``Query`` class is meant for internal ``Forge`` use. General users should not
-        instantiate a ``Query`` object directly, but advanced users may do so at their own risk.
-
-        Using a ``Query`` directly is an officially unsupported behavior
-        and may be subject to breaking, unlisted changes in the future.
-
-    Notes:
-        Query strings may end up wrapped in parentheses, which has no direct effect on the search.
-        Adding terms must be chained with ``and()`` or ``or()``.
-        Terms will not have spaces in between otherwise, and it is desirable to be explicit about
-        which terms are required.
-    """
-    def __init__(self, search_client, q=None, limit=None, advanced=False):
-        """Create a Query object.
-
-        Arguments:
-            search_client (globus_sdk.SearchClient): The Globus Search client to use for searching.
-            q (str): The query string to start with. **Default:** Not set.
-            limit (int): The maximum number of results to return. **Default:** Not set.
-            advanced (bool): If ``True``, will submit query in "advanced" mode to
-                enable field matches.
-                If ``False``, only basic fulltext term matches will be supported (unless
-                ``advanced`` is set after instantiation).
-                **Default:** ``False``.
-        """
-        self.__search_client = search_client
-        self.query = q or "("
-        self.limit = limit
-        self.advanced = advanced
-        # initialized is True if something has been added to the query
-        # __init__(), term(), and field() can change this value to True
-        self.initialized = not self.query == "("
-
-    def __clean_query_string(self, q):
-        """Clean up a query string for searching.
-        This method does not access self, so that a search will not change state.
-
-        Returns:
-            str: The clean query string.
-        """
-        q = q.replace("()", "").strip()
-        if q.endswith("("):
-            q = q[:-1].strip()
-        # Remove misplaced AND/OR/NOT at end
-        if q[-3:] == "AND" or q[-3:] == "NOT":
-            q = q[:-3]
-        elif q[-2:] == "OR":
-            q = q[:-2]
-
-        # Balance parentheses
-        while q.count("(") > q.count(")"):
-            q += ")"
-        while q.count(")") > q.count("("):
-            q = "(" + q
-
-        return q.strip()
-
-    def clean_query(self):
-        """Returns the current query, cleaned for user consumption.
-
-        Returns:
-            str: The clean current query.
-        """
-        return self.__clean_query_string(self.query)
-
-    def term(self, term):
-        """Add a term to the query.
-
-        Arguments:
-            term (str): The term to add.
-
-        Returns:
-            Query: Self
-        """
-        self.query += term
-        self.initialized = True
-        return self
-
-    def field(self, field, value):
-        """Add a ``field:value`` term to the query.
-        Matches will have the ``value`` in the ``field``.
-
-        Note:
-            This method triggers advanced mode.
-
-        Arguments:
-            field (str): The field to check for the value, in Elasticsearch dot syntax.
-            value (str): The value to match.
-
-        Returns:
-            Query: Self
-        """
-        # Cannot add field:value if one is blank
-        if field and value:
-            self.query += field + ":" + value
-            # Field matches are advanced queries
-            self.advanced = True
-            self.initialized = True
-        return self
-
-    def operator(self, op, close_group=False):
-        """Add an operator between terms.
-        There must be a term added before using this method.
-        All operators have helpers, so this method is usually not necessary to directly invoke.
-
-        Arguments:
-            op (str): The operator to add. Must be in the OP_LIST.
-                close_group (bool): If ``True``, will end the current parenthetical
-                group and start a new one.
-                If ``False``, will continue current group.
-
-                Example::
-                    "(foo AND bar)" is one group.
-                    "(foo) AND (bar)" is two groups.
-
-        Returns:
-            Query: Self
-        """
-        # List of allowed operators
-        OP_LIST = ["AND", "OR", "NOT"]
-        op = op.upper().strip()
-        if op not in OP_LIST:
-            print("Error: '", op, "' is not a valid operator.", sep='')
-        else:
-            if close_group:
-                op = ") " + op + " ("
-            else:
-                op = " " + op + " "
-            self.query += op
-        return self
-
-    def and_join(self, close_group=False):
-        """Combine terms with AND.
-        There must be a term added before using this method.
-
-        Arguments:
-            close_group (bool): If ``True``, will end the current group and start a new one.
-                    If ``False``, will continue current group.
-
-                    Example::
-
-                        If the current query is "(term1"
-                        .and(close_group=True) => "(term1) AND ("
-                        .and(close_group=False) => "(term1 AND "
-
-        Returns:
-            Query: Self
-        """
-        if not self.initialized:
-            print("Error: You must add a term before adding an operator.",
-                  "The current query has not been changed.")
-        else:
-            self.operator("AND", close_group=close_group)
-        return self
-
-    def or_join(self, close_group=False):
-        """Combine terms with OR.
-        There must be a term added before using this method.
-
-        Arguments:
-            close_group (bool): If ``True``, will end the current group and start a new one.
-                    If ``False``, will continue current group.
-
-                    Example:
-
-                        If the current query is "(term1"
-                        .or(close_group=True) => "(term1) OR("
-                        .or(close_group=False) => "(term1 OR "
-
-        Returns:
-            Query: Self
-        """
-        if not self.initialized:
-            print("Error: You must add a term before adding an operator.",
-                  "The current query has not been changed.")
-        else:
-            self.operator("OR", close_group=close_group)
-        return self
-
-    def negate(self):
-        """Negates the next added term with NOT.
-
-        Returns:
-            Query: Self
-        """
-        self.operator("NOT")
-        return self
-
-    def search(self, q=None, index=None, advanced=None, limit=None, info=False, retries=3):
-        """Execute a search and return the results, up to the ``SEARCH_LIMIT``.
-
-        Arguments:
-            q (str): The query to execute. **Default:** The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. **Required**.
-            advanced (bool): If ``True``, will submit query in "advanced" mode
-                to enable field matches and other advanced features.
-                If ``False``, only basic fulltext term matches will be supported.
-                **Default:** ``False`` if no helpers have been used to build the query, or
-                ``True`` if helpers have been used.
-            limit (int): The maximum number of results to return.
-                    The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
-                    **Default:** ``SEARCH_LIMIT`` for advanced-mode queries,
-                    ``NONADVANCED_LIMIT`` for limited-mode queries.
-            info (bool): If ``False``, search will return a list of the results.
-                    If ``True``, search will return a tuple containing the results list
-                    and other information about the query.
-                    **Default:** ``False``.
-            retries (int): The number of times to retry a Search query if it fails.
-                           **Default:** 3.
-
-        Returns:
-            If ``info`` is ``False``, *list*: The search results.
-            If ``info`` is ``True``, *tuple*: The search results,
-            and a dictionary of query information.
-        """
-
-        if q is None:
-            q = self.query
-        if not q.strip("()"):
-            print("Error: No query")
-            return ([], {"error": "No query"}) if info else []
-        if index is None:
-            print("Error: No index specified")
-            return ([], {"error": "No index"}) if info else []
-        else:
-            uuid_index = mdf_toolbox.translate_index(index)
-        if advanced is None or self.advanced:
-            advanced = self.advanced
-        if limit is None:
-            limit = self.limit or (SEARCH_LIMIT if advanced else NONADVANCED_LIMIT)
-        if limit > SEARCH_LIMIT:
-            limit = SEARCH_LIMIT
-
-        q = self.__clean_query_string(q)
-
-        # Simple query (max 10k results)
-        qu = {
-            "q": q,
-            "advanced": advanced,
-            "limit": limit,
-            "offset": 0
-            }
-        tries = 0
-        errors = []
-        while True:
-            try:
-                search_res = self.__search_client.post_search(uuid_index, qu)
-            except globus_sdk.SearchAPIError as e:
-                if tries >= retries:
-                    raise
-                else:
-                    errors.append(repr(e))
-            except Exception as e:
-                if tries >= retries:
-                    raise
-                else:
-                    errors.append(repr(e))
-            else:
-                break
-            tries += 1
-        res = mdf_toolbox.gmeta_pop(search_res, info=info)
-        # Add additional info
-        if info:
-            res[1]["query"] = qu
-            res[1]["index"] = index
-            res[1]["index_uuid"] = uuid_index
-            res[1]["retries"] = tries
-            res[1]["errors"] = errors
-        return res
-
-    def aggregate(self, q=None, index=None, retries=1, scroll_size=SEARCH_LIMIT):
-        """Perform an advanced query, and return *all* matching results.
-        Will automatically perform multiple queries in order to retrieve all results.
-
-        Note:
-            All ``aggregate`` queries run in advanced mode, and ``info`` is not available.
-
-        Arguments:
-            q (str): The query to execute. The current helper-formed query, if any.
-                    There must be some query to execute.
-            index (str): The Search index to search on. Required.
-            retries (int): The number of times to retry a Search query if it fails.
-                           **Default:** 1.
-            scroll_size (int): Maximum number of records returned per query. Must be
-                    between one and the ``SEARCH_LIMIT`` (inclusive).
-                    **Default:** ``SEARCH_LIMIT``.
-
-        Returns:
-            list of dict: All matching entries.
-        """
-        if q is None:
-            q = self.query
-        if not q.strip("()"):
-            print("Error: No query")
-            return []
-        if index is None:
-            print("Error: No index specified")
-            return []
-        if scroll_size <= 0:
-            scroll_size = 1
-
-        q = self.__clean_query_string(q)
-
-        # Get the total number of records
-        total = self.search(q, index=index, limit=0, advanced=True,
-                            info=True)[1]["total_query_matches"]
-
-        # If aggregate is unnecessary, use Search automatically instead
-        if total <= SEARCH_LIMIT:
-            return self.search(q, index=index, limit=SEARCH_LIMIT, advanced=True)
-
-        # Scroll until all results are found
-        output = []
-
-        scroll_pos = 0
-        with tqdm(total=total) as pbar:
-            while len(output) < total:
-
-                # Scroll until the width is small enough to get all records
-                #   `scroll_id`s are unique to each dataset. If multiple datasets
-                #   match a certain query, the total number of matching records
-                #   may exceed the maximum that search will return - even if the
-                #   scroll width is much smaller than that maximum
-                scroll_width = scroll_size
-                while True:
-                    query = "(" + q + ') AND (mdf.scroll_id:>=%d AND mdf.scroll_id:<%d)' % (
-                                            scroll_pos, scroll_pos+scroll_width)
-                    results, info = self.search(query, index=index, advanced=True,
-                                                info=True, retries=retries)
-
-                    # Check to make sure that all the matching records were returned
-                    if info["total_query_matches"] <= len(results):
-                        break
-
-                    # If not, reduce the scroll width
-                    # new_width is proportional with the proportion of results returned
-                    new_width = scroll_width * (len(results) // info["total_query_matches"])
-                    # scroll_width should never be 0, and should only be 1 in rare circumstances
-                    scroll_width = new_width if new_width > 1 else max(scroll_width//2, 1)
-
-                # Append the results to the output
-                output.extend(results)
-                pbar.update(len(results))
-                scroll_pos += scroll_width
-
-        return output
-
-    def mapping(self, index):
-        """Fetch the entire mapping for the specified index.
-
-        Arguments:
-            index (str): The index to map.
-
-        Returns:
-            dict: The full mapping for the index.
-        """
-        return (self.__search_client.get(
-                    "/unstable/index/{}/mapping".format(mdf_toolbox.translate_index(index)))
-                ["mappings"])
