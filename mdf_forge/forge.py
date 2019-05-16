@@ -115,7 +115,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         return self
 
     def match_ids(self, mdf_ids):
-        """Match all the IDs in the given ``mdf_id`` list.
+        """Match the IDs in the given ``mdf_id`` list.
 
         Arguments:
             mdf_ids (str or list of str): The IDs to match.
@@ -253,13 +253,12 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             self.match_field(field="mdf.resource_type", value=rt, required=False, new_group=False)
         return self
 
-    def match_repositories(self, repositories, match_all=True):
-        """Match the given repositories.
-        Repositories are MDF-identified collections of datasets from a group
-        or organization.
+    def match_organizations(self, organizations, match_all=True):
+        """Match the given Organizations.
+        Organizations are MDF-registered groups that can apply rules to datasets.
 
         Arguments:
-            repositories (str or list of str): The repositories to match.
+            organizations (str or list of str): The organizations to match.
             match_all (bool): If ``True``, will add with ``AND``.
                     If ``False``, will use ``OR``.
                     **Default:** ``True``.
@@ -267,18 +266,42 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         Returns:
             Forge: Self
         """
-        # If no repos, nothing to match
-        if not repositories:
+        # If no orgs, nothing to match
+        if not organizations:
             return self
-        if isinstance(repositories, str):
-            repositories = [repositories]
-        # First repo should be in new group and required
-        self.match_field(field="mdf.repositories", value=repositories[0],
+        if isinstance(organizations, str):
+            organizations = [organizations]
+        # First org should be in new group and required
+        self.match_field(field="mdf.organizations", value=organizations[0],
                          required=True, new_group=True)
         # Other elements should stay in that group
-        for repo in repositories[1:]:
-            self.match_field(field="mdf.repositories", value=repo, required=match_all,
+        for org in organizations[1:]:
+            self.match_field(field="mdf.organizations", value=org, required=match_all,
                              new_group=False)
+        return self
+
+    def match_dois(self, dois):
+        """Match the given Digital Object Identifiers.
+
+        Arguments:
+            dois (str or list of str): DOIs to match and return.
+
+        Returns:
+            Forge: self
+        """
+        if not dois:
+            return self
+        if isinstance(dois, str):
+            dois = [dois]
+        # Sanitize DOIs - usually contain problem characters
+        # First doi should be in new group and required
+        self.match_field(field="dc.identifier.identifier", value=dois[0],
+                         required=True, new_group=True)
+        # Other sources should stay in that group, and not be required
+        for doi in dois[1:]:
+            self.match_field(field="dc.identifier.identifier", value=doi,
+                             required=False, new_group=False)
+        return self
 
     # ***********************************************
     # * Premade searches
@@ -342,6 +365,31 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             and a dictionary of query information.
         """
         return self.match_titles(titles).search(limit=limit, info=info)
+
+    def search_by_dois(self, dois, index=None, limit=None, info=False):
+        """Execute a search for the given Digital Object Identifiers.
+        ``search_by_dois([x])`` is equivalent to ``match_dois([x]).search()``
+
+        Note:
+            This method will use terms from the current query, and resets the current query.
+
+        Arguments:
+            dois (list of str): The DOIs to find.
+            index (str): The Search index to search on. **Default:** The current index.
+            limit (int): The maximum number of results to return.
+                    The max for this argument is the ``SEARCH_LIMIT`` imposed by Globus Search.
+                    **Default:** ``SEARCH_LIMIT``.
+            info (bool): If ``False``, search will return a list of the results.
+                    If ``True``, search will return a tuple containing the results list
+                    and other information about the query.
+                    **Default:** ``False``.
+
+        Returns:
+            If ``info`` is ``False``, *list*: The search results.
+            If ``info`` is ``True``, *tuple*: The search results,
+            and a dictionary of query information.
+        """
+        return self.match_dois(dois).search(limit=limit, info=info)
 
     def aggregate_sources(self, source_names, index=None):
         """Aggregate all records with the given ``source_name`` values.

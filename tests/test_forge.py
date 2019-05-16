@@ -295,23 +295,46 @@ def test_forge_match_resource_types():
     assert f.match_resource_types("") == f
 
 
-def test_forge_match_repositories():
+# TODO: Enable this test once Organizations are deployed and actually in-use on Prod index
+@pytest.mark.xfail
+def test_forge_match_organizations():
     f = Forge(index="mdf")
     # One repo
-    f.match_repositories("DOE")
+    f.match_organizations("DOE")
     res1 = f.search()
     assert res1 != []
-    check_val1 = check_field(res1, "mdf.repositories", "DOE")
+    check_val1 = check_field(res1, "mdf.organizations", "DOE")
     assert check_val1 == 1
 
     # Multi-repo
-    f.match_repositories(["NIST", "DOE"], match_all=False)
+    f.match_organizations(["NIST", "DOE"], match_all=False)
     res2 = f.search()
-    assert check_field(res2, "mdf.repositories", "DOE") == 2
-    assert check_field(res2, "mdf.repositories", "NIST") == 2
+    assert check_field(res2, "mdf.organizations", "DOE") == 2
+    assert check_field(res2, "mdf.organizations", "NIST") == 2
 
     # No repos
-    assert f.match_repositories("") == f
+    assert f.match_organizations("") == f
+
+
+def test_forge_match_dois():
+    f = Forge(index="mdf")
+    # One doi
+    f.match_dois("https://dx.doi.org/10.13011/M3B36G")
+    res1 = f.search()
+    assert res1 != []
+    assert check_field(res1, "dc.identifier.identifier", "https://dx.doi.org/10.13011/M3B36G") == 0
+
+    # Multiple dois
+    f.match_dois(["https://dx.doi.org/10.13011/M3B36G", "10.test/1"])
+    res2 = f.search()
+
+    # res1 is a subset of res2
+    assert len(res2) > len(res1)
+    assert all([r1 in res2 for r1 in res1])
+    assert check_field(res2, "dc.identifier.identifier", "10.test/1") == 2
+
+    # No doi
+    assert f.match_dois("") == f
 
 
 def test_forge_search_by_elements():
@@ -337,6 +360,12 @@ def test_forge_search_by_titles():
     res2 = f.search_by_titles(titles2)
     assert check_field(res2, "dc.titles.[].title",
                        "NIST X-ray Photoelectron Spectroscopy Database") == 2
+
+
+def test_forge_search_by_dois():
+    f = Forge(index="mdf")
+    res1 = f.search_by_dois("https://dx.doi.org/10.13011/M3B36G")
+    assert check_field(res1, "dc.identifier.identifier", "https://dx.doi.org/10.13011/M3B36G") == 0
 
 
 def test_forge_aggregate_sources():
