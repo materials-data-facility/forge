@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import urlparse
 
 import globus_sdk
@@ -97,6 +98,8 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
 
         Arguments:
             source_names (str or list of str): The ``source_name`` values to match.
+                    ``source_id`` values are also accepted, but are matched without the
+                    additional version information they have.
 
         Returns:
             Forge: Self
@@ -106,6 +109,21 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             return self
         if isinstance(source_names, str):
             source_names = [source_names]
+        # If passed source_ids, strip version info
+        sanitized_names = []
+        for src in source_names:
+            match = re.search("_v[0-9]+\\.[0-9]+$", src)
+
+            # TODO: Remove legacy-form support
+            if not match:
+                match = (re.search("_v[0-9]+-[0-9]+$", src)
+                         or re.search("_v[0-9]+$", src))
+
+            if match:
+                sanitized_names.append(src[:match.start()])
+            else:
+                sanitized_names.append(src)
+        source_names = sanitized_names
         # First source should be in new group and required
         self.match_field(field="mdf.source_name", value=source_names[0],
                          required=True, new_group=True)

@@ -158,8 +158,8 @@ def test_forge_match_source_names():
     assert res1 != []
     assert check_field(res1, "mdf.source_name", "khazana_vasp") == 0
 
-    # Multi-source
-    f.match_source_names(["khazana_vasp", "ta_melting"])
+    # Multi-source, strip version info
+    f.match_source_names(["khazana_vasp", "ta_melting_v3.4"])
     res2 = f.search()
 
     # res1 is a subset of res2
