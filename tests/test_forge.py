@@ -607,3 +607,49 @@ def test_get_dataset_version():
     # Test invalid source_name
     with pytest.raises(ValueError):
         f.get_dataset_version('notreal')
+
+
+def test_describe_field(capsys):
+    f = Forge()
+    # Basic usage (raw=True for ease of testing)
+    res = f.describe_field("dataset", raw=True)
+    assert res["success"]
+    assert "dc" in res["schema"]["properties"].keys()
+    assert res["schema"]["properties"]["mdf"]["properties"]["source_id"]
+    # Specific field
+    res = f.describe_field("dataset", field="dc", raw=True)
+    assert "mdf" not in res["schema"]["properties"].keys()
+    assert "titles" in res["schema"]["properties"].keys()
+    # Special case
+    res = f.describe_field("list", raw=True)
+    assert isinstance(res["schema"], list)
+    assert "mdf" in res["schema"]
+    # Printing to stdout
+    f.describe_field("record")
+    out, err = capsys.readouterr()
+    assert "- custom" in out
+    # Specific field
+    f.describe_field("record", field="mdf")
+    out, err = capsys.readouterr()
+    assert "- custom" not in out
+    assert "- source_id" in out
+
+    # Errors
+    # Invalid resource_type
+    res = f.describe_field("notexists", raw=True)
+    assert res["success"] is False
+    assert res["schema"] is None
+    assert res["error"].startswith("Error 404")
+    # stdout
+    f.describe_field("notexists")
+    out, err = capsys.readouterr()
+    assert "Error 404" in out
+    # Invalid field
+    res = f.describe_field("dataset", field="foo.bar", raw=True)
+    assert res["success"] is False
+    assert res["schema"] is None
+    assert res["error"].startswith("Error: Field 'foo' (from 'foo.bar')")
+    # stdout
+    f.describe_field("dataset", field="foo.bar")
+    out, err = capsys.readouterr()
+    assert "Error: Field 'foo' (from 'foo.bar')" in out
