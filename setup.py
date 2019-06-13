@@ -10,7 +10,7 @@ setup(
                       "Forge allows users to perform simple queries and "
                       "facilitiates moving and synthesizing results."),
     install_requires=[
-        "mdf-toolbox>=0.4.6",
+        "mdf-toolbox>=0.4.7",
         "globus-sdk>=1.7.0",
         "requests>=2.18.4",
         "tqdm>=4.19.4"
