@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import urlparse
 
 import globus_sdk
@@ -19,6 +20,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
     An internal Query object is used to make queries. From the user's perspective,
     an instantiation of Forge will black-box searching.
     """
+    # "Private" variables
     __default_index = "mdf"
     __scroll_field = "mdf.scroll_id"
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
@@ -26,6 +28,9 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
     __app_name = "MDF_Forge"
     __transfer_interval = 60  # 1 minute, in seconds
     __inactivity_time = 1 * 60 * 60  # 1 hour, in seconds
+
+    # "Protected" variables (for dev/debugging)
+    _schemas_url = "https://api.materialsdatafacility.org/schemas/"
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False,
                  clear_old_tokens=False, **kwargs):
@@ -97,6 +102,8 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
 
         Arguments:
             source_names (str or list of str): The ``source_name`` values to match.
+                    ``source_id`` values are also accepted, but are matched without the
+                    additional version information they have.
 
         Returns:
             Forge: Self
@@ -106,6 +113,21 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             return self
         if isinstance(source_names, str):
             source_names = [source_names]
+        # If passed source_ids, strip version info
+        sanitized_names = []
+        for src in source_names:
+            match = re.search("_v[0-9]+\\.[0-9]+$", src)
+
+            # TODO: Remove legacy-form support
+            if not match:
+                match = (re.search("_v[0-9]+-[0-9]+$", src)
+                         or re.search("_v[0-9]+$", src))
+
+            if match:
+                sanitized_names.append(src[:match.start()])
+            else:
+                sanitized_names.append(src)
+        source_names = sanitized_names
         # First source should be in new group and required
         self.match_field(field="mdf.source_name", value=source_names[0],
                          required=True, new_group=True)
@@ -853,3 +875,85 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                         yield None
                     else:
                         yield response.text
+
+    # ***********************************************
+    # * Misc Forge-specific utility functions
+    # ***********************************************
+
+    def describe_field(self, resource_type, field=None, raw=False):
+        """Fetch and display the description of a field in MDF, along with
+        any subfields.
+
+        Arguments:
+            resource_type (str): The type of MDF entry to describe a field from.
+                    This value can be ``"dataset"`` or ``"record``.
+            field (str): The field to describe, in dot notation. The field must be a part
+                    of the provided ``resource_type``. To see all fields in the given
+                    ``resource_type``, use the value ``None``.
+                    **Default:** ``None``
+            raw (bool): When ``False``, will format and print the schema.
+                    When ``True``, will return the raw JSON dictionary instead.
+                    For human consumption, ``False`` is recommended.
+                    **Default:** ``False``
+        """
+        if field == "None" or field == "all":
+            field = None
+
+        res = requests.get(self._schemas_url+resource_type)
+        # Check for success
+        error = None
+        schema = None
+        try:
+            json_res = res.json()
+        except Exception:
+            if res.status_code < 300:
+                error = "Error decoding {} response: {}".format(res.status_code, res.content)
+            else:
+                error = ("Error {}. MDF may be experiencing technical difficulties."
+                         .format(res.status_code))
+        else:
+            if res.status_code >= 300:
+                error = "Error {}: {}".format(res.status_code, json_res["error"])
+            else:
+                # Support (Forge-undocumented) "all" and "list" keywords
+                schema = json_res.get("schema",
+                                      json_res.get("all_schemas",
+                                                   json_res.get("schema_list", {})))
+
+        # If user requested a specific field, extract only that
+        if field and error is None:
+            try:
+                subfields = field.split(".")
+                while len(subfields) > 0:
+                    subfield = subfields.pop(0)
+
+                    # If subfield is not in schema, try pulling out "properties" or "items" first
+                    # "items" must be first to pull "properties" from "items"
+                    if subfield not in schema.keys():
+                        schema = schema.get("items", schema)
+                        schema = schema.get("properties", schema)
+
+                    # Pull out subfield, triggering KeyError if not present
+                    schema = schema[subfield]
+
+            # KeyError here means field not in schema
+            except KeyError as e:
+                error = ("Error: Field {} (from '{}') not found in schema for "
+                         "resource_type '{}'".format(str(e), field, resource_type))
+                schema = None
+
+        # Return if raw=True
+        if raw:
+            return {
+                "success": error is None,
+                "error": error,
+                "schema": schema,
+                "status_code": res.status_code
+            }
+        # Otherwise, print the result
+        else:
+            if error is not None:
+                print(error)
+            else:
+                mdf_toolbox.print_jsonschema(schema)
+        return
