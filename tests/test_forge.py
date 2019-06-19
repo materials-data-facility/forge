@@ -126,7 +126,7 @@ def check_field(res, field, regex):
         elif type(vals) is not list:
             vals = [vals]
         # If a result does not contain the value, no match
-        if regex not in vals and not any([re.search(str(regex), value) for value in vals]):
+        if regex not in vals and not any([re.search(str(regex), str(value)) for value in vals]):
             all_match = False
             only_match = False
         # If a result contains other values, inclusive match
@@ -169,6 +169,26 @@ def test_forge_match_source_names():
 
     # No source
     assert f.match_source_names("") == f
+
+
+def test_forge_test_match_records():
+    f = Forge(index="mdf")
+    # One record
+    f.match_records("cip", 1006)
+    res = f.search()
+    assert len(res) == 1
+    assert check_field(res, "mdf.source_name", "cip") == 0
+    assert check_field(res, "mdf.scroll_id", 1006) == 0
+
+    # Multi-record, strip version info
+    f.match_records("cip_v3.4", [1006, 1002])
+    res = f.search()
+    assert len(res) == 2
+    assert check_field(res, "mdf.source_name", "cip") == 0
+    assert check_field(res, "mdf.scroll_id", 1006) == 2
+
+    # No args
+    assert f.match_records("", "") == f
 
 
 def test_forge_match_ids():

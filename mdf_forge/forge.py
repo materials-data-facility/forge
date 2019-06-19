@@ -136,6 +136,38 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             self.match_field(field="mdf.source_name", value=src, required=False, new_group=False)
         return self
 
+    def match_records(self, source_name, scroll_ids):
+        """Match specific records from a given dataset.
+        Multiple records may be matched, but only one dataset per call.
+
+        Arguments:
+            source_name (str): The ``source_name`` of the records' dataset. The ``source_id``
+                    is also accepted for convenience.
+            scroll_ids (int or list of int): The ``scroll_id`` values of the records to match.
+
+        Returns:
+            Forge: self
+        """
+        if not source_name or not scroll_ids:
+            return self
+        if isinstance(scroll_ids, int):
+            scroll_ids = [scroll_ids]
+        # If passed source_id, strip version info
+        match = re.search("_v[0-9]+\\.[0-9]+$", source_name)
+        if not match:
+            match = (re.search("_v[0-9]+-[0-9]+$", source_name)
+                     or re.search("_v[0-9]+$", source_name))
+        if match:
+            source_name = source_name[:match.start()]
+        # source_name is required, starts new group
+        # First scroll is (nested) new required group
+        # (source:source AND (scroll:scroll0 OR scroll:scroll1 ... ))
+        self.match_field(field="mdf.source_name", value=source_name, required=True, new_group=True)
+        self.match_field(field="mdf.scroll_id", value=scroll_ids[0], required=True, new_group=True)
+        for scroll in scroll_ids[1:]:
+            self.match_field(field="mdf.scroll_id", value=scroll, required=False, new_group=False)
+        return self
+
     def match_ids(self, mdf_ids):
         """Match the IDs in the given ``mdf_id`` list.
 
