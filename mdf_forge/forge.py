@@ -118,11 +118,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         for src in source_names:
             match = re.search("_v[0-9]+\\.[0-9]+$", src)
 
-            # TODO: Remove legacy-form support
-            if not match:
-                match = (re.search("_v[0-9]+-[0-9]+$", src)
-                         or re.search("_v[0-9]+$", src))
-
             if match:
                 sanitized_names.append(src[:match.start()])
             else:
@@ -499,25 +494,14 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             entries = [entries]
         elif isinstance(entries, tuple):
             entries = entries[0]
-        ds_ids = set()
+        # If no entries, error
+        if len(entries) == 0:
+            raise ValueError("No entries provided or found")
 
-        # For every entry, extract the appropriate ID
-        for entry in entries:
-            # For records, extract the parent_id
-            # Most entries should be records here
-            if entry["mdf"]["resource_type"] == "record":
-                ds_ids.add(entry["mdf"]["parent_id"])
-            # For datasets, extract the mdf_id
-            elif entry["mdf"]["resource_type"] == "dataset":
-                ds_ids.add(entry["mdf"]["mdf_id"])
-            # For anything else (collection), do nothing
-            else:
-                pass
+        # Extract source_name from every entry, make unique
+        ds_ids = set([entry["mdf"]["source_name"] for entry in entries])
 
-        # If no ids are preset, raise an error
-        if len(ds_ids) == 0:
-            raise AttributeError('No dataset records found in these entries')
-        return self.match_ids(list(ds_ids)).search()
+        return self.match_source_names(ds_ids).search()
 
     def get_dataset_version(self, source_name):
         """Get the version of a certain dataset.
