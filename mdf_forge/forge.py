@@ -163,27 +163,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             self.match_field(field="mdf.scroll_id", value=scroll, required=False, new_group=False)
         return self
 
-    def match_ids(self, mdf_ids):
-        """Match the IDs in the given ``mdf_id`` list.
-
-        Arguments:
-            mdf_ids (str or list of str): The IDs to match.
-
-        Returns:
-            Forge: Self
-        """
-        # If no IDs are supplied, nothing to match
-        if not mdf_ids:
-            return self
-        if isinstance(mdf_ids, str):
-            mdf_ids = [mdf_ids]
-        # First ID should be in new group and required
-        self.match_field(field="mdf.mdf_id", value=mdf_ids[0], required=True, new_group=True)
-        # Other IDs should stay in that group, and not be required
-        for mid in mdf_ids[1:]:
-            self.match_field(field="mdf.mdf_id", value=mid, required=False, new_group=False)
-        return self
-
     def match_elements(self, elements, match_all=True):
         """Add elemental abbreviations to the query.
 
