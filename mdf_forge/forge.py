@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from urllib.parse import urlparse
@@ -31,6 +32,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
 
     # "Protected" variables (for dev/debugging)
     _schemas_url = "https://api.materialsdatafacility.org/schemas/"
+    _organizations_url = "https://api.materialsdatafacility.org/organizations/"
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False,
                  clear_old_tokens=False, **kwargs):
@@ -951,4 +953,96 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                 print(error)
             else:
                 mdf_toolbox.print_jsonschema(schema)
+        return
+
+    def describe_organization(self, organization, summary=False, raw=False):
+        """Fetch and display the description of an organization registered with MDF.
+
+        Arguments:
+            organization (str): The organization to describe.
+                    This value can also be ``"list"`` to list all organizations' names,
+                    or ``"all"`` to fetch the metadata for every organization (not recommended).
+            summary (bool): When ``True``, will summarize the organization metadata. The
+                    summary just contains the non-technical information about the
+                    organization itself.
+                    When ``False``, will print all of the metadata.
+                    This parameter has no effect if ``raw=True``.
+                    **Default:** ``False``
+            raw (bool): When ``False``, will format and print the organization metadata.
+                    When ``True``, will return the raw JSON dictionary instead.
+                    For human consumption, ``False`` is recommended.
+                    **Default:** ``False``
+        """
+        res = requests.get(self._organizations_url+organization)
+        # Check for success
+        error = None
+        org_res = None
+        try:
+            json_res = res.json()
+        except Exception:
+            if res.status_code < 300:
+                error = "Error decoding {} response: {}".format(res.status_code, res.content)
+            else:
+                error = ("Error {}. MDF may be experiencing technical difficulties."
+                         .format(res.status_code))
+        else:
+            if res.status_code >= 300:
+                error = "Error {}: {}".format(res.status_code, json_res["error"])
+            else:
+                # Support "all" and "list" keywords
+                org_res = json_res.get("organization",
+                                       json_res.get("all_organizations",
+                                                    json_res.get("organization_list", {})))
+
+        # Return if raw=True
+        if raw:
+            return {
+                "success": error is None,
+                "error": error,
+                "organization": org_res,
+                "status_code": res.status_code
+            }
+        # Otherwise, print the result
+        else:
+            if error is not None:
+                print(error)
+            else:
+                # Support "all" and "list"
+                if not isinstance(org_res, list):
+                    org_res = [org_res]
+                for org in org_res:
+                    # Only "list" is non-dict, just print org name and continue
+                    if not isinstance(org, dict):
+                        print(org)
+                        continue
+
+                    print("\n", org["canonical_name"])
+                    # If user just wants a summary, pop the non-summary keys
+                    # Essentially, the summary is non-technical info,
+                    # just describing the org itself - not in MDF context
+                    if summary:
+                        org.pop("canonical_name", None)  # Already printed
+                        org.pop("permission_groups", None)
+                        org.pop("acl", None)
+                        org.pop("data_destinations", None)
+                        org.pop("curation", None)
+                        org.pop("project_blocks", None)
+                        org.pop("required_fields", None)
+                        org.pop("services", None)
+                        # Don't display "None" parents
+                        if not org.get("parent_organizations"):
+                            org.pop("parent_organizations", None)
+
+                    # Print dict as key: value
+                    # All values besides "services" are max single-depth containers
+                    for k, v in org.items():
+                        if not v:
+                            v = "None"
+                        # "services", just prettyprint the dict
+                        if isinstance(v, dict):
+                            print("\t{}: {}".format(k, json.dumps(v, indent=4)))
+                        elif isinstance(v, list):
+                            print("\t{}: {}".format(k, ", ".join([(x or "None") for x in v])))
+                        else:
+                            print("\t{}: {}".format(k, str(v)))
         return

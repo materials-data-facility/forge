@@ -191,31 +191,6 @@ def test_forge_test_match_records():
     assert f.match_records("", "") == f
 
 
-def test_forge_match_ids():
-    # Get a couple IDs
-    f = Forge(index="mdf")
-    res0 = f.search("mdf.source_name:khazana_vasp", advanced=True, limit=2)
-    id1 = res0[0]["mdf"]["mdf_id"]
-    id2 = res0[1]["mdf"]["mdf_id"]
-
-    # One ID
-    f.match_ids(id1)
-    res1 = f.search()
-    assert res1 != []
-    assert check_field(res1, "mdf.mdf_id", id1) == 0
-
-    # Multi-ID
-    f.match_ids([id1, id2])
-    res2 = f.search()
-    # res1 is a subset of res2
-    assert len(res2) > len(res1)
-    assert all([r1 in res2 for r1 in res1])
-    assert check_field(res2, "mdf.mdf_id", id2) == 2
-
-    # No id
-    assert f.match_ids("") == f
-
-
 def test_forge_match_elements():
     f = Forge(index="mdf")
     # One element
@@ -673,3 +648,52 @@ def test_describe_field(capsys):
     f.describe_field("dataset", field="foo.bar")
     out, err = capsys.readouterr()
     assert "Error: Field 'foo' (from 'foo.bar')" in out
+
+
+def test_describe_organization(capsys):
+    f = Forge()
+    # Basic usage (with raw=True)
+    res = f.describe_organization("Argonne National Laboratory", raw=True)
+    assert res["success"]
+    assert isinstance(res["organization"], dict)
+    assert res["organization"]["canonical_name"] == "Argonne National Laboratory"
+    assert "ANL" in res["aliases"]
+    # List
+    res = f.describe_organization("list", raw=True)
+    assert isinstance(res["organization"], list)
+    assert "Center for Hierarchical Materials Design" in res["organization"]
+    # All
+    res = f.describe_organization("all", raw=True)
+    assert isinstance(res["organization"], list)
+    assert isinstance(res["organization"][0], dict)
+    # Print to stdout
+    f.describe_organization("CHiMaD")
+    out, err = capsys.readouterr()
+    assert "canonical_name: Center for Hierarchical Materials Design" in out
+    assert "aliases: CHiMaD" in out
+    assert "permission_groups: public" in out
+    # List
+    f.describe_organization("list")
+    out, err = capsys.readouterr()
+    assert "Center for Hierarchical Materials Design" in out
+    assert "CHiMaD" not in out
+    assert "Argonne National Laboratory" in out
+    assert "ANL" not in out
+    # Summary flag
+    f.describe_organization("chimad", summary=False)
+    out, err = capsys.readouterr()
+    assert "canonical_name: Center for Hierarchical Materials Design" not in out
+    assert "Center for Hierarchical Materials Design" in out
+    assert "aliases: CHiMaD" in out
+    assert "permission_groups: public" not in out
+
+    # Errors
+    # Invalid org
+    res = f.describe_organization("foobar", raw=True)
+    assert res["success"] is False
+    assert "Error 404" in res["error"]
+    assert res["status_code"] == 404
+    # stdout
+    res = f.describe_organization("foobar")
+    out, err = capsys.readouterr()
+    assert "Error 404" in out
