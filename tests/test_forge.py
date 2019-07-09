@@ -2,7 +2,9 @@ import os
 import re
 import types
 
+import mdf_toolbox
 import pytest
+
 from mdf_forge import Forge
 
 
@@ -393,11 +395,11 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch single dataset
     res1 = f.fetch_datasets_from_results(res01[0])
-    assert res1[0] == oqmd
+    assert mdf_toolbox.insensitive_comparison(res1[0], oqmd)
 
     # Fetch dataset with results + info
     res2 = f.fetch_datasets_from_results(res02)
-    assert res2[0] == oqmd
+    assert mdf_toolbox.insensitive_comparison(res2[0], oqmd)
 
     # Fetch multiple datasets
     rtemp = res01+res03
@@ -408,7 +410,7 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch dataset from dataset
     res4 = f.fetch_datasets_from_results(res04)
-    assert res4 == res04
+    assert mdf_toolbox.insensitive_comparison(res4, res04)
 
     # Fetch entries from current query
     f.match_source_names("nist_xps_db")
