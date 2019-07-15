@@ -292,21 +292,19 @@ def test_forge_match_resource_types():
     assert f.match_resource_types("") == f
 
 
-# TODO: Enable this test once Organizations are deployed and actually in-use on Prod index
-@pytest.mark.xfail
 def test_forge_match_organizations():
     f = Forge(index="mdf")
     # One repo
-    f.match_organizations("DOE")
+    f.match_organizations("NIST")
     res1 = f.search()
     assert res1 != []
-    check_val1 = check_field(res1, "mdf.organizations", "DOE")
+    check_val1 = check_field(res1, "mdf.organizations", "NIST")
     assert check_val1 == 1
 
     # Multi-repo
-    f.match_organizations(["NIST", "DOE"], match_all=False)
+    f.match_organizations(["NIST", "PRISMS"], match_all=False)
     res2 = f.search()
-    assert check_field(res2, "mdf.organizations", "DOE") == 2
+    assert check_field(res2, "mdf.organizations", "PRISMS") == 2
     assert check_field(res2, "mdf.organizations", "NIST") == 2
 
     # No repos
@@ -418,9 +416,7 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch nothing
     unknown_entry = {"mdf": {"resource_type": "unknown"}}
-    with pytest.raises(AttributeError) as excinfo:
-        assert f.fetch_datasets_from_results(unknown_entry) == []
-    assert 'No dataset records found' in str(excinfo.value)
+    assert f.fetch_datasets_from_results(unknown_entry) == []
 
 
 def test_forge_http_download(capsys):
@@ -659,7 +655,7 @@ def test_describe_organization(capsys):
     assert res["success"]
     assert isinstance(res["organization"], dict)
     assert res["organization"]["canonical_name"] == "Argonne National Laboratory"
-    assert "ANL" in res["aliases"]
+    assert "ANL" in res["organization"]["aliases"]
     # List
     res = f.describe_organization("list", raw=True)
     assert isinstance(res["organization"], list)
@@ -682,7 +678,7 @@ def test_describe_organization(capsys):
     assert "Argonne National Laboratory" in out
     assert "ANL" not in out
     # Summary flag
-    f.describe_organization("chimad", summary=False)
+    f.describe_organization("chimad", summary=True)
     out, err = capsys.readouterr()
     assert "canonical_name: Center for Hierarchical Materials Design" not in out
     assert "Center for Hierarchical Materials Design" in out

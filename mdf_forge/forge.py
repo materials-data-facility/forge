@@ -479,10 +479,13 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         if len(entries) == 0:
             raise ValueError("No entries provided or found")
 
-        # Extract source_name from every entry, make unique
-        ds_ids = set([entry["mdf"]["source_name"] for entry in entries])
+        # Extract source_name from every entry, make unique, skip invalid entries
+        ds_ids = set([entry["mdf"]["source_name"] for entry in entries
+                      if entry.get("mdf", {}).get("source_name")])
+        if not ds_ids:
+            return []
 
-        return self.match_source_names(ds_ids).search()
+        return self.match_source_names(ds_ids).match_resource_types("dataset").search()
 
     def get_dataset_version(self, source_name):
         """Get the version of a certain dataset.
