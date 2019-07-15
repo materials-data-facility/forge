@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from urllib.parse import urlparse
@@ -31,6 +32,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
 
     # "Protected" variables (for dev/debugging)
     _schemas_url = "https://api.materialsdatafacility.org/schemas/"
+    _organizations_url = "https://api.materialsdatafacility.org/organizations/"
 
     def __init__(self, index=__default_index, local_ep=None, anonymous=False,
                  clear_old_tokens=False, **kwargs):
@@ -118,11 +120,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         for src in source_names:
             match = re.search("_v[0-9]+\\.[0-9]+$", src)
 
-            # TODO: Remove legacy-form support
-            if not match:
-                match = (re.search("_v[0-9]+-[0-9]+$", src)
-                         or re.search("_v[0-9]+$", src))
-
             if match:
                 sanitized_names.append(src[:match.start()])
             else:
@@ -136,25 +133,36 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             self.match_field(field="mdf.source_name", value=src, required=False, new_group=False)
         return self
 
-    def match_ids(self, mdf_ids):
-        """Match the IDs in the given ``mdf_id`` list.
+    def match_records(self, source_name, scroll_ids):
+        """Match specific records from a given dataset.
+        Multiple records may be matched, but only one dataset per call.
 
         Arguments:
-            mdf_ids (str or list of str): The IDs to match.
+            source_name (str): The ``source_name`` of the records' dataset. The ``source_id``
+                    is also accepted for convenience.
+            scroll_ids (int or list of int): The ``scroll_id`` values of the records to match.
 
         Returns:
-            Forge: Self
+            Forge: self
         """
-        # If no IDs are supplied, nothing to match
-        if not mdf_ids:
+        if not source_name or not scroll_ids:
             return self
-        if isinstance(mdf_ids, str):
-            mdf_ids = [mdf_ids]
-        # First ID should be in new group and required
-        self.match_field(field="mdf.mdf_id", value=mdf_ids[0], required=True, new_group=True)
-        # Other IDs should stay in that group, and not be required
-        for mid in mdf_ids[1:]:
-            self.match_field(field="mdf.mdf_id", value=mid, required=False, new_group=False)
+        if isinstance(scroll_ids, int):
+            scroll_ids = [scroll_ids]
+        # If passed source_id, strip version info
+        match = re.search("_v[0-9]+\\.[0-9]+$", source_name)
+        if not match:
+            match = (re.search("_v[0-9]+-[0-9]+$", source_name)
+                     or re.search("_v[0-9]+$", source_name))
+        if match:
+            source_name = source_name[:match.start()]
+        # source_name is required, starts new group
+        # First scroll is (nested) new required group
+        # (source:source AND (scroll:scroll0 OR scroll:scroll1 ... ))
+        self.match_field(field="mdf.source_name", value=source_name, required=True, new_group=True)
+        self.match_field(field="mdf.scroll_id", value=scroll_ids[0], required=True, new_group=True)
+        for scroll in scroll_ids[1:]:
+            self.match_field(field="mdf.scroll_id", value=scroll, required=False, new_group=False)
         return self
 
     def match_elements(self, elements, match_all=True):
@@ -467,25 +475,17 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             entries = [entries]
         elif isinstance(entries, tuple):
             entries = entries[0]
-        ds_ids = set()
+        # If no entries, error
+        if len(entries) == 0:
+            raise ValueError("No entries provided or found")
 
-        # For every entry, extract the appropriate ID
-        for entry in entries:
-            # For records, extract the parent_id
-            # Most entries should be records here
-            if entry["mdf"]["resource_type"] == "record":
-                ds_ids.add(entry["mdf"]["parent_id"])
-            # For datasets, extract the mdf_id
-            elif entry["mdf"]["resource_type"] == "dataset":
-                ds_ids.add(entry["mdf"]["mdf_id"])
-            # For anything else (collection), do nothing
-            else:
-                pass
+        # Extract source_name from every entry, make unique, skip invalid entries
+        ds_ids = set([entry["mdf"]["source_name"] for entry in entries
+                      if entry.get("mdf", {}).get("source_name")])
+        if not ds_ids:
+            return []
 
-        # If no ids are preset, raise an error
-        if len(ds_ids) == 0:
-            raise AttributeError('No dataset records found in these entries')
-        return self.match_ids(list(ds_ids)).search()
+        return self.match_source_names(ds_ids).match_resource_types("dataset").search()
 
     def get_dataset_version(self, source_name):
         """Get the version of a certain dataset.
@@ -956,4 +956,96 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                 print(error)
             else:
                 mdf_toolbox.print_jsonschema(schema)
+        return
+
+    def describe_organization(self, organization, summary=False, raw=False):
+        """Fetch and display the description of an organization registered with MDF.
+
+        Arguments:
+            organization (str): The organization to describe.
+                    This value can also be ``"list"`` to list all organizations' names,
+                    or ``"all"`` to fetch the metadata for every organization (not recommended).
+            summary (bool): When ``True``, will summarize the organization metadata. The
+                    summary just contains the non-technical information about the
+                    organization itself.
+                    When ``False``, will print all of the metadata.
+                    This parameter has no effect if ``raw=True``.
+                    **Default:** ``False``
+            raw (bool): When ``False``, will format and print the organization metadata.
+                    When ``True``, will return the raw JSON dictionary instead.
+                    For human consumption, ``False`` is recommended.
+                    **Default:** ``False``
+        """
+        res = requests.get(self._organizations_url+organization)
+        # Check for success
+        error = None
+        org_res = None
+        try:
+            json_res = res.json()
+        except Exception:
+            if res.status_code < 300:
+                error = "Error decoding {} response: {}".format(res.status_code, res.content)
+            else:
+                error = ("Error {}. MDF may be experiencing technical difficulties."
+                         .format(res.status_code))
+        else:
+            if res.status_code >= 300:
+                error = "Error {}: {}".format(res.status_code, json_res["error"])
+            else:
+                # Support "all" and "list" keywords
+                org_res = json_res.get("organization",
+                                       json_res.get("all_organizations",
+                                                    json_res.get("organization_list", {})))
+
+        # Return if raw=True
+        if raw:
+            return {
+                "success": error is None,
+                "error": error,
+                "organization": org_res,
+                "status_code": res.status_code
+            }
+        # Otherwise, print the result
+        else:
+            if error is not None:
+                print(error)
+            else:
+                # Support "all" and "list"
+                if not isinstance(org_res, list):
+                    org_res = [org_res]
+                for org in org_res:
+                    # Only "list" is non-dict, just print org name and continue
+                    if not isinstance(org, dict):
+                        print(org)
+                        continue
+
+                    print("\n", org["canonical_name"])
+                    # If user just wants a summary, pop the non-summary keys
+                    # Essentially, the summary is non-technical info,
+                    # just describing the org itself - not in MDF context
+                    if summary:
+                        org.pop("canonical_name", None)  # Already printed
+                        org.pop("permission_groups", None)
+                        org.pop("acl", None)
+                        org.pop("data_destinations", None)
+                        org.pop("curation", None)
+                        org.pop("project_blocks", None)
+                        org.pop("required_fields", None)
+                        org.pop("services", None)
+                        # Don't display "None" parents
+                        if not org.get("parent_organizations"):
+                            org.pop("parent_organizations", None)
+
+                    # Print dict as key: value
+                    # All values besides "services" are max single-depth containers
+                    for k, v in org.items():
+                        if not v:
+                            v = "None"
+                        # "services", just prettyprint the dict
+                        if isinstance(v, dict):
+                            print("\t{}: {}".format(k, json.dumps(v, indent=4)))
+                        elif isinstance(v, list):
+                            print("\t{}: {}".format(k, ", ".join([(x or "None") for x in v])))
+                        else:
+                            print("\t{}: {}".format(k, str(v)))
         return

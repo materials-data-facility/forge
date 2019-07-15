@@ -2,7 +2,9 @@ import os
 import re
 import types
 
+import mdf_toolbox
 import pytest
+
 from mdf_forge import Forge
 
 
@@ -126,7 +128,7 @@ def check_field(res, field, regex):
         elif type(vals) is not list:
             vals = [vals]
         # If a result does not contain the value, no match
-        if regex not in vals and not any([re.search(str(regex), value) for value in vals]):
+        if regex not in vals and not any([re.search(str(regex), str(value)) for value in vals]):
             all_match = False
             only_match = False
         # If a result contains other values, inclusive match
@@ -171,29 +173,24 @@ def test_forge_match_source_names():
     assert f.match_source_names("") == f
 
 
-def test_forge_match_ids():
-    # Get a couple IDs
+def test_forge_test_match_records():
     f = Forge(index="mdf")
-    res0 = f.search("mdf.source_name:khazana_vasp", advanced=True, limit=2)
-    id1 = res0[0]["mdf"]["mdf_id"]
-    id2 = res0[1]["mdf"]["mdf_id"]
+    # One record
+    f.match_records("cip", 1006)
+    res = f.search()
+    assert len(res) == 1
+    assert check_field(res, "mdf.source_name", "cip") == 0
+    assert check_field(res, "mdf.scroll_id", 1006) == 0
 
-    # One ID
-    f.match_ids(id1)
-    res1 = f.search()
-    assert res1 != []
-    assert check_field(res1, "mdf.mdf_id", id1) == 0
+    # Multi-record, strip version info
+    f.match_records("cip_v3.4", [1006, 1002])
+    res = f.search()
+    assert len(res) == 2
+    assert check_field(res, "mdf.source_name", "cip") == 0
+    assert check_field(res, "mdf.scroll_id", 1006) == 2
 
-    # Multi-ID
-    f.match_ids([id1, id2])
-    res2 = f.search()
-    # res1 is a subset of res2
-    assert len(res2) > len(res1)
-    assert all([r1 in res2 for r1 in res1])
-    assert check_field(res2, "mdf.mdf_id", id2) == 2
-
-    # No id
-    assert f.match_ids("") == f
+    # No args
+    assert f.match_records("", "") == f
 
 
 def test_forge_match_elements():
@@ -295,21 +292,19 @@ def test_forge_match_resource_types():
     assert f.match_resource_types("") == f
 
 
-# TODO: Enable this test once Organizations are deployed and actually in-use on Prod index
-@pytest.mark.xfail
 def test_forge_match_organizations():
     f = Forge(index="mdf")
     # One repo
-    f.match_organizations("DOE")
+    f.match_organizations("NIST")
     res1 = f.search()
     assert res1 != []
-    check_val1 = check_field(res1, "mdf.organizations", "DOE")
+    check_val1 = check_field(res1, "mdf.organizations", "NIST")
     assert check_val1 == 1
 
     # Multi-repo
-    f.match_organizations(["NIST", "DOE"], match_all=False)
+    f.match_organizations(["NIST", "PRISMS"], match_all=False)
     res2 = f.search()
-    assert check_field(res2, "mdf.organizations", "DOE") == 2
+    assert check_field(res2, "mdf.organizations", "PRISMS") == 2
     assert check_field(res2, "mdf.organizations", "NIST") == 2
 
     # No repos
@@ -398,11 +393,11 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch single dataset
     res1 = f.fetch_datasets_from_results(res01[0])
-    assert res1[0] == oqmd
+    assert mdf_toolbox.insensitive_comparison(res1[0], oqmd)
 
     # Fetch dataset with results + info
     res2 = f.fetch_datasets_from_results(res02)
-    assert res2[0] == oqmd
+    assert mdf_toolbox.insensitive_comparison(res2[0], oqmd)
 
     # Fetch multiple datasets
     rtemp = res01+res03
@@ -413,7 +408,7 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch dataset from dataset
     res4 = f.fetch_datasets_from_results(res04)
-    assert res4 == res04
+    assert mdf_toolbox.insensitive_comparison(res4, res04)
 
     # Fetch entries from current query
     f.match_source_names("nist_xps_db")
@@ -421,9 +416,7 @@ def test_forge_fetch_datasets_from_results():
 
     # Fetch nothing
     unknown_entry = {"mdf": {"resource_type": "unknown"}}
-    with pytest.raises(AttributeError) as excinfo:
-        assert f.fetch_datasets_from_results(unknown_entry) == []
-    assert 'No dataset records found' in str(excinfo.value)
+    assert f.fetch_datasets_from_results(unknown_entry) == []
 
 
 def test_forge_http_download(capsys):
@@ -653,3 +646,52 @@ def test_describe_field(capsys):
     f.describe_field("dataset", field="foo.bar")
     out, err = capsys.readouterr()
     assert "Error: Field 'foo' (from 'foo.bar')" in out
+
+
+def test_describe_organization(capsys):
+    f = Forge()
+    # Basic usage (with raw=True)
+    res = f.describe_organization("Argonne National Laboratory", raw=True)
+    assert res["success"]
+    assert isinstance(res["organization"], dict)
+    assert res["organization"]["canonical_name"] == "Argonne National Laboratory"
+    assert "ANL" in res["organization"]["aliases"]
+    # List
+    res = f.describe_organization("list", raw=True)
+    assert isinstance(res["organization"], list)
+    assert "Center for Hierarchical Materials Design" in res["organization"]
+    # All
+    res = f.describe_organization("all", raw=True)
+    assert isinstance(res["organization"], list)
+    assert isinstance(res["organization"][0], dict)
+    # Print to stdout
+    f.describe_organization("CHiMaD")
+    out, err = capsys.readouterr()
+    assert "canonical_name: Center for Hierarchical Materials Design" in out
+    assert "aliases: CHiMaD" in out
+    assert "permission_groups: public" in out
+    # List
+    f.describe_organization("list")
+    out, err = capsys.readouterr()
+    assert "Center for Hierarchical Materials Design" in out
+    assert "CHiMaD" not in out
+    assert "Argonne National Laboratory" in out
+    assert "ANL" not in out
+    # Summary flag
+    f.describe_organization("chimad", summary=True)
+    out, err = capsys.readouterr()
+    assert "canonical_name: Center for Hierarchical Materials Design" not in out
+    assert "Center for Hierarchical Materials Design" in out
+    assert "aliases: CHiMaD" in out
+    assert "permission_groups: public" not in out
+
+    # Errors
+    # Invalid org
+    res = f.describe_organization("foobar", raw=True)
+    assert res["success"] is False
+    assert "Error 404" in res["error"]
+    assert res["status_code"] == 404
+    # stdout
+    res = f.describe_organization("foobar")
+    out, err = capsys.readouterr()
+    assert "Error 404" in out
