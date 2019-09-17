@@ -10,8 +10,8 @@ Untitled*.ipynb
 
 *temp/*
 
-*/build/*
-*/dist/*
+**/build/
+**/dist/
 *.egg*
 
 travis.tar
