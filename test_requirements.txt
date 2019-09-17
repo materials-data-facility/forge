@@ -8,3 +8,12 @@ pandas>=0.22.0
 pytest>=3.4.1
 pytest-cov>=2.5.1
 sphinx_bootstrap_theme>=0.6.5
+seaborn
+matplotlib
+matminer
+mdf_forge
+numpy
+pymatgen
+scikit-learn
+seaborn
+tqdm
