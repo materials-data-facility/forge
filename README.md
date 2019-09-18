@@ -1,6 +1,9 @@
 # Forge
 [![PyPI](https://img.shields.io/pypi/v/mdf_forge.svg)](https://pypi.python.org/pypi/mdf-forge) [![Build Status](https://travis-ci.org/materials-data-facility/forge.svg?branch=master)](https://travis-ci.org/materials-data-facility/forge) [![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/forge/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/forge?branch=master) [![Read the Docs](https://readthedocs.org/projects/mdf-forge/badge/?version=master)](http://mdf-forge.readthedocs.io/en/master/)
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/materials-data-facility/forge/master)
+
+
 Forge is the Materials Data Facility Python package to interface and leverage the MDF Data Discovery service. Forge allows users to perform simple queries and facilitiates moving and synthesizing results.
 
 # Installation

@@ -320,13 +320,13 @@ def test_forge_match_dois():
     assert check_field(res1, "dc.identifier.identifier", "https://dx.doi.org/10.13011/M3B36G") == 0
 
     # Multiple dois
-    f.match_dois(["https://dx.doi.org/10.13011/M3B36G", "10.test/1"])
+    f.match_dois(["https://dx.doi.org/10.13011/M3B36G", "10.18126/M23P9G"])
     res2 = f.search()
 
-    # res1 is a subset of res2
+    # # res1 is ça subset of res2
     assert len(res2) > len(res1)
     assert all([r1 in res2 for r1 in res1])
-    assert check_field(res2, "dc.identifier.identifier", "10.test/1") == 2
+    assert check_field(res2, "dc.identifier.identifier", "10.18126/M23P9G") == 2
 
     # No doi
     assert f.match_dois("") == f
