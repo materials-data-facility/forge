@@ -955,7 +955,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             if error is not None:
                 print(error)
             else:
-                mdf_toolbox.print_jsonschema(schema)
+                [print(line) for line in mdf_toolbox.prettify_jsonschema(schema)]
         return
 
     def describe_organization(self, organization, summary=False, raw=False):
