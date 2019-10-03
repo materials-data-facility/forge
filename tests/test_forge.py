@@ -668,8 +668,8 @@ def test_describe_organization(capsys):
     f.describe_organization("CHiMaD")
     out, err = capsys.readouterr()
     assert "canonical_name: Center for Hierarchical Materials Design" in out
-    assert "aliases: CHiMaD" in out
-    assert "permission_groups: public" in out
+    assert "CHiMaD" in out
+    assert "public" in out
     # List
     f.describe_organization("list")
     out, err = capsys.readouterr()
@@ -682,8 +682,8 @@ def test_describe_organization(capsys):
     out, err = capsys.readouterr()
     assert "canonical_name: Center for Hierarchical Materials Design" not in out
     assert "Center for Hierarchical Materials Design" in out
-    assert "aliases: CHiMaD" in out
-    assert "permission_groups: public" not in out
+    assert "CHiMaD" in out
+    assert "public" not in out
 
     # Errors
     # Invalid org
