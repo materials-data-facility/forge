@@ -1,4 +1,3 @@
-import json
 import os
 import re
 from urllib.parse import urlparse
@@ -955,7 +954,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             if error is not None:
                 print(error)
             else:
-                mdf_toolbox.print_jsonschema(schema)
+                [print(line) for line in mdf_toolbox.prettify_jsonschema(schema)]
         return
 
     def describe_organization(self, organization, summary=False, raw=False):
@@ -1036,16 +1035,5 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                         if not org.get("parent_organizations"):
                             org.pop("parent_organizations", None)
 
-                    # Print dict as key: value
-                    # All values besides "services" are max single-depth containers
-                    for k, v in org.items():
-                        if not v:
-                            v = "None"
-                        # "services", just prettyprint the dict
-                        if isinstance(v, dict):
-                            print("\t{}: {}".format(k, json.dumps(v, indent=4)))
-                        elif isinstance(v, list):
-                            print("\t{}: {}".format(k, ", ".join([(x or "None") for x in v])))
-                        else:
-                            print("\t{}: {}".format(k, str(v)))
+                    [print(line) for line in mdf_toolbox.prettify_json(org)]
         return
