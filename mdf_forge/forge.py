@@ -26,6 +26,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
     __auth_services = ["data_mdf", "transfer", "search", "petrel"]
     __anon_services = ["search"]
     __app_name = "MDF_Forge"
+    __client_id = "b2b437c4-17c1-4e4b-8f15-e9783e1312d7"
     __transfer_interval = 60  # 1 minute, in seconds
     __inactivity_time = 1 * 60 * 60  # 1 hour, in seconds
 
@@ -78,11 +79,13 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             clients = (mdf_toolbox.anonymous_login(services) if services else {})
         else:
             services = kwargs.get('services', self.__auth_services)
-            clients = (mdf_toolbox.login(
-                                        credentials={
-                                            "app_name": self.__app_name,
-                                            "services": services},
-                                        clear_old_tokens=clear_old_tokens) if services else {})
+            if services:
+                clients = mdf_toolbox.login(services=services, app_name=self.__app_name,
+                                            client_id=self.__client_id,
+                                            clear_old_tokens=clear_old_tokens)
+            else:
+                clients = {}
+
         search_client = kwargs.pop("search_client", clients.get("search", None))
         self.__transfer_client = kwargs.get("transfer_client", clients.get("transfer", None))
         self.__data_mdf_authorizer = kwargs.get("data_mdf_authorizer",
