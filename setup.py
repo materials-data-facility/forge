@@ -1,8 +1,15 @@
+import os
 from setuptools import setup
+
+# Single source of truth for version
+version_ns = {}
+with open(os.path.join("mdf_forge", "version.py")) as f:
+    exec(f.read(), version_ns)
+version = version_ns['__version__']
 
 setup(
     name='mdf_forge',
-    version='0.7.5',
+    version=version,
     packages=['mdf_forge'],
     description='Materials Data Facility python package',
     long_description=("Forge is the Materials Data Facility Python package"
