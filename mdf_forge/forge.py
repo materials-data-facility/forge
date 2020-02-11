@@ -636,7 +636,8 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             }
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
-                        inactivity_time=None, download_datasets=False, verbose=True):
+                        inactivity_time=None, download_datasets=False, verbose=True,
+                        **kwargs):
         """Download data files from the provided results using Globus Transfer.
         This method requires Globus Connect to be installed on the destination endpoint.
 
@@ -667,8 +668,11 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             verbose (bool): If ``True``, status and progress messages will be printed,
                     and errors will prompt for continuation confirmation.
                     If ``False``, only error messages will be printed,
-                    and the Transfer will always continue.
-                    **Default:** ``True``.
+                    and the Transfer will always 
+                    
+        Keyword Arguments:
+            interval (int): Time in seconds to wait between checking transfer status.
+                            **Default:** self.__transfer_interval
 
         Returns:
             list of str: The task IDs of the Globus transfers.
@@ -771,8 +775,9 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         failed = 0
         for task_ep, task_paths in tqdm(tasks.items(), desc="Transferring data",
                                         disable=(not verbose)):
+            interval = kwargs.get('interval',self.__transfer_interval)
             transfer = mdf_toolbox.custom_transfer(self.__transfer_client, task_ep, dest_ep,
-                                                   task_paths, interval=self.__transfer_interval,
+                                                   task_paths, interval=interval,
                                                    inactivity_time=inactivity_time)
             cont = True
             # Prime loop
