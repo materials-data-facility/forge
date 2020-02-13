@@ -650,8 +650,7 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             }
 
     def globus_download(self, results, dest=".", dest_ep=None, preserve_dir=False,
-                        inactivity_time=None, download_datasets=False, verbose=True,
-                        **kwargs):
+                        download_datasets=False, verbose=True, **kwargs):
         """Download data files from the provided results using Globus Transfer.
         This method requires Globus Connect to be installed on the destination endpoint.
 
@@ -666,9 +665,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                     will be relative to the ``dest`` path
                     If ``False``, only the data files themselves will be saved.
                     **Default:** ``False``.
-            inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
-                    before being cancelled.
-                    **Default:** ``self.__inactivity_time``.
             download_datasets (bool): If ``True``, will download the full dataset for any dataset
                     entries given.
                     If ``False``, will skip dataset entries with a notification.
@@ -682,11 +678,15 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             verbose (bool): If ``True``, status and progress messages will be printed,
                     and errors will prompt for continuation confirmation.
                     If ``False``, only error messages will be printed,
-                    and the Transfer will always 
-                    
+                    and the Transfer will always continue.
+                    **Default:** ``False``.
+
         Keyword Arguments:
+            inactivity_time (int): Number of seconds the Transfer is allowed to go without progress
+                    before being cancelled.
+                    **Default:** ``self.__inactivity_time``.
             interval (int): Time in seconds to wait between checking transfer status.
-                            **Default:** self.__transfer_interval
+                            **Default:** ``self.__transfer_interval``
 
         Returns:
             list of str: The task IDs of the Globus transfers.
@@ -697,6 +697,9 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                 "success": False,
                 "message": "Anonymous Globus Transfer not supported."
                 }
+        inactivity_time = kwargs.get("inactivity_time", self.__inactivity_time)
+        interval = kwargs.get('interval', self.__transfer_interval)
+
         dest = os.path.abspath(dest)
         # If results have info attached, remove it
         if type(results) is tuple:
@@ -705,8 +708,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
             if not self.local_ep:
                 self.local_ep = globus_sdk.LocalGlobusConnectPersonal().endpoint_id
             dest_ep = self.local_ep
-        if not inactivity_time:
-            inactivity_time = self.__inactivity_time
 
         # Assemble the transfer data
         tasks = {}
@@ -789,7 +790,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         failed = 0
         for task_ep, task_paths in tqdm(tasks.items(), desc="Transferring data",
                                         disable=(not verbose)):
-            interval = kwargs.get('interval',self.__transfer_interval)
             transfer = mdf_toolbox.custom_transfer(self.__transfer_client, task_ep, dest_ep,
                                                    task_paths, interval=interval,
                                                    inactivity_time=inactivity_time)
