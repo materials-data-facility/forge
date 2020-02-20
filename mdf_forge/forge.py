@@ -620,11 +620,13 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
 
                         headers = {}
                         # Check for Petrel vs. NCSA url for authorizer
-                        # Petrel
-                        if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                        # Assume Petrel is any *.e.globus.org
+                        if parsed_url.netloc.endswith(".e.globus.org"):
                             authorizer = self.__petrel_authorizer
+                        # NCSA
                         elif parsed_url.netloc == "data.materialsdatafacility.org":
                             authorizer = self.__data_mdf_authorizer
+                        # Unknown, should require no auth
                         else:
                             authorizer = globus_sdk.NullAuthorizer()
                         authorizer.set_authorization_header(headers)
@@ -875,8 +877,8 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                     parsed_url = urlparse(url)
                     headers = {}
                     # Check for Petrel vs. NCSA url for authorizer
-                    # Petrel
-                    if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
+                    # Assume Petrel is any *.e.globus.org
+                    if parsed_url.netloc.endswith(".e.globus.org"):
                         authorizer = self.__petrel_authorizer
                     elif parsed_url.netloc == "data.materialsdatafacility.org":
                         authorizer = self.__data_mdf_authorizer
