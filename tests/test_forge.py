@@ -7,7 +7,7 @@ import pytest
 
 from mdf_forge import Forge
 
-def basic_check(res, field, regex):
+def test_basic_check(res, field, regex):
     return True
 
 
