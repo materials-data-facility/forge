@@ -36,11 +36,12 @@ auths = mdf_toolbox.confidential_login(client_id=client_id,
 print(auths)
 
 
-# f = Forge(index="mdf", 
-#           search_client=clients["search"],
-#           transfer_client=clients["transfer"],
-#           data_mdf_authorizer=auths['data_mdf'],
-#           petrel_authorizer=auths['petrel'])
+f = Forge(index="mdf", 
+          search_client=clients["search"],
+          transfer_client=clients["transfer"],
+          data_mdf_authorizer=auths['data_mdf'],
+          petrel_authorizer=auths['petrel'], 
+          no_local_server=True, no_browser=True)
 
 # # Sample results for download testing
 # example_result1 = {
