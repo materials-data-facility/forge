@@ -627,12 +627,12 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                             authorizer = self.__data_mdf_authorizer
                         else:
                             authorizer = globus_sdk.NullAuthorizer()
-                        authorizer.set_authorization_header(headers)
+                        headers["Authorization"] = authorizer.get_authorization_header()
                         response = requests.get(url, headers=headers)
                         # Handle first 401 by regenerating auth headers
                         if response.status_code == 401:
                             authorizer.handle_missing_authorization()
-                            authorizer.set_authorization_header(headers)
+                            headers["Authorization"] = authorizer.get_authorization_header()
                             response = requests.get(url, headers=headers)
                         # Handle other errors by passing the buck to the user
                         if response.status_code != 200:
@@ -873,7 +873,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                 url = dl.get("url", None)
                 if url:
                     parsed_url = urlparse(url)
-                    headers = {}
                     # Check for Petrel vs. NCSA url for authorizer
                     # Petrel
                     if parsed_url.netloc == "e38ee745-6d04-11e5-ba46-22000b92c6ec.e.globus.org":
@@ -882,12 +881,14 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
                         authorizer = self.__data_mdf_authorizer
                     else:
                         authorizer = globus_sdk.NullAuthorizer()
-                    authorizer.set_authorization_header(headers)
+                    
+                    headers = {}
+                    headers["Authorization"] = authorizer.get_authorization_header()
                     response = requests.get(url, headers=headers)
                     # Handle first 401 by regenerating auth headers
                     if response.status_code == 401:
                         authorizer.handle_missing_authorization()
-                        authorizer.set_authorization_header(headers)
+                        headers["Authorization"] = authorizer.get_authorization_header()
                         response = requests.get(url, headers=headers)
                     # Handle other errors by passing the buck to the user
                     if response.status_code != 200:
@@ -919,7 +920,6 @@ class Forge(mdf_toolbox.AggregateHelper, mdf_toolbox.SearchHelper):
         """
         if field == "None" or field == "all":
             field = None
-
         res = requests.get(self._schemas_url+resource_type)
         # Check for success
         error = None
