@@ -16,10 +16,15 @@ clients = mdf_toolbox.confidential_login(client_id=client_id,
                                         services=["transfer", "search"],
                                         make_clients=True)
 
+print(clients)
+
 auths = mdf_toolbox.confidential_login(client_id=client_id,
                                         client_secret=client_secret,
                                         services=["data_mdf", "petrel"],
+             
                                         make_clients=False)
+
+print(auths)
 
 f = Forge(index="mdf", 
           search_client=clients["search"],
