@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: [3.7, 3.8, 3.9]
 
     env:
       CLIENT_ID: ${{ secrets.CLIENT_ID }}
