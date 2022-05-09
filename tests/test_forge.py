@@ -11,6 +11,8 @@ from mdf_forge import Forge
 client_id = os.getenv('CLIENT_ID')
 client_secret = os.getenv('CLIENT_SECRET')
 
+print("Starting tests....")
+
 clients = mdf_toolbox.confidential_login(client_id=client_id,
                                         client_secret=client_secret,
                                         services=["transfer", "search"],
