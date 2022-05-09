@@ -41,140 +41,142 @@ f = Forge(index="mdf",
           transfer_client=clients["transfer"],
           data_mdf_authorizer=auths['data_mdf'],
           petrel_authorizer=auths['petrel'], 
-          no_local_server=True, no_browser=True)
+          services=None,
+          no_local_server=True, 
+          no_browser=True)
 
-# # Sample results for download testing
-# example_result1 = {
-#     "mdf": {
-#         "resource_type": "record"
-#     },
-#     "files": [{
-#         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
-#         "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
-#     }]
-# }
-# example_result2 = [{
-#     "mdf": {
-#         "resource_type": "record"
-#     },
-#     "files": [{
-#         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
-#         "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
-#     }]
-# }, {
-#     "mdf": {
-#         "resource_type": "record"
-#     },
-#     "files": [{
-#         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
-#         "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
-#     }]
-# }]
-# example_result3 = {
-#     "mdf": {
-#         "resource_type": "record"
-#     },
-#     "files": [{
-#         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
-#         "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
-#     }, {
-#         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
-#         "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
-#     }]
-# }
-# # NOTE: This example file does not exist
-# example_result_missing = {
-#     "mdf": {
-#         "resource_type": "record"
-#     },
-#     "files": [{
-#         "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/should_not_exist.txt",
-#         "url": "https://data.materialsdatafacility.org/test/should_not_exist.txt"
-#     }]
-# }
-# example_dataset = {
-#     "mdf": {
-#         "resource_type": "dataset",
-#         "source_id": "foobar_v1"
-#     },
-#     "data": {
-#         "endpoint_path": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
-#                           "/MDF/mdf_connect/test_files/")
-#     }
-# }
-# example_bad_resource = {
-#     "mdf": {
-#         "resource_type": "foobar"
-#     }
-# }
-
-
-# # Helper
-# # Return codes:
-# #  -1: No match, the value was never found
-# #   0: Exclusive match, no values other than argument found
-# #   1: Inclusive match, some values other than argument found
-# #   2: Partial match, value is found in some but not all results
-# def check_field(res, field, regex):
-#     dict_path = ""
-#     for key in field.split("."):
-#         if key == "[]":
-#             dict_path += "[0]"
-#         else:
-#             dict_path += ".get('{}', {})".format(key, "{}")
-#     # If no results, set matches to false
-#     all_match = (len(res) > 0)
-#     only_match = (len(res) > 0)
-#     some_match = False
-#     for r in res:
-#         vals = eval("r"+dict_path)
-#         if vals == {}:
-#             vals = []
-#         elif type(vals) is not list:
-#             vals = [vals]
-#         # If a result does not contain the value, no match
-#         if regex not in vals and not any([re.search(str(regex), str(value)) for value in vals]):
-#             all_match = False
-#             only_match = False
-#         # If a result contains other values, inclusive match
-#         elif len(vals) != 1:
-#             only_match = False
-#             some_match = True
-#         else:
-#             some_match = True
-
-#     if only_match:
-#         # Exclusive match
-#         return 0
-#     elif all_match:
-#         # Inclusive match
-#         return 1
-#     elif some_match:
-#         # Partial match
-#         return 2
-#     else:
-#         # No match
-#         return -1
+# Sample results for download testing
+example_result1 = {
+    "mdf": {
+        "resource_type": "record"
+    },
+    "files": [{
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
+        "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
+    }]
+}
+example_result2 = [{
+    "mdf": {
+        "resource_type": "record"
+    },
+    "files": [{
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
+        "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
+    }]
+}, {
+    "mdf": {
+        "resource_type": "record"
+    },
+    "files": [{
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
+        "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
+    }]
+}]
+example_result3 = {
+    "mdf": {
+        "resource_type": "record"
+    },
+    "files": [{
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_fetch.txt",
+        "url": "https://data.materialsdatafacility.org/test/test_fetch.txt"
+    }, {
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/test_multifetch.txt",
+        "url": "https://data.materialsdatafacility.org/test/test_multifetch.txt"
+    }]
+}
+# NOTE: This example file does not exist
+example_result_missing = {
+    "mdf": {
+        "resource_type": "record"
+    },
+    "files": [{
+        "globus": "globus://82f1b5c6-6e9b-11e5-ba47-22000b92c6ec/test/should_not_exist.txt",
+        "url": "https://data.materialsdatafacility.org/test/should_not_exist.txt"
+    }]
+}
+example_dataset = {
+    "mdf": {
+        "resource_type": "dataset",
+        "source_id": "foobar_v1"
+    },
+    "data": {
+        "endpoint_path": ("globus://e38ee745-6d04-11e5-ba46-22000b92c6ec"
+                          "/MDF/mdf_connect/test_files/")
+    }
+}
+example_bad_resource = {
+    "mdf": {
+        "resource_type": "foobar"
+    }
+}
 
 
-# def test_forge_match_source_names():
-#     # One source
-#     f.match_source_names("khazana_vasp")
-#     res1 = f.search()
-#     assert res1 != []
-#     assert check_field(res1, "mdf.source_name", "khazana_vasp") == 0
+# Helper
+# Return codes:
+#  -1: No match, the value was never found
+#   0: Exclusive match, no values other than argument found
+#   1: Inclusive match, some values other than argument found
+#   2: Partial match, value is found in some but not all results
+def check_field(res, field, regex):
+    dict_path = ""
+    for key in field.split("."):
+        if key == "[]":
+            dict_path += "[0]"
+        else:
+            dict_path += ".get('{}', {})".format(key, "{}")
+    # If no results, set matches to false
+    all_match = (len(res) > 0)
+    only_match = (len(res) > 0)
+    some_match = False
+    for r in res:
+        vals = eval("r"+dict_path)
+        if vals == {}:
+            vals = []
+        elif type(vals) is not list:
+            vals = [vals]
+        # If a result does not contain the value, no match
+        if regex not in vals and not any([re.search(str(regex), str(value)) for value in vals]):
+            all_match = False
+            only_match = False
+        # If a result contains other values, inclusive match
+        elif len(vals) != 1:
+            only_match = False
+            some_match = True
+        else:
+            some_match = True
 
-#     # Multi-source, strip version info
-#     f.match_source_names(["khazana_vasp", "ta_melting_v3.4"])
-#     res2 = f.search()
+    if only_match:
+        # Exclusive match
+        return 0
+    elif all_match:
+        # Inclusive match
+        return 1
+    elif some_match:
+        # Partial match
+        return 2
+    else:
+        # No match
+        return -1
 
-#     # res1 is a subset of res2
-#     assert len(res2) > len(res1)
-#     assert all([r1 in res2 for r1 in res1])
-#     assert check_field(res2, "mdf.source_name", "ta_melting") == 2
 
-#     # No source
-#     assert f.match_source_names("") == f
+def test_forge_match_source_names():
+    # One source
+    f.match_source_names("khazana_vasp")
+    res1 = f.search()
+    assert res1 != []
+    assert check_field(res1, "mdf.source_name", "khazana_vasp") == 0
+
+    # Multi-source, strip version info
+    f.match_source_names(["khazana_vasp", "ta_melting_v3.4"])
+    res2 = f.search()
+
+    # res1 is a subset of res2
+    assert len(res2) > len(res1)
+    assert all([r1 in res2 for r1 in res1])
+    assert check_field(res2, "mdf.source_name", "ta_melting") == 2
+
+    # No source
+    assert f.match_source_names("") == f
 
 
 # def test_forge_test_match_records():
