@@ -24,17 +24,17 @@ def test_basic_check():
 
 
 
-# print("Starting tests....")
+print("Starting tests....")
 
 
 
-# auths = mdf_toolbox.confidential_login(client_id=client_id,
-#                                         client_secret=client_secret,
-#                                         services=["data_mdf", "petrel"],
-             
-#                                         make_clients=False)
+auths = mdf_toolbox.confidential_login(client_id=client_id,
+                                        client_secret=client_secret,
+                                        services=["data_mdf", "petrel"],
+                                        make_clients=False)
 
-# print(auths)
+print(auths)
+
 
 # f = Forge(index="mdf", 
 #           search_client=clients["search"],
