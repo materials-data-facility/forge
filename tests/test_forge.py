@@ -7,6 +7,25 @@ import pytest
 
 from mdf_forge import Forge
 
+#github specific declarations
+client_id = os.getenv('CLIENT_ID')
+client_secret = os.getenv('CLIENT_SECRET')
+
+clients = mdf_toolbox.confidential_login(client_id=client_id,
+                                        client_secret=client_secret,
+                                        services=["transfer", "search"],
+                                        make_clients=True)
+
+auths = mdf_toolbox.confidential_login(client_id=client_id,
+                                        client_secret=client_secret,
+                                        services=["data_mdf", "petrel"],
+                                        make_clients=False)
+
+f = Forge(index="mdf", 
+          search_client=clients["search"],
+          transfer_client=clients["transfer"],
+          data_mdf_authorizer=auths['data_mdf'],
+          petrel_authorizer=auths['petrel'])
 
 # Sample results for download testing
 example_result1 = {
@@ -123,7 +142,6 @@ def check_field(res, field, regex):
 
 
 def test_forge_match_source_names():
-    f = Forge(index="mdf")
     # One source
     f.match_source_names("khazana_vasp")
     res1 = f.search()
@@ -144,7 +162,6 @@ def test_forge_match_source_names():
 
 
 def test_forge_test_match_records():
-    f = Forge(index="mdf")
     # One record
     f.match_records("cip", 1006)
     res = f.search()
@@ -164,7 +181,6 @@ def test_forge_test_match_records():
 
 
 def test_forge_match_elements():
-    f = Forge(index="mdf")
     # One element
     f.match_elements("Al")
     res1 = f.search(limit=20)
@@ -184,7 +200,6 @@ def test_forge_match_elements():
 
 def test_forge_match_titles():
     # One title
-    f = Forge(index="mdf")
     titles1 = '"High-throughput Ab-initio Dilute Solute Diffusion Database"'
     res1 = f.match_titles(titles1).search()
     assert res1 != []
@@ -206,7 +221,6 @@ def test_forge_match_titles():
 
 def test_forge_match_years(capsys):
     # One year of data/results
-    f = Forge(index="mdf")
     res1 = f.match_years("2015").search()
     assert res1 != []
     assert check_field(res1, "dc.publicationYear", 2015) == 0
@@ -247,7 +261,6 @@ def test_forge_match_years(capsys):
 
 
 def test_forge_match_resource_types():
-    f = Forge(index="mdf")
     # Test one type
     f.match_resource_types("record")
     res1 = f.search(limit=10)
@@ -263,7 +276,6 @@ def test_forge_match_resource_types():
 
 
 def test_forge_match_organizations():
-    f = Forge(index="mdf")
     # One repo
     f.match_organizations("NIST")
     res1 = f.search()
@@ -282,7 +294,6 @@ def test_forge_match_organizations():
 
 
 def test_forge_match_dois():
-    f = Forge(index="mdf")
     # One doi
     f.match_dois("https://dx.doi.org/10.13011/M3B36G")
     res1 = f.search()
@@ -303,7 +314,6 @@ def test_forge_match_dois():
 
 
 def test_forge_search_by_elements():
-    f = Forge(index="mdf")
     elements = ["Cu", "Al"]
     sources = ["oqmd", "nist_xps_db"]
     res1, info1 = f.match_source_names(sources).match_elements(elements).search(limit=10000,
@@ -315,7 +325,6 @@ def test_forge_search_by_elements():
 
 
 def test_forge_search_by_titles():
-    f = Forge(index="mdf")
     titles1 = ['"High-throughput Ab-initio Dilute Solute Diffusion Database"']
     res1 = f.search_by_titles(titles1)
     assert check_field(res1, "dc.titles.[].title",
@@ -328,7 +337,6 @@ def test_forge_search_by_titles():
 
 
 def test_forge_search_by_dois():
-    f = Forge(index="mdf")
     res1 = f.search_by_dois("https://dx.doi.org/10.13011/M3B36G")
     assert check_field(res1, "dc.identifier.identifier", "https://dx.doi.org/10.13011/M3B36G") == 0
 
@@ -344,7 +352,6 @@ def test_forge_search_by_dois():
 
 def test_forge_fetch_datasets_from_results():
     # Get some results
-    f = Forge(index="mdf")
     # Record from OQMD
     res01 = f.search("mdf.source_name:oqmd AND mdf.resource_type:record", advanced=True, limit=1)
     # Record from OQMD with info
@@ -390,7 +397,6 @@ def test_forge_fetch_datasets_from_results():
 
 
 def test_forge_http_download(capsys):
-    f = Forge(index="mdf")
     # Simple case
     f.http_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
@@ -459,7 +465,6 @@ def test_forge_http_download(capsys):
 
 @pytest.mark.xfail(reason="Test should have a local endpoint.")
 def test_forge_globus_download():
-    f = Forge(index="mdf")
     # Simple case
     f.globus_download(example_result1)
     assert os.path.exists("./test_fetch.txt")
@@ -487,7 +492,6 @@ def test_forge_globus_download():
 
 
 def test_forge_http_stream(capsys):
-    f = Forge(index="mdf")
     # Simple case
     res1 = f.http_stream(example_result1)
     assert isinstance(res1, types.GeneratorType)
@@ -521,7 +525,6 @@ def test_forge_http_stream(capsys):
 
 
 def test_forge_chaining():
-    f = Forge(index="mdf")
     f.match_field("source_name", "cip")
     f.match_field("material.elements", "Al")
     res1 = f.search()
@@ -529,36 +532,35 @@ def test_forge_chaining():
     assert all([r in res2 for r in res1]) and all([r in res1 for r in res2])
 
 
-def test_forge_anonymous(capsys):
-    f = Forge(anonymous=True)
-    # Test search
-    assert len(f.search("mdf.source_name:ab_initio_solute_database",
-                        advanced=True, limit=10)) == 10
+# def test_forge_anonymous(capsys):
+#     f = Forge(anonymous=True)
+#     # Test search
+#     assert len(f.search("mdf.source_name:ab_initio_solute_database",
+#                         advanced=True, limit=10)) == 10
 
-    # # Test aggregation
-    # assert len(f.aggregate("mdf.source_name:nist_xps_db")) > 10000
+#     # # Test aggregation
+#     # assert len(f.aggregate("mdf.source_name:nist_xps_db")) > 10000
 
-    # Error on auth-only functions
-    # http_download
-    assert f.http_download({})["success"] is False
-    out, err = capsys.readouterr()
-    assert "Error: Anonymous HTTP download not yet supported." in out
-    # globus_download
-    assert f.globus_download({})["success"] is False
-    out, err = capsys.readouterr()
-    assert "Error: Anonymous Globus Transfer not supported." in out
-    # http_stream
-    res = f.http_stream({})
-    assert next(res)["success"] is False
-    out, err = capsys.readouterr()
-    assert "Error: Anonymous HTTP download not yet supported." in out
-    with pytest.raises(StopIteration):
-        next(res)
+#     # Error on auth-only functions
+#     # http_download
+#     assert f.http_download({})["success"] is False
+#     out, err = capsys.readouterr()
+#     assert "Error: Anonymous HTTP download not yet supported." in out
+#     # globus_download
+#     assert f.globus_download({})["success"] is False
+#     out, err = capsys.readouterr()
+#     assert "Error: Anonymous Globus Transfer not supported." in out
+#     # http_stream
+#     res = f.http_stream({})
+#     assert next(res)["success"] is False
+#     out, err = capsys.readouterr()
+#     assert "Error: Anonymous HTTP download not yet supported." in out
+#     with pytest.raises(StopIteration):
+#         next(res)
 
 
 def test_get_dataset_version():
     # Get the version number of the OQMD
-    f = Forge()
     hits = f.search('mdf.source_name:oqmd AND mdf.resource_type:dataset',
                     advanced=True, limit=1)
     assert hits[0]['mdf']['version'] == f.get_dataset_version('oqmd')
@@ -617,7 +619,6 @@ def test_get_dataset_version():
 
 
 def test_describe_organization(capsys):
-    f = Forge()
     # Basic usage (with raw=True)
     res = f.describe_organization("Argonne National Laboratory", raw=True)
     assert res["success"]
