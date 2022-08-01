@@ -1,5 +1,7 @@
 # Forge
-[![PyPI](https://img.shields.io/pypi/v/mdf_forge.svg)](https://pypi.python.org/pypi/mdf-forge) [![Build Status](https://travis-ci.org/materials-data-facility/forge.svg?branch=master)](https://travis-ci.org/materials-data-facility/forge) [![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/forge/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/forge?branch=master) [![Read the Docs](https://readthedocs.org/projects/mdf-forge/badge/?version=master)](http://mdf-forge.readthedocs.io/en/master/)
+[![PyPI](https://img.shields.io/pypi/v/mdf_forge.svg)](https://pypi.python.org/pypi/mdf-forge)
+[![Coverage Status](https://coveralls.io/repos/github/materials-data-facility/forge/badge.svg?branch=master)](https://coveralls.io/github/materials-data-facility/forge?branch=master)
+![GHA](https://github.com/materials-data-facility/forge/actions/workflows/testing.yml/badge.svg)
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/materials-data-facility/forge/master)
 
